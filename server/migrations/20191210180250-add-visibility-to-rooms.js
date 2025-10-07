@@ -9,6 +9,7 @@ module.exports = {
 		});
 	},
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	down: (queryInterface, Sequelize) => {
 		return queryInterface.removeColumn("Rooms", "visibility");
 	},

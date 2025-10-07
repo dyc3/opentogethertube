@@ -1,26 +1,26 @@
+import dayjs from "dayjs";
+import _ from "lodash";
+import { RoomRequestType } from "ott-common/models/messages.js";
+import { type AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
+import type { Video, VideoId } from "ott-common/models/video.js";
+import permissions from "ott-common/permissions.js";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
 	vi,
-	MockInstance,
 } from "vitest";
-import dayjs from "dayjs";
-import tokens, { SessionInfo } from "../../auth/tokens.js";
-import { RoomRequestType } from "ott-common/models/messages.js";
-import { AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
-import { Room, RoomUser } from "../../room.js";
+import tokens, { type SessionInfo } from "../../auth/tokens.js";
 import infoextractor from "../../infoextractor.js";
-import { Video, VideoId } from "ott-common/models/video.js";
-import permissions from "ott-common/permissions.js";
-import _ from "lodash";
-import { VideoQueue } from "../../videoqueue.js";
 import { loadModels } from "../../models/index.js";
 import { buildClients } from "../../redisclient.js";
+import { Room, RoomUser } from "../../room.js";
+import { VideoQueue } from "../../videoqueue.js";
 
 describe("Room", () => {
 	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
@@ -273,11 +273,13 @@ describe("Room", () => {
 					},
 					{ username: "test", role: Role.Owner, clientId: "1234" }
 				);
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				expect(Array.from(room.votes.get("directabc123")!)).toEqual(["1234"]);
 			});
 		});
 
 		describe("ShuffleRequest", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let shuffleSpy;
 
 			beforeEach(() => {

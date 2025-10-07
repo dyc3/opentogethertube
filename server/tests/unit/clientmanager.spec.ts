@@ -1,25 +1,27 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import type { Request } from "express";
+import type { OttWebsocketError } from "ott-common/models/types.js";
+import { ok, type Result } from "ott-common/result.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	BalancerConnection,
+	type BalancerConnectionEventHandlers,
+	type BalancerConnectionEvents,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
+	BalancerConnectionReal,
+	balancerManager,
+	type MsgM2B,
+} from "../../balancer.js";
+import { BalancerClient, Client } from "../../client.js";
 import clientmanager, {
 	parseWebsocketConnectionUrl,
 	setupBalancerManager,
 } from "../../clientmanager.js";
-import {
-	BalancerConnection,
-	BalancerConnectionEventHandlers,
-	BalancerConnectionEvents,
-	BalancerConnectionReal,
-	MsgM2B,
-	balancerManager,
-} from "../../balancer.js";
-import { BalancerClient, Client } from "../../client.js";
-import { OttWebsocketError } from "ott-common/models/types.js";
-import { buildClients } from "../../redisclient.js";
-import { Result, ok } from "ott-common/result.js";
-import roommanager from "../../roommanager.js";
+import { type M2BInit, type MsgB2M, UnloadReason } from "../../generated.js";
 import { loadModels } from "../../models/index.js";
-import type { Request } from "express";
-import { loadConfigFile, conf } from "../../ott-config.js";
-import { type M2BInit, UnloadReason, type MsgB2M } from "../../generated.js";
+import { conf, loadConfigFile } from "../../ott-config.js";
+import { buildClients } from "../../redisclient.js";
+import roommanager from "../../roommanager.js";
 
 class TestClient extends Client {
 	sendRawMock = vi.fn();
@@ -43,6 +45,7 @@ class BalancerConnectionMock extends BalancerConnection {
 	sendMock = vi.fn<[MsgM2B], void>();
 	disconnectMock = vi.fn<[], void>();
 
+	// biome-ignore lint/complexity/noUselessConstructor: biome migration
 	constructor() {
 		super();
 	}
@@ -186,8 +189,9 @@ describe("ClientManager", () => {
 		const client4 = new BalancerClient("foo", "bar", mockBalancerCon2);
 		const client5 = new BalancerClient("foo", "foo2", mockBalancerCon);
 		const clients = [client1, client2, client3, client4, client5];
-		for (let [i, client] of clients.entries()) {
+		for (const [i, client] of clients.entries()) {
 			clientmanager.addClient(client);
+			// biome-ignore lint/style/useTemplate: biome migration
 			client.emit("auth", client, "token" + i, { isLoggedIn: false, username: "foo" + i });
 		}
 		await new Promise(resolve => setTimeout(resolve, 100));

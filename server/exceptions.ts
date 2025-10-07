@@ -1,12 +1,13 @@
-import { URL } from "url";
 import { OttException } from "ott-common/exceptions.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import { URL } from "url";
 
 // export type OttException = UnsupportedServiceException | InvalidAddPreviewInputException | OutOfQuotaException | InvalidVideoIdException | FeatureDisabledException | UnsupportedMimeTypeException | LocalFileException | MissingMetadataException | IncompleteServiceAdapterException | PermissionDeniedException | ImpossiblePromotionException | InvalidRoleException | RoomNotFoundException | RoomAlreadyLoadedException | RoomNameTakenException | VideoAlreadyQueuedException | VideoNotFoundException | BadApiArgumentException
 
 export class UnsupportedServiceException extends OttException {
 	constructor(url: string) {
 		let msg = "";
-		let parsed = new URL(url);
+		const parsed = new URL(url);
 		if (parsed.pathname && /\/*\.([a-z0-9])$/i.exec(parsed.pathname.split("?")[0])) {
 			msg = `If this is a direct link to a video file, please open a "service support request" issue on github, so we can see if this file format works. Otherwise, "${url}" is not a valid URL for any supported service.`;
 		} else {
@@ -50,7 +51,7 @@ export class UpstreamInvidiousException extends Error {
 			? "The video provider is rate limiting requests right now. Please try again later or choose another instance."
 			: `The video provider returned an error${
 					opts.status ? ` (HTTP ${opts.status})` : ""
-			  }. Please try again later.`;
+				}. Please try again later.`;
 
 		super(userMessage);
 		this.name = "UpstreamInvidiousException";

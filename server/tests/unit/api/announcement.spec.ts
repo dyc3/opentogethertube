@@ -1,26 +1,28 @@
+import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants.js";
+import type { AuthToken } from "ott-common/models/types.js";
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
 	vi,
-	MockInstance,
 } from "vitest";
-import request from "supertest";
-import { main } from "../../../app.js";
 import { setApiKey } from "../../../admin.js";
-import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants.js";
-import { redisClient } from "../../../redisclient.js";
+import { main } from "../../../app.js";
 import tokens, { type SessionInfo } from "../../../auth/tokens.js";
-import type { AuthToken } from "ott-common/models/types.js";
+import { redisClient } from "../../../redisclient.js";
 
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("Announcements API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	let publishSpy: MockInstance<any, Promise<number>>;
 	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
 	let validateSpy: MockInstance<[AuthToken], Promise<boolean>>;

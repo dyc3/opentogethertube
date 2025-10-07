@@ -1,25 +1,28 @@
+import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
+import type { MockMailer } from "server/mailer.js";
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
 	MockInstance,
+	vi,
 } from "vitest";
-import request from "supertest";
 import { main } from "../../../app.js";
-import usermanager from "../../../usermanager.js";
 import type { User } from "../../../models/user.js";
-import type { MockMailer } from "server/mailer.js";
 import { conf } from "../../../ott-config.js";
 import { redisClient } from "../../../redisclient.js";
-import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
+import usermanager from "../../../usermanager.js";
 
 describe("Account Recovery", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let token;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let emailUser: User;
 	let noEmailUser: User;
@@ -39,12 +42,13 @@ describe("Account Recovery", () => {
 			password: "test1234",
 		});
 
-		let resp = await request(app).get("/api/auth/grant").expect(200);
+		const resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 
 		conf.set("mail.enabled", true);
 	});
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	beforeEach(async () => {});
 
 	afterEach(() => {
@@ -99,6 +103,7 @@ describe("Account Recovery", () => {
 
 	it.each([{}, { email: "doesnot@exi.st" }])(
 		"should not send a recovery email when the request is bad: %s",
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		async (body: any) => {
 			const resp = await request(app)
 				.post("/api/user/recover/start")
@@ -137,6 +142,7 @@ describe("Account Recovery", () => {
 		{ newPassword: "test5678" },
 		{ verifyKey: "foo", newPassword: "asdf" },
 		{ verifyKey: "bar", newPassword: "asdf1234" },
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	])("should not change the password when the request is bad: %s", async (body: any) => {
 		await redisClient.set("accountrecovery:foo", "email@localhost.com");
 

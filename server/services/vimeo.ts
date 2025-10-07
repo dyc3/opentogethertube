@@ -1,9 +1,10 @@
+import axios, { type AxiosResponse } from "axios";
+import type { Video } from "ott-common/models/video.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import { URL } from "url";
-import axios, { AxiosResponse } from "axios";
-import { ServiceAdapter } from "../serviceadapter.js";
 import { InvalidVideoIdException } from "../exceptions.js";
-import { Video } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("vimeo");
 
@@ -32,6 +33,7 @@ export default class VimeoAdapter extends ServiceAdapter {
 		return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	isCollectionURL(link: string): boolean {
 		return false;
 	}

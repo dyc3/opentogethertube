@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { parseIso8601Duration } from "../../../../services/parsing/iso8601.js";
 
 describe("parse iso8601 duration", () => {

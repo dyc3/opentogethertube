@@ -1,40 +1,49 @@
-import express from "express";
-import WebSocket from "ws";
+import type express from "express";
+import type { Request } from "express";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import _ from "lodash";
-import { wss } from "./websockets.js";
-import { getLogger } from "./logger.js";
-import { Request } from "express";
-import { createSubscriber, redisClient } from "./redisclient.js";
-import {
-	ClientMessage,
-	ClientMessageKickMe,
-	RoomRequest,
-	RoomRequestType,
-	ServerMessage,
-	ServerMessageSync,
-	ServerMessageUser,
-	ServerMessageYou,
-} from "ott-common/models/messages.js";
-import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
-import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types.js";
-import roommanager from "./roommanager.js";
 import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import tokens, { SessionInfo } from "./auth/tokens.js";
-import { RoomStateSyncable } from "./room.js";
-import { Gauge } from "prom-client";
-import { replacer } from "ott-common/serialize.js";
-import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";
+import { OttException } from "ott-common/exceptions.js";
 import {
-	BalancerConnection,
-	MsgB2M,
+	type ClientMessage,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
+	ClientMessageKickMe,
+	type RoomRequest,
+	RoomRequestType,
+	type ServerMessage,
+	type ServerMessageSync,
+	type ServerMessageUser,
+	type ServerMessageYou,
+} from "ott-common/models/messages.js";
+import {
+	type AuthToken,
+	type ClientId,
+	type MySession,
+	OttWebsocketError,
+} from "ott-common/models/types.js";
+import { replacer } from "ott-common/serialize.js";
+import { Gauge } from "prom-client";
+import type WebSocket from "ws";
+import tokens, { type SessionInfo } from "./auth/tokens.js";
+import {
+	type BalancerConnection,
 	balancerManager,
 	buildGossipMessage,
 	initBalancerConnections,
+	type MsgB2M,
 } from "./balancer.js";
-import usermanager from "./usermanager.js";
-import { OttException } from "ott-common/exceptions.js";
-import { conf } from "./ott-config.js";
+import { BalancerClient, type Client, ClientJoinStatus, DirectClient } from "./client.js";
+import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
 import { UnloadReason } from "./generated.js";
+import { getLogger } from "./logger.js";
+import { conf } from "./ott-config.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { createSubscriber, redisClient } from "./redisclient.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { RoomStateSyncable } from "./room.js";
+import roommanager from "./roommanager.js";
+import usermanager from "./usermanager.js";
+import { wss } from "./websockets.js";
 
 const log = getLogger("clientmanager");
 
@@ -124,6 +133,7 @@ export function addClient(client: Client) {
 	client.on("disconnect", onClientDisconnect);
 }
 
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 async function onClientAuth(client: Client, token: AuthToken, session: SessionInfo) {
 	const result = await roommanager.getRoom(client.room);
 	if (!result.ok) {
@@ -184,7 +194,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
 			return;
 		} else if (msg.action === "status") {
-			let request: RoomRequest = {
+			const request: RoomRequest = {
 				type: RoomRequestType.UpdateUser,
 				info: {
 					id: client.id,
@@ -196,6 +206,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			await makeRoomRequest(client, msg.request);
 		} else if (msg.action === "notify") {
 			if (msg.message === "usernameChanged") {
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				onUserModified(client.token!);
 			} else {
 				log.warn(`Unknown notify message: ${msg.message}`);
@@ -224,14 +235,16 @@ async function onClientDisconnect(client: Client) {
 	log.debug(`Client ${client.id} disconnected`);
 	const index = connections.indexOf(client);
 	if (index !== -1) {
-		let clients = connections.splice(index, 1);
+		const clients = connections.splice(index, 1);
 		if (clients.length !== 1) {
 			log.error("failed to remove client from connections");
 			return;
 		}
-		let client = clients[0];
-		let joins = roomJoins.get(client.room);
+		// biome-ignore lint/nursery/noShadow: biome migration
+		const client = clients[0];
+		const joins = roomJoins.get(client.room);
 		if (joins) {
+			// biome-ignore lint/nursery/noShadow: biome migration
 			const index = joins.indexOf(client);
 			if (index !== -1) {
 				joins.splice(index, 1);
@@ -297,6 +310,7 @@ function onBalancerDisconnect(conn: BalancerConnection) {
 }
 
 async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+	// biome-ignore lint/style/useTemplate: biome migration
 	log.silly("balancer message: " + JSON.stringify(message));
 
 	/**
@@ -312,16 +326,19 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 
 	// the intersection type makes it so that it throws a compile error if all the enum variants aren't handled
 	const handlers: Record<MsgB2M["type"], unknown> & EnumHandler<MsgB2M> = {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		load: async message => {
 			log.debug(`Balancer requested to load room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.getRoom(msg.room);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		unload: async message => {
 			log.debug(`Balancer requested to unload room ${message.payload.room}`);
 			const msg = message.payload;
 			await roommanager.unloadRoom(msg.room, UnloadReason.Commanded);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		join: async message => {
 			const msg = message.payload;
 			const client = new BalancerClient(msg.room, msg.client, conn);
@@ -331,6 +348,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 			client.on("disconnect", onClientDisconnect);
 			client.auth(msg.token);
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		leave: async message => {
 			const msg = message.payload;
 			const client = connections.find(c => c.id === msg.client);
@@ -342,6 +360,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				);
 			}
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		client_msg: async message => {
 			const msg = message.payload;
 			const client = connections.find(c => c.id === msg.client_id);
@@ -353,6 +372,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				);
 			}
 		},
+		// biome-ignore lint/nursery/noShadow: biome migration
 		init: async message => {
 			const msg = message.payload;
 			conn.id = msg.id;
@@ -365,6 +385,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 		log.error(`Unknown balancer message type: ${(message as { type: string }).type}`);
 		return;
 	}
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	await handler(message as any); // this cast is safe because the type is checked and narrowed above
 }
 
@@ -434,6 +455,7 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	await broadcast(roomName, msg);
 }
 
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 async function handleCommand(roomName: string, command: ClientManagerCommand) {
 	if (command.type === "kick") {
 		const client = getClient(command.clientId);
@@ -533,6 +555,7 @@ export interface CmdKick extends CmdBase {
 	clientId: ClientId;
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
 	help: "The number of active websocket connections (deprecated)",
@@ -541,6 +564,7 @@ const gaugeWebsocketConnections = new Gauge({
 	},
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeClients = new Gauge({
 	name: "ott_clients_connected",
 	help: "The number of clients connected.",

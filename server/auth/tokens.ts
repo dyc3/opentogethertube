@@ -1,6 +1,7 @@
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
 import crypto from "crypto";
+import type { AuthToken } from "ott-common/models/types.js";
 import { redisClient } from "../redisclient.js";
-import { AuthToken } from "ott-common/models/types.js";
 
 const PREFIX = "auth";
 const EXPIRATION_TIME = 14 * 24 * 60 * 60; // 14 days in seconds

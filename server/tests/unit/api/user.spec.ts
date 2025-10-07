@@ -1,25 +1,29 @@
+import type { AuthToken } from "ott-common/models/types.js";
+import request from "supertest";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
-	vi,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type Mock,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
 	MockInstance,
-	Mock,
+	vi,
 } from "vitest";
-import request from "supertest";
 import { main } from "../../../app.js";
-import usermanager from "../../../usermanager.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import { User as UserModel } from "../../../models/index.js";
+import type { User } from "../../../models/user.js";
 import { conf } from "../../../ott-config.js";
-import { User } from "../../../models/user.js";
-import { AuthToken } from "ott-common/models/types.js";
+import usermanager from "../../../usermanager.js";
 
 describe("User API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let token;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let forcedUser: User;
 	let testUser: User;
@@ -47,7 +51,7 @@ describe("User API", () => {
 			discordId: 1234567890,
 		});
 
-		let resp = await request(app).get("/api/auth/grant").expect(200);
+		const resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 	});
 
@@ -59,7 +63,7 @@ describe("User API", () => {
 
 	describe("GET /user", () => {
 		it("should not fail by default", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.expect("Content-Type", /json/)
@@ -69,11 +73,11 @@ describe("User API", () => {
 		});
 
 		it("should have the forced test user logged in", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user/test/forceLogin")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200);
-			let cookies = resp.header["set-cookie"];
+			const cookies = resp.header["set-cookie"];
 
 			await request(app)
 				.get("/api/user")
@@ -81,6 +85,7 @@ describe("User API", () => {
 				.set("Cookie", cookies)
 				.expect("Content-Type", /json/)
 				.expect(200)
+				// biome-ignore lint/nursery/noShadow: biome migration
 				.then(resp => {
 					expect(resp.body.username).toBeDefined();
 					expect(resp.body.loggedIn).toBe(true);
@@ -94,6 +99,7 @@ describe("User API", () => {
 	});
 
 	describe("POST /user", () => {
+		// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 		let onUserModifiedSpy;
 
 		beforeAll(() => {
@@ -130,11 +136,13 @@ describe("User API", () => {
 		});
 
 		it("should change the registered user's name without failing", async () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200)
+				// biome-ignore lint/nursery/noShadow: biome migration
 				.then(resp => {
 					cookies = resp.header["set-cookie"];
 				});
@@ -146,12 +154,13 @@ describe("User API", () => {
 				.send({ username: "new username" })
 				.expect("Content-Type", /json/)
 				// .expect(200)
-				.then(resp => {
+				// biome-ignore lint/nursery/noShadow: biome migration
+								.then(resp => {
 					expect(resp.body.success).toBe(true);
 					expect(onUserModifiedSpy).toBeCalled();
 				});
 
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200);
@@ -160,6 +169,7 @@ describe("User API", () => {
 		});
 
 		it("should not change the registered user's name if it's already in use", async () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -187,6 +197,7 @@ describe("User API", () => {
 
 	describe("User login and registration", () => {
 		describe("POST /user/login", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let onUserLogInSpy;
 
 			beforeAll(() => {
@@ -252,6 +263,7 @@ describe("User API", () => {
 		});
 
 		describe("POST /user/logout", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let onUserLogOutSpy;
 
 			beforeAll(() => {
@@ -297,10 +309,12 @@ describe("User API", () => {
 
 		describe("POST /user/register", () => {
 			let onUserLogInSpy: Mock<[User, AuthToken]>;
-			let registeredUsers: User[] = [];
+			const registeredUsers: User[] = [];
 
 			beforeAll(() => {
-				onUserLogInSpy = vi.fn().mockImplementation((user, token) => {
+				// biome-ignore lint/nursery/noShadow: biome migration
+				// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
+								onUserLogInSpy = vi.fn().mockImplementation((user, token) => {
 					registeredUsers.push(user);
 				});
 				usermanager.on("login", onUserLogInSpy);
@@ -367,6 +381,7 @@ describe("User API", () => {
 					});
 			});
 
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			const denyCases: [string, any, number, any][] = [
 				[
 					"should not register user if email is already in use",

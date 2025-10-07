@@ -9,6 +9,7 @@ module.exports = {
 		});
 	},
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	down: async (queryInterface, Sequelize) => {
 		await queryInterface.removeColumn("Rooms", "autoSkipSegments");
 	},

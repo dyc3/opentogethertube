@@ -1,12 +1,12 @@
+import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import axios from "axios";
 import maxBy from "lodash/maxBy.js";
-import { getLogger } from "../logger.js";
-import { ServiceAdapter } from "../serviceadapter.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
-import { DashMPD } from "@liveinstantly/dash-mpd-parser";
-import { conf } from "../ott-config.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
+import { getLogger } from "../logger.js";
+import { conf } from "../ott-config.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 import storage from "../storage.js";
 
 const log = getLogger("invidious");
@@ -171,6 +171,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				headers: { Accept: "application/json" },
 			});
 			data = resLocal.data;
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		} catch (e: any) {
 			if (axios.isAxiosError(e) && e.response) {
 				const status = e.response.status;
@@ -189,6 +190,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					headers: { Accept: "application/json" },
 				});
 				data = res.data;
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			} catch (e2: any) {
 				if (axios.isAxiosError(e2)) {
 					// HTTP error from upstream (e.g., 429/5xx)
@@ -291,7 +293,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					? dashProbe.topKbps >= hlsProbe.topKbps
 						? dashProbe
 						: hlsProbe
-					: dashProbe ?? hlsProbe;
+					: (dashProbe ?? hlsProbe);
 			if (pick) {
 				log.debug("Picked streaming manifest", {
 					kind: pick.kind,
@@ -351,8 +353,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				(chosen.container === "webm"
 					? "video/webm"
 					: chosen.container === "mp4"
-					? "video/mp4"
-					: undefined);
+						? "video/mp4"
+						: undefined);
 			// Always proxy via the instance (avoids CORS/signature churn) and carry itag if known.
 			const proxied = this.proxiedProgressive(host, id, chosen.itag);
 
@@ -421,11 +423,15 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				// The library exposes a JSON-like structure; normalize variants across versions.
 				const asArr = <T>(v: T | T[] | undefined | null): T[] =>
 					Array.isArray(v) ? v : v !== null && v !== undefined ? [v as T] : [];
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				const attrs = (node: any): Record<string, unknown> =>
 					(node && (node["@"] ?? node._attributes ?? node.attributes ?? node.$)) || {};
 
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				const root: any =
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					(mpd as any).mpd?.MPD ??
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					(mpd as any).mpd ??
 					mpd.getJSON?.().MPD ??
 					mpd.getJSON?.();
@@ -434,12 +440,15 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					for (const set of asArr(period?.AdaptationSet)) {
 						for (const rep of asArr(set?.Representation)) {
 							const a = attrs(rep);
+							// biome-ignore lint/complexity/useLiteralKeys: biome migration
 							const bw = Number(a["bandwidth"] ?? a["Bandwidth"] ?? 0);
 							if (!Number.isFinite(bw) || bw <= topBw) {
 								continue;
 							}
 							topBw = bw;
+							// biome-ignore lint/complexity/useLiteralKeys: biome migration
 							const w = Number(a["width"] ?? a["Width"]);
+							// biome-ignore lint/complexity/useLiteralKeys: biome migration
 							const h = Number(a["height"] ?? a["Height"]);
 							if (Number.isFinite(w) && Number.isFinite(h)) {
 								topRes = `${w}x${h}`;
@@ -457,6 +466,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					const wRe = /(?:^|\s)width\s*=\s*["'](\d+)["']/i;
 					const hRe = /(?:^|\s)height\s*=\s*["'](\d+)["']/i;
 					let m: RegExpExecArray | null;
+					// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 					while ((m = repTagRe.exec(text)) !== null) {
 						const tag = m[0];
 						const bwMatch = bwRe.exec(tag);
@@ -485,7 +495,9 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				const parser = new M3U8Parser();
 				parser.push(text);
 				parser.end();
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				const manifest: any = parser.manifest || {};
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				const playlists: any[] = manifest.playlists || [];
 				let topBw = 0;
 				let topRes: string | undefined;

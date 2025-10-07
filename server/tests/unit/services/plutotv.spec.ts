@@ -1,18 +1,23 @@
+import type { AxiosResponse } from "axios";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import fs from "fs";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
+	beforeAll,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
 	vi,
-	MockInstance,
 } from "vitest";
-import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto.js";
-import { AxiosResponse } from "axios";
-import fs from "fs";
-import { VideoRequest } from "../../../serviceadapter.js";
+import type { VideoRequest } from "../../../serviceadapter.js";
+import PlutoAdapter, {
+	type PlutoBootResponse,
+	type PlutoParsedIds,
+} from "../../../services/pluto.js";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[
@@ -106,6 +111,7 @@ describe("Pluto TV", () => {
 	});
 
 	describe("resolveUrl", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new PlutoAdapter();
 		let apiGetSpy: MockInstance;
 
@@ -156,6 +162,7 @@ describe("Pluto TV", () => {
 	});
 
 	describe("fetchManyVideoInfo", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new PlutoAdapter();
 		let apiGetSpy: MockInstance;
 
@@ -228,6 +235,7 @@ const fixtureMappings = {
 		"boot-v4_series_judge_judy_stargate_forest_gump_titanic.json",
 };
 
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootResponse>> {
 	const seriesId = params.params.seriesIds;
 	const file = fixtureMappings[seriesId];
@@ -242,6 +250,7 @@ async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootRespon
 		statusText: "OK",
 		headers: {},
 		config: {
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			headers: {} as any,
 		},
 	};

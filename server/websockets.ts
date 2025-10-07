@@ -1,7 +1,9 @@
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import type { Server } from "http";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import type { Socket } from "net";
 import WebSocket from "ws";
 import { getLogger } from "./logger.js";
-import type { Server } from "http";
-import type { Socket } from "net";
 
 const log = getLogger("websockets");
 export const wss = new WebSocket.Server({ noServer: true });

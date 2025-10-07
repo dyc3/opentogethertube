@@ -1,27 +1,29 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
 import _ from "lodash";
+import type { OttApiRequestRoomCreate } from "ott-common/models/rest-api.js";
 import { type AuthToken, QueueMode, Visibility } from "ott-common/models/types.js";
 import request from "supertest";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
+	vi,
+} from "vitest";
 import tokens from "../../../../server/auth/tokens.js";
-import roommanager from "../../../../server/roommanager.js";
 import { RoomNotFoundException } from "../../../../server/exceptions.js";
-import { main } from "../../../app.js";
-import { Room as RoomModel, User as UserModel } from "../../../models/index.js";
-import usermanager from "../../../usermanager.js";
-import type { OttApiRequestRoomCreate } from "ott-common/models/rest-api.js";
 import { conf } from "../../../../server/ott-config.js";
-import type { User } from "../../../models/user.js";
+import roommanager from "../../../../server/roommanager.js";
+import { main } from "../../../app.js";
 import { UnloadReason } from "../../../generated.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { Room as RoomModel, User as UserModel } from "../../../models/index.js";
+import type { User } from "../../../models/user.js";
+import usermanager from "../../../usermanager.js";
 
 expect.extend({
 	toBeRoomNotFound(error) {
@@ -31,7 +33,7 @@ expect.extend({
 				pass: false,
 			};
 		}
-		let pass = this.equals(error, {
+		const pass = this.equals(error, {
 			name: "RoomNotFoundException",
 			message: "Room not found",
 		});
@@ -56,7 +58,7 @@ expect.extend({
 				pass: false,
 			};
 		}
-		let pass =
+		const pass =
 			this.equals(error, {
 				name: "Unknown",
 				message: "Failed to get room",
@@ -80,6 +82,7 @@ expect.extend({
 });
 
 describe("Room API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let owner: User;
 	let token: AuthToken;
@@ -136,7 +139,7 @@ describe("Room API", () => {
 					visibility: visibility,
 				});
 
-				let resp = await request(app)
+				const resp = await request(app)
 					.get("/api/room/test1")
 					.auth(token, { type: "bearer" })
 					.set({ Authorization: "Bearer foobar" })
@@ -155,7 +158,7 @@ describe("Room API", () => {
 		);
 
 		it("should fail if the room does not exist", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/room/test1")
 				.auth(token, { type: "bearer" })
 				.expect("Content-Type", /json/)
@@ -199,7 +202,7 @@ describe("Room API", () => {
 		it.each([Visibility.Public, Visibility.Unlisted])(
 			"should create %s room",
 			async (visibility: Visibility) => {
-				let resp = await request(app)
+				const resp = await request(app)
 					.post("/api/room/create")
 					.auth(token, { type: "bearer" })
 					.send({ name: "test1", isTemporary: true, visibility: visibility })
@@ -240,7 +243,7 @@ describe("Room API", () => {
 			],
 			[{ name: "test1", isTemporary: true, visibility: "invalid" }],
 		])("should fail to create room for validation errors: %s", async body => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send(body)
@@ -253,7 +256,7 @@ describe("Room API", () => {
 		});
 
 		it("should create permanent room without owner", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send({ name: "testnoowner", isTemporary: false })
@@ -273,7 +276,7 @@ describe("Room API", () => {
 				isLoggedIn: true,
 				user_id: owner.id,
 			});
-			let resp = await request(app)
+			const resp = await request(app)
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send({ name: "testowner" })
@@ -360,7 +363,7 @@ describe("Room API", () => {
 				},
 			],
 		])("should fail to modify room for validation errors: %s", async body => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.patch("/api/room/foo")
 				.auth(token, { type: "bearer" })
 				.send(body)
@@ -402,7 +405,7 @@ describe("Room API", () => {
 		])(
 			"should update autoSkipSegmentCategories with only unique valid auto-skip segment categories",
 			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
-				let resp = await request(app)
+				const resp = await request(app)
 					.patch("/api/room/foo")
 					.auth(token, { type: "bearer" })
 					.send({

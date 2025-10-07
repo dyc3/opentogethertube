@@ -1,12 +1,12 @@
-import { getLogger } from "../logger.js";
 import express from "express";
+import faker from "faker";
+import { RoomRequestType } from "ott-common/models/messages.js";
+import { setApiKey } from "../admin.js";
+import tokens from "../auth/tokens.js";
+import { getLogger } from "../logger.js";
 import { rateLimiter } from "../rate-limit.js";
 import roommanager from "../roommanager.js";
-import { RoomRequestType } from "ott-common/models/messages.js";
 import usermanager from "../usermanager.js";
-import faker from "faker";
-import tokens from "../auth/tokens.js";
-import { setApiKey } from "../admin.js";
 
 const router = express.Router();
 const log = getLogger("api/dev");
@@ -17,6 +17,7 @@ router.post("/reset-rate-limit", async (req, res) => {
 	res.json({ success: true });
 });
 
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 router.post("/reset-rate-limit/user", async (req, res) => {
 	await usermanager.clearAllRateLimiting();
 	log.warn(`Reset all user manager rate limits`);
@@ -24,6 +25,7 @@ router.post("/reset-rate-limit/user", async (req, res) => {
 });
 
 router.post("/room/:name/add-fake-user", async (req, res) => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let user;
 	const token = await tokens.mint();
 	if (req.body.register) {

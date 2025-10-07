@@ -1,8 +1,8 @@
 import axios, { type AxiosResponse } from "axios";
-import { ServiceAdapter } from "../serviceadapter.js";
-import { conf } from "../ott-config.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException } from "../exceptions.js";
+import { conf } from "../ott-config.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 
 interface PeertubeApiVideo {
 	uuid: string;
@@ -50,6 +50,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		return this.allowedHosts.includes(url.host) && /^\/w\/\w+/.test(url.pathname);
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	isCollectionURL(link: string): boolean {
 		return false;
 	}
@@ -59,6 +60,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		return `${url.host}:${url.pathname.split("/").slice(-1)[0].trim()}`;
 	}
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async fetchVideoInfo(videoId: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		if (!videoId.includes(":")) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);

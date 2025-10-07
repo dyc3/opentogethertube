@@ -1,11 +1,11 @@
-import { Room as DbRoomModel, User as UserModel } from "../models/index.js";
-import { Room as DbRoom, RoomAttributes } from "../models/room.js";
-import { Role, RoomOptions } from "ott-common/models/types.js";
-import { getLogger } from "../logger.js";
-import Sequelize from "sequelize";
-import permissions from "ott-common/permissions.js";
-import type { RoomStatePersistable } from "../room.js";
 import _ from "lodash";
+import { Role, type RoomOptions } from "ott-common/models/types.js";
+import permissions from "ott-common/permissions.js";
+import Sequelize from "sequelize";
+import { getLogger } from "../logger.js";
+import { Room as DbRoomModel, User as UserModel } from "../models/index.js";
+import type { Room as DbRoom, RoomAttributes } from "../models/room.js";
+import type { RoomStatePersistable } from "../room.js";
 
 const log = getLogger("storage/room");
 
@@ -58,6 +58,7 @@ export async function saveRoom(room: RoomStatePersistable): Promise<boolean> {
 		return false;
 	}
 	try {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const room: DbRoom = await DbRoomModel.create(options);
 		log.info(`Saved room ${room.name} to db: id ${room.dataValues.id}`);
 		return true;
@@ -131,26 +132,26 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
  * Converts a room into an object that can be stored in the database
  */
 export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
-	let grantsFiltered = _.cloneDeep(room.grants);
+	const grantsFiltered = _.cloneDeep(room.grants);
 	// No need to waste storage space on these
 	grantsFiltered.deleteRole(Role.Administrator);
 	grantsFiltered.deleteRole(Role.Owner);
 
 	const db: Omit<RoomAttributes, "id"> = {
-		"name": room.name,
-		"title": room.title,
-		"description": room.description,
-		"visibility": room.visibility,
-		"queueMode": room.queueMode,
-		"autoSkipSegmentCategories": room.autoSkipSegmentCategories,
-		"permissions": grantsFiltered.toJSON(),
-		"ownerId": null,
+		name: room.name,
+		title: room.title,
+		description: room.description,
+		visibility: room.visibility,
+		queueMode: room.queueMode,
+		autoSkipSegmentCategories: room.autoSkipSegmentCategories,
+		permissions: grantsFiltered.toJSON(),
+		ownerId: null,
 		"role-trusted": [],
 		"role-mod": [],
 		"role-admin": [],
-		"prevQueue": room.prevQueue,
-		"restoreQueueBehavior": room.restoreQueueBehavior,
-		"enableVoteSkip": room.enableVoteSkip,
+		prevQueue: room.prevQueue,
+		restoreQueueBehavior: room.restoreQueueBehavior,
+		enableVoteSkip: room.enableVoteSkip,
 	};
 	if (room.owner) {
 		db.ownerId = room.owner.id;
@@ -185,7 +186,7 @@ export function roomToDbPartial(
 		v => !!v
 	);
 	if (room.grants) {
-		let grantsFiltered = _.cloneDeep(room.grants);
+		const grantsFiltered = _.cloneDeep(room.grants);
 		// No need to waste storage space on these
 		grantsFiltered.deleteRole(Role.Administrator);
 		grantsFiltered.deleteRole(Role.Owner);

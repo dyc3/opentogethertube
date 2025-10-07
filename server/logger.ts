@@ -1,12 +1,14 @@
-import { createLogger, format, transports } from "winston";
 import colors from "ansi-colors";
-import { conf } from "./ott-config.js";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
 import { Counter } from "prom-client";
+import { createLogger, format, transports } from "winston";
+import { conf } from "./ott-config.js";
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {
 		// HACK: video descriptions are long, so remove then to make logs easier to read.
-		if (roomEvent.parameters && roomEvent.parameters.video) {
+		// biome-ignore lint/complexity/useOptionalChain: biome migration
+				if (roomEvent.parameters && roomEvent.parameters.video) {
 			delete roomEvent.parameters.video.description;
 		}
 		return `${timestamp} ${namespace} Room/${
@@ -57,6 +59,7 @@ const logger = createLogger({
 });
 
 if (conf.get("log.file")) {
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	logger.add(new transports.File({ filename: conf.get("log.file")! }));
 }
 

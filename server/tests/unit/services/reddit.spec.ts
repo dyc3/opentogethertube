@@ -1,9 +1,10 @@
 /* eslint-disable camelcase */
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import RedditAdapter, {
-	RedditListableThing,
-	RedditListing,
-	RedditPost,
+	type RedditListableThing,
+	type RedditListing,
+	type RedditPost,
 } from "../../../../server/services/reddit.js";
 
 const subredditListResponse: RedditListing<RedditListableThing> = {
@@ -1336,6 +1337,7 @@ const subredditLinks = [
 	"https://www.reddit.com/r/youtubehaiku/top.json?t=year",
 ];
 
+// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 const validLinks = [...subredditLinks].concat(singlePostLinks.map(([link, id]) => link));
 
 const invalidLinks = [

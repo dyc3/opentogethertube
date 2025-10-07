@@ -1,27 +1,31 @@
+import type { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import fs from "fs";
+// biome-ignore lint/correctness/noUnusedImports: biome migration
+import { Video } from "ott-common/models/video.js";
+import type { VideoRequest } from "server/serviceadapter.js";
+// biome-ignore lint/style/useNodejsImportProtocol: biome migration
+import { URL } from "url";
 import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
 	afterAll,
 	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	type MockInstance,
 	vi,
-	MockInstance,
 } from "vitest";
-import YouTubeAdapter, {
-	YoutubeErrorResponse,
-	YoutubeApiVideoListResponse,
-	YoutubeApiVideo,
-} from "../../../services/youtube.js";
-import { Video } from "ott-common/models/video.js";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
-import { buildClients, redisClient } from "../../../redisclient.js";
-import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
-import fs from "fs";
-import { VideoRequest } from "server/serviceadapter.js";
-import { URL } from "url";
 import { loadModels } from "../../../models/index.js";
+import { buildClients, redisClient } from "../../../redisclient.js";
+import YouTubeAdapter, {
+	type YoutubeApiVideo,
+	type YoutubeApiVideoListResponse,
+	type YoutubeErrorResponse,
+} from "../../../services/youtube.js";
 
 const validVideoLinks = [
 	["3kw2_89ym31W", "https://youtube.com/watch?v=3kw2_89ym31W"],
@@ -77,9 +81,9 @@ function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 }
 
 function mockPlaylistItems(id: string): unknown {
-	let path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
+	const path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
 	if (fs.existsSync(path)) {
-		let content = fs.readFileSync(path, "utf8");
+		const content = fs.readFileSync(path, "utf8");
 		return JSON.parse(content);
 	}
 	throw new Error("playlistNotFound");
@@ -90,13 +94,14 @@ function mockChannel(id: string): unknown {
 	if (!fs.existsSync(path)) {
 		path = `${FIXTURE_DIRECTORY}/channels/empty.json`;
 	}
-	let content = fs.readFileSync(path, "utf8");
+	const content = fs.readFileSync(path, "utf8");
 	return JSON.parse(content);
 }
 
 async function mockYoutubeApi(
 	path: string,
 	config?: AxiosRequestConfig
+// biome-ignore lint/suspicious/noExplicitAny: biome migration
 ): Promise<AxiosResponse<any>> {
 	const template = {
 		status: 200,
@@ -118,7 +123,10 @@ async function mockYoutubeApi(
 				data: mockPlaylistItems(config?.params.playlistId),
 			};
 		} catch (e) {
-			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
+			const content = fs.readFileSync(
+				`${FIXTURE_DIRECTORY}/errors/${e.message}.json`,
+				"utf8"
+			);
 			throw JSON.parse(content);
 		}
 	} else if (path === "/channels") {
@@ -212,7 +220,7 @@ describe("Youtube", () => {
 					missingInfo: ["length"],
 				},
 			];
-			let result = await adapter.fetchManyVideoInfo(requests);
+			const result = await adapter.fetchManyVideoInfo(requests);
 			expect(result).toHaveLength(requests.length);
 		});
 
@@ -468,6 +476,7 @@ describe("Youtube", () => {
 	});
 
 	describe("searchVideos", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = vi.spyOn(adapter.api, "get");
 
@@ -504,6 +513,7 @@ describe("Youtube", () => {
 	});
 
 	describe("videoApiRequest", () => {
+		// biome-ignore lint/nursery/noShadow: biome migration
 		const adapter = new YouTubeAdapter("", redisClient);
 		const apiGet = vi.spyOn(adapter.api, "get");
 		const outOfQuotaResponse = {

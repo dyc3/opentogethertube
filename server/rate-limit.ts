@@ -1,15 +1,16 @@
-import { getLogger } from "./logger.js";
-import { redisClient } from "./redisclient.js";
 import {
-	IRateLimiterStoreOptions,
+	type IRateLimiterStoreOptions,
+	type RateLimiterAbstract,
 	RateLimiterMemory,
 	RateLimiterRedis,
-	type RateLimiterAbstract,
-	RateLimiterStoreAbstract,
 	RateLimiterRes,
+	// biome-ignore lint/correctness/noUnusedImports: biome migration
+	RateLimiterStoreAbstract,
 } from "rate-limiter-flexible";
+import type { RedisClientType } from "redis";
+import { getLogger } from "./logger.js";
 import { conf } from "./ott-config.js";
-import { RedisClientType } from "redis";
+import { redisClient } from "./redisclient.js";
 
 const log = getLogger("api/rate-limit");
 
@@ -41,7 +42,7 @@ export async function consumeRateLimitPoints(
 		return true;
 	}
 	try {
-		let info = await limiter.consume(key, points);
+		const info = await limiter.consume(key, points);
 		setRateLimitHeaders(res, info);
 		return true;
 	} catch (e) {
@@ -100,6 +101,7 @@ export class RateLimiterRedisv4 extends RateLimiterRedis {
 	_getRateLimiterRes(_key, changedPoints, result) {
 		const [consumed, resTtlMs] = result;
 
+		// biome-ignore lint/correctness/useParseIntRadix: biome migration
 		const consumedPoints = parseInt(consumed);
 		const isFirstInDuration = consumedPoints === changedPoints;
 		const remainingPoints = Math.max(this.points - consumedPoints, 0);

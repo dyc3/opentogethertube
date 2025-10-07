@@ -2,6 +2,7 @@
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async up(queryInterface, Sequelize) {
 		await queryInterface.sequelize.query(`
 			DELETE FROM "CachedVideos"
@@ -23,6 +24,7 @@ module.exports = {
 		});
 	},
 
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: biome migration
 	async down(queryInterface, Sequelize) {
 		await queryInterface.removeConstraint("CachedVideos", "unique_service_serviceId");
 		await queryInterface.removeIndex("CachedVideos", "cachedvideo_service_serviceId");
