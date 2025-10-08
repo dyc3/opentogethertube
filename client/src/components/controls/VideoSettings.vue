@@ -14,7 +14,7 @@
 			</v-tooltip>
 		</v-btn>
 
-		<v-container v-if="isMenuOpen" class="settings-menu-container">
+		<v-container v-if="isMenuOpen" v-click-outside="closeMenu" class="settings-menu-container">
 			<div class="menu-container">
 				<transition name="menu-resize" mode="out-in" slim>
 					<!-- Main menu -->
@@ -124,9 +124,6 @@
 				</transition>
 			</div>
 		</v-container>
-
-		<!-- Overlay to close menu when clicking outside -->
-		<div v-if="isMenuOpen" class="menu-overlay" @click="closeMenu"></div>
 	</div>
 </template>
 
@@ -249,16 +246,6 @@ function selectSubtitleTrack(track: string): void {
 	padding: 0;
 	width: auto;
 	box-shadow: 0 4px 20px rgba(var(--v-theme-surface), 0.3);
-}
-
-.menu-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 999;
-	background: transparent;
 }
 
 .menu-container {
