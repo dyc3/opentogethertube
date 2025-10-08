@@ -9,6 +9,7 @@ import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
 import type { Manifest } from "m3u8-parser";
 import { getMimeType } from "../mime.js";
+import { resourceLimits } from "worker_threads";
 
 const log = getLogger("odysee");
 
@@ -32,6 +33,25 @@ const httpc = axios.create({
 		"User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}`,
 	},
 });
+
+let guestAuthToken: string | undefined;
+
+async function fetchGuestAuthToken(): Promise<string | undefined> {
+	try {
+		const res = await axios.get(ODYSEE_WEB, {
+			maxRedirects: 0,
+			validateStatus: status => status < 400,
+		});
+		const cookies: string[] = res.headers["set-cookie"] ?? [];
+		const auth = cookies.find(c => c.startsWith("auth_token="));
+		if (auth) {
+			return auth.split(";", 1)[0].split("=", 2)[1];
+		}
+	} catch (e) {
+		log.debug?.("Failed to fetch guest auth_token", { err: String(e) });
+	}
+	return undefined;
+}
 
 interface LbryGetResult {
 	claim_id?: string;
@@ -126,7 +146,7 @@ interface ClaimSearchResponse {
 /**
  * Normalize Odysee URLs the same way browsers do:
  * - Accept Unicode in the path
- * - decodeURI → Unicode NFC → encodeURI (UTF-8 percent encoding)
+ * - decodeURI -> Unicode NFC -> encodeURI (UTF-8 percent encoding)
  * - Keep important path characters like `@` and `:` unencoded
  * - Idempotent for already-correctly-encoded inputs
  */
@@ -148,13 +168,15 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 		const res = await rpc<ResolveMap>("resolve", { urls: [inputLbryUri] });
 		const entry = res[inputLbryUri];
 		if (!entry) {
-			throw new Error("resolve() returned no entry for URI");
+			log.error("resolve() returned no entry for URI");
+			throw new OdyseeUnavailableVideo();
 		}
 		const repost =
 			entry.value_type === "repost" ? entry.value?.reposted_claim?.canonical_url : null;
 		const canonical = repost || entry.canonical_url;
 		if (!canonical) {
-			throw new Error("resolve() returned no canonical_url");
+			log.error("resolve() returned no canonical_url");
+			throw new OdyseeUnavailableVideo();
 		}
 		return { canonicalUri: canonical, resolved: entry };
 	} catch (e) {
@@ -170,10 +192,23 @@ async function rpc<T>(
 	axiosCfg: Partial<Parameters<typeof axios.post>[2]> = {}
 ): Promise<T> {
 	try {
+		if (!guestAuthToken) {
+			guestAuthToken = await fetchGuestAuthToken();
+		}
+
+		log.debug?.(`current token in use ${guestAuthToken}`);
+
 		const res = await httpc.post<JsonRpcEnvelope<T>>(
 			`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
 			{ jsonrpc: "2.0", method, params },
-			axiosCfg
+			{
+				...axiosCfg,
+				headers: {
+					"User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}`,
+					...(guestAuthToken ? { Cookie: `auth_token=${guestAuthToken}` } : {}),
+					...(axiosCfg.headers ?? {}),
+				},
+			}
 		);
 		if (!res?.data || typeof res.data.result === "undefined") {
 			const errMsg = res?.data?.error?.message ? ` (${res.data.error.message})` : "";
@@ -689,10 +724,26 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 
 		if (!got?.streaming_url) {
+			// Attempt to recover with claim_search -> reconstruct streaming URL manually
+			log.warn("Odysee get() returned no streaming_url – trying claim_search fallback");
+			const claimId = got?.claim_id;
+			const sdHash = getSdHashFromValue(got?.value);
+			if (typeof claimId === "string" && typeof sdHash === "string") {
+				const hlsUrl = `https://player.odycdn.com/v6/streams/${claimId}/${sdHash}/master.m3u8`;
+				const verified = await verifyStream(hlsUrl);
+				if (verified.ok) {
+					log.debug?.("Recovered streaming_url via claim_search fallback", { hlsUrl });
+					got.streaming_url = hlsUrl;
+					got.mime_type = verified.mime;
+				}
+			}
+		}
+		if (!got?.streaming_url) {
 			const dbg = JSON.stringify({ claim_id: got?.claim_id, mime_type: got?.mime_type });
-			let msg = `Odysee RPC get() returned no streaming_url (${dbg})`;
-			log.error(msg);
-			throw new Error(msg);
+			log.warn("Odysee RPC get() returned no streaming_url – treated as unavailable", {
+				dbg,
+			});
+			throw new OdyseeUnavailableVideo();
 		}
 
 		let finalStreamingUrl = got.streaming_url;
