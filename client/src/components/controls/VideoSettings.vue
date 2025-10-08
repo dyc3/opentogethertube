@@ -269,7 +269,7 @@ function selectSubtitleTrack(track: string): void {
 	}
 
 	&-value {
-		color: --v-theme-secondary;
+		color: rgba(var(--v-theme-on-surface), 0.6);
 		font-size: 0.875rem;
 		margin-left: 1rem;
 		font-weight: 400;
@@ -282,23 +282,28 @@ function selectSubtitleTrack(track: string): void {
 
 .menu-resize-enter-active,
 .menu-resize-leave-active {
-	transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+	transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 	overflow: hidden;
+	transform-origin: top center;
+}
+
+.menu-resize-enter-active {
+	transition-delay: 0.05s;
 }
 
 .menu-resize-enter-from,
 .menu-resize-leave-to {
-	opacity: 0.5;
-	transform: scale(0.95);
+	opacity: 0;
 	max-height: 0;
 	padding-top: 0;
 	padding-bottom: 0;
+	margin-top: 0;
+	margin-bottom: 0;
 }
 
 .menu-resize-enter-to,
 .menu-resize-leave-from {
 	opacity: 1;
-	transform: scale(1);
 	max-height: 500px;
 }
 </style>
