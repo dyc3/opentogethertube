@@ -9,7 +9,6 @@ import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
 import type { Manifest } from "m3u8-parser";
 import { getMimeType } from "../mime.js";
-import { resourceLimits } from "worker_threads";
 
 const log = getLogger("odysee");
 
@@ -38,17 +37,71 @@ let guestAuthToken: string | undefined;
 
 async function fetchGuestAuthToken(): Promise<string | undefined> {
 	try {
-		const res = await axios.get(ODYSEE_WEB, {
-			maxRedirects: 0,
-			validateStatus: status => status < 400,
-		});
+		const res = await axios.post(
+			`${ODYSEE_RPC}?m=auth_get`,
+			{ jsonrpc: "2.0", method: "auth_get", params: {} },
+			{
+				validateStatus: s => s < 400,
+				timeout: AXIOS_TIMEOUT_MS,
+				headers: {
+					"User-Agent": `OpenTogetherTube GuestToken`,
+				},
+			}
+		);
+
+		// 1) Try to extract from Set-Cookie (older behavior)
 		const cookies: string[] = res.headers["set-cookie"] ?? [];
 		const auth = cookies.find(c => c.startsWith("auth_token="));
 		if (auth) {
-			return auth.split(";", 1)[0].split("=", 2)[1];
+			const token = auth.split(";", 1)[0].split("=", 2)[1];
+			log.debug?.("fetchGuestAuthToken: received auth_token via Set-Cookie");
+			return token;
 		}
+
+		// 2) Try to extract from JSON body (newer API response)
+		const maybeToken =
+			res.data?.result?.data?.auth_token ||
+			res.data?.result?.auth_token ||
+			res.data?.auth_token;
+		if (typeof maybeToken === "string" && maybeToken.length > 10) {
+			log.debug?.("fetchGuestAuthToken: extracted auth_token from JSON body");
+			return maybeToken;
+		}
+
+		// 3) Try alternative guest account call if auth_get fails
+		log.debug?.("fetchGuestAuthToken: no token from auth_get, trying user/new");
+		const res2 = await axios.post(
+			`${ODYSEE_RPC}?m=user_new`,
+			{ jsonrpc: "2.0", method: "user_new", params: {} },
+			{
+				validateStatus: s => s < 400,
+				timeout: AXIOS_TIMEOUT_MS,
+				headers: {
+					"User-Agent": `OpenTogetherTube GuestToken`,
+				},
+			}
+		);
+
+		const cookies2: string[] = res2.headers["set-cookie"] ?? [];
+		const auth2 = cookies2.find(c => c.startsWith("auth_token="));
+		if (auth2) {
+			const token2 = auth2.split(";", 1)[0].split("=", 2)[1];
+			log.debug?.("fetchGuestAuthToken: received auth_token via user_new Set-Cookie");
+			return token2;
+		}
+
+		const maybeToken2 =
+			res2.data?.result?.data?.auth_token ||
+			res2.data?.result?.auth_token ||
+			res2.data?.auth_token;
+		if (typeof maybeToken2 === "string" && maybeToken2.length > 10) {
+			log.debug?.("fetchGuestAuthToken: extracted auth_token from user_new JSON body");
+			return maybeToken2;
+		}
+
+		log.debug?.("fetchGuestAuthToken: no auth_token found in any response");
 	} catch (e) {
-		log.debug?.("Failed to fetch guest auth_token", { err: String(e) });
+		log.debug?.("fetchGuestAuthToken failed", { err: String(e) });
 	}
 	return undefined;
 }
@@ -196,7 +249,7 @@ async function rpc<T>(
 			guestAuthToken = await fetchGuestAuthToken();
 		}
 
-		log.debug?.(`current token in use ${guestAuthToken}`);
+		log.debug?.("rpc(): current token in use ", { guestAuthToken });
 
 		const res = await httpc.post<JsonRpcEnvelope<T>>(
 			`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
@@ -242,18 +295,28 @@ function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
 	// Work on decoded + NFC-normalized path
 	const decoded = decodeURI(url.pathname).normalize("NFC");
 	const parts = decoded.split("/").filter(Boolean);
-	if (!parts[0] || !parts[0].startsWith("@")) {
+	if (!parts[0]) {
 		return null;
 	}
 
-	// @Channel:xx[/Slug:yy] -> lbry://@Channel#xx[/Slug#yy]
-	const [channel, channelId] = parts[0].split(":", 2);
-	let lbry = `lbry://${channel}${channelId ? `#${channelId}` : ""}`;
-	if (parts[1]) {
-		const [slug, streamId] = parts[1].split(":", 2);
-		lbry += `/${slug}${streamId ? `#${streamId}` : ""}`;
+	// Case 1: Channel-based URL → @channel:xx/slug:yy
+	if (parts[0].startsWith("@")) {
+		const [channel, channelId] = parts[0].split(":", 2);
+		let lbry = `lbry://${channel}${channelId ? `#${channelId}` : ""}`;
+		if (parts[1]) {
+			const [slug, streamId] = parts[1].split(":", 2);
+			lbry += `/${slug}${streamId ? `#${streamId}` : ""}`;
+		}
+		return lbry;
 	}
-	return lbry;
+
+	// Case 2: Slug-only video → slug:claimId
+	if (parts.length === 1 && parts[0].includes(":")) {
+		const [slug, claimId] = parts[0].split(":", 2);
+		return `lbry://${slug}${claimId ? `#${claimId}` : ""}`;
+	}
+
+	return null;
 }
 
 // Type guard: true if o is a non-null object and has property key k (own or inherited).
@@ -703,6 +766,16 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 
 		const { canonicalUri, resolved } = await resolveCanonicalUri(videoId);
+		if (
+			resolved?.value?.license &&
+			resolved.value.license.toLowerCase().includes("copyright")
+		) {
+			log.warn?.("DRM/Copyright-locked video detected -  blocking", {
+				uri: canonicalUri,
+				license: resolved.value.license,
+			});
+			throw new OdyseeUnavailableVideo("Video is copyright-locked and not playable.");
+		}
 		const uriForGet = resolved?.permanent_url ?? canonicalUri;
 
 		let got: LbryGetResult;

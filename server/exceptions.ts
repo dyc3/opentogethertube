@@ -32,13 +32,18 @@ export class OdyseeUnavailableVideo extends OttException {
 	public readonly userMessage: string;
 	public readonly expose = true;
 
-	constructor() {
-		const userMessage = "This video is not available to us to play.";
+	constructor(message?: string) {
+		const userMessage =
+			typeof message === "string" && message.trim().length > 0
+				? message
+				: "This video is not available to us to play.";
 		super(userMessage);
 		this.name = "OdyseeUnavailableVideo";
 		this.userMessage = userMessage;
+
 		// keep proper prototype chain in older runtimes
 		Object.setPrototypeOf?.(this, OdyseeUnavailableVideo.prototype);
+
 		// better stack for V8
 		Error.captureStackTrace?.(this, OdyseeUnavailableVideo);
 	}
