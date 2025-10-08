@@ -16,10 +16,13 @@ import { AxiosRequestHeaders, AxiosResponse } from "axios";
 import { conf, loadConfigFile } from "../../../ott-config.js";
 
 const validVideoLinks = [
-	["the.jokertv.eu:7C5YZTLVudL4FLN4JmVvnA", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
+	[
+		"tube.shanti.cafe:96kFpg7fs4LwYkFCMFv51E",
+		"https://tube.shanti.cafe/w/96kFpg7fs4LwYkFCMFv51E",
+	],
 ];
 
-const invalidLinks = ["https://the.jokertv.eu/", "https://the.jokertv.eu/w/"];
+const invalidLinks = ["https://tube.shanti.cafe/", "https://tube.shanti.cafe/w/"];
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/peertube";
 
