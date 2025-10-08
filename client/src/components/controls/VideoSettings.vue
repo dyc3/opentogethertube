@@ -244,11 +244,11 @@ function selectSubtitleTrack(track: string): void {
 	bottom: media-controls.$video-controls-height;
 	right: -90px;
 	z-index: 9999;
-	background: rgba(0, 0, 0, 0.7);
+	background: rgba(var(--v-theme-surface), 0.7);
 	border-radius: 10px;
 	padding: 0;
 	width: auto;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 20px rgba(var(--v-theme-surface), 0.3);
 }
 
 .menu-overlay {
@@ -278,17 +278,18 @@ function selectSubtitleTrack(track: string): void {
 		justify-content: space-between;
 		align-items: center;
 		width: 100%;
+		font-weight: 500;
 	}
 
 	&-value {
-		color: #888;
+		color: --v-theme-secondary;
 		font-size: 0.875rem;
 		margin-left: 1rem;
+		font-weight: 400;
 	}
 }
 
 .menu-header {
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	font-weight: 500;
 }
 
