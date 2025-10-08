@@ -270,7 +270,19 @@ export const conf = convict({
 		},
 		peertube: {
 			instances: {
-				default: ["the.jokertv.eu", "tube.shanti.cafe", "video.antopie.org"],
+				default: [
+					"video.sadmin.io",
+					"tube.shanti.cafe",
+					"video.antopie.org",
+					"peertube.tmp.rcp.tf",
+					"dalek.zone",
+					"video.4d2.org",
+					"peertube.foxfam.club",
+					"peertube.1312.media",
+					"video.sadmin.io",
+					"videos.brookslawson.com",
+					"video.chadwaltercummings.me",
+				],
 				doc: "List of Peertube instances to allow.",
 				format: Array,
 				env: "PEERTUBE_INSTANCES",
