@@ -163,15 +163,19 @@ function setVideoTrack(track: number): void {
 		console.error("HlsPlayer:  HLS.js video track not found:", track);
 		return;
 	}
-	if (track === hls.currentLevel) {
+
+	const isAutoEnabled = hls.autoLevelEnabled;
+	const currentTrack = isAutoEnabled ? -1 : hls.currentLevel;
+	if (track === currentTrack) {
 		return;
 	}
-	console.log("HlsPlayer: setting HLS.js video track:", track);
+
 	// hls.currentLevel immediately switches to the specified quality level.
 	// hls.loadLevel switches to the new quality level
 	// hls.nextLevel switches to the new quality level and eventually flush already buffered next fragments.
 	// To smoothly switch quality levels, let's use nextLevel.
 	hls.nextLevel = track;
+	console.log("HlsPlayer: setting HLS.js video track:", track);
 }
 
 function isAutoQualitySupported(): boolean {
