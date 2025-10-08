@@ -514,7 +514,7 @@ async function pickBestHlsVariant(masterUrl: string): Promise<string> {
 // Verify stream via HEAD (fallback GET range), get final URL and MIME
 async function verifyStream(
 	url: string
-): Promise<{ ok: boolean; status?: number; mime?: string; finalUrl?: string }> {
+): Promise<{ ok: boolean; status?: number; mime?: string; finalUrl?: string; message?: string }> {
 	try {
 		const head = await httpc.head(url, {
 			validateStatus: s => (s >= 200 && s < 300) || s === 405,
@@ -562,20 +562,40 @@ async function verifyStream(
 			};
 		} catch (e2: unknown) {
 			const status = axios.isAxiosError(e2) ? e2.response?.status : undefined;
-			const msg = e2 instanceof Error ? e2.message : String(e2);
+			let msg = e2 instanceof Error ? e2.message : String(e2);
 
-			if (status === 401 || status === 404 || status === 403) {
-				// Log expected restricted status explicitly with URL and message
-				log.debug?.(
-					`verifyStream: restricted or blocked => url=${url}, status=${status}, message=${msg}`
-				);
-			} else {
-				log.warn(`verifyStream failed => url=${url}, status=${status}, message=${msg}`);
+			// try to extract plain-text body (e.g. "this content cannot be accessed at the moment")
+			let extraMessage: string | undefined;
+			if (axios.isAxiosError(e2) && e2.response?.data) {
+				try {
+					const data = e2.response.data;
+					if (typeof data === "string" && data.trim().length > 0) {
+						extraMessage = data.trim();
+					} else if (Buffer.isBuffer(data)) {
+						extraMessage = data.toString("utf8").trim();
+					}
+				} catch {
+					// ignore
+				}
 			}
 
-			// Always log fallback result for visibility
-			log.debug?.(`verifyStream result => url=${url}, status=${status}, message=${msg}`);
-			return { ok: false, status };
+			const combinedMsg =
+				extraMessage && !msg.includes(extraMessage) ? `${msg} | ${extraMessage}` : msg;
+
+			if (status === 401 || status === 404 || status === 403) {
+				log.debug?.(
+					`verifyStream: restricted or blocked => url=${url}, status=${status}, message=${combinedMsg}`
+				);
+			} else {
+				log.warn(
+					`verifyStream failed => url=${url}, status=${status}, message=${combinedMsg}`
+				);
+			}
+
+			log.debug?.(
+				`verifyStream result => url=${url}, status=${status}, message=${combinedMsg}`
+			);
+			return { ok: false, status, message: combinedMsg };
 		}
 	}
 }
@@ -890,7 +910,11 @@ export default class OdyseeAdapter extends ServiceAdapter {
 				url: finalStreamingUrl,
 				status: finalCheck2.status,
 			});
-			throw new OdyseeUnavailableVideo();
+			const extraMsg =
+				finalCheck2.message && finalCheck2.message.length < 200
+					? `Odysee CDN response: ${finalCheck2.message}`
+					: undefined;
+			throw new OdyseeUnavailableVideo(extraMsg);
 		}
 
 		const result: Video = {

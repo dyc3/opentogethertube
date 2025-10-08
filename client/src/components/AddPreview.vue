@@ -157,7 +157,7 @@ const testVideos = import.meta.env.DEV
 				"https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd",
 			],
 			["test peertube 0", "https://the.jokertv.eu/w/7C5YZTLVudL4FLN4JmVvnA"],
-			["test odysee 0", "https://odysee.com/@DemoArts:e/142:6a"],
+			["test odysee 0", "https://odysee.com/@Feuerkrieger:1/Der-Graue-Fischer:1"],
 			["test odysee error 0", "https://odysee.com/@rpgDAN:8/Detektive-9:a"],
 			[
 				"test odysee error 1",
