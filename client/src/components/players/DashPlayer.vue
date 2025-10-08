@@ -169,23 +169,40 @@ function setVideoTrack(track: number): void {
 		console.error("dash.js player not ready");
 		return;
 	}
-	if (track === -1) {
-		console.log("DashPlayer: setting video track to auto");
-		dash.value.updateSettings({
-			streaming: {
-				abr: {
-					autoSwitchBitrate: { audio: true, video: true },
-				},
-			},
-		});
-		return;
-	}
 	if (track >= getVideoTracks().length || track < -1) {
 		console.error("DashPlayer: video track not found:", track);
 		return;
 	}
+
+	const isAutoEnabled =
+		dash.value.getSettings().streaming?.abr?.autoSwitchBitrate?.video || false;
+	const currentRepresentation = dash.value.getCurrentRepresentationForType("video");
+	const currentTrack = isAutoEnabled ? -1 : currentRepresentation?.index || 0;
+	// Return early if the requested track is already active
+	if (track === currentTrack) {
+		return;
+	}
+
+	// setRepresentationForTypeByIndex could be overridden by ABR if autoSwitchBitrate is enabled
+	const enableAutoSwitch = track === -1;
+	dash.value.updateSettings({
+		streaming: {
+			abr: {
+				autoSwitchBitrate: { audio: true, video: enableAutoSwitch },
+			},
+		},
+	});
+	if (enableAutoSwitch) {
+		console.log("DashPlayer: setting video track to auto");
+		return;
+	}
+
+	// With forceReplace set to true, the buffer is aggressively cleared, ensuring instant quality switching.
+	// This can also cause rebuffering, but since we are watching "together", we set this to false to avoid playback interruptions.
+	// With the help of `fastSwitchEnabled`, the quality up-switch should happen when the buffer is healthy enough.
+	const forceSwitch = false;
+	dash.value.setRepresentationForTypeByIndex("video", track, forceSwitch);
 	console.log("DashPlayer: setting video track to index", track);
-	dash.value.setRepresentationForTypeByIndex("video", track);
 }
 
 function isAutoQualitySupported(): boolean {
