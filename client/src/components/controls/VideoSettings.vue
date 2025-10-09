@@ -16,9 +16,11 @@
 		<v-container v-if="isMenuOpen" v-click-outside="closeMenu" class="settings-menu-container">
 			<div class="menu-container">
 				<transition name="menu-resize" mode="out-in" slim>
+					<!-- Found the following hack in Room.vue -->
+					<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
 					<!-- Main menu -->
 					<v-list
-						v-if="currentMenu === MenuType.MAIN"
+						v-if="currentMenu === 'main'"
 						key="main"
 						class="menu-content"
 						min-width="300px"
@@ -29,7 +31,7 @@
 							:disabled="!isCaptionsSupported"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiClosedCaptionOutline"
-							@click="navigateToMenu(MenuType.SUBTITLE)"
+							@click="navigateToMenu('subtitle')"
 						>
 							<div class="menu-item-content">
 								<span>{{ $t("room.subtitles") }}</span>
@@ -45,7 +47,7 @@
 							:disabled="!isQualitySupported"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiTune"
-							@click="navigateToMenu(MenuType.QUALITY)"
+							@click="navigateToMenu('quality')"
 						>
 							<div class="menu-item-content">
 								<span>{{ $t("room.quality") }}</span>
@@ -58,7 +60,7 @@
 
 					<!-- Quality submenu -->
 					<v-list
-						v-else-if="currentMenu === MenuType.QUALITY"
+						v-else-if="currentMenu === 'quality'"
 						key="quality"
 						class="menu-content"
 						color="primary"
@@ -68,7 +70,7 @@
 							class="menu-header"
 							min-width="150px"
 							:prepend-icon="mdiChevronLeft"
-							@click="navigateToMenu(MenuType.MAIN)"
+							@click="navigateToMenu('main')"
 						>
 							{{ $t("room.quality") }}
 						</v-list-item>
@@ -95,7 +97,7 @@
 
 					<!-- Subtitle submenu -->
 					<v-list
-						v-else-if="currentMenu === MenuType.SUBTITLE"
+						v-else-if="currentMenu === 'subtitle'"
 						key="subtitle"
 						class="menu-content"
 						color="primary"
@@ -105,7 +107,7 @@
 							class="menu-header"
 							min-width="200px"
 							:prepend-icon="mdiChevronLeft"
-							@click="navigateToMenu(MenuType.MAIN)"
+							@click="navigateToMenu('main')"
 						>
 							{{ $t("room.subtitles") }}
 						</v-list-item>
@@ -131,13 +133,8 @@ import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
 import { mdiCog, mdiClosedCaptionOutline, mdiTune, mdiChevronLeft, mdiChevronRight } from "@mdi/js";
 
-// Menu types enum
-enum MenuType {
-	MAIN = "main",
-	QUALITY = "quality",
-	SUBTITLE = "subtitle",
-}
-const currentMenu = ref<MenuType>(MenuType.MAIN);
+// Menu types - using literal string values instead of enum due to Safari compatibility issues
+const currentMenu = ref<"main" | "quality" | "subtitle">("main");
 const isMenuOpen = ref<boolean>(false);
 
 const qualities = useQualities();
@@ -198,12 +195,12 @@ function isSubtitleTrackActive(track: string): boolean {
 	return captions.isCaptionsEnabled.value && track === captions.currentTrack.value;
 }
 
-function navigateToMenu(menu: MenuType): void {
+function navigateToMenu(menu): void {
 	currentMenu.value = menu;
 }
 
 function resetToMainMenu(): void {
-	currentMenu.value = MenuType.MAIN;
+	currentMenu.value = "main";
 }
 
 function toggleMenu(): void {
