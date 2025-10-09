@@ -108,6 +108,8 @@ describe("Video playback", () => {
 		// should have both captions and playback rate controls enabled
 		cy.get('[aria-label="Playback Speed"]').should("exist").should("be.enabled");
 		cy.get('[aria-label="Closed Captions"]').should("exist").should("be.enabled");
+		// the settings button should always be enabled, even if there's nothing to set
+		cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
 		cy.get("video").should("exist").scrollIntoView();
 
 		// change the playback rate to 1.5x
@@ -116,7 +118,7 @@ describe("Video playback", () => {
 		cy.get("video").should(element => {
 			expect(element[0].playbackRate).to.be.equal(1.5);
 		})
-		
+
 		// // FIXME: change the volume to 10%
 		// cy.get('[data-cy="volume-slider"]').ottSliderMove(10);
 		// cy.get("video").should(element => {
@@ -144,23 +146,24 @@ describe("Video playback", () => {
 		});
 
 		// enable captions
-		cy.get('[aria-label="Closed Captions"]').click();
-		cy.get('.v-overlay__content > .v-list').contains("English").eq(0).click();
+		cy.get('[aria-label="Player settings"]').click();
+		cy.get('.menu-container > .v-list').contains("Subtitles/CC").click();
+		cy.get('.menu-container > .v-list').contains("English").eq(0).click();
 		cy.get("video").should(element => {
 			expect(element[0].textTracks[0].mode).to.be.equal("showing");
 			expect(element[0].textTracks[0].language).to.be.equal("en");
 		});
-
 		// disable captions
 		cy.get('[aria-label="Closed Captions"]').click();
-		cy.get('.v-list').contains("Off").click();
+		// cy.get('.v-list').contains("Off").click();
 		cy.get("video").should(element => {
 			expect(element[0].textTracks[0].mode).to.be.equal("disabled");
 		});
 
 		// show a different caption track
-		cy.get('[aria-label="Closed Captions"]').click();
-		cy.get('.v-overlay__content > .v-list').contains("Español").eq(0).click();
+		cy.get('[aria-label="Player settings"]').click();
+		cy.get('.menu-container > .v-list').contains("Subtitles/CC").click();
+		cy.get('.menu-container > .v-list').contains("Español").eq(0).click();
 		// cy.get("video")
 		// .then(element => {
 		// 	for (let i = 0; i < element[0].textTracks.length; i++) {
@@ -202,6 +205,14 @@ describe("Video playback", () => {
 			// should have both captions and playback rate controls disabled
 			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.disabled");
 			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.disabled");
+			// the settings button should always be enabled, even if there's nothing to set
+			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
+			// the caption and quality settings should be disabled
+			cy.get('[aria-label="Player settings"]').click();
+			cy.get('.menu-container > .v-list').contains("Subtitles/CC").closest(".v-list-item")
+				.should("have.class", "v-list-item--disabled");
+			cy.get('.menu-container > .v-list').contains("Quality").closest(".v-list-item")
+				.should("have.class", "v-list-item--disabled");
 
 			// skip the video
 			cy.get(".video-controls button").eq(3).click();
@@ -212,7 +223,31 @@ describe("Video playback", () => {
 
 			// should have both captions and playback rate controls enabled
 			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.enabled");
-			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.enabled");
+
+			// Determine expected states based on video type
+			const isHlsVideo = i === 0;
+			const captionsExpectedState = isHlsVideo ? "be.enabled" : "be.disabled";
+			const menuItemExpectedClass = isHlsVideo ? "not.have.class" : "have.class";
+
+			// Test captions button state
+			cy.get('[aria-label="Closed Captions"]')
+				.should("exist")
+				.should(captionsExpectedState);
+
+			// the settings button should always be enabled
+			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
+			cy.get('[aria-label="Player settings"]').click();
+
+			// Test settings menu items based on video type
+			cy.get('.menu-container > .v-list')
+				.contains("Subtitles/CC")
+				.closest(".v-list-item")
+				.should(menuItemExpectedClass, "v-list-item--disabled");
+
+			cy.get('.menu-container > .v-list')
+				.contains("Quality")
+				.closest(".v-list-item")
+				.should(menuItemExpectedClass, "v-list-item--disabled");
 
 			// skip the video
 			cy.get(".video-controls button").eq(3).click();
@@ -221,6 +256,13 @@ describe("Video playback", () => {
 			// should have both captions and playback rate controls disabled when the video goes away
 			cy.get('[aria-label="Playback Speed"]').should("exist").should("be.disabled");
 			cy.get('[aria-label="Closed Captions"]').should("exist").should("be.disabled");
+			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
+			// the caption and quality settings should be disabled when the video goes away
+			cy.get('[aria-label="Player settings"]').click();
+			cy.get('.menu-container > .v-list').contains("Subtitles/CC").closest(".v-list-item")
+				.should("have.class", "v-list-item--disabled");
+			cy.get('.menu-container > .v-list').contains("Quality").closest(".v-list-item")
+				.should("have.class", "v-list-item--disabled");
 		});
 	})
 
