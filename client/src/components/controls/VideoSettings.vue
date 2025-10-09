@@ -244,7 +244,7 @@ function selectSubtitleTrack(track: string): void {
 	bottom: media-controls.$video-controls-height;
 	right: -90px;
 	z-index: 9999;
-	background: rgba(var(--v-theme-surface), 0.7);
+	background: rgba(var(--v-theme-surface), 0.9);
 	border-radius: 10px;
 	padding: 0;
 	width: auto;
