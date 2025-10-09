@@ -5,7 +5,6 @@
 			icon
 			class="media-control"
 			:aria-label="$t('room.player-settings')"
-			:disabled="!isMenuSupported"
 			@click="toggleMenu"
 		>
 			<v-icon :icon="mdiCog" />
@@ -25,9 +24,9 @@
 						min-width="300px"
 					>
 						<v-list-item
-							v-if="isCaptionsSupported"
 							link
 							class="menu-item"
+							:disabled="!isCaptionsSupported"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiClosedCaptionOutline"
 							@click="navigateToMenu(MenuType.SUBTITLE)"
@@ -41,9 +40,9 @@
 						</v-list-item>
 
 						<v-list-item
-							v-if="isQualitySupported"
 							link
 							class="menu-item"
+							:disabled="!isQualitySupported"
 							:append-icon="mdiChevronRight"
 							:prepend-icon="mdiTune"
 							@click="navigateToMenu(MenuType.QUALITY)"
@@ -152,12 +151,12 @@ const isCaptionsSupported = computed(
 	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0
 );
 
-const isMenuSupported = computed(() => isQualitySupported.value || isCaptionsSupported.value);
-
 const currentSubtitleDisplay = computed(() => {
-	return captions.isCaptionsEnabled.value && captions.currentTrack.value
+	return isCaptionsSupported.value &&
+		captions.isCaptionsEnabled.value &&
+		captions.currentTrack.value
 		? captions.currentTrack.value
-		: null;
+		: "disabled";
 });
 
 function formatQuality(quality: number): string {
@@ -175,6 +174,10 @@ const autoQualityDisplay = computed(() => {
 });
 
 const currentQualityDisplay = computed(() => {
+	if (!isQualitySupported.value) {
+		return "disabled";
+	}
+
 	const isAutoQualitySupported = qualities.isAutoQualitySupported.value;
 	const currentTrack = qualities.currentVideoTrack.value;
 	if (isAutoQualitySupported && currentTrack === -1) {

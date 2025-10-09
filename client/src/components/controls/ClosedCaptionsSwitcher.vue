@@ -2,7 +2,7 @@
 	<v-btn
 		variant="text"
 		icon
-		v-if="supported"
+		:disabled="!supported"
 		class="media-control"
 		aria-label="Closed Captions"
 		@click="toggleCaptions()"
