@@ -15,8 +15,8 @@
 				<VolumeControl />
 				<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 				<div class="grow"><!-- Spacer --></div>
-				<PlaybackRateSwitcher />
 				<ClosedCaptionsSwitcher />
+				<PlaybackRateSwitcher />
 				<VideoSettings />
 				<LayoutSwitcher />
 			</div>
