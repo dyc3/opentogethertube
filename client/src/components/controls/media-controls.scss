@@ -2,6 +2,8 @@
 
 $video-controls-height: 90px;
 $media-control-surface: rgb(var(--v-theme-media-control-surface));
+$menu-background: rgba(var(--v-theme-surface), 0.9);
+$menu-radius: 10px;
 
 .media-control {
 	color: $media-control-surface;
