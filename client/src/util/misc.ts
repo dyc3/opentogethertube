@@ -9,7 +9,12 @@ export function isOfficialSite(): boolean {
 }
 
 function gcd(a: number, b: number): number {
-	return b === 0 ? a : gcd(b, a % b);
+	while (b !== 0) {
+		const temp = b;
+		b = a % b;
+		a = temp;
+	}
+	return a;
 }
 
 /**
