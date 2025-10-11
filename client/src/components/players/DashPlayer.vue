@@ -27,6 +27,7 @@ import type {
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
+import type { VideoTrack } from "@/models/media-tracks";
 
 interface Props {
 	videoUrl: string;
@@ -147,7 +148,7 @@ function isQualitySupported(): boolean {
 	return true;
 }
 
-function getVideoTracks(): { width: number; height: number }[] {
+function getVideoTracks(): VideoTrack[] {
 	if (!dash.value) {
 		console.error("player not ready");
 		return [];

@@ -1,3 +1,5 @@
+import type { VideoTrack } from "@/models/media-tracks";
+
 export function enumKeys<O extends object, K extends keyof O = keyof O>(obj: O): K[] {
 	return Object.keys(obj).filter(k => Number.isNaN(+k)) as K[];
 }
@@ -61,7 +63,8 @@ function getAspectRatio(
  * @param height - The height of the video in pixels.
  * @returns A user-friendly label describing the video's resolution
  */
-export function getFriendlyResolutionLabel(width: number, height: number): number {
+export function getFriendlyResolutionLabel(videoTrack: VideoTrack): number {
+	const { width, height } = videoTrack;
 	const { type } = getAspectRatio(width, height);
 
 	if (type === "Widescreen") {
