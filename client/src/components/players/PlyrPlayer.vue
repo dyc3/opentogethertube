@@ -93,13 +93,13 @@ export default defineComponent({
 				}
 				return tracks;
 			},
-			setCaptionsTrack(track: string): void {
+			setCaptionsTrack(track: number): void {
 				if (!player.value) {
 					console.error("player not ready");
 					return;
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
-				player.value.currentTrack = findTrackIdx(track);
+				player.value.currentTrack = track;
 			},
 
 			isQualitySupported(): boolean {
@@ -124,19 +124,6 @@ export default defineComponent({
 				player.value.speed = rate;
 			},
 		};
-
-		function findTrackIdx(language: string): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || track.kind !== "captions") {
-					continue;
-				}
-				if (track.language === language) {
-					return i;
-				}
-			}
-			return 0;
-		}
 
 		const captions = useCaptions();
 		onMounted(() => {

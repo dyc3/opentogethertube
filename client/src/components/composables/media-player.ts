@@ -44,7 +44,7 @@ export interface MediaPlayerWithCaptions extends MediaPlayer {
 	isCaptionsEnabled(): boolean;
 	setCaptionsEnabled(enabled: boolean): void;
 	getCaptionsTracks(): string[];
-	setCaptionsTrack(track: string): void;
+	setCaptionsTrack(track: number): void;
 }
 
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
@@ -136,7 +136,7 @@ export function useMediaPlayer() {
 const isCaptionsSupported: Ref<boolean> = ref(false);
 const isCaptionsEnabled: Ref<boolean> = ref(false);
 const captionsTracks: Ref<string[]> = ref([]);
-const currentTrack: Ref<string | null> = ref(null);
+const currentTrack: Ref<number | null> = ref(null);
 
 export function useCaptions() {
 	return {

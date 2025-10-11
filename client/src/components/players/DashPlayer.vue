@@ -102,7 +102,7 @@ function setCaptionsEnabled(enabled: boolean): void {
 		return;
 	}
 	if (enabled) {
-		setCaptionsTrack(captions.currentTrack.value || "");
+		dash.value.setTextTrack(captions.currentTrack.value || 0);
 	} else {
 		dash.value.setTextTrack(-1);
 	}
@@ -130,18 +130,13 @@ function getCaptionsTracks(): string[] {
 	return captionsTracks;
 }
 
-function setCaptionsTrack(track: string): void {
+function setCaptionsTrack(track: number): void {
 	if (!dash.value) {
 		console.error("dash.js player not ready");
 		return;
 	}
-	const trackIdx = captions.captionsTracks.value.findIndex(t => t === track);
-	if (trackIdx === -1) {
-		console.error("DashPlayer: captions track not found:", track);
-		return;
-	}
-	console.log("DashPlayer: setting captions track to", track, "at index", trackIdx);
-	dash.value.setTextTrack(trackIdx);
+	console.log("DashPlayer: setting captions track to", track, "at index", track);
+	dash.value.setTextTrack(track);
 }
 
 function isQualitySupported(): boolean {
@@ -278,10 +273,9 @@ function loadVideoSource() {
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
 		if (dash.value?.getCurrentTextTrackIndex() !== -1) {
-			captions.currentTrack.value =
-				captions.captionsTracks.value[dash.value?.getCurrentTextTrackIndex() || 0];
+			captions.currentTrack.value = dash.value?.getCurrentTextTrackIndex() || 0;
 		} else {
-			captions.currentTrack.value = "";
+			captions.currentTrack.value = null;
 			console.log("DashPlayer: no text track selected");
 		}
 	});

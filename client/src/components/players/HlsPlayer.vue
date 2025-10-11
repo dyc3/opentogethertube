@@ -102,7 +102,7 @@ function setCaptionsEnabled(enabled: boolean): void {
 		return;
 	}
 	if (enabled) {
-		setCaptionsTrack(captions.currentTrack.value || "");
+		hls.subtitleTrack = captions.currentTrack.value || 0;
 	} else {
 		hls.subtitleTrack = -1;
 	}
@@ -120,19 +120,13 @@ function getCaptionsTracks(): string[] {
 	return hls?.subtitleTracks.map(track => track.name) || [];
 }
 
-function setCaptionsTrack(track: string): void {
+function setCaptionsTrack(track: number): void {
 	if (!hls) {
 		console.error("HlsPlayer: player not ready");
 		return;
 	}
 	console.log("HlsPlayer: setCaptionsTrack:", track);
-	const trackIdx = hls.subtitleTracks.findIndex(t => t.name === track);
-	if (trackIdx === -1) {
-		console.error("HlsPlayer: HLS.js captions track not found:", track);
-		return;
-	}
-	console.log("HlsPlayer: setting HLS.js captions track:", trackIdx);
-	hls.subtitleTrack = trackIdx;
+	hls.subtitleTrack = track;
 }
 
 function isQualitySupported(): boolean {
@@ -242,7 +236,7 @@ function loadVideoSource() {
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
 		console.log("HlsPlayer: current subtitle track:", hls?.subtitleTrack);
-		captions.currentTrack.value = captions.captionsTracks.value[hls?.subtitleTrack || 0] || "";
+		captions.currentTrack.value = hls?.subtitleTrack || 0;
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = hls?.autoLevelEnabled ? -1 : hls?.currentLevel || -1;
 		qualities.currentActiveQuality.value = getCurrentActiveQuality();

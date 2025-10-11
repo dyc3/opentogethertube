@@ -116,8 +116,8 @@
 							v-for="(track, idx) in captions.captionsTracks.value"
 							:key="idx"
 							link
-							:active="isSubtitleTrackActive(track)"
-							@click="selectSubtitleTrack(track)"
+							:active="isSubtitleTrackActive(idx)"
+							@click="selectSubtitleTrack(idx)"
 						>
 							{{ track }}
 						</v-list-item>
@@ -153,8 +153,9 @@ const isCaptionsSupported = computed(
 const currentSubtitleDisplay = computed(() => {
 	return isCaptionsSupported.value &&
 		captions.isCaptionsEnabled.value &&
-		captions.currentTrack.value
-		? captions.currentTrack.value
+		captions.currentTrack.value !== null &&
+		captions.captionsTracks.value[captions.currentTrack.value]
+		? captions.captionsTracks.value[captions.currentTrack.value]
 		: "disabled";
 });
 
@@ -194,7 +195,7 @@ const currentQualityDisplay = computed(() => {
 
 const isAutoQualityActive = computed(() => qualities.currentVideoTrack.value === -1);
 
-function isSubtitleTrackActive(track: string): boolean {
+function isSubtitleTrackActive(track: number): boolean {
 	return captions.isCaptionsEnabled.value && track === captions.currentTrack.value;
 }
 
@@ -223,7 +224,7 @@ function selectQuality(idx: number): void {
 	closeMenu();
 }
 
-function selectSubtitleTrack(track: string): void {
+function selectSubtitleTrack(track: number): void {
 	if (!captions.isCaptionsEnabled.value) {
 		captions.isCaptionsEnabled.value = true;
 	}
