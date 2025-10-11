@@ -219,7 +219,8 @@ async function resolveCanonicalUri(inputLbryUri: string): Promise<{
 }> {
 	try {
 		const res = await rpc<ResolveMap>("resolve", { urls: [inputLbryUri] });
-		const entry = res[inputLbryUri];
+		const entry =
+			res[inputLbryUri] ?? (Object.values(res)[0] as ResolveMap[string] | undefined);
 		if (!entry) {
 			log.error("resolve() returned no entry for URI");
 			throw new OdyseeUnavailableVideo();
@@ -246,10 +247,17 @@ async function rpc<T>(
 ): Promise<T> {
 	try {
 		if (!guestAuthToken) {
-			guestAuthToken = await fetchGuestAuthToken();
+			try {
+				const maybe = await fetchGuestAuthToken();
+				if (maybe) {
+					guestAuthToken = maybe;
+				}
+			} catch (_) {
+				/* ignore token refresh errors */
+			}
 		}
 
-		log.debug?.("rpc(): current token in use ", { guestAuthToken });
+		log.debug?.("rpc(): using guest token", { hasToken: Boolean(guestAuthToken) });
 
 		const res = await httpc.post<JsonRpcEnvelope<T>>(
 			`${ODYSEE_RPC}?m=${encodeURIComponent(method)}`,
@@ -265,7 +273,9 @@ async function rpc<T>(
 		);
 		if (!res?.data || typeof res.data.result === "undefined") {
 			const errMsg = res?.data?.error?.message ? ` (${res.data.error.message})` : "";
-			throw new Error(`Odysee RPC returned no result for ${method}${errMsg}`);
+			throw new OdyseeUnavailableVideo(
+				`Odysee RPC did not return a result for ${method}${errMsg}`
+			);
 		}
 		return res.data.result;
 	} catch (e) {
@@ -299,7 +309,7 @@ function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
 		return null;
 	}
 
-	// Case 1: Channel-based URL → @channel:xx/slug:yy
+	// Case 1: Channel-based URL -> @channel:xx/slug:yy
 	if (parts[0].startsWith("@")) {
 		const [channel, channelId] = parts[0].split(":", 2);
 		let lbry = `lbry://${channel}${channelId ? `#${channelId}` : ""}`;
@@ -310,7 +320,7 @@ function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
 		return lbry;
 	}
 
-	// Case 2: Slug-only video → slug:claimId
+	// Case 2: Slug-only video -> slug:claimId
 	if (parts.length === 1 && parts[0].includes(":")) {
 		const [slug, claimId] = parts[0].split(":", 2);
 		return `lbry://${slug}${claimId ? `#${claimId}` : ""}`;
@@ -410,8 +420,6 @@ function normalizeMime(mimeFromServer?: string | null, url?: string): string {
 	return mimeFromServer?.startsWith("video/") ? mimeFromServer : "video/mp4";
 }
 
-const _baseUrlCache = new Map<string, URL>();
-
 function resolveRelativeUrl(base: string | URL, maybeRelative: string): string {
 	try {
 		const b = typeof base === "string" ? new URL(base) : base;
@@ -425,8 +433,8 @@ function resolveRelativeUrl(base: string | URL, maybeRelative: string): string {
 async function firstVerifyingUrl(candidates: string[]): Promise<string | undefined> {
 	for (const u of candidates) {
 		const v = await verifyStream(u);
-		if (v.ok && (v.finalUrl?.startsWith("http") ? v.finalUrl : u)) {
-			return v.finalUrl && v.finalUrl.startsWith("http") ? v.finalUrl : u;
+		if (v.ok) {
+			return v.finalUrl?.startsWith("http") ? v.finalUrl : u;
 		}
 	}
 	return undefined;
@@ -606,7 +614,27 @@ function isHostUnderDomain(host: string, domain: string): boolean {
 	return h === d || h.endsWith(`.${d}`);
 }
 
+function setUserMessage(err: unknown, msg?: string): void {
+	if (!msg) {
+		return;
+	}
+	if (err && typeof err === "object") {
+		const obj = err as Record<string, unknown>;
+		obj.userMessage = msg;
+		try {
+			obj.message = msg;
+		} catch {
+			/* ignore */
+		}
+	}
+}
+
 export default class OdyseeAdapter extends ServiceAdapter {
+	constructor(...args: unknown[]) {
+		super(...(args as []));
+		guestAuthToken = undefined;
+	}
+
 	get serviceId(): VideoService {
 		return "odysee";
 	}
@@ -756,7 +784,13 @@ export default class OdyseeAdapter extends ServiceAdapter {
 					url: finalStreamingUrl,
 					status: finalCheck.status,
 				});
-				throw new OdyseeUnavailableVideo();
+				const userMsg =
+					typeof finalCheck.message === "string"
+						? finalCheck.message.split("|").pop()?.trim()
+						: undefined;
+				const err = new OdyseeUnavailableVideo(userMsg);
+				setUserMessage(err, userMsg);
+				throw err;
 			}
 
 			const result: Video = {
@@ -790,11 +824,11 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			resolved?.value?.license &&
 			resolved.value.license.toLowerCase().includes("copyright")
 		) {
-			log.warn?.("DRM/Copyright-locked video detected -  blocking", {
+			log.warn?.("DRM/Copyright-locked video detected => blocking", {
 				uri: canonicalUri,
 				license: resolved.value.license,
 			});
-			throw new OdyseeUnavailableVideo("Video is copyright-locked and not playable.");
+			throw new OdyseeUnavailableVideo("Video is copyrighted and not playable.");
 		}
 		const uriForGet = resolved?.permanent_url ?? canonicalUri;
 
@@ -818,7 +852,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 
 		if (!got?.streaming_url) {
 			// Attempt to recover with claim_search -> reconstruct streaming URL manually
-			log.warn("Odysee get() returned no streaming_url – trying claim_search fallback");
+			log.warn("Odysee get() returned no streaming_url - trying claim_search fallback");
 			const claimId = got?.claim_id;
 			const sdHash = getSdHashFromValue(got?.value);
 			if (typeof claimId === "string" && typeof sdHash === "string") {
@@ -833,7 +867,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 		if (!got?.streaming_url) {
 			const dbg = JSON.stringify({ claim_id: got?.claim_id, mime_type: got?.mime_type });
-			log.warn("Odysee RPC get() returned no streaming_url – treated as unavailable", {
+			log.warn("Odysee RPC get() returned no streaming_url => treated as unavailable", {
 				dbg,
 			});
 			throw new OdyseeUnavailableVideo();
@@ -855,7 +889,11 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			}
 		} else {
 			log.warn?.(`verifyStream: could not validate stream url=${finalStreamingUrl}`);
-			throw new OdyseeUnavailableVideo();
+			const userMsg =
+				typeof ver.message === "string" ? ver.message.split("|").pop()?.trim() : undefined;
+			const err = new OdyseeUnavailableVideo(userMsg);
+			setUserMessage(err, userMsg);
+			throw err;
 		}
 
 		const isMasterHls = isHlsMimeOrUrl(baseMimeHeader, finalStreamingUrl);
@@ -910,11 +948,13 @@ export default class OdyseeAdapter extends ServiceAdapter {
 				url: finalStreamingUrl,
 				status: finalCheck2.status,
 			});
-			const extraMsg =
-				finalCheck2.message && finalCheck2.message.length < 200
-					? `Odysee CDN response: ${finalCheck2.message}`
+			const userMsg =
+				typeof finalCheck2.message === "string"
+					? finalCheck2.message.split("|").pop()?.trim()
 					: undefined;
-			throw new OdyseeUnavailableVideo(extraMsg);
+			const err = new OdyseeUnavailableVideo(userMsg);
+			setUserMessage(err, userMsg);
+			throw err;
 		}
 
 		const result: Video = {
@@ -940,7 +980,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			...(isHls ? { hls_url: finalStreamingUrl } : null),
 		};
 		log.debug(`Odysee FE payload -> ${JSON.stringify(snapshot)}`);
-		
+
 		return result;
 	}
 }
