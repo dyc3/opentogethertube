@@ -52,7 +52,7 @@ export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
 }
 
 export interface MediaPlayerWithQuality extends MediaPlayer {
-	getVideoTracks(): number[];
+	getVideoTracks(): { width: number; height: number }[];
 	setVideoTrack(idx: number): void;
 	isAutoQualitySupported(): boolean;
 	getCurrentActiveQuality(): number | null;
@@ -147,7 +147,7 @@ export function useCaptions() {
 }
 
 const isQualitySupported: Ref<boolean> = ref(false);
-const videoTracks: Ref<number[]> = ref([]);
+const videoTracks: Ref<{ width: number; height: number }[]> = ref([]);
 const currentVideoTrack: Ref<number> = ref(-1);
 const isAutoQualitySupported: Ref<boolean> = ref(false);
 const currentActiveQuality: Ref<number | null> = ref(null);
