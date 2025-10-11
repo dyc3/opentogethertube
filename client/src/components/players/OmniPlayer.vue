@@ -60,7 +60,13 @@
 				@error="onError"
 			/>
 			<HlsPlayer
-				v-else-if="!!source && ['hls', 'reddit', 'tubi', 'pluto'].includes(source.service)"
+				v-else-if="
+					!!source &&
+					(['hls', 'reddit', 'tubi', 'pluto'].includes(source.service) ||
+						(source.service === 'odysee' &&
+							(source.mime?.includes('application/vnd.apple.mpegurl') ||
+								source.mime?.includes('application/x-mpegURL'))))
+				"
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
@@ -90,7 +96,11 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<PlyrPlayer
-				v-else-if="!!source && ['direct'].includes(source.service)"
+				v-else-if="
+					!!source &&
+					(['direct'].includes(source.service) ||
+						(source.service === 'odysee' && source.mime?.includes('video/mp4')))
+				"
 				ref="player"
 				:service="source.service"
 				:video-url="source.hls_url ?? source.id"
