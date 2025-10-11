@@ -21,6 +21,10 @@ const ODYSEE_WEB = "https://odysee.com";
 // Unified AXIOS Timeout
 const AXIOS_TIMEOUT_MS = 10000;
 
+// Hostname RegEx
+const RE_ODYSEE_HOST = /(?:^|\.)odysee\.com$/i;
+const RE_ODYCDN_HOST = /(?:^|\.)odycdn\.com$/i;
+
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 50 });
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 50 });
 const httpc = axios.create({
@@ -91,8 +95,8 @@ async function fetchGuestAuthToken(): Promise<string | undefined> {
 		}
 
 		const maybeToken2 =
-			res2.data?.result?.data?.auth_token ||
-			res2.data?.result?.auth_token ||
+			res2.data?.result?.data?.auth_token ??
+			res2.data?.result?.auth_token ??
 			res2.data?.auth_token;
 		if (typeof maybeToken2 === "string" && maybeToken2.length > 10) {
 			log.debug?.("fetchGuestAuthToken: extracted auth_token from user_new JSON body");
@@ -298,7 +302,7 @@ function parseOdyseeUrlToLbry(uriOrUrl: string): string | null {
 	} catch {
 		return null;
 	}
-	if (!/(\.|^)odysee\.com$/i.test(url.hostname)) {
+	if (!RE_ODYSEE_HOST.test(url.hostname)) {
 		return null;
 	}
 
@@ -653,7 +657,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 		try {
 			const u = normalizeOdyseeUrl(url);
-			return /(\.|^)odysee\.com$/i.test(u.hostname) || /(\.|^)odycdn\.com$/i.test(u.hostname);
+			return RE_ODYSEE_HOST.test(u.hostname) || RE_ODYCDN_HOST.test(u.hostname);
 		} catch {
 			return false;
 		}
