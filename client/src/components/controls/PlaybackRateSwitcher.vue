@@ -5,8 +5,8 @@
 		<v-tooltip activator="parent" location="bottom">
 			<span>{{ $t("room.playback-speed") }}</span>
 		</v-tooltip>
-		<v-menu location="top" activator="parent">
-			<v-list>
+		<v-menu location="top" activator="parent" offset="+30px">
+			<v-list class="playback-rate-menu">
 				<v-list-item
 					v-for="(rate, index) in playbackRate.availablePlaybackRates.value"
 					:key="index"
@@ -46,4 +46,9 @@ const supported = playbackRate.isPlaybackRateSupported;
 
 <style lang="scss">
 @use "./media-controls.scss";
+
+.playback-rate-menu {
+	background-color: media-controls.$menu-background !important;
+	border-radius: media-controls.$menu-radius !important;
+}
 </style>

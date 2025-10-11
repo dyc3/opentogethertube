@@ -16,8 +16,8 @@
 				<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 				<div class="grow"><!-- Spacer --></div>
 				<ClosedCaptionsSwitcher />
-				<VideoQualitySwitcher />
 				<PlaybackRateSwitcher />
+				<VideoSettings />
 				<LayoutSwitcher />
 			</div>
 		</div>
@@ -32,7 +32,7 @@ import TimestampDisplay from "./TimestampDisplay.vue";
 import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
-import VideoQualitySwitcher from "./VideoQualitySwitcher.vue";
+import VideoSettings from "./VideoSettings.vue";
 
 withDefaults(
 	defineProps<{
@@ -49,7 +49,8 @@ withDefaults(
 </script>
 
 <style lang="scss">
-$video-controls-height: 90px;
+@use "./media-controls.scss";
+
 $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 
 .grow {
@@ -57,7 +58,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 }
 
 .video-controls {
-	min-height: $video-controls-height;
+	min-height: media-controls.$video-controls-height;
 	transition: all 0.2s;
 	z-index: 100;
 	padding: 12px;
