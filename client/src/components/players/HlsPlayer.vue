@@ -27,6 +27,7 @@ import type {
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
+import type { VideoTrack } from "@/models/media-tracks";
 
 interface Props {
 	videoUrl: string;
@@ -138,7 +139,7 @@ function isQualitySupported(): boolean {
 	return true;
 }
 
-function getVideoTracks(): number[] {
+function getVideoTracks(): VideoTrack[] {
 	if (!hls || !hls.levels) {
 		console.error("player not ready");
 		return [];
@@ -151,7 +152,7 @@ function getVideoTracks(): number[] {
 			return [];
 		}
 	}
-	return hls.levels.map(level => level.height);
+	return hls.levels.map(level => ({ width: level.width, height: level.height }));
 }
 
 function setVideoTrack(track: number): void {

@@ -27,6 +27,7 @@ import type {
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
+import type { VideoTrack } from "@/models/media-tracks";
 
 interface Props {
 	videoUrl: string;
@@ -147,16 +148,18 @@ function isQualitySupported(): boolean {
 	return true;
 }
 
-function getVideoTracks(): number[] {
+function getVideoTracks(): VideoTrack[] {
 	if (!dash.value) {
 		console.error("player not ready");
 		return [];
 	}
-	const videoTracks = dash.value.getRepresentationsByType("video").map(rep => rep.height);
+	const videoTracks = dash.value
+		.getRepresentationsByType("video")
+		.map(rep => ({ width: rep.width, height: rep.height }));
 	console.log("DashPlayer: getVideoTracks:", videoTracks);
 	if (videoTracks.length === 1) {
 		console.log("DashPlayer: no other video tracks available");
-		if (videoTracks[0] === 0) {
+		if (videoTracks[0].height === 0) {
 			// if the only level height is 0, then don't return any quality levels
 			return [];
 		}

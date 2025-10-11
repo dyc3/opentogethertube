@@ -132,6 +132,8 @@
 import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
 import { mdiCog, mdiClosedCaptionOutline, mdiTune, mdiChevronLeft, mdiChevronRight } from "@mdi/js";
+import { getFriendlyResolutionLabel } from "@/util/misc";
+import type { VideoTrack } from "@/models/media-tracks";
 
 // Menu types - using literal string values instead of enum due to Safari compatibility issues
 const currentMenu = ref<"main" | "quality" | "subtitle">("main");
@@ -156,8 +158,9 @@ const currentSubtitleDisplay = computed(() => {
 		: "disabled";
 });
 
-function formatQuality(quality: number): string {
-	return `${quality}p`;
+function formatQuality(videoTrack: VideoTrack): string {
+	const resolution = getFriendlyResolutionLabel(videoTrack);
+	return `${resolution}p`;
 }
 
 const autoQualityDisplay = computed(() => {
