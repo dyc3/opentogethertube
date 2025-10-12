@@ -10,7 +10,7 @@ seeked = "seeked"
 aknowledge = "aknowledge"
 # Odysee
 odysee = "odysee"
-ody = "Ody"
+Ody = "Ody"
 
 [files]
 extend-exclude = [
