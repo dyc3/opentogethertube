@@ -168,7 +168,13 @@ const currentSubtitleDisplay = computed(() => {
 });
 
 function formatCaption(track: CaptionTrack): string {
-	return track.label || track.srclang || "unknown";
+	const localiedLabel =
+		track.srclang &&
+		new Intl.DisplayNames([track.srclang], { type: "language", fallback: "none" }).of(
+			track.srclang
+		);
+	const label = track.label || localiedLabel || track.srclang || "unknown";
+	return label;
 }
 
 function formatQuality(videoTrack: VideoTrack): string {
