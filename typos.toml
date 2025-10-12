@@ -9,8 +9,8 @@ seeked = "seeked"
 # google drive misspelled this in their API
 aknowledge = "aknowledge"
 # Odysee
-Odysee = "odysee"
-Ody = "Ody"
+odysee = "odysee"
+ody = "Ody"
 
 [files]
 extend-exclude = [
