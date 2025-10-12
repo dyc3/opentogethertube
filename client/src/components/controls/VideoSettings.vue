@@ -117,9 +117,10 @@
 							:key="idx"
 							link
 							:active="isSubtitleTrackActive(idx)"
+							:append-icon="track.kind === 'captions' ? mdiClosedCaption : undefined"
 							@click="selectSubtitleTrack(idx)"
 						>
-							{{ track }}
+							{{ formatCaption(track) }}
 						</v-list-item>
 					</v-list>
 				</transition>
@@ -131,9 +132,16 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
-import { mdiCog, mdiClosedCaptionOutline, mdiTune, mdiChevronLeft, mdiChevronRight } from "@mdi/js";
+import {
+	mdiCog,
+	mdiClosedCaptionOutline,
+	mdiClosedCaption,
+	mdiTune,
+	mdiChevronLeft,
+	mdiChevronRight,
+} from "@mdi/js";
 import { getFriendlyResolutionLabel } from "@/util/misc";
-import type { VideoTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 // Menu types - using literal string values instead of enum due to Safari compatibility issues
 const currentMenu = ref<"main" | "quality" | "subtitle">("main");
@@ -151,13 +159,17 @@ const isCaptionsSupported = computed(
 );
 
 const currentSubtitleDisplay = computed(() => {
-	return isCaptionsSupported.value &&
-		captions.isCaptionsEnabled.value &&
-		captions.currentTrack.value !== null &&
-		captions.captionsTracks.value[captions.currentTrack.value]
-		? captions.captionsTracks.value[captions.currentTrack.value]
-		: "disabled";
+	const isEnabled =
+		isCaptionsSupported.value ||
+		captions.isCaptionsEnabled.value ||
+		captions.currentTrack.value !== null;
+	const track = captions.captionsTracks.value[captions.currentTrack.value || 0];
+	return isEnabled ? formatCaption(track) : "disabled";
 });
+
+function formatCaption(track: CaptionTrack): string {
+	return track.label || track.srclang || "unknown";
+}
 
 function formatQuality(videoTrack: VideoTrack): string {
 	const resolution = getFriendlyResolutionLabel(videoTrack);
