@@ -129,8 +129,6 @@ function getCaptionsTracks(): CaptionTrack[] {
 				? "captions"
 				: undefined;
 		return {
-			// dash.js should return either `subtitles` or `captions`
-			// ref: https://github.com/Dash-Industry-Forum/dash.js/blob/b04b4836009d8d511b74136ce57a2bd37603da36/src/streaming/text/TextSourceBuffer.js#L150-L169
 			kind: kind,
 			label: track.labels["text"] || undefined,
 			srclang: track.labels["lang"] || track.lang || undefined,
