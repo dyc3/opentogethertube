@@ -116,10 +116,11 @@
 							v-for="(track, idx) in captions.captionsTracks.value"
 							:key="idx"
 							link
-							:active="isSubtitleTrackActive(track)"
-							@click="selectSubtitleTrack(track)"
+							:active="isSubtitleTrackActive(idx)"
+							:append-icon="track.kind === 'captions' ? mdiClosedCaption : undefined"
+							@click="selectSubtitleTrack(idx)"
 						>
-							{{ track }}
+							{{ formatCaption(track) }}
 						</v-list-item>
 					</v-list>
 				</transition>
@@ -131,9 +132,16 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
-import { mdiCog, mdiClosedCaptionOutline, mdiTune, mdiChevronLeft, mdiChevronRight } from "@mdi/js";
+import {
+	mdiCog,
+	mdiClosedCaptionOutline,
+	mdiClosedCaption,
+	mdiTune,
+	mdiChevronLeft,
+	mdiChevronRight,
+} from "@mdi/js";
 import { getFriendlyResolutionLabel } from "@/util/misc";
-import type { VideoTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 // Menu types - using literal string values instead of enum due to Safari compatibility issues
 const currentMenu = ref<"main" | "quality" | "subtitle">("main");
@@ -151,12 +159,23 @@ const isCaptionsSupported = computed(
 );
 
 const currentSubtitleDisplay = computed(() => {
-	return isCaptionsSupported.value &&
-		captions.isCaptionsEnabled.value &&
-		captions.currentTrack.value
-		? captions.currentTrack.value
-		: "disabled";
+	const isEnabled =
+		isCaptionsSupported.value ||
+		captions.isCaptionsEnabled.value ||
+		captions.currentTrack.value !== null;
+	const track = captions.captionsTracks.value[captions.currentTrack.value || 0];
+	return isEnabled ? formatCaption(track) : "disabled";
 });
+
+function formatCaption(track: CaptionTrack): string {
+	const localiedLabel =
+		track.srclang &&
+		new Intl.DisplayNames([track.srclang], { type: "language", fallback: "none" }).of(
+			track.srclang
+		);
+	const label = track.label || localiedLabel || track.srclang || "unknown";
+	return label;
+}
 
 function formatQuality(videoTrack: VideoTrack): string {
 	const resolution = getFriendlyResolutionLabel(videoTrack);
@@ -194,7 +213,7 @@ const currentQualityDisplay = computed(() => {
 
 const isAutoQualityActive = computed(() => qualities.currentVideoTrack.value === -1);
 
-function isSubtitleTrackActive(track: string): boolean {
+function isSubtitleTrackActive(track: number): boolean {
 	return captions.isCaptionsEnabled.value && track === captions.currentTrack.value;
 }
 
@@ -223,7 +242,7 @@ function selectQuality(idx: number): void {
 	closeMenu();
 }
 
-function selectSubtitleTrack(track: string): void {
+function selectSubtitleTrack(track: number): void {
 	if (!captions.isCaptionsEnabled.value) {
 		captions.isCaptionsEnabled.value = true;
 	}

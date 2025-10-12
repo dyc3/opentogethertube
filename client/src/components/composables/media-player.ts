@@ -1,6 +1,6 @@
 import { useStore } from "@/store";
 import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed } from "vue";
-import type { VideoTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 const volume = ref(100);
 
@@ -43,8 +43,8 @@ export interface MediaPlayer {
 export interface MediaPlayerWithCaptions extends MediaPlayer {
 	isCaptionsEnabled(): boolean;
 	setCaptionsEnabled(enabled: boolean): void;
-	getCaptionsTracks(): string[];
-	setCaptionsTrack(track: string): void;
+	getCaptionsTracks(): CaptionTrack[];
+	setCaptionsTrack(track: number): void;
 }
 
 export interface MediaPlayerWithPlaybackRate extends MediaPlayer {
@@ -135,8 +135,8 @@ export function useMediaPlayer() {
 
 const isCaptionsSupported: Ref<boolean> = ref(false);
 const isCaptionsEnabled: Ref<boolean> = ref(false);
-const captionsTracks: Ref<string[]> = ref([]);
-const currentTrack: Ref<string | null> = ref(null);
+const captionsTracks: Ref<CaptionTrack[]> = ref([]);
+const currentTrack: Ref<number | null> = ref(null);
 
 export function useCaptions() {
 	return {

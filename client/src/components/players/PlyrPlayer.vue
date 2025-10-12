@@ -10,6 +10,7 @@ import Plyr from "plyr";
 import "plyr/src/sass/plyr.scss";
 import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
 import { useCaptions } from "../composables";
+import type { CaptionTrack } from "@/models/media-tracks";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -82,24 +83,32 @@ export default defineComponent({
 			isCaptionsEnabled(): boolean {
 				return player.value?.currentTrack !== -1;
 			},
-			getCaptionsTracks(): string[] {
-				const tracks: string[] = [];
+			getCaptionsTracks(): CaptionTrack[] {
+				const tracks: CaptionTrack[] = [];
 				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
 					const track = videoElem.value?.textTracks[i];
-					if (!track || track.kind !== "captions") {
+					if (!track || !["subtitles", "captions"].includes(track.kind)) {
 						continue;
 					}
-					tracks.push(track.language);
+					tracks.push({
+						kind:
+							track.kind === "subtitles" || track.kind === "captions"
+								? track.kind
+								: undefined,
+						label: track.label || undefined,
+						srclang: track.language || undefined,
+						default: false, // `TextTrack` type does not provide `default` property
+					});
 				}
 				return tracks;
 			},
-			setCaptionsTrack(track: string): void {
+			setCaptionsTrack(track: number): void {
 				if (!player.value) {
 					console.error("player not ready");
 					return;
 				}
 				console.log("PlyrPlayer: setCaptionsTrack:", track);
-				player.value.currentTrack = findTrackIdx(track);
+				player.value.currentTrack = track;
 			},
 
 			isQualitySupported(): boolean {
@@ -124,19 +133,6 @@ export default defineComponent({
 				player.value.speed = rate;
 			},
 		};
-
-		function findTrackIdx(language: string): number {
-			for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-				const track = videoElem.value?.textTracks[i];
-				if (!track || track.kind !== "captions") {
-					continue;
-				}
-				if (track.language === language) {
-					return i;
-				}
-			}
-			return 0;
-		}
 
 		const captions = useCaptions();
 		onMounted(() => {

@@ -20,14 +20,14 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
-import * as dashjs from "dashjs";
+import { MediaPlayer, type MediaPlayerClass } from "dashjs";
 import type {
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
-import type { VideoTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 interface Props {
 	videoUrl: string;
@@ -40,7 +40,7 @@ const videoElem = ref<HTMLVideoElement>();
 const ttlmCaption = ref<HTMLDivElement>();
 const captions = useCaptions();
 const qualities = useQualities();
-const dash = ref<dashjs.MediaPlayerClass | undefined>(undefined);
+const dash = ref<MediaPlayerClass | undefined>(undefined);
 
 const emit = defineEmits([
 	"apiready",
@@ -102,7 +102,7 @@ function setCaptionsEnabled(enabled: boolean): void {
 		return;
 	}
 	if (enabled) {
-		setCaptionsTrack(captions.currentTrack.value || "");
+		dash.value.setTextTrack(captions.currentTrack.value || 0);
 	} else {
 		dash.value.setTextTrack(-1);
 	}
@@ -115,33 +115,37 @@ function isCaptionsEnabled(): boolean {
 	return dash.value.getCurrentTextTrackIndex() !== -1;
 }
 
-function getCaptionsTracks(): string[] {
+function getCaptionsTracks(): CaptionTrack[] {
 	if (!dash.value) {
 		return [];
 	}
-	const captionsTracks = dash.value.getTracksFor("text").map(track => {
-		const label = track.labels["text"] || track.labels["lang"] || track.lang || "unknown";
-		if (track.roles && track.roles.length > 0 && track.roles[0]["value"]) {
-			return `${label} (${track.roles[0]["value"]})`;
-		}
-		return label;
+	const tracks: CaptionTrack[] = dash.value.getTracksFor("text").map(track => {
+		const kind =
+			!track.roles || track.roles.length === 0 || !track.roles[0]["value"]
+				? undefined
+				: ["subtitle", "subtitles"].includes(track.roles[0]["value"])
+				? "subtitles"
+				: ["caption", "captions"].includes(track.roles[0]["value"])
+				? "captions"
+				: undefined;
+		return {
+			kind: kind,
+			label: track.labels["text"] || undefined,
+			srclang: track.labels["lang"] || track.lang || undefined,
+			default: false, // dash.js does not provide info about default track
+		};
 	});
-	console.log("DashPlayer: available captions tracks:", captionsTracks);
-	return captionsTracks;
+	console.log("DashPlayer: available captions tracks:", tracks);
+	return tracks;
 }
 
-function setCaptionsTrack(track: string): void {
+function setCaptionsTrack(track: number): void {
 	if (!dash.value) {
 		console.error("dash.js player not ready");
 		return;
 	}
-	const trackIdx = captions.captionsTracks.value.findIndex(t => t === track);
-	if (trackIdx === -1) {
-		console.error("DashPlayer: captions track not found:", track);
-		return;
-	}
-	console.log("DashPlayer: setting captions track to", track, "at index", trackIdx);
-	dash.value.setTextTrack(trackIdx);
+	console.log("DashPlayer: setting captions track to", track, "at index", track);
+	dash.value.setTextTrack(track);
 }
 
 function isQualitySupported(): boolean {
@@ -252,7 +256,7 @@ function loadVideoSource() {
 	dash.value?.destroy();
 	dash.value = undefined;
 
-	dash.value = dashjs.MediaPlayer().create();
+	dash.value = MediaPlayer().create();
 	dash.value.initialize(videoElem.value, props.videoUrl, false);
 	if (ttlmCaption.value) {
 		dash.value.attachTTMLRenderingDiv(ttlmCaption.value);
@@ -270,30 +274,29 @@ function loadVideoSource() {
 		},
 	});
 
-	dash.value.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, () => {
+	dash.value.on(MediaPlayer.events.MANIFEST_LOADED, () => {
 		console.info("DashPlayer: dash.js manifest loaded");
 		emit("ready");
 	});
-	dash.value.on(dashjs.MediaPlayer.events.TEXT_TRACKS_ADDED, () => {
+	dash.value.on(MediaPlayer.events.TEXT_TRACKS_ADDED, () => {
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
 		if (dash.value?.getCurrentTextTrackIndex() !== -1) {
-			captions.currentTrack.value =
-				captions.captionsTracks.value[dash.value?.getCurrentTextTrackIndex() || 0];
+			captions.currentTrack.value = dash.value?.getCurrentTextTrackIndex() || 0;
 		} else {
-			captions.currentTrack.value = "";
+			captions.currentTrack.value = null;
 			console.log("DashPlayer: no text track selected");
 		}
 	});
-	dash.value.on(dashjs.MediaPlayer.events.ERROR, (event: unknown) => {
+	dash.value.on(MediaPlayer.events.ERROR, (event: unknown) => {
 		console.error("DashPlayer: dash.js error:", event);
 		emit("error");
 	});
-	dash.value.on(dashjs.MediaPlayer.events.PLAYBACK_ERROR, (event: unknown) => {
+	dash.value.on(MediaPlayer.events.PLAYBACK_ERROR, (event: unknown) => {
 		console.error("DashPlayer: dash.js playback error:", event);
 		emit("error");
 	});
-	dash.value.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+	dash.value.on(MediaPlayer.events.STREAM_INITIALIZED, () => {
 		console.info("DashPlayer: dash.js stream initialized");
 		qualities.videoTracks.value = getVideoTracks();
 		const isAuto = dash.value?.getSettings()?.streaming?.abr?.autoSwitchBitrate?.video || false;
@@ -303,15 +306,15 @@ function loadVideoSource() {
 		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 		console.log("DashPlayer: current active quality:", qualities.currentActiveQuality.value);
 	});
-	dash.value.on(dashjs.MediaPlayer.events.BUFFER_EMPTY, () => {
+	dash.value.on(MediaPlayer.events.BUFFER_EMPTY, () => {
 		console.info("DashPlayer: dash.js buffer stalled");
 		emit("buffering");
 	});
-	dash.value.on(dashjs.MediaPlayer.events.BUFFER_LOADED, () => {
+	dash.value.on(MediaPlayer.events.BUFFER_LOADED, () => {
 		console.info("DashPlayer: dash.js buffer loaded");
 		emit("ready");
 	});
-	dash.value.on(dashjs.MediaPlayer.events.QUALITY_CHANGE_RENDERED, () => {
+	dash.value.on(MediaPlayer.events.QUALITY_CHANGE_RENDERED, () => {
 		console.info("DashPlayer: dash.js quality change rendered");
 		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 	});

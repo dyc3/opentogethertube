@@ -27,7 +27,7 @@ import type {
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
-import type { VideoTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 interface Props {
 	videoUrl: string;
@@ -102,7 +102,7 @@ function setCaptionsEnabled(enabled: boolean): void {
 		return;
 	}
 	if (enabled) {
-		setCaptionsTrack(captions.currentTrack.value || "");
+		hls.subtitleTrack = captions.currentTrack.value || 0;
 	} else {
 		hls.subtitleTrack = -1;
 	}
@@ -115,24 +115,28 @@ function isCaptionsEnabled(): boolean {
 	return hls.subtitleTrack !== -1;
 }
 
-function getCaptionsTracks(): string[] {
+function getCaptionsTracks(): CaptionTrack[] {
 	console.log("HlsPlayer: getCaptionsTracks:", hls?.subtitleTracks);
-	return hls?.subtitleTracks.map(track => track.name) || [];
+	const tracks: CaptionTrack[] =
+		hls && hls.subtitleTracks
+			? hls.subtitleTracks.map(track => ({
+					// hls.js should return either `SUBTITLES` or `CLOSED-CAPTIONS`
+					kind: track.type === "SUBTITLES" ? "subtitles" : "captions",
+					label: track.name || undefined,
+					srclang: track.lang || undefined,
+					default: track.default,
+			  }))
+			: [];
+	return tracks;
 }
 
-function setCaptionsTrack(track: string): void {
+function setCaptionsTrack(track: number): void {
 	if (!hls) {
 		console.error("HlsPlayer: player not ready");
 		return;
 	}
 	console.log("HlsPlayer: setCaptionsTrack:", track);
-	const trackIdx = hls.subtitleTracks.findIndex(t => t.name === track);
-	if (trackIdx === -1) {
-		console.error("HlsPlayer: HLS.js captions track not found:", track);
-		return;
-	}
-	console.log("HlsPlayer: setting HLS.js captions track:", trackIdx);
-	hls.subtitleTrack = trackIdx;
+	hls.subtitleTrack = track;
 }
 
 function isQualitySupported(): boolean {
@@ -239,10 +243,12 @@ function loadVideoSource() {
 
 	hls.on(Hls.Events.INIT_PTS_FOUND, () => {
 		console.info("HlsPlayer: hls.js init pts found");
+
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
+		captions.currentTrack.value = hls?.subtitleTrack || 0;
 		console.log("HlsPlayer: current subtitle track:", hls?.subtitleTrack);
-		captions.currentTrack.value = captions.captionsTracks.value[hls?.subtitleTrack || 0] || "";
+
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = hls?.autoLevelEnabled ? -1 : hls?.currentLevel || -1;
 		qualities.currentActiveQuality.value = getCurrentActiveQuality();
