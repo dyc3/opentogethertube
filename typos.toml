@@ -8,6 +8,8 @@ ser = "ser"
 seeked = "seeked"
 # google drive misspelled this in their API
 aknowledge = "aknowledge"
+# Odysee
+Ody = "Ody"
 
 [files]
 extend-exclude = [

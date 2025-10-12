@@ -161,6 +161,12 @@ const testVideos = import.meta.env.DEV
 				"https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
 			],
 			["test peertube 0", "https://tube.shanti.cafe/w/96kFpg7fs4LwYkFCMFv51E"],
+			["test odysee 0", "https://odysee.com/@RuslanPerezhilo:1/AnimationDemoReel20:d"],
+			["test odysee error 0", "https://odysee.com/@rpgDAN:8/Detektive-9:a"],
+			[
+				"test odysee error 1",
+				"https://odysee.com/@Majoo:8/so-sprengst-du-das-neue-kraftwerk-in:f",
+			],
 	  ]
 	: [];
 
