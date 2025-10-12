@@ -9,7 +9,6 @@ seeked = "seeked"
 # google drive misspelled this in their API
 aknowledge = "aknowledge"
 # Odysee
-odysee = "odysee"
 Ody = "Ody"
 
 [files]
