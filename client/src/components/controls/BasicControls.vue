@@ -91,16 +91,14 @@ const granted = useGrants();
 onMounted(() => {
 	if ("mediaSession" in navigator) {
 		navigator.mediaSession.setActionHandler("play", () => {
-			if (granted("playback.play-pause") && !store.state.room.isPlaying) {
-				roomapi.play();
-				emit("play");
+			if (granted("playback.play-pause")) {
+				togglePlayback();
 			}
 		});
 
 		navigator.mediaSession.setActionHandler("pause", () => {
-			if (granted("playback.play-pause") && store.state.room.isPlaying) {
-				roomapi.pause();
-				emit("pause");
+			if (granted("playback.play-pause")) {
+				togglePlayback();
 			}
 		});
 
