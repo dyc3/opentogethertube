@@ -22,16 +22,33 @@
 			</v-sheet>
 		</v-row>
 		<v-row>
-			<div v-if="!production">
-				<v-btn
-					v-for="(v, idx) in testVideos"
-					:key="idx"
-					@click="inputAddPreview = v[1]"
-					data-cy="test-video"
-				>
-					{{ v[0] }}
-				</v-btn>
-			</div>
+			<v-container v-if="!production" class="test-videos-container">
+				<v-row>
+					<v-col
+						v-for="(group, groupName) in groupedTestVideos"
+						:key="groupName"
+						cols="12"
+						sm="6"
+						md="4"
+						lg="3"
+					>
+						<div class="video-group-title">{{ groupName }}</div>
+						<v-chip-group column>
+							<v-chip
+								v-for="(v, idx) in group"
+								:key="idx"
+								@click="inputAddPreview = v[1]"
+								data-cy="test-video"
+								color="primary"
+								variant="outlined"
+								class="ma-1"
+							>
+								{{ v[0] }}
+							</v-chip>
+						</v-chip-group>
+					</v-col>
+				</v-row>
+			</v-container>
 			<v-btn
 				v-if="videos.length > 1"
 				@click="addAllToQueue()"
@@ -119,7 +136,7 @@ const inputAddPreview = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
 
-const testVideos = import.meta.env.DEV
+const testVideos: Array<[string, string]> = import.meta.env.DEV
 	? [
 			["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
 			["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
@@ -194,6 +211,45 @@ const production = computed(() => {
 	 * Do not change.
 	 */
 	return store.state.production;
+});
+
+const groupedTestVideos = computed(() => {
+	if (production.value) {
+		return [];
+	}
+	const groups: Record<string, Array<[string, string]>> = {
+		YouTube: [],
+		HLS: [],
+		DASH: [],
+		Vimeo: [],
+		Direct: [],
+		PeerTube: [],
+		Odysee: [],
+		MISC: [],
+	};
+
+	testVideos.forEach(video => {
+		const label = video[0].toLowerCase();
+		if (label.includes("youtube")) {
+			groups.YouTube.push(video);
+		} else if (label.includes("vimeo")) {
+			groups.Vimeo.push(video);
+		} else if (label.includes("direct")) {
+			groups.Direct.push(video);
+		} else if (label.includes("hls")) {
+			groups.HLS.push(video);
+		} else if (label.includes("dash")) {
+			groups.DASH.push(video);
+		} else if (label.includes("peertube")) {
+			groups.PeerTube.push(video);
+		} else if (label.includes("odysee")) {
+			groups.Odysee.push(video);
+		} else {
+			groups.MISC.push(video);
+		}
+	});
+
+	return groups;
 });
 
 async function requestAddPreview() {
@@ -331,5 +387,29 @@ function setAddPreviewText(text: string) {
 .video-list {
 	margin-top: 24px;
 	justify-content: center;
+}
+
+.test-videos-container {
+	margin-bottom: 12px;
+	padding: 12px;
+
+	:deep(.v-chip) {
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover {
+			transform: translateY(-2px);
+		}
+	}
+}
+
+.video-group-title {
+	font-weight: 600;
+	font-size: 0.875rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	margin-bottom: 8px;
+	color: rgb(var(--v-theme-primary));
+	opacity: 0.8;
 }
 </style>
