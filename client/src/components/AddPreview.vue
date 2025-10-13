@@ -25,7 +25,7 @@
 			<v-container v-if="!production" class="test-videos-container">
 				<v-row>
 					<v-col
-						v-for="(group, groupName) in groupedTestVideos"
+						v-for="(group, groupName) in testVideos"
 						:key="groupName"
 						cols="12"
 						sm="6"
@@ -136,56 +136,68 @@ const inputAddPreview = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
 
-const testVideos: Array<[string, string]> = import.meta.env.DEV
-	? [
-			["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
-			["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
-			["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
-			["test vimeo 0", "https://vimeo.com/94338566"],
-			["test vimeo 1", "https://vimeo.com/239423699"],
-			[
-				"test direct 0",
-				"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
+	? {
+			YouTube: [
+				["test youtube 0", "https://www.youtube.com/watch?v=IG2JF0P4GFA"],
+				["test youtube 1", "https://www.youtube.com/watch?v=LP8GRjv6AIo"],
+				["test youtube w/ captions", "https://www.youtube.com/watch?v=xco0qjszPHQ"],
 			],
-			["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
-			[
-				"test hls 0",
-				"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+			Vimeo: [
+				["test vimeo 0", "https://vimeo.com/94338566"],
+				["test vimeo 1", "https://vimeo.com/239423699"],
 			],
-			[
-				"test hls 1",
-				"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+			Direct: [
+				[
+					"test direct 0",
+					"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+				],
+				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
 			],
-			[
-				"test hls 2 w/ one quality",
-				"https://test-streams.mux.dev/x36xhzz/url_6/193039199_mp4_h264_aac_hq_7.m3u8",
+			HLS: [
+				[
+					"test hls 0",
+					"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+				],
+				[
+					"test hls 1",
+					"https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+				],
+				[
+					"test hls 2 w/ one quality",
+					"https://test-streams.mux.dev/x36xhzz/url_6/193039199_mp4_h264_aac_hq_7.m3u8",
+				],
 			],
-			[
-				"test dash 0",
-				"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
+			DASH: [
+				[
+					"test dash 0",
+					"https://dash.akamaized.net/dash264/TestCases/1a/sony/SNE_DASH_SD_CASE1A_REVISED.mpd",
+				],
+				["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
+				[
+					"test dash 2 w/ one caption",
+					"https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1_https.mpd",
+				],
+				[
+					"test dash 3 w/ multiple captions",
+					"https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd",
+				],
+				[
+					"test dash 4 w/ multiple qualities",
+					"https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
+				],
 			],
-			["test dash 1", "https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd"],
-			[
-				"test dash 2 w/ one caption",
-				"https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1_https.mpd",
+			PeerTube: [["test peertube 0", "https://tube.shanti.cafe/w/96kFpg7fs4LwYkFCMFv51E"]],
+			Odysee: [
+				["test odysee 0", "https://odysee.com/@RuslanPerezhilo:1/AnimationDemoReel20:d"],
+				["test odysee error 0", "https://odysee.com/@rpgDAN:8/Detektive-9:a"],
+				[
+					"test odysee error 1",
+					"https://odysee.com/@Majoo:8/so-sprengst-du-das-neue-kraftwerk-in:f",
+				],
 			],
-			[
-				"test dash 3 w/ multiple captions",
-				"https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd",
-			],
-			[
-				"test dash 4 w/ multiple qualities",
-				"https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
-			],
-			["test peertube 0", "https://tube.shanti.cafe/w/96kFpg7fs4LwYkFCMFv51E"],
-			["test odysee 0", "https://odysee.com/@RuslanPerezhilo:1/AnimationDemoReel20:d"],
-			["test odysee error 0", "https://odysee.com/@rpgDAN:8/Detektive-9:a"],
-			[
-				"test odysee error 1",
-				"https://odysee.com/@Majoo:8/so-sprengst-du-das-neue-kraftwerk-in:f",
-			],
-	  ]
-	: [];
+	  }
+	: {};
 
 // HACK: The @change event only triggers when the text field is defocused.
 // This ensures that onInputAddPreviewChange() runs everytime the text field's value changes.
@@ -211,45 +223,6 @@ const production = computed(() => {
 	 * Do not change.
 	 */
 	return store.state.production;
-});
-
-const groupedTestVideos = computed(() => {
-	if (production.value) {
-		return [];
-	}
-	const groups: Record<string, Array<[string, string]>> = {
-		YouTube: [],
-		HLS: [],
-		DASH: [],
-		Vimeo: [],
-		Direct: [],
-		PeerTube: [],
-		Odysee: [],
-		MISC: [],
-	};
-
-	testVideos.forEach(video => {
-		const label = video[0].toLowerCase();
-		if (label.includes("youtube")) {
-			groups.YouTube.push(video);
-		} else if (label.includes("vimeo")) {
-			groups.Vimeo.push(video);
-		} else if (label.includes("direct")) {
-			groups.Direct.push(video);
-		} else if (label.includes("hls")) {
-			groups.HLS.push(video);
-		} else if (label.includes("dash")) {
-			groups.DASH.push(video);
-		} else if (label.includes("peertube")) {
-			groups.PeerTube.push(video);
-		} else if (label.includes("odysee")) {
-			groups.Odysee.push(video);
-		} else {
-			groups.MISC.push(video);
-		}
-	});
-
-	return groups;
 });
 
 async function requestAddPreview() {
