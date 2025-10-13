@@ -119,22 +119,34 @@ function getCaptionsTracks(): CaptionTrack[] {
 	if (!dash.value) {
 		return [];
 	}
+
+	const determineTrackKind = (
+		roles: { value?: string }[] | null
+	): "subtitles" | "captions" | undefined => {
+		if (!roles?.length || !roles[0]?.value) {
+			return undefined;
+		}
+
+		const roleValue = roles[0].value.toLowerCase();
+		if (["subtitle", "subtitles"].includes(roleValue)) {
+			return "subtitles";
+		}
+		if (["caption", "captions"].includes(roleValue)) {
+			return "captions";
+		}
+		return undefined;
+	};
+
 	const tracks: CaptionTrack[] = dash.value.getTracksFor("text").map(track => {
-		const kind =
-			!track.roles || track.roles.length === 0 || !track.roles[0]["value"]
-				? undefined
-				: ["subtitle", "subtitles"].includes(track.roles[0]["value"])
-				? "subtitles"
-				: ["caption", "captions"].includes(track.roles[0]["value"])
-				? "captions"
-				: undefined;
+		const labelData = track.labels && track.labels.length > 0 ? track.labels[0] : null;
 		return {
-			kind: kind,
-			label: track.labels["text"] || undefined,
-			srclang: track.labels["lang"] || track.lang || undefined,
+			kind: determineTrackKind(track.roles),
+			label: labelData?.text,
+			srclang: labelData?.lang || track.lang || undefined,
 			default: false, // dash.js does not provide info about default track
 		};
 	});
+
 	console.log("DashPlayer: available captions tracks:", tracks);
 	return tracks;
 }
