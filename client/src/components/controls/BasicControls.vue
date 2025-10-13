@@ -66,6 +66,7 @@
 <script lang="ts" setup>
 import { mdiChevronLeft, mdiPlay, mdiPause, mdiChevronRight, mdiSkipForward } from "@mdi/js";
 import _ from "lodash";
+import { onMounted, onUnmounted } from "vue";
 import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
@@ -85,6 +86,37 @@ const emit = defineEmits(["seek", "play", "pause", "skip"]);
 const store = useStore();
 const roomapi = useRoomApi(useConnection());
 const granted = useGrants();
+
+// Setup Media Session API handlers for the controls in PiP
+onMounted(() => {
+	if ("mediaSession" in navigator) {
+		navigator.mediaSession.setActionHandler("play", () => {
+			if (granted("playback.play-pause")) {
+				togglePlayback();
+			}
+		});
+
+		navigator.mediaSession.setActionHandler("pause", () => {
+			if (granted("playback.play-pause")) {
+				togglePlayback();
+			}
+		});
+
+		navigator.mediaSession.setActionHandler("nexttrack", () => {
+			if (granted("playback.skip")) {
+				skip();
+			}
+		});
+	}
+});
+
+onUnmounted(() => {
+	if ("mediaSession" in navigator) {
+		navigator.mediaSession.setActionHandler("play", null);
+		navigator.mediaSession.setActionHandler("pause", null);
+		navigator.mediaSession.setActionHandler("nexttrack", null);
+	}
+});
 
 /** Send a message to play or pause the video, depending on the current state. */
 function togglePlayback() {

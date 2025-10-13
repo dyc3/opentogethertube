@@ -117,16 +117,21 @@ function isCaptionsEnabled(): boolean {
 
 function getCaptionsTracks(): CaptionTrack[] {
 	console.log("HlsPlayer: getCaptionsTracks:", hls?.subtitleTracks);
-	const tracks: CaptionTrack[] =
-		hls && hls.subtitleTracks
-			? hls.subtitleTracks.map(track => ({
-					// hls.js should return either `SUBTITLES` or `CLOSED-CAPTIONS`
-					kind: track.type === "SUBTITLES" ? "subtitles" : "captions",
-					label: track.name || undefined,
-					srclang: track.lang || undefined,
-					default: track.default,
-			  }))
-			: [];
+	if (!hls) {
+		console.error("player not ready");
+		return [];
+	}
+	if (!hls.subtitleTracks || hls.subtitleTracks.length === 0) {
+		console.log("HlsPlayer: no captions tracks available");
+		return [];
+	}
+	const tracks: CaptionTrack[] = hls.subtitleTracks.map(track => ({
+		// hls.js should return either `SUBTITLES` or `CLOSED-CAPTIONS`
+		kind: track.type === "SUBTITLES" ? "subtitles" : "captions",
+		label: track.name || undefined,
+		srclang: track.lang || undefined,
+		default: track.default,
+	}));
 	return tracks;
 }
 

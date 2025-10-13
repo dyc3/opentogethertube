@@ -150,6 +150,7 @@ export default {
 		"next-video": "Next video",
 		"next-video-vote": "Vote to skip video",
 		"toggle-fullscreen": "Toggle fullscreen",
+		"pip": "Picture in Picture",
 		"player-settings": "Player settings",
 		"subtitles": "Subtitles/CC",
 		"quality": "Quality",

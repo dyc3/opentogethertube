@@ -18,6 +18,7 @@
 				<ClosedCaptionsSwitcher />
 				<PlaybackRateSwitcher />
 				<VideoSettings />
+				<PictureInPictureButton />
 				<LayoutSwitcher />
 			</div>
 		</div>
@@ -33,6 +34,7 @@ import VideoProgressSlider from "./VideoProgressSlider.vue";
 import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 import VideoSettings from "./VideoSettings.vue";
+import PictureInPictureButton from "./PictureInPictureButton.vue";
 
 withDefaults(
 	defineProps<{
