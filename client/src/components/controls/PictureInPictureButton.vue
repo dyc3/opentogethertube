@@ -29,7 +29,8 @@ let mutationObserver: MutationObserver | null = null;
 const supported = computed(() => {
 	// Check if Picture-in-Picture is supported and a video element exists
 	// so, iframe videos are not supported
-	return document.pictureInPictureEnabled && !!getVideoElement();
+	// Using currentVideo.value to make this reactive to video element changes
+	return document.pictureInPictureEnabled && !!currentVideo.value;
 });
 
 function getVideoElement(): HTMLVideoElement | null {
