@@ -798,7 +798,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 			}
 
 			const result: Video = {
-				service: "odysee",
+				service: isHls ? "hls" : "direct",
 				id: finalStreamingUrl, // Direct-Play requires id to be the actual HTTP URL
 				title,
 				description,
@@ -962,7 +962,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 
 		const result: Video = {
-			service: "odysee",
+			service: isHls ? "hls" : "direct",
 			id: finalStreamingUrl,
 			title: v.title || got.name || "",
 			description: v.description || "",

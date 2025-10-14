@@ -27,7 +27,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 	clientId = uuidv1();
 
 	get serviceId(): VideoService {
-		return "pluto";
+		return "hls";
 	}
 
 	get isCacheSafe() {

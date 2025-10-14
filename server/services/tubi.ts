@@ -51,7 +51,7 @@ export default class TubiAdapter extends ServiceAdapter {
 	});
 
 	get serviceId(): VideoService {
-		return "tubi";
+		return "hls";
 	}
 
 	get isCacheSafe() {

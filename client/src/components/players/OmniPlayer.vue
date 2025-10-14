@@ -47,26 +47,8 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
-			<GoogleDrivePlayer
-				v-else-if="!!source && source.service == 'googledrive'"
-				ref="player"
-				:video-id="source.id"
-				class="player"
-				@apiready="onApiReady"
-				@playing="onPlaying"
-				@paused="onPaused"
-				@ready="onReady"
-				@buffering="onBuffering"
-				@error="onError"
-			/>
 			<HlsPlayer
-				v-else-if="
-					!!source &&
-					(['hls', 'reddit', 'tubi', 'pluto'].includes(source.service) ||
-						(source.service === 'odysee' &&
-							(source.mime?.includes('application/vnd.apple.mpegurl') ||
-								source.mime?.includes('application/x-mpegURL'))))
-				"
+				v-else-if="!!source && source.service == 'hls'"
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
@@ -96,14 +78,10 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<PlyrPlayer
-				v-else-if="
-					!!source &&
-					(['direct'].includes(source.service) ||
-						(source.service === 'odysee' && source.mime?.includes('video/mp4')))
-				"
+				v-else-if="!!source && source.service == 'direct'"
 				ref="player"
 				:service="source.service"
-				:video-url="source.hls_url ?? source.id"
+				:video-url="source.src_url ?? source.id"
 				:video-mime="source.mime!"
 				:thumbnail="source.thumbnail"
 				class="player"
@@ -176,7 +154,6 @@ const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering",
 
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
-const GoogleDrivePlayer = defineAsyncComponent(() => import("./GoogleDrivePlayer.vue"));
 const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
 const DashPlayer = defineAsyncComponent(() => import("./DashPlayer.vue"));
 const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));

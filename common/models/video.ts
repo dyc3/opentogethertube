@@ -16,6 +16,7 @@ export interface VideoMetadata {
 	highlight?: true;
 	hls_url?: string;
 	dash_url?: string;
+	src_url?: string;
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
