@@ -2,7 +2,7 @@ import { URL } from "url";
 import axios from "axios";
 import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
 import { getLogger } from "../logger.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import { Video, VideoMetadata } from "ott-common/models/video.js";
 import { InvalidVideoIdException } from "../exceptions.js";
 import infoextractor from "../infoextractor.js";
 import { conf } from "../ott-config.js";
@@ -80,8 +80,8 @@ export default class RedditAdapter extends ServiceAdapter {
 		headers: { "User-Agent": `OpenTogetherTube @ ${conf.get("hostname")}` },
 	});
 
-	get serviceId(): VideoService {
-		return "hls";
+	get serviceId(): "reddit" {
+		return "reddit";
 	}
 
 	get isCacheSafe() {
@@ -131,7 +131,7 @@ export default class RedditAdapter extends ServiceAdapter {
 			if (thing.data.is_video && "media" in thing.data) {
 				if ("reddit_video" in thing.data.media) {
 					videos.push({
-						service: this.serviceId,
+						service: "hls",
 						id: thing.data.id,
 						title: thing.data.title,
 						description: thing.data.permalink,

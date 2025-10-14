@@ -27,7 +27,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 	clientId = uuidv1();
 
 	get serviceId(): VideoService {
-		return "hls";
+		return "pluto";
 	}
 
 	get isCacheSafe() {
@@ -217,7 +217,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		const cover = this.findBestCover(plutoIds.type, vodOrEpisode.covers);
 
 		const video: Video = {
-			service: this.serviceId,
+			service: "hls",
 			id: this.parsedIdsToVideoId(plutoIds),
 			title: vodOrEpisode.name,
 			description: vodOrEpisode.description,
@@ -259,7 +259,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 				const cover = this.findBestCover("series", episode.covers);
 
 				const video: Video = {
-					service: this.serviceId,
+					service: "hls",
 					id: `series/${vod.id}/${episode._id}`,
 					title: episode.name,
 					description: `S${season.number}E${episodeNumber} - ${episode.description}`,

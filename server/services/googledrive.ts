@@ -54,7 +54,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 	}
 
 	get serviceId(): VideoService {
-		return "direct";
+		return "googledrive";
 	}
 
 	canHandleURL(link: string): boolean {
@@ -178,7 +178,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 
 	parseFile(file: GoogleDriveFile): Video {
 		return {
-			service: this.serviceId,
+			service: "direct",
 			id: file.id,
 			title: file.name,
 			thumbnail: file.thumbnailLink,
