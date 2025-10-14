@@ -81,7 +81,7 @@ export default class TubiAdapter extends ServiceAdapter {
 
 	extractVideo(data: TubiVideoResponse): Video {
 		return {
-			service: this.serviceId,
+			service: "hls",
 			id: data.id,
 			title: data.title,
 			description: data.description,

@@ -131,7 +131,7 @@ export default class RedditAdapter extends ServiceAdapter {
 			if (thing.data.is_video && "media" in thing.data) {
 				if ("reddit_video" in thing.data.media) {
 					videos.push({
-						service: "reddit",
+						service: "hls",
 						id: thing.data.id,
 						title: thing.data.title,
 						description: thing.data.permalink,
