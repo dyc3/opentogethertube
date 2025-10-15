@@ -1,4 +1,5 @@
 import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { MediaPlayerError } from "@/components/composables/media-player";
 
 export default {
 	"common": {
@@ -406,9 +407,15 @@ export default {
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},
-		"playback-error": {
-			title: "Playback Error",
-			text: "Failed to load video. This is most likely due to the video being blocked by CORS policy, or the network issue. If you believe this is an error, please report it as a bug.",
+		"playback-error-title": {
+			[MediaPlayerError.none]: "No Error",
+			[MediaPlayerError.network]: "Playback Error",
+		},
+		"playback-error-message": {
+			[MediaPlayerError.none]:
+				"No error has occurred. If you're seeing this, please report it as a bug.",
+			[MediaPlayerError.network]:
+				"Failed to load video. This is most likely due to the video being blocked by CORS policy, or the network issue. If you believe this is an error, please report it as a bug.",
 		},
 	},
 };

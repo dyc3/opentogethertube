@@ -22,8 +22,11 @@
 		</div>
 		<v-alert prominent variant="tonal" class="playback-error" v-if="showPlaybackError">
 			<div class="playback-error-text">
-				<h1><v-icon :icon="mdiAlertCircle" /> {{ $t("player.playback-error.title") }}</h1>
-				<span>{{ $t("player.playback-error.text") }}</span>
+				<h1>
+					<v-icon :icon="mdiAlertCircle" />
+					{{ $t(`player.playback-error-title[${currentPlaybackError}]`) }}
+				</h1>
+				<span>{{ $t(`player.playback-error-message[${currentPlaybackError}]`) }}</span>
 			</div>
 		</v-alert>
 
@@ -165,6 +168,7 @@ import {
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
+	MediaPlayerError,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";
@@ -343,11 +347,13 @@ function onBuffering() {
 	emit("buffering");
 }
 
+const currentPlaybackError = ref<MediaPlayerError>(MediaPlayerError.none);
 const showPlaybackError = computed(() => {
 	return store.state.playerStatus === PlayerStatus.error;
 });
 
-function onError() {
+function onError(errorType?: MediaPlayerError) {
+	currentPlaybackError.value = errorType ?? MediaPlayerError.network;
 	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
 	emit("error");
 }

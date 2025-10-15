@@ -176,3 +176,8 @@ export function usePlaybackRate() {
 		availablePlaybackRates,
 	};
 }
+
+export enum MediaPlayerError {
+	none = 0,
+	network = 1,
+}
