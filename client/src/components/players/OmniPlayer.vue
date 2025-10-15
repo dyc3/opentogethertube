@@ -20,6 +20,12 @@
 				</v-container>
 			</v-sheet>
 		</div>
+		<v-alert prominent variant="tonal" class="playback-error" v-if="showPlaybackError">
+			<div class="playback-error-text">
+				<h1><v-icon :icon="mdiAlertCircle" /> {{ $t("player.playback-error.title") }}</h1>
+				<span>{{ $t("player.playback-error.text") }}</span>
+			</div>
+		</v-alert>
 
 		<Suspense>
 			<YoutubePlayer
@@ -142,7 +148,7 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiClose } from "@mdi/js";
+import { mdiClose, mdiAlertCircle } from "@mdi/js";
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
@@ -262,6 +268,18 @@ watch(playbackRate.playbackRate, v => {
 watchEffect(() => {
 	playbackRate.playbackRate.value = store.state.room.playbackSpeed;
 });
+// Clear error state when source changes
+watch(
+	() => props.source,
+	(newSource, oldSource) => {
+		// Only clear error if the source actually changed (not just initial load)
+		if (oldSource !== undefined && newSource !== oldSource) {
+			if (store.state.playerStatus === PlayerStatus.error) {
+				store.commit("PLAYBACK_STATUS", PlayerStatus.none);
+			}
+		}
+	}
+);
 // player events re-emitted or data stored
 async function onApiReady() {
 	if (!hasPlayerChangedYet.value) {
@@ -324,6 +342,10 @@ function onBuffering() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
 	emit("buffering");
 }
+
+const showPlaybackError = computed(() => {
+	return store.state.playerStatus === PlayerStatus.error;
+});
 
 function onError() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
@@ -408,5 +430,18 @@ const renderedSpans = computed(() => {
 	left: 0;
 	font-size: 12px;
 	z-index: 500;
+}
+.playback-error {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	align-content: center;
+	background-color: rgba(var(--v-theme-surface), 1);
+	z-index: 1;
+
+	.playback-error-text {
+		margin-left: 20%;
+		max-width: 50%;
+	}
 }
 </style>

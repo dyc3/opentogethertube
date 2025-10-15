@@ -406,5 +406,9 @@ export default {
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},
+		"playback-error": {
+			title: "Playback Error",
+			text: "Failed to load video. This is most likely due to the video being blocked by CORS policy, or the network issue. If you believe this is an error, please report it as a bug.",
+		},
 	},
 };
