@@ -13,7 +13,6 @@
 			@loadstart="onBuffering"
 			@progress="onProgress"
 			@ended="onEnd"
-			@error="onError"
 		></video>
 	</div>
 </template>
@@ -28,6 +27,7 @@ import type {
 } from "../composables";
 import { useCaptions, useQualities } from "../composables";
 import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
+import type { MediaPlayerError } from "../composables/media-player";
 
 interface Props {
 	videoUrl: string;
@@ -47,7 +47,7 @@ const emit = defineEmits<{
 	"playing": [];
 	"paused": [];
 	"buffering": [];
-	"error": [];
+	"error": [error: MediaPlayerError];
 	"end": [];
 	"buffer-progress": [progress: number];
 	"buffer-spans": [spans: TimeRanges];
@@ -243,7 +243,11 @@ function loadVideoSource() {
 	hls.on(Hls.Events.ERROR, (event, data) => {
 		console.error("HlsPlayer: hls.js error:", event, data);
 		console.error("HlsPlayer: hls.js inner error:", data.error);
-		emit("error");
+		if (data.fatal) {
+			console.error("HlsPlayer: hls.js fatal error:", data);
+			const errorEvent: MediaPlayerError = { type: "unknown", message: JSON.stringify(data) };
+			emit("error", errorEvent);
+		}
 	});
 
 	hls.on(Hls.Events.INIT_PTS_FOUND, () => {
@@ -312,10 +316,6 @@ function onProgress() {
 }
 function onEnd() {
 	emit("end");
-}
-function onError(err: Event) {
-	emit("error");
-	console.error("HlsPlayer: video element error:", err);
 }
 
 onBeforeUnmount(() => {
