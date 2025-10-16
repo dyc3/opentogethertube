@@ -24,9 +24,17 @@
 			<div class="playback-error-text">
 				<h1>
 					<v-icon :icon="mdiAlertCircle" />
-					{{ $t(`player.playback-error-title[${currentPlaybackError}]`) }}
+					{{
+						$t(`player.playback-error-title.${currentPlaybackError?.type ?? "unknown"}`)
+					}}
 				</h1>
-				<span>{{ $t(`player.playback-error-message[${currentPlaybackError}]`) }}</span>
+				<span>{{
+					$t(`player.playback-error-message.${currentPlaybackError?.type ?? "unknown"}`)
+				}}</span>
+				<span v-if="currentPlaybackError?.message">
+					<br /><br />
+					<em>{{ currentPlaybackError?.message }}</em>
+				</span>
 			</div>
 		</v-alert>
 
@@ -281,6 +289,9 @@ watch(
 			if (store.state.playerStatus === PlayerStatus.error) {
 				store.commit("PLAYBACK_STATUS", PlayerStatus.none);
 			}
+			if (currentPlaybackError.value) {
+				currentPlaybackError.value = null;
+			}
 		}
 	}
 );
@@ -347,13 +358,13 @@ function onBuffering() {
 	emit("buffering");
 }
 
-const currentPlaybackError = ref<MediaPlayerError>(MediaPlayerError.none);
+const currentPlaybackError = ref<MediaPlayerError | null>(null);
 const showPlaybackError = computed(() => {
 	return store.state.playerStatus === PlayerStatus.error;
 });
 
 function onError(errorType?: MediaPlayerError) {
-	currentPlaybackError.value = errorType ?? MediaPlayerError.network;
+	currentPlaybackError.value = errorType ?? { type: "unknown" };
 	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
 	emit("error");
 }

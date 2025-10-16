@@ -177,7 +177,7 @@ export function usePlaybackRate() {
 	};
 }
 
-export enum MediaPlayerError {
-	none = 0,
-	network = 1,
+export interface MediaPlayerError {
+	type: "unknown";
+	message?: string;
 }
