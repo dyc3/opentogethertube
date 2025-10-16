@@ -71,6 +71,7 @@ import { useStore } from "@/store";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import { useGrants } from "../composables/grants";
+import { isFirefox } from "@/util/misc";
 
 const props = withDefaults(
 	defineProps<{
@@ -89,7 +90,7 @@ const granted = useGrants();
 
 // Setup Media Session API handlers for the controls in PiP
 onMounted(() => {
-	if ("mediaSession" in navigator) {
+	if ("mediaSession" in navigator && !isFirefox()) {
 		navigator.mediaSession.setActionHandler("play", () => {
 			if (granted("playback.play-pause")) {
 				togglePlayback();
@@ -111,7 +112,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-	if ("mediaSession" in navigator) {
+	if ("mediaSession" in navigator && !isFirefox()) {
 		navigator.mediaSession.setActionHandler("play", null);
 		navigator.mediaSession.setActionHandler("pause", null);
 		navigator.mediaSession.setActionHandler("nexttrack", null);
