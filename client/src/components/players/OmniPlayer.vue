@@ -441,13 +441,10 @@ const renderedSpans = computed(() => {
 	position: absolute;
 	width: 100%;
 	height: 100%;
-	align-content: center;
-	background-color: rgba(var(--v-theme-surface), 1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(var(--v-theme-background), 1);
 	z-index: 1;
-
-	.playback-error-text {
-		margin-left: 20%;
-		max-width: 50%;
-	}
 }
 </style>
