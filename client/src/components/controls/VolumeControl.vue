@@ -7,6 +7,10 @@
 			:tooltip-placement="'bottom'"
 			:tooltip="'hover'"
 			:tooltip-formatter="value => `${value}%`"
+			:tooltip-style="{
+				backgroundColor: 'rgb(var(--v-theme-surface-variant))',
+				color: 'rgb(var(--v-theme-on-surface-variant))',
+			}"
 			:process="
 				dotsPos => [
 					[
