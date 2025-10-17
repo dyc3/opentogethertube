@@ -106,4 +106,12 @@ export class ServiceAdapter {
 	async searchVideos(query: string): Promise<Video[]> {
 		return [];
 	}
+
+	/**
+	 * Post-processes a video object before it is returned to the caller.
+	 */
+	postProcessVideo(video: Video): Video {
+		log.warn(`Service ${this.serviceId} does not implement method postProcessVideo`);
+		return video;
+	}
 }

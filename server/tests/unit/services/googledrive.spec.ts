@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import GoogleDriveAdapter from "../../../../server/services/googledrive.js";
 
+const testApiKey = "rush-catnip-abreast-unsaved";
+
 describe("Google Drive", () => {
 	describe("canHandleURL", () => {
-		const adapter = new GoogleDriveAdapter("");
+		const adapter = new GoogleDriveAdapter(testApiKey);
 
 		it("Accepts share links", () => {
 			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
@@ -17,7 +19,7 @@ describe("Google Drive", () => {
 	});
 
 	describe("isCollectionURL", () => {
-		const adapter = new GoogleDriveAdapter("");
+		const adapter = new GoogleDriveAdapter(testApiKey);
 
 		it("Returns true for folders", () => {
 			const url =
@@ -32,7 +34,7 @@ describe("Google Drive", () => {
 	});
 
 	describe("getVideoId", () => {
-		const adapter = new GoogleDriveAdapter("");
+		const adapter = new GoogleDriveAdapter(testApiKey);
 
 		it("Extracts file IDs", () => {
 			const url = "https://drive.google.com/file/d/0ashda098sd892oihas/view?usp=sharing";
@@ -41,7 +43,7 @@ describe("Google Drive", () => {
 	});
 
 	describe("fetchVideoInfo", () => {
-		const adapter = new GoogleDriveAdapter("");
+		const adapter = new GoogleDriveAdapter(testApiKey);
 		vi.spyOn(adapter.api, "get");
 		const videoId = "08ahsdlk0218";
 		const apiGet = vi.fn().mockResolvedValue({
@@ -53,6 +55,7 @@ describe("Google Drive", () => {
 					durationMillis: 100000,
 				},
 				mimeType: "video/mp4",
+				src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
 			},
 		});
 		adapter.api.get = apiGet;
@@ -74,12 +77,13 @@ describe("Google Drive", () => {
 				thumbnail: "https://example.com/thumbnail.jpg",
 				length: 100,
 				mime: "video/mp4",
+				src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
 			});
 		});
 	});
 
 	describe("resolveURL", () => {
-		const adapter = new GoogleDriveAdapter("");
+		const adapter = new GoogleDriveAdapter(testApiKey);
 		vi.spyOn(adapter.api, "get");
 
 		it("Resolves URLs to single videos", async () => {
@@ -95,6 +99,7 @@ describe("Google Drive", () => {
 						durationMillis: 100000,
 					},
 					mimeType: "video/mp4",
+					src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
 				},
 			});
 			adapter.api.get = apiGet;
@@ -108,54 +113,44 @@ describe("Google Drive", () => {
 				thumbnail: "https://example.com/thumbnail.jpg",
 				length: 100,
 				mime: "video/mp4",
+				src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
 			});
 		});
 
 		it("Resolves a folder URL to a list of videos", async () => {
 			const folderId = "bnas098dh9asund982hlkahsd9";
+			const videoIds = ["08ahsdlk0218", "09asdkj2130jklasdh"];
 			const url = `https://drive.google.com/drive/folders/${folderId}?usp=sharing`;
+
+			const files = videoIds.map((videoId, idx) => ({
+				id: videoId,
+				name: `Video ${videoId}`,
+				thumbnailLink: `thumbnail${videoId}`,
+				videoMediaMetadata: { durationMillis: 100000 * (idx + 1) },
+				mimeType: "video/mp4",
+				src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
+			}));
 			const apiGet = vi.fn().mockResolvedValue({
 				data: {
-					files: [
-						{
-							id: "video1",
-							name: "Video One",
-							thumbnailLink: "thumbnail1",
-							videoMediaMetadata: { durationMillis: 100000 },
-							mimeType: "video/mp4",
-						},
-						{
-							id: "video2",
-							name: "Video Two",
-							thumbnailLink: "thumbnail2",
-							videoMediaMetadata: { durationMillis: 200000 },
-							mimeType: "video/mp4",
-						},
-					],
+					files,
 				},
 			});
 			adapter.api.get = apiGet;
 			const videos = await adapter.resolveURL(url);
 
 			expect(Array.isArray(videos)).toBe(true);
-			expect(videos.length).toBe(2);
+			expect(videos.length).toBe(videoIds.length);
 
-			expect(videos[0]).toMatchObject({
-				service: "googledrive",
-				id: "video1",
-				title: "Video One",
-				thumbnail: "thumbnail1",
-				length: 100,
-				mime: "video/mp4",
-			});
-
-			expect(videos[1]).toMatchObject({
-				service: "googledrive",
-				id: "video2",
-				title: "Video Two",
-				thumbnail: "thumbnail2",
-				length: 200,
-				mime: "video/mp4",
+			videoIds.forEach((videoId, idx) => {
+				expect(videos[idx]).toMatchObject({
+					service: "googledrive",
+					id: videoId,
+					title: `Video ${videoId}`,
+					thumbnail: `thumbnail${videoId}`,
+					length: 100 * (idx + 1),
+					mime: "video/mp4",
+					src_url: `https://www.googleapis.com/drive/v3/files/${videoId}?key=${testApiKey}&alt=media&aknowledgeAbuse=true`,
+				});
 			});
 		});
 	});

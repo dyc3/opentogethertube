@@ -198,7 +198,7 @@ export default {
 		const [cachedVideo, missingInfo] = await this.getCachedVideo(service, videoId);
 
 		if (missingInfo.length === 0) {
-			return cachedVideo;
+			return adapter.postProcessVideo(cachedVideo);
 		} else {
 			log.warn(
 				`MISSING INFO for ${cachedVideo.service}:${

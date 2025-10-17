@@ -168,6 +168,23 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 		}
 	}
 
+	videoLink(videoId: string): string {
+		// Yes, we send the google drive api key to the client. This is because we need to get the download link, but we can only do that
+		// by authenticating with google, either by api key or by having people sign in with google. This is easier, and not really a problem
+		// because we have 1,000,000,000 google drive api quota and the api methods we use don't cost that much. And this means we don't have
+		// to waste bandwidth streaming video to clients.
+		return `https://www.googleapis.com/drive/v3/files/${videoId}?key=${this.apiKey}&alt=media&aknowledgeAbuse=true`;
+	}
+
+	// Since src_url is not stored in the cache (and I don't think it is necessary to do so),
+	// we need to re-add it here
+	postProcessVideo(video: Video): Video {
+		return {
+			...video,
+			src_url: this.videoLink(video.id),
+		};
+	}
+
 	parseFile(file: GoogleDriveFile): Video {
 		return {
 			service: this.serviceId,
@@ -176,6 +193,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 			thumbnail: file.thumbnailLink,
 			length: Math.ceil(file.videoMediaMetadata.durationMillis / 1000),
 			mime: file.mimeType,
+			src_url: this.videoLink(file.id),
 		};
 	}
 }
