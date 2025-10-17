@@ -1,7 +1,8 @@
 <template>
+	<v-icon :icon="volumeIcon" @click="toggleMute" />
 	<div class="volume">
 		<vue-slider
-			:model-value="volume"
+			:model-value="volume.volume.value"
 			@update:model-value="changed"
 			:process="
 				dotsPos => [
@@ -21,17 +22,37 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import VueSlider from "vue-slider-component";
 import "vue-slider-component/theme/default.css";
 import { useVolume } from "../composables";
+import { mdiVolumeHigh, mdiVolumeMedium, mdiVolumeLow, mdiVolumeOff } from "@mdi/js";
 
 const emit = defineEmits(["update:volume"]);
 
 const volume = useVolume();
+const volumeIcon = computed(() => {
+	const volumeLevel = volume.volume.value;
+	if (volume.isMuted.value || volumeLevel === 0) {
+		return mdiVolumeOff;
+	}
+
+	if (volumeLevel >= 66) {
+		return mdiVolumeHigh;
+	} else if (volumeLevel >= 33) {
+		return mdiVolumeMedium;
+	} else {
+		return mdiVolumeLow;
+	}
+});
 
 function changed(value: number) {
 	emit("update:volume", value);
-	volume.value = value;
+	volume.volume.value = value;
+}
+
+function toggleMute() {
+	volume.isMuted.value = !volume.isMuted.value;
 }
 </script>
 
