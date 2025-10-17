@@ -6,6 +6,7 @@
 			@update:model-value="changed"
 			:tooltip-placement="'bottom'"
 			:tooltip="'hover'"
+			:tooltip-formatter="value => `${value}%`"
 			:process="
 				dotsPos => [
 					[
