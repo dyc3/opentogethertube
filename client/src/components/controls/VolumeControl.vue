@@ -4,6 +4,8 @@
 		<vue-slider
 			:model-value="volume.volume.value"
 			@update:model-value="changed"
+			:tooltip-placement="'bottom'"
+			:tooltip="'hover'"
 			:process="
 				dotsPos => [
 					[
