@@ -23,7 +23,7 @@
 		</v-row>
 		<v-row>
 			<v-container v-if="!production" class="test-videos-container">
-				<v-chip-group column>
+				<v-chip-group column mandatory>
 					<v-row>
 						<v-col
 							v-for="(group, groupName) in testVideos"
