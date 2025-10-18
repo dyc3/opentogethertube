@@ -12,7 +12,6 @@
 			@stalled="onBuffering"
 			@loadstart="onBuffering"
 			@progress="onProgress"
-			@error="onError"
 		></video>
 	</div>
 	<div id="dashplayer-ttml-rendering"></div>
@@ -20,8 +19,9 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
-import { MediaPlayer, type MediaPlayerClass } from "dashjs";
+import { MediaPlayer, type MediaPlayerClass, type ErrorEvent } from "dashjs";
 import type {
+	MediaPlayerError,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
@@ -300,14 +300,16 @@ function loadVideoSource() {
 			console.log("DashPlayer: no text track selected");
 		}
 	});
-	dash.value.on(MediaPlayer.events.ERROR, (event: unknown) => {
+	dash.value.on(MediaPlayer.events.ERROR, (event: ErrorEvent) => {
 		console.error("DashPlayer: dash.js error:", event);
-		emit("error");
+		console.log("DashPlayer: dash.js error event type:", typeof event);
+		const errorEvent: MediaPlayerError = { type: "unknown", message: JSON.stringify(event) };
+		emit("error", errorEvent);
 	});
-	dash.value.on(MediaPlayer.events.PLAYBACK_ERROR, (event: unknown) => {
-		console.error("DashPlayer: dash.js playback error:", event);
-		emit("error");
-	});
+	// dash.value.on(MediaPlayer.events.PLAYBACK_ERROR, (event: unknown) => {
+	// 	console.error("DashPlayer: dash.js playback error:", event);
+	// 	emit("error");
+	// });
 	dash.value.on(MediaPlayer.events.STREAM_INITIALIZED, () => {
 		console.info("DashPlayer: dash.js stream initialized");
 		qualities.videoTracks.value = getVideoTracks();
@@ -372,10 +374,6 @@ function onProgress() {
 			buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
 		emit("buffer-progress", bufferedPercentage);
 	}
-}
-function onError(err: Event) {
-	emit("error");
-	console.error("HlsPlayer: video element error:", err);
 }
 
 onBeforeUnmount(() => {
