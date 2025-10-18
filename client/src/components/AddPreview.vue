@@ -23,7 +23,7 @@
 		</v-row>
 		<v-row>
 			<v-container v-if="!production" class="test-videos-container">
-				<v-chip-group column mandatory>
+				<v-chip-group v-model="selectedTestVideo" column mandatory>
 					<v-row>
 						<v-col
 							v-for="(group, groupName) in testVideos"
@@ -135,6 +135,7 @@ const hasAddPreviewFailed = ref(false);
 const inputAddPreview = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
+const selectedTestVideo = ref<string | undefined>(undefined);
 
 const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 	? {
@@ -205,6 +206,12 @@ watch(inputAddPreview, () => {
 	// HACK: ensure that inputAddPreview always a string
 	if (inputAddPreview.value === null) {
 		inputAddPreview.value = "";
+	}
+	if (!production.value) {
+		// Deselect chip (of test videos) when input is cleared or doesn't match selected video
+		if (inputAddPreview.value === "") {
+			selectedTestVideo.value = undefined;
+		}
 	}
 	onInputAddPreviewChange();
 });
