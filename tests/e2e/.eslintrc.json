@@ -8,6 +8,6 @@
 	"rules": {
 		"strict": "off",
 		"jest/expect-expect": "off",
-		"promise/catch-or-return": "off",
+		"promise/catch-or-return": "off"
 	}
 }
