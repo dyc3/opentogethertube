@@ -4,6 +4,7 @@ import { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
+	muted: boolean;
 	locale: string;
 	roomLayout: RoomLayoutMode;
 	theme: Theme;
@@ -34,6 +35,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	namespaced: true,
 	state: {
 		volume: 100,
+		muted: false,
 		locale: "en",
 		roomLayout: RoomLayoutMode.default,
 		theme: Theme.dark,

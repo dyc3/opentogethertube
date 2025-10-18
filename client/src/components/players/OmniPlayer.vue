@@ -205,7 +205,7 @@ function isQualitySupported() {
 const volume = useVolume();
 const captions = useCaptions();
 const qualities = useQualities();
-watch(volume, v => {
+watch(volume.volume, v => {
 	if (player.value) {
 		player.value.setVolume(v);
 	}
