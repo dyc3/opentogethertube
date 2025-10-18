@@ -211,6 +211,16 @@ watch(inputAddPreview, () => {
 		// Deselect chip (of test videos) when input is cleared or doesn't match selected video
 		if (inputAddPreview.value === "") {
 			selectedTestVideo.value = undefined;
+		} else if (selectedTestVideo.value) {
+			// Check if the current input matches the selected test video's URL
+			const [groupName, idx] = selectedTestVideo.value.split("-");
+			const group = testVideos[groupName];
+			if (group && group[parseInt(idx)]) {
+				const selectedVideoUrl = group[parseInt(idx)][1];
+				if (inputAddPreview.value !== selectedVideoUrl) {
+					selectedTestVideo.value = undefined;
+				}
+			}
 		}
 	}
 	onInputAddPreviewChange();
