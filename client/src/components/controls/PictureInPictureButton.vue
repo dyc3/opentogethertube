@@ -2,7 +2,8 @@
 	<v-btn
 		variant="text"
 		icon
-		:disabled="!supported"
+		v-if="isBrowserSupported"
+		:disabled="!isVideoSupported"
 		class="media-control"
 		:aria-label="$t('room.pip')"
 		@click="togglePictureInPicture()"
@@ -26,11 +27,12 @@ const isActive = ref(false);
 const currentVideo = ref<HTMLVideoElement | null>(null);
 let mutationObserver: MutationObserver | null = null;
 
-const supported = computed(() => {
+const isBrowserSupported = "pictureInPictureElement" in document;
+const isVideoSupported = computed(() => {
 	// Check if Picture-in-Picture is supported and a video element exists
 	// so, iframe videos are not supported
 	// Using currentVideo.value to make this reactive to video element changes
-	return document.pictureInPictureEnabled && !!currentVideo.value;
+	return !!currentVideo.value;
 });
 
 function getVideoElement(): HTMLVideoElement | null {
