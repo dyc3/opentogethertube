@@ -211,16 +211,18 @@ watch(inputAddPreview, () => {
 		// Deselect chip (of test videos) when input is cleared or doesn't match selected video
 		if (inputAddPreview.value === "") {
 			selectedTestVideo.value = undefined;
-		} else if (selectedTestVideo.value) {
-			// Check if the current input matches the selected test video's URL
-			const [groupName, idx] = selectedTestVideo.value.split("-");
-			const group = testVideos[groupName];
-			if (group && group[parseInt(idx)]) {
-				const selectedVideoUrl = group[parseInt(idx)][1];
-				if (inputAddPreview.value !== selectedVideoUrl) {
-					selectedTestVideo.value = undefined;
-				}
-			}
+		} else {
+			// Check if the current input matches any test video's URL
+			selectedTestVideo.value = Object.entries(testVideos).reduce<string | undefined>(
+				(found, [groupName, group]) => {
+					if (found) {
+						return found;
+					}
+					const index = group.findIndex(v => v[1] === inputAddPreview.value);
+					return index !== -1 ? `${groupName}-${index}` : undefined;
+				},
+				undefined
+			);
 		}
 	}
 	onInputAddPreviewChange();
