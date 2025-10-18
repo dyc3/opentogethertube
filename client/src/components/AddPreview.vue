@@ -23,31 +23,31 @@
 		</v-row>
 		<v-row>
 			<v-container v-if="!production" class="test-videos-container">
-				<v-row>
-					<v-col
-						v-for="(group, groupName) in testVideos"
-						:key="groupName"
-						cols="12"
-						sm="6"
-						md="4"
-						lg="3"
-					>
-						<div class="video-group-title">{{ groupName }}</div>
-						<v-chip-group column>
+				<v-chip-group column>
+					<v-row>
+						<v-col
+							v-for="(group, groupName) in testVideos"
+							:key="groupName"
+							cols="12"
+							sm="6"
+							md="4"
+							lg="3"
+						>
+							<div class="video-group-title">{{ groupName }}</div>
 							<v-chip
 								v-for="(v, idx) in group"
-								:key="idx"
+								:key="`${groupName}-${idx}`"
+								:value="`${groupName}-${idx}`"
 								@click="inputAddPreview = v[1]"
 								data-cy="test-video"
 								color="primary"
 								variant="outlined"
-								class="ma-1"
 							>
 								{{ v[0] }}
 							</v-chip>
-						</v-chip-group>
-					</v-col>
-				</v-row>
+						</v-col>
+					</v-row>
+				</v-chip-group>
 			</v-container>
 			<v-btn
 				v-if="videos.length > 1"
