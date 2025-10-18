@@ -162,7 +162,3 @@ export function getFriendlyResolutionLabel(videoTrack: VideoTrack): number {
 	// Generic fallback
 	return height;
 }
-
-export function isFirefox(): boolean {
-	return navigator.userAgent.toLowerCase().includes("firefox");
-}

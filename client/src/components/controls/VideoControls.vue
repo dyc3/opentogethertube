@@ -18,7 +18,7 @@
 				<ClosedCaptionsSwitcher />
 				<PlaybackRateSwitcher />
 				<VideoSettings />
-				<PictureInPictureButton v-if="!isFirefox()" />
+				<PictureInPictureButton />
 				<LayoutSwitcher />
 			</div>
 		</div>
@@ -35,7 +35,6 @@ import VolumeControl from "./VolumeControl.vue";
 import PlaybackRateSwitcher from "./PlaybackRateSwitcher.vue";
 import VideoSettings from "./VideoSettings.vue";
 import PictureInPictureButton from "./PictureInPictureButton.vue";
-import { isFirefox } from "@/util/misc";
 
 withDefaults(
 	defineProps<{
