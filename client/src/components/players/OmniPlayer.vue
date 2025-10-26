@@ -20,6 +20,23 @@
 				</v-container>
 			</v-sheet>
 		</div>
+		<v-alert prominent variant="tonal" class="playback-error" v-if="showPlaybackError">
+			<div class="playback-error-text">
+				<h1>
+					<v-icon :icon="mdiAlertCircle" />
+					{{
+						$t(`player.playback-error-title.${currentPlaybackError?.type ?? "unknown"}`)
+					}}
+				</h1>
+				<span>{{
+					$t(`player.playback-error-message.${currentPlaybackError?.type ?? "unknown"}`)
+				}}</span>
+				<span v-if="currentPlaybackError?.message">
+					<br /><br />
+					<em>{{ currentPlaybackError?.message }}</em>
+				</span>
+			</div>
+		</v-alert>
 
 		<Suspense>
 			<YoutubePlayer
@@ -130,7 +147,7 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiClose } from "@mdi/js";
+import { mdiClose, mdiAlertCircle } from "@mdi/js";
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
@@ -147,6 +164,7 @@ import {
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
+	MediaPlayerError,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";
@@ -249,6 +267,21 @@ watch(playbackRate.playbackRate, v => {
 watchEffect(() => {
 	playbackRate.playbackRate.value = store.state.room.playbackSpeed;
 });
+// Clear error state when source changes
+watch(
+	() => props.source,
+	(newSource, oldSource) => {
+		// Only clear error if the source actually changed (not just initial load)
+		if (oldSource !== undefined && newSource !== oldSource) {
+			if (store.state.playerStatus === PlayerStatus.error) {
+				store.commit("PLAYBACK_STATUS", PlayerStatus.none);
+			}
+			if (currentPlaybackError.value) {
+				currentPlaybackError.value = null;
+			}
+		}
+	}
+);
 // player events re-emitted or data stored
 async function onApiReady() {
 	if (!hasPlayerChangedYet.value) {
@@ -312,7 +345,13 @@ function onBuffering() {
 	emit("buffering");
 }
 
-function onError() {
+const currentPlaybackError = ref<MediaPlayerError | null>(null);
+const showPlaybackError = computed(() => {
+	return store.state.playerStatus === PlayerStatus.error;
+});
+
+function onError(errorType?: MediaPlayerError) {
+	currentPlaybackError.value = errorType ?? { type: "unknown" };
 	store.commit("PLAYBACK_STATUS", PlayerStatus.error);
 	emit("error");
 }
@@ -395,5 +434,15 @@ const renderedSpans = computed(() => {
 	left: 0;
 	font-size: 12px;
 	z-index: 500;
+}
+.playback-error {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba(var(--v-theme-background), 1);
+	z-index: 1;
 }
 </style>

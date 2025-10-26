@@ -406,5 +406,11 @@ export default {
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},
+		"playback-error-title": {
+			unknown: "Playback Error",
+		},
+		"playback-error-message": {
+			unknown: "Failed to load video.",
+		},
 	},
 };

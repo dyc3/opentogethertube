@@ -176,3 +176,8 @@ export function usePlaybackRate() {
 		availablePlaybackRates,
 	};
 }
+
+export interface MediaPlayerError {
+	type: "unknown";
+	message?: string;
+}
