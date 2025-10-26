@@ -160,8 +160,8 @@ const isCaptionsSupported = computed(
 
 const currentSubtitleDisplay = computed(() => {
 	const isEnabled =
-		isCaptionsSupported.value ||
-		captions.isCaptionsEnabled.value ||
+		isCaptionsSupported.value &&
+		captions.isCaptionsEnabled.value &&
 		captions.currentTrack.value !== null;
 	const track = captions.captionsTracks.value[captions.currentTrack.value || 0];
 	return isEnabled ? formatCaption(track) : "disabled";
