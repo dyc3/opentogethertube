@@ -3,19 +3,42 @@ import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed 
 import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 const volume = ref(100);
+const prevVolume = ref(100);
+const isMuted = ref(false);
 
 export function useVolume() {
 	const store = useStore();
 
 	onMounted(() => {
 		volume.value = store.state.settings.volume;
+		isMuted.value = store.state.settings.muted;
 	});
 
 	watch(volume, () => {
-		store.commit("settings/UPDATE", { volume: volume.value });
+		// If user drags the volume slider while muted, automatically unmute
+		if (isMuted.value && volume.value > 0) {
+			isMuted.value = false;
+		}
+		// Save volume to settings only when not muted and volume is greater than 0
+		// This prevents saving volume = 0 when the user is muted
+		if (!isMuted.value && volume.value > 0) {
+			store.commit("settings/UPDATE", { volume: volume.value });
+		}
 	});
 
-	return volume;
+	watch(isMuted, () => {
+		if (isMuted.value) {
+			// When muting: save current volume if it's > 0, otherwise keep the previous saved volume
+			// This prevents losing the previous non-zero volume if user had manually set volume to 0
+			prevVolume.value = volume.value > 0 ? volume.value : prevVolume.value;
+			volume.value = 0;
+		} else {
+			volume.value = prevVolume.value;
+		}
+		store.commit("settings/UPDATE", { muted: isMuted.value });
+	});
+
+	return { volume, prevVolume, isMuted };
 }
 
 export interface MediaPlayer {

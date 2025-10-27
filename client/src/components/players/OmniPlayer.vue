@@ -223,7 +223,7 @@ function isQualitySupported() {
 const volume = useVolume();
 const captions = useCaptions();
 const qualities = useQualities();
-watch(volume, v => {
+watch(volume.volume, v => {
 	if (player.value) {
 		player.value.setVolume(v);
 	}
@@ -301,7 +301,7 @@ async function onApiReady() {
 	captions.isCaptionsSupported.value = isCaptionsSupported();
 	qualities.isQualitySupported.value = isQualitySupported();
 	if (player.value) {
-		player.value.setVolume(volume.value);
+		player.value.setVolume(volume.volume.value);
 	}
 	if (implementsCaptions(player.value)) {
 		captions.captionsTracks.value = player.value.getCaptionsTracks();

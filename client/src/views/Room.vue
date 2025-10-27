@@ -649,7 +649,11 @@ export default defineComponent({
 			}
 		});
 		shortcuts.bind([{ code: "ArrowUp" }, { code: "ArrowDown" }], (e: KeyboardEvent) => {
-			volume.value = _.clamp(volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1), 0, 100);
+			volume.volume.value = _.clamp(
+				volume.volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
+				0,
+				100
+			);
 		});
 		shortcuts.bind({ code: "F12", ctrlKey: true, shiftKey: true }, () => {
 			debugMode.value = !debugMode.value;
