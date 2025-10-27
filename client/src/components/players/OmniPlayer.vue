@@ -268,7 +268,7 @@ async function onApiReady() {
 	captions.isCaptionsSupported.value = isCaptionsSupported();
 	qualities.isQualitySupported.value = isQualitySupported();
 	if (player.value) {
-		player.value.setVolume(volume.value);
+		player.value.setVolume(volume.volume.value);
 	}
 	if (implementsCaptions(player.value)) {
 		captions.captionsTracks.value = player.value.getCaptionsTracks();
