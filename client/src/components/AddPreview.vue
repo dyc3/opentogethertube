@@ -23,31 +23,31 @@
 		</v-row>
 		<v-row>
 			<v-container v-if="!production" class="test-videos-container">
-				<v-row>
-					<v-col
-						v-for="(group, groupName) in testVideos"
-						:key="groupName"
-						cols="12"
-						sm="6"
-						md="4"
-						lg="3"
-					>
-						<div class="video-group-title">{{ groupName }}</div>
-						<v-chip-group column>
+				<v-chip-group v-model="selectedTestVideo" column mandatory>
+					<v-row>
+						<v-col
+							v-for="(group, groupName) in testVideos"
+							:key="groupName"
+							cols="12"
+							sm="6"
+							md="4"
+							lg="3"
+						>
+							<div class="video-group-title">{{ groupName }}</div>
 							<v-chip
 								v-for="(v, idx) in group"
-								:key="idx"
+								:key="`${groupName}-${idx}`"
+								:value="`${groupName}-${idx}`"
 								@click="inputAddPreview = v[1]"
 								data-cy="test-video"
 								color="primary"
 								variant="outlined"
-								class="ma-1"
 							>
 								{{ v[0] }}
 							</v-chip>
-						</v-chip-group>
-					</v-col>
-				</v-row>
+						</v-col>
+					</v-row>
+				</v-chip-group>
 			</v-container>
 			<v-btn
 				v-if="videos.length > 1"
@@ -135,6 +135,7 @@ const hasAddPreviewFailed = ref(false);
 const inputAddPreview = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
+const selectedTestVideo = ref<string | undefined>(undefined);
 
 const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 	? {
@@ -205,6 +206,24 @@ watch(inputAddPreview, () => {
 	// HACK: ensure that inputAddPreview always a string
 	if (inputAddPreview.value === null) {
 		inputAddPreview.value = "";
+	}
+	if (!production.value) {
+		// Deselect chip (of test videos) when input is cleared or doesn't match selected video
+		if (inputAddPreview.value === "") {
+			selectedTestVideo.value = undefined;
+		} else {
+			// Check if the current input matches any test video's URL
+			selectedTestVideo.value = Object.entries(testVideos).reduce<string | undefined>(
+				(found, [groupName, group]) => {
+					if (found) {
+						return found;
+					}
+					const index = group.findIndex(v => v[1] === inputAddPreview.value);
+					return index !== -1 ? `${groupName}-${index}` : undefined;
+				},
+				undefined
+			);
+		}
 	}
 	onInputAddPreviewChange();
 });
