@@ -16229,7 +16229,7 @@ __metadata:
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
     typescript: "npm:5.4.5"
-    validator: "npm:^13.7.0"
+    validator: "npm:^13.15.20"
     winston: "npm:^3.10.0"
   languageName: unknown
   linkType: soft
@@ -16324,7 +16324,7 @@ __metadata:
     sortablejs: "npm:^1.15.0"
     sortablejs-vue3: "npm:^1.2.3"
     typescript: "npm:5.4.5"
-    validator: "npm:^13.7.0"
+    validator: "npm:^13.15.20"
     vite: "npm:^7.1.11"
     vite-plugin-vuetify: "npm:2.1.2"
     vitest: "npm:^1.2.2"
@@ -16418,7 +16418,7 @@ __metadata:
     typescript: "npm:5.4.5"
     unique-names-generator: "npm:^3.1.1"
     uuid: "npm:^9.0.0"
-    validator: "npm:^13.7.0"
+    validator: "npm:^13.15.20"
     vitest: "npm:^1.2.2"
     winston: "npm:^3.10.0"
     ws: "npm:^7.5.10"
@@ -21485,6 +21485,13 @@ __metadata:
     "@types/istanbul-lib-coverage": "npm:^2.0.1"
     convert-source-map: "npm:^2.0.0"
   checksum: 10c0/e691ba4dd0dea4a884e52c37dbda30cce6f9eeafe9b26721e449429c6bb0f4b6d1e33fabe7711d0f67f7a34c3bfd56c873f7375bba0b1534e6a2843ce99550e5
+  languageName: node
+  linkType: hard
+
+"validator@npm:^13.15.20":
+  version: 13.15.23
+  resolution: "validator@npm:13.15.23"
+  checksum: 10c0/22a05ec6a98d48d2b6fb34d43ce854af61d15842362d142e64cfca0325d4d0c2d1051d9f9d3a0f741e58ea888f73a35baf7a2a810f5aed0f89183bd5040f0177
   languageName: node
   linkType: hard
 

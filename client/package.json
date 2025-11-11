@@ -29,7 +29,7 @@
     "sortablejs": "^1.15.0",
     "sortablejs-vue3": "^1.2.3",
     "typescript": "5.4.5",
-    "validator": "^13.7.0",
+    "validator": "^13.15.20",
     "vue": "^3.5.22",
     "vue-axios": "^2.1.5",
     "vue-i18n": "9.2.2",
