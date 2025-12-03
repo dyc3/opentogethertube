@@ -5863,6 +5863,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/validator@npm:^13.1.3":
+  version: 13.15.10
+  resolution: "@types/validator@npm:13.15.10"
+  checksum: 10c0/3e2e65fcd37dd6961ca3fd0535293d0c42f5911dc3ca44b96f458835e6db2392b678ccbb0c9815d8c0a14e653439e6c62c7b8758a6cd1d6e390551c9e56618ac
+  languageName: node
+  linkType: hard
+
 "@types/validator@npm:^13.15.2":
   version: 13.15.2
   resolution: "@types/validator@npm:13.15.2"
@@ -16279,6 +16286,7 @@ __metadata:
     "@types/lodash": "npm:^4.14.170"
     "@types/node": "npm:^16.11.7"
     "@types/uuid": "npm:^3.4.0"
+    "@types/validator": "npm:^13.1.3"
     "@typescript-eslint/eslint-plugin": "npm:6.14.0"
     "@typescript-eslint/parser": "npm:6.14.0"
     ansi-colors: "npm:^4.1.1"
@@ -16302,6 +16310,7 @@ __metadata:
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
     typescript: "npm:5.4.5"
+    validator: "npm:^13.15.20"
     winston: "npm:^3.10.0"
   languageName: unknown
   linkType: soft
