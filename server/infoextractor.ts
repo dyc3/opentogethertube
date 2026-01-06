@@ -308,12 +308,19 @@ export default {
 	 * video or a video collection, or search terms to run against an API. If query is a URL, a service
 	 * adapter will automatically be selected to handle it. If it is not a URL, searchService will be
 	 * used to perform a search.
+	 * @param query The query string (URL or search terms)
+	 * @param searchService The service to use for search queries
+	 * @param forceAdapter Optional service ID to force a specific adapter to handle the URL
 	 */
-	async resolveVideoQuery(query: string, searchService: string): Promise<AddPreview> {
+	async resolveVideoQuery(
+		query: string,
+		searchService: string,
+		forceAdapter?: string
+	): Promise<AddPreview> {
 		counterAddPreviewsRequested.inc();
 		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
 		try {
-			let result = await this.resolveVideoQueryImpl(query, searchService);
+			let result = await this.resolveVideoQueryImpl(query, searchService, forceAdapter);
 			counterAddPreviewsCompleted.labels({ result: "success" }).inc();
 			return result;
 		} catch (e: unknown) {
@@ -324,7 +331,11 @@ export default {
 		}
 	},
 
-	async resolveVideoQueryImpl(query: string, searchService: string): Promise<AddPreview> {
+	async resolveVideoQueryImpl(
+		query: string,
+		searchService: string,
+		forceAdapter?: string
+	): Promise<AddPreview> {
 		let results: Video[] = [];
 		let cacheDuration = 60 * 60;
 
@@ -335,7 +346,9 @@ export default {
 				.filter(line => this.isURL(line));
 
 			const videoIds = lines.map(line => {
-				const adapter = this.getServiceAdapterForURL(line);
+				const adapter = forceAdapter
+					? this.getServiceAdapter(forceAdapter)
+					: this.getServiceAdapterForURL(line);
 				return {
 					service: adapter.serviceId,
 					id: adapter.getVideoId(line),
@@ -344,7 +357,9 @@ export default {
 
 			results = await this.getManyVideoInfo(videoIds);
 		} else if (this.isURL(query)) {
-			const adapter = this.getServiceAdapterForURL(query);
+			const adapter = forceAdapter
+				? this.getServiceAdapter(forceAdapter)
+				: this.getServiceAdapterForURL(query);
 
 			if (!adapter) {
 				throw new UnsupportedServiceException(query);

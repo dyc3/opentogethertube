@@ -14,7 +14,7 @@ const addPreview: RequestHandler<
 	any,
 	OttResponseBody<OttApiResponseAddPreview>,
 	any,
-	{ input: string }
+	{ input: string; adapter?: string }
 > = async (req, res, next) => {
 	if (!req.query.input) {
 		throw new BadApiArgumentException("input", "missing");
@@ -31,7 +31,8 @@ const addPreview: RequestHandler<
 		log.info(`Getting queue add preview for ${req.query.input}`);
 		const result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
-			conf.get("add_preview.search.provider")
+			conf.get("add_preview.search.provider"),
+			req.query.adapter
 		);
 
 		res.setHeader(

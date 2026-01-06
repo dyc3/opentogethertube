@@ -11,6 +11,7 @@ export interface SettingsState {
 	sfxEnabled: boolean;
 	sfxVolume: number;
 	defaultRoomSettings?: DefaultRoomSettings;
+	enableAdapterSelector: boolean;
 }
 
 export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
@@ -41,6 +42,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 		theme: Theme.dark,
 		sfxEnabled: true,
 		sfxVolume: 0.8,
+		enableAdapterSelector: false,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {

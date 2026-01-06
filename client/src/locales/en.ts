@@ -219,6 +219,10 @@ export default {
 				"Failed to get add preview. This is probably a bug, check console for details.",
 			"failed-to-all-videos": "Failed to all videos: {message}",
 		},
+		"adapter-selector": {
+			label: "Force adapter",
+			auto: "Auto-detect",
+		},
 	},
 	"processed-text": {
 		"link-hint": "Click to copy this link to the add tab.",
@@ -372,6 +376,7 @@ export default {
 		"sfx-enable": "Enable Sound Effects",
 		"sfx-volume": "Sound Effect Volume",
 		"room-settings": "Default Room Settings",
+		"enable-adapter-selector": "Show adapter selector (advanced)",
 	},
 	"connect-overlay": {
 		"title": "Disconnected",
