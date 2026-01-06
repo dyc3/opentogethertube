@@ -60,7 +60,8 @@ const addPreview: RequestHandler<
 			err.name === "UpstreamInvidiousException" ||
 			err.name === "VideoNotFoundException" ||
 			err.name === "FfprobeTimeoutError" ||
-			err.name === "OdyseeUnavailableVideo"
+			err.name === "OdyseeUnavailableVideo" ||
+			err.name === "OttException"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);
 			res.status(400).json({
