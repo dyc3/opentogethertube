@@ -361,6 +361,10 @@ export default {
 				? this.getServiceAdapter(forceAdapter)
 				: this.getServiceAdapterForURL(query);
 
+			if (!adapter) {
+				throw new UnsupportedServiceException(query);
+			}
+
 			if (adapter.isCacheSafe) {
 				cacheDuration = 60 * 60 * 24 * 7;
 			}
