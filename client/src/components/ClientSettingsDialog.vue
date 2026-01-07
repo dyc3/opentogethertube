@@ -57,6 +57,11 @@
 						<AutoSkipSegmentSettings v-model="autoSkipCategories" />
 					</div>
 				</v-expand-transition>
+
+				<v-checkbox
+					:label="$t('client-settings.enable-adapter-selector')"
+					v-model="settings.enableAdapterSelector"
+				/>
 			</v-card-text>
 
 			<v-divider />

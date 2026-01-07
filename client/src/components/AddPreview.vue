@@ -19,6 +19,18 @@
 					persistent-clear
 					data-cy="add-preview-input"
 				/>
+				<v-select
+					v-if="showAdapterSelector"
+					v-model="selectedAdapter"
+					:items="adapterOptions"
+					item-title="text"
+					item-value="value"
+					:label="$t('add-preview.adapter-selector.label')"
+					density="compact"
+					variant="outlined"
+					class="adapter-select"
+					data-cy="adapter-selector"
+				/>
 			</v-sheet>
 		</v-row>
 		<v-row>
@@ -124,6 +136,7 @@ import { Video } from "ott-common/models/video";
 import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
 import axios from "axios";
 import AddPreviewHelper from "./AddPreviewHelper.vue";
+import { ALL_VIDEO_SERVICES } from "ott-common/constants";
 
 const store = useStore();
 const { t } = useI18n();
@@ -136,6 +149,7 @@ const inputAddPreview = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
 const selectedTestVideo = ref<string | undefined>(undefined);
+const selectedAdapter = ref<string | null>(null);
 
 const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 	? {
@@ -243,12 +257,26 @@ const production = computed(() => {
 	 */
 	return store.state.production;
 });
+const showAdapterSelector = computed(() => {
+	return store.state.settings.enableAdapterSelector;
+});
+const adapterOptions = computed(() => {
+	return [
+		{ text: t("add-preview.adapter-selector.auto"), value: null },
+		...ALL_VIDEO_SERVICES.map(service => ({
+			text: service,
+			value: service,
+		})),
+	];
+});
 
 async function requestAddPreview() {
 	try {
-		const res = await API.get<OttResponseBody<OttApiResponseAddPreview>>(
-			`/data/previewAdd?input=${encodeURIComponent(inputAddPreview.value)}`
-		);
+		let url = `/data/previewAdd?input=${encodeURIComponent(inputAddPreview.value)}`;
+		if (selectedAdapter.value) {
+			url += `&adapter=${encodeURIComponent(selectedAdapter.value)}`;
+		}
+		const res = await API.get<OttResponseBody<OttApiResponseAddPreview>>(url);
 
 		hasAddPreviewFailed.value = false;
 		if (res.data.success) {
@@ -403,5 +431,10 @@ function setAddPreviewText(text: string) {
 	margin-bottom: 8px;
 	color: rgb(var(--v-theme-primary));
 	opacity: 0.8;
+}
+
+.adapter-select {
+	max-width: 200px;
+	margin-top: 8px;
 }
 </style>

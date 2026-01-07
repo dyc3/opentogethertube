@@ -78,6 +78,29 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		}
 	}
 
+	/**
+	 * Maps ffprobe format names to MIME types.
+	 */
+	getMimeFromFormat(formatName: string): string | undefined {
+		// ffprobe format_name can contain multiple comma-separated values
+		const formats = formatName.split(",");
+		const formatToMime: Record<string, string> = {
+			mp4: "video/mp4",
+			mov: "video/quicktime",
+			matroska: "video/x-matroska",
+			webm: "video/webm",
+			avi: "video/x-msvideo",
+			flv: "video/x-flv",
+			ogg: "video/ogg",
+			mp3: "audio/mpeg",
+			wav: "audio/x-wav",
+			aac: "audio/aac",
+			flac: "audio/flac",
+		};
+		const matchedFormat = formats.find(format => formatToMime[format]);
+		return matchedFormat ? formatToMime[matchedFormat] : undefined;
+	}
+
 	async fetchVideoInfo(link: string): Promise<Video> {
 		const url = URL.parse(link);
 		if (url.protocol === "file:") {
@@ -85,11 +108,42 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		}
 		const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
 		const extension = fileName.split(".").slice(-1)[0];
-		const mime = getMimeType(extension) ?? "unknown";
-		if (!isSupportedMimeType(mime)) {
-			throw new UnsupportedMimeTypeException(mime);
-		}
+		let mime = getMimeType(extension);
+
+		// If we can't determine a supported MIME type from extension, use ffprobe to detect it
 		const fileInfo = await this.ffprobe.getFileInfo(link);
+
+		if (!mime || !isSupportedMimeType(mime)) {
+			// Try to get MIME type from ffprobe format info
+			const formatName = fileInfo.format?.format_name;
+			if (formatName) {
+				const formatMime = this.getMimeFromFormat(formatName);
+				if (formatMime && isSupportedMimeType(formatMime)) {
+					mime = formatMime;
+				}
+			}
+		}
+
+		// Final fallback: check if we have video/audio streams and use a generic supported MIME type
+		if (!mime || !isSupportedMimeType(mime)) {
+			const hasVideo = fileInfo.streams?.some(
+				(s: { codec_type: string }) => s.codec_type === "video"
+			);
+			const hasAudio = fileInfo.streams?.some(
+				(s: { codec_type: string }) => s.codec_type === "audio"
+			);
+			// Use generic MIME types that are known to be supported
+			if (hasVideo) {
+				mime = "video/mp4";
+			} else if (hasAudio) {
+				mime = "audio/mpeg";
+			}
+		}
+
+		if (!mime || !isSupportedMimeType(mime)) {
+			throw new UnsupportedMimeTypeException(mime ?? "unknown");
+		}
+
 		const duration = Math.ceil(this.getDuration(fileInfo));
 		const title =
 			fileInfo.format?.tags?.title ??

@@ -104,4 +104,27 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 	});
+
+	it("GET /data/previewAdd with adapter parameter", async () => {
+		let resolveQuerySpy = vi
+			.spyOn(InfoExtract, "resolveVideoQuery")
+			.mockResolvedValue(new AddPreview([], 0));
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.set({ Authorization: "Bearer foobar" })
+			.query({ input: "https://example.com/video", adapter: "direct" })
+			.expect(200)
+			.expect("Content-Type", /json/)
+			.then(resp => {
+				expect(resp.body.success).toBe(true);
+				expect(resolveQuerySpy).toHaveBeenCalledWith(
+					"https://example.com/video",
+					expect.any(String),
+					"direct"
+				);
+			});
+
+		resolveQuerySpy.mockRestore();
+	});
 });
