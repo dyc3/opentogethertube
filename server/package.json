@@ -26,7 +26,7 @@
     "dayjs": "^1.10.4",
     "express": "^4.21.2",
     "express-session": "^1.17.0",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "m3u8-parser": "^7.2.0",
     "nocache": "^3.0.0",
     "node-abort-controller": "3.0.1",

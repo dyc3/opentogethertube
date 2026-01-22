@@ -14906,6 +14906,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:^4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10c0/1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
+  languageName: node
+  linkType: hard
+
 "log-symbols@npm:4.1.0, log-symbols@npm:^4.0.0":
   version: 4.1.0
   resolution: "log-symbols@npm:4.1.0"
@@ -16302,7 +16309,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^4.0.0"
     eslint-plugin-promise: "npm:^6.1.1"
     faker: "npm:^5.5.3"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     patch-package: "npm:^7.0.1"
     postinstall-postinstall: "npm:^2.1.0"
     prettier: "npm:^2.5.1"
@@ -16398,7 +16405,7 @@ __metadata:
     hls.js: "npm:1.6.12"
     jsdom: "npm:^21.1.0"
     load-script: "npm:^1.0.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     ott-common: "workspace:*"
     plyr: "npm:3.7.8"
     sass: "npm:^1.93.1"
@@ -16429,7 +16436,7 @@ __metadata:
     eslint: "npm:^8.57.0"
     eslint-plugin-vitest: "npm:0.3.22"
     express-session: "npm:^1.17.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     sponsorblock-api: "npm:^0.2.2"
     ts-essentials: "npm:^9.3.0"
     typescript: "npm:5.4.5"
@@ -16471,7 +16478,7 @@ __metadata:
     express: "npm:^4.21.2"
     express-session: "npm:^1.17.0"
     faker: "npm:^5.5.3"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     m3u8-parser: "npm:^7.2.0"
     nocache: "npm:^3.0.0"
     node-abort-controller: "npm:3.0.1"
