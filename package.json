@@ -36,7 +36,7 @@
     "ansi-colors": "^4.1.1",
     "axios": "1.12.2",
     "dayjs": "^1.10.4",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "patch-package": "^7.0.1",
     "postinstall-postinstall": "^2.1.0",
     "ts-essentials": "^9.3.0",
