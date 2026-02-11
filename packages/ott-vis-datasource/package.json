@@ -40,7 +40,7 @@
 		"copy-webpack-plugin": "^11.0.0",
 		"css-loader": "^6.7.3",
 		"cypress": "9.5.1",
-		"eslint": "^8.57.0",
+		"eslint": "^9.26.0",
 		"eslint-plugin-deprecation": "^2.0.0",
 		"eslint-plugin-jest": "^27.9.0",
 		"eslint-webpack-plugin": "^4.0.1",
