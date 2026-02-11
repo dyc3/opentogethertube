@@ -19,7 +19,7 @@
     "@liveinstantly/dash-mpd-parser": "0.5.0",
     "ansi-colors": "^4.1.1",
     "argon2": "^0.44.0",
-    "axios": "1.12.2",
+    "axios": "1.13.5",
     "connect-redis": "7.1.0",
     "convict": "^6.2.4",
     "cookie-parser": "^1.4.6",
