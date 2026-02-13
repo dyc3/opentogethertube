@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from "vitest";
 import clientmanager, {
 	parseWebsocketConnectionUrl,
 	setupBalancerManager,
@@ -7,7 +7,6 @@ import {
 	BalancerConnection,
 	type BalancerConnectionEventHandlers,
 	type BalancerConnectionEvents,
-	BalancerConnectionReal,
 	type MsgM2B,
 	balancerManager,
 } from "../../balancer.js";

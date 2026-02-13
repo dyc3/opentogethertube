@@ -7,13 +7,11 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
 	type Mock,
 } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";
 import usermanager from "../../../usermanager.js";
-import { User as UserModel } from "../../../models/index.js";
 import { conf } from "../../../ott-config.js";
 import type { User } from "../../../models/user.js";
 import type { AuthToken } from "ott-common/models/types.js";

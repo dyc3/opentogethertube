@@ -1,13 +1,11 @@
 import type express from "express";
 import type WebSocket from "ws";
-import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
 import type { Request } from "express";
-import { createSubscriber, redisClient } from "./redisclient.js";
+import { createSubscriber } from "./redisclient.js";
 import {
 	type ClientMessage,
-	ClientMessageKickMe,
 	type RoomRequest,
 	RoomRequestType,
 	type ServerMessage,
@@ -25,7 +23,6 @@ import {
 import roommanager from "./roommanager.js";
 import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
 import tokens, { type SessionInfo } from "./auth/tokens.js";
-import { RoomStateSyncable } from "./room.js";
 import { Gauge } from "prom-client";
 import { replacer } from "ott-common/serialize.js";
 import { type Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";

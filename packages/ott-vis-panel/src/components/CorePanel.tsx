@@ -165,7 +165,7 @@ const CoreError: React.FC<Pick<Props, "data">> = ({ data }) => {
 		<div>
 			Errors:
 			{data.errors?.map((e, i) => (
-				<div key={i}>{e.message}</div>
+				<div key={e.message}>{e.message}</div>
 			))}
 		</div>
 	);

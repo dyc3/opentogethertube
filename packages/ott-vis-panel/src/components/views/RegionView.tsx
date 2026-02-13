@@ -89,6 +89,7 @@ export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, h
 			height={height}
 			ref={svgRef}
 		>
+			<title>Region View</title>
 			<g className="chart">
 				<g className="nodes" />
 				<g className="texts" />

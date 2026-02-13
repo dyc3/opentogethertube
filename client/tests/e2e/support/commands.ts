@@ -37,7 +37,6 @@
 // }
 
 import { mount } from "cypress/vue";
-import { ComponentPublicInstance, h } from "vue";
 import vuetify from "../../../src/plugins/vuetify";
 import { key, buildNewStore } from "../../../src/store";
 import { i18n } from "../../../src/i18n";

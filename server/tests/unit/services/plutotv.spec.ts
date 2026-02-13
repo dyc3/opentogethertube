@@ -3,7 +3,6 @@ import {
 	it,
 	expect,
 	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
 	vi,

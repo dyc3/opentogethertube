@@ -3,7 +3,6 @@ import {
 	it,
 	expect,
 	beforeAll,
-	beforeEach,
 	afterAll,
 	afterEach,
 	vi,
@@ -16,7 +15,7 @@ import tokens from "../../../../server/auth/tokens.js";
 import roommanager from "../../../../server/roommanager.js";
 import { RoomNotFoundException } from "../../../../server/exceptions.js";
 import { main } from "../../../app.js";
-import { Room as RoomModel, User as UserModel } from "../../../models/index.js";
+import { Room as RoomModel } from "../../../models/index.js";
 import usermanager from "../../../usermanager.js";
 import type { OttApiRequestRoomCreate } from "ott-common/models/rest-api.js";
 import { conf } from "../../../../server/ott-config.js";

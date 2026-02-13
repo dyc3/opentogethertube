@@ -58,7 +58,7 @@ const granted = useGrants();
  * The video length is then used by the slider to define the maximum value (props.max).
  */
 const normalisedVideoLength = computed((): number => {
-	if (store.state.room.currentSource && store.state.room.currentSource.length) {
+	if (store.state.room.currentSource.length) {
 		const videoLength = store.state.room.currentSource.length;
 		return Math.round(videoLength * 10) / 10;
 	} else {

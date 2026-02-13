@@ -1,6 +1,5 @@
 import _ from "lodash";
 import type { Module } from "vuex/types";
-import Vuex from "vuex";
 import { Grants } from "ott-common/permissions";
 import { QueueMode } from "ott-common/models/types";
 import type { QueueItem } from "ott-common/models/video";

@@ -1,5 +1,5 @@
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed } from "vue";
+import { onMounted, ref, watch, type Ref, shallowRef, inject, computed } from "vue";
 import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 const volume = ref(100);

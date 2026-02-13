@@ -1,7 +1,6 @@
 // This load test represents a more realistic scenario where users are joining rooms and performing actions.
 // Appropriately scaling this test requires a ratio of 1:5 between the number of rooms and the number of VUs.
 
-import http from "k6/http";
 import ws from "k6/ws";
 import { sleep, check } from "k6";
 import { randomItem } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";

@@ -1,5 +1,10 @@
 <template>
-	<iframe class="peertube" id="peertube-player" :src="peertubeUrl"></iframe>
+	<iframe
+		title="PeerTube Player"
+		class="peertube"
+		id="peertube-player"
+		:src="peertubeUrl"
+	></iframe>
 </template>
 
 <script lang="ts">

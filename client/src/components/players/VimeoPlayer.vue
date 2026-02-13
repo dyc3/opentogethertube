@@ -24,7 +24,7 @@ const VimeoPlayer = defineComponent({
 			if (!container) {
 				return;
 			}
-			const parsedId = parseInt(props.videoId);
+			const parsedId = parseInt(props.videoId, 10);
 			player = new vimeo(container, {
 				id: parsedId,
 				controls: false,
@@ -60,7 +60,7 @@ const VimeoPlayer = defineComponent({
 			if (!player) {
 				return;
 			}
-			const parsedId = parseInt(props.videoId);
+			const parsedId = parseInt(props.videoId, 10);
 			player.loadVideo(parsedId);
 		});
 

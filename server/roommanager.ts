@@ -1,10 +1,5 @@
-import { Room, type RoomState, type RoomStateFromRedis, RoomStatePersistable } from "./room.js";
-import {
-	AuthToken,
-	type Role,
-	type RoomOptions,
-	type Visibility,
-} from "ott-common/models/types.js";
+import { Room, type RoomState, type RoomStateFromRedis } from "./room.js";
+import type { Role, RoomOptions, Visibility } from "ott-common/models/types.js";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
 import { redisClient } from "./redisclient.js";
@@ -14,7 +9,7 @@ import {
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions.js";
-import { RoomRequest, RoomRequestContext, type ServerMessage } from "ott-common/models/messages.js";
+import type { ServerMessage } from "ott-common/models/messages.js";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
 import { type Result, ok, err } from "ott-common/result.js";

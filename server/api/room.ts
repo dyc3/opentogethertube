@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { getLogger } from "../logger.js";
 import roommanager from "../roommanager.js";
-import { QueueMode, Visibility } from "ott-common/models/types.js";
+import { Visibility } from "ott-common/models/types.js";
 import { consumeRateLimitPoints } from "../rate-limit.js";
 import { BadApiArgumentException, FeatureDisabledException } from "../exceptions.js";
 import { OttException } from "ott-common/exceptions.js";
@@ -15,7 +15,6 @@ import {
 } from "ott-common/models/messages.js";
 import storage from "../storage.js";
 import { Grants } from "ott-common/permissions.js";
-import { Video } from "ott-common/models/video.js";
 import type {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
@@ -27,7 +26,6 @@ import type {
 	OttApiResponseRoomGenerate,
 	OttResponseBody,
 	OttClaimRequest,
-	OttSettingsRequest,
 	RoomListItem,
 } from "ott-common/models/rest-api.js";
 import { getApiKey } from "../admin.js";

@@ -5,7 +5,6 @@ import {
 	RateLimiterMemory,
 	RateLimiterRedis,
 	type RateLimiterAbstract,
-	RateLimiterStoreAbstract,
 	RateLimiterRes,
 } from "rate-limiter-flexible";
 import { conf } from "./ott-config.js";

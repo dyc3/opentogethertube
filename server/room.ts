@@ -60,7 +60,7 @@ import {
 import storage from "./storage.js";
 import tokens, { type SessionInfo } from "./auth/tokens.js";
 import { OttException } from "ott-common/exceptions.js";
-import { fetchSegments, getSponsorBlock } from "./sponsorblock.js";
+import { fetchSegments } from "./sponsorblock.js";
 import {
 	ResponseError as SponsorblockResponseError,
 	type Segment,

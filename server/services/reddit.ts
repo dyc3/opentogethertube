@@ -1,10 +1,9 @@
 import { URL } from "url";
 import axios from "axios";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import { ServiceAdapter } from "../serviceadapter.js";
 import { getLogger } from "../logger.js";
 import type { Video, VideoMetadata } from "ott-common/models/video.js";
 import { InvalidVideoIdException } from "../exceptions.js";
-import infoextractor from "../infoextractor.js";
 import { conf } from "../ott-config.js";
 
 const log = getLogger("reddit");
@@ -158,7 +157,7 @@ export default class RedditAdapter extends ServiceAdapter {
 		return fragments[idx + 1];
 	}
 
-	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const resp = await this.fetchRedditUrl(`https://reddit.com/comments/${id}.json`);
 		const video = this.extractVideos(resp[0])[0];
 		if ("url" in video) {

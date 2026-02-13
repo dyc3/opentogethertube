@@ -2,6 +2,7 @@
 // `/public/img/icon/<icon_name>.svg` we need to mock react-inlinesvg to prevent
 // the failed fetch requests from displaying errors in console.
 
+// biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import React from "react";
 
 type Callback = (...args: any[]) => void;

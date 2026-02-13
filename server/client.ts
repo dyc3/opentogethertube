@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger.js";
 import { getSessionInfo } from "./auth/tokens.js";
-import { type BalancerConnection, BalancerConnectionReal } from "./balancer.js";
+import type { BalancerConnection } from "./balancer.js";
 import { replacer } from "ott-common/serialize.js";
 import { Counter } from "prom-client";
 
