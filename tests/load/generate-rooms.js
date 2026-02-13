@@ -1,6 +1,6 @@
 import http from "k6/http";
 import ws from "k6/ws";
-import { sleep, check } from "k6";
+import { check } from "k6";
 import { getAuthToken, HOSTNAME } from "./utils.js";
 
 export const options = {

@@ -1,6 +1,6 @@
 import type { Sequelize } from "sequelize";
 import { QueryTypes } from "sequelize";
-import { Counter, Gauge } from "prom-client";
+import { Gauge } from "prom-client";
 import { getLogger } from "./logger.js";
 
 const log = getLogger("storage");

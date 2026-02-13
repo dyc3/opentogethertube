@@ -95,7 +95,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return this.parsedIdsToVideoId(parsed);
 	}
 
-	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const plutoIds = this.videoIdToSlugs(id);
 
 		const resp = await this.plutoBoot(plutoIds.id);

@@ -1,4 +1,4 @@
-import { assertType, expectTypeOf, describe, it } from "vitest";
+import { expectTypeOf, describe, it } from "vitest";
 import type { SystemState } from "./types";
 import type { SystemState as SystemStateGenerated } from "./generated";
 

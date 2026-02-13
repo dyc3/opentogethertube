@@ -7,18 +7,13 @@ import crypto from "crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index.js";
 import type { User } from "./models/user.js";
 import { delPattern, redisClient } from "./redisclient.js";
-import {
-	type RateLimiterAbstract,
-	RateLimiterMemory,
-	RateLimiterRedis,
-} from "rate-limiter-flexible";
+import { type RateLimiterAbstract, RateLimiterMemory } from "rate-limiter-flexible";
 import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
 import tokens from "./auth/tokens.js";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
 import {
-	BadApiArgumentException,
 	FeatureDisabledException,
 	InvalidVerifyKey,
 	LengthOutOfRangeException,
@@ -757,7 +752,7 @@ function isEmailRequest(request: OttApiRequestAccountRecoveryStart): request is 
 
 const accountRecoveryStart: RequestHandler<
 	unknown,
-	OttResponseBody<{}>,
+	OttResponseBody<{ success: boolean }>,
 	OttApiRequestAccountRecoveryStart
 > = async (req, res) => {
 	const body = OttApiRequestAccountRecoveryStartSchema.parse(req.body);
@@ -784,7 +779,7 @@ const accountRecoveryStart: RequestHandler<
 
 const accountRecoveryVerify: RequestHandler<
 	unknown,
-	OttResponseBody<{}>,
+	OttResponseBody<{ success: boolean }>,
 	OttApiRequestAccountRecoveryVerify
 > = async (req, res) => {
 	const body = OttApiRequestAccountRecoveryVerifySchema.parse(req.body);

@@ -1,6 +1,4 @@
-import _ from "lodash";
 import type { Module } from "vuex/types";
-import Vuex from "vuex";
 
 export interface MiscState {
 	isLoadingCreateRoom: boolean;
@@ -23,7 +21,7 @@ export const miscModule: Module<MiscState, unknown> = {
 			state.isLoadingCreateRoom = false;
 			state.cancelledRoomCreation = true;
 		},
-		ROOM_CREATED(state: MiscState, payload: { name: string }) {
+		ROOM_CREATED(state: MiscState, _payload: { name: string }) {
 			state.isLoadingCreateRoom = false;
 			state.cancelledRoomCreation = false;
 		},

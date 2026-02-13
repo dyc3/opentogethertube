@@ -371,7 +371,7 @@ function onProgress() {
 		emit("buffer-spans", buffered);
 		const duration = videoElem.value.duration;
 		const bufferedPercentage =
-			buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
+			buffered?.length && duration > 0 ? buffered.end(0) / duration : 0;
 		emit("buffer-progress", bufferedPercentage);
 	}
 }

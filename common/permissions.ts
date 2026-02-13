@@ -1,4 +1,3 @@
-import _ from "lodash";
 import { PermissionDeniedException, InvalidRoleException } from "./exceptions.js";
 import { Role } from "./models/types.js";
 

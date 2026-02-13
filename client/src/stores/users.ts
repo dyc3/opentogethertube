@@ -54,7 +54,7 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 		SET_YOU(state, payload: ServerMessageYou) {
 			state.you = payload.info;
 		},
-		SET_AUTH_TOKEN(state, token: string) {
+		SET_AUTH_TOKEN(_state, token: string) {
 			window.localStorage.setItem("token", token);
 		},
 	},

@@ -72,7 +72,7 @@ export class OttSfx {
 	}
 }
 
-export const OttSfxPlugin: Plugin = (app: App, options) => {
+export const OttSfxPlugin: Plugin = (app: App, _options) => {
 	const connection = new OttSfx();
 	app.provide(sfxInjectKey, connection);
 };

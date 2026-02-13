@@ -52,7 +52,7 @@ export async function authTokenMiddleware(
 		return;
 	}
 	log.silly("validating auth token");
-	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+	if (req.headers.authorization?.startsWith("Bearer")) {
 		const token: AuthToken = req.headers.authorization.split(" ")[1];
 		req.token = token;
 	} else if (req.cookies?.token) {
@@ -85,7 +85,7 @@ export async function authTokenMiddleware(
 		});
 		return;
 	}
-	if (req.ottsession && req.ottsession.isLoggedIn) {
+	if (req.ottsession?.isLoggedIn) {
 		try {
 			req.user = await usermanager.getUser({ id: req.ottsession.user_id });
 		} catch (err) {

@@ -1,4 +1,5 @@
 /* eslint-disable vitest/expect-expect */
+// biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import { assertType, expectTypeOf, describe, it } from "vitest";
 import type { ConvertToJsonSafe } from "../../serialize.js";
 import type { QueueItem } from "../../models/video.js";

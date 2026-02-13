@@ -1,14 +1,4 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";
 import usermanager from "../../../usermanager.js";

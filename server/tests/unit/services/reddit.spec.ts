@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import RedditAdapter, {
 	type RedditListableThing,
 	type RedditListing,

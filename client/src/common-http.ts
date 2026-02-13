@@ -6,7 +6,7 @@ export const API = axios.create({
 		(data, headers) => {
 			const token = window.localStorage.getItem("token");
 			if (token) {
-				headers["Authorization"] = `Bearer ${token}`;
+				headers.Authorization = `Bearer ${token}`;
 			}
 			return JSON.stringify(data);
 		},

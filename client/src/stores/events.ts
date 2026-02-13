@@ -66,7 +66,7 @@ export const eventsModule: Module<unknown, unknown> = {
 				event: message,
 			});
 		},
-		eventcustom(context, message: ServerMessageEventCustom) {
+		eventcustom(_context, message: ServerMessageEventCustom) {
 			this.commit("toast/ADD_TOAST", {
 				style: ToastStyle.Neutral,
 				content: message.text,

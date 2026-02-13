@@ -1,5 +1,5 @@
 import { URL } from "url";
-import axios, { AxiosError, type AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter.js";
 import {
 	ServiceLinkParseException,
@@ -37,6 +37,7 @@ interface GoogleDriveErrorResponse {
 }
 
 function isGoogleDriveApiError(
+	// biome-ignore lint/suspicious/noExplicitAny: migration
 	response: AxiosResponse<any> | undefined
 ): response is AxiosResponse<GoogleDriveErrorResponse> {
 	return !!response && "error" in response.data;

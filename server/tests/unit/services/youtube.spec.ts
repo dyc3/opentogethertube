@@ -1,20 +1,9 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	type MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import YouTubeAdapter, {
 	type YoutubeErrorResponse,
 	type YoutubeApiVideoListResponse,
 	type YoutubeApiVideo,
 } from "../../../services/youtube.js";
-import { Video } from "ott-common/models/video.js";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
 import { buildClients, redisClient } from "../../../redisclient.js";
 import type { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";

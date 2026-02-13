@@ -1,6 +1,6 @@
 import { ALL_VIDEO_SERVICES } from "ott-common/constants.js";
 import type { VideoService } from "ott-common/models/video.js";
-import { type Sequelize, Model, DataTypes, Optional } from "sequelize";
+import { type Sequelize, Model, DataTypes } from "sequelize";
 
 interface CachedVideoAttributes {
 	id: number;

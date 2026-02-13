@@ -14,7 +14,7 @@
 			<div class="room-header" v-if="!store.state.fullscreen">
 				<h1 class="room-title">
 					{{
-						store.state.room.title != ""
+						store.state.room.title !== ""
 							? store.state.room.title
 							: store.state.room.isTemporary
 							? $t("room.title-temp")

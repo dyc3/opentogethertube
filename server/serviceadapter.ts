@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import {
-	type Video,
-	VideoId,
-	type VideoMetadata,
-	type VideoService,
-} from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { IncompleteServiceAdapterException } from "./exceptions.js";
 import { getLogger } from "./logger.js";
 import type { BulkVideoResult } from "./infoextractor.js";

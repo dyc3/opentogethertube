@@ -1,6 +1,3 @@
-import { sequelize } from "./models/index.js";
-import { setupPostgresMetricsCollection } from "./storage.metrics.js";
-import { conf } from "./ott-config.js";
 import {
 	getRoomByName,
 	isRoomNameTaken,

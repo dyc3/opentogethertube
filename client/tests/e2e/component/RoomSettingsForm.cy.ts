@@ -3,7 +3,7 @@ import RoomSettingsForm from "../../../src/components/RoomSettingsForm.vue";
 import Notifier from "../../../src/components/Notifier.vue";
 import { useStore } from "../../../src/store";
 import { Grants, parseIntoGrantMask } from "ott-common/permissions";
-import { PlayerStatus, Role, RoomUserInfo } from "ott-common/models/types";
+import { PlayerStatus, Role } from "ott-common/models/types";
 
 const page = defineComponent({
 	setup() {

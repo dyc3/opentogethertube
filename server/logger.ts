@@ -1,7 +1,6 @@
 import { createLogger, format, transports } from "winston";
 import colors from "ansi-colors";
 import { conf } from "./ott-config.js";
-import { Counter } from "prom-client";
 
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {

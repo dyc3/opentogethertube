@@ -1,19 +1,9 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	type MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import PeertubeAdapter from "../../../services/peertube.js";
 import fs from "fs";
 import { InvalidVideoIdException } from "../../../exceptions.js";
 import type { AxiosRequestHeaders, AxiosResponse } from "axios";
-import { conf, loadConfigFile } from "../../../ott-config.js";
+import { conf } from "../../../ott-config.js";
 
 const validVideoLinks = [
 	[

@@ -1,5 +1,5 @@
 import Sequelize from "sequelize";
-import type { Model, Options } from "sequelize";
+import type { Options } from "sequelize";
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { createModel as createModelRoom } from "./room.js";

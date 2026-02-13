@@ -49,7 +49,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		return false;
 	}
 
-	isCollectionURL(link: string): boolean {
+	isCollectionURL(_link: string): boolean {
 		return false;
 	}
 
