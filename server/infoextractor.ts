@@ -320,7 +320,7 @@ export default {
 		counterAddPreviewsRequested.inc();
 		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
 		try {
-			let result = await this.resolveVideoQueryImpl(query, searchService, forceAdapter);
+			const result = await this.resolveVideoQueryImpl(query, searchService, forceAdapter);
 			counterAddPreviewsCompleted.labels({ result: "success" }).inc();
 			return result;
 		} catch (e: unknown) {
@@ -379,7 +379,7 @@ export default {
 			const fetchResults = await adapter.resolveURL(query);
 			const resolvedResults: VideoId[] = [];
 			if (Array.isArray(fetchResults)) {
-				for (let video of fetchResults) {
+				for (const video of fetchResults) {
 					if ("url" in video) {
 						try {
 							const adapter = this.getServiceAdapterForURL(video.url);
@@ -395,7 +395,6 @@ export default {
 							});
 						} catch (e) {
 							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
-							continue;
 						}
 					} else {
 						resolvedResults.push(video);

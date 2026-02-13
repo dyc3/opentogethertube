@@ -2,7 +2,7 @@
 import { onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useStore } from "@/store";
-import { PlayerStatus } from "ott-common/models/types";
+import type { PlayerStatus } from "ott-common/models/types";
 import _ from "lodash";
 
 const store = useStore();

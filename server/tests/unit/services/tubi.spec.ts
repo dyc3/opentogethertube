@@ -7,11 +7,11 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
+	type MockInstance,
 } from "vitest";
 import TubiAdapter from "../../../services/tubi.js";
 import fs from "fs";
-import { AxiosRequestHeaders, AxiosResponse } from "axios";
+import type { AxiosRequestHeaders, AxiosResponse } from "axios";
 
 const singleVideoLinks = [
 	["https://tubitv.com/oz/videos/458113/content", "458113"],
@@ -44,7 +44,7 @@ describe("Tubi TV", () => {
 	let apiGetMock: MockInstance;
 
 	beforeAll(() => {
-		for (let file of fs.readdirSync(FIXTURE_DIRECTORY)) {
+		for (const file of fs.readdirSync(FIXTURE_DIRECTORY)) {
 			FIXTURES.set(
 				file.split(".")[0],
 				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8")
@@ -55,7 +55,7 @@ describe("Tubi TV", () => {
 			const id = adapter.isCollectionURL(url)
 				? new URL(url).pathname.split("/")[2]
 				: adapter.getVideoId(url);
-			let fixtureText = FIXTURES.get(id);
+			const fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
 				throw new Error(`Fixture not found for ${id}`);
 			}
@@ -65,7 +65,7 @@ describe("Tubi TV", () => {
 			} catch (e) {
 				data = fixtureText;
 			}
-			let resp: AxiosResponse = {
+			const resp: AxiosResponse = {
 				status: 200,
 				statusText: "OK",
 				data,
@@ -112,7 +112,7 @@ describe("Tubi TV", () => {
 		it.each(singleVideoLinks)(
 			"should resolve single video url: %s",
 			async (url: string, id: string) => {
-				let videos = await adapter.resolveURL(url);
+				const videos = await adapter.resolveURL(url);
 				expect(apiGetMock).toBeCalledTimes(1);
 				expect(videos).toHaveLength(1);
 				expect(videos[0]).toMatchObject({
@@ -123,7 +123,7 @@ describe("Tubi TV", () => {
 		);
 
 		it.each(seriesLinks)("should resolve series url: %s", async (url: string) => {
-			let videos = await adapter.resolveURL(url);
+			const videos = await adapter.resolveURL(url);
 			expect(apiGetMock).toBeCalledTimes(1);
 			expect(videos.length).toBeGreaterThan(1);
 			expect(videos[0]).toMatchObject({

@@ -1,11 +1,11 @@
 // Ignoring because this rule is wrong. all the template strings in here use strings.
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { Module } from "vuex";
+import type { Module } from "vuex";
 import { ToastStyle } from "@/models/toast";
 import {
 	RoomRequestType,
-	ServerMessageEvent,
-	ServerMessageEventCustom,
+	type ServerMessageEvent,
+	type ServerMessageEventCustom,
 } from "ott-common/models/messages";
 import { secondsToTimestamp } from "@/util/timestamp";
 

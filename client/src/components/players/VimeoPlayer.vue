@@ -15,9 +15,9 @@ const VimeoPlayer = defineComponent({
 	},
 	emits: ["playing", "paused", "ready", "buffering", "error", "apiready"],
 	setup(props, { emit }) {
-		let player: vimeo | undefined = undefined;
+		let player: vimeo | undefined;
 		let isBuffering = false;
-		let resizeObserver: ResizeObserver | undefined = undefined;
+		let resizeObserver: ResizeObserver | undefined;
 
 		onMounted(async () => {
 			const container = document.getElementById("vimeo-player");

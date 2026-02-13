@@ -59,7 +59,7 @@ export const options = {
 //
 export default function () {
 	const token = getAuthToken();
-	let resp = http.post(`http://${HOSTNAME}/api/room/generate`, null, {
+	const resp = http.post(`http://${HOSTNAME}/api/room/generate`, null, {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},
@@ -70,7 +70,7 @@ export default function () {
 	check(room, { "room is not empty": r => r && r.length > 0 });
 
 	const url = `ws://${HOSTNAME}/api/room/${room}`;
-	const res = ws.connect(url, null, function (socket) {
+	const res = ws.connect(url, null, (socket) => {
 		const msgs = [];
 		socket.on("open", () => {
 			console.log("connected");
@@ -91,7 +91,7 @@ export default function () {
 				"got sync message": msgs => msgs.find(m => m.action === "sync") !== undefined,
 			});
 		});
-		socket.setTimeout(function () {
+		socket.setTimeout(() => {
 			console.log("closing the socket");
 			socket.close();
 		}, 1000);

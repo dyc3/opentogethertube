@@ -1,5 +1,5 @@
-import { Toast } from "@/models/toast";
-import { Store } from "vuex";
+import type { Toast } from "@/models/toast";
+import type { Store } from "vuex";
 import { useStore } from "@/store";
 
 let _store: Store<unknown> | null = null;
@@ -9,14 +9,14 @@ export function setStore(store: Store<unknown>) {
 }
 
 export function add(toast: Omit<Toast, "id">): void {
-	let store = useStore() ?? _store;
+	const store = useStore() ?? _store;
 	if (!store) {
 		throw new Error("toast: Store not found");
 	}
 	store.commit("toast/ADD_TOAST", toast);
 }
 export function remove(id: symbol): void {
-	let store = useStore() ?? _store;
+	const store = useStore() ?? _store;
 	if (!store) {
 		throw new Error("toast: Store not found");
 	}

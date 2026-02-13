@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
-import { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import {
+	type Video,
+	VideoId,
+	type VideoMetadata,
+	type VideoService,
+} from "ott-common/models/video.js";
 import { IncompleteServiceAdapterException } from "./exceptions.js";
 import { getLogger } from "./logger.js";
-import { BulkVideoResult } from "./infoextractor.js";
+import type { BulkVideoResult } from "./infoextractor.js";
 
 const log = getLogger("serviceadapter");
 export interface VideoRequest {
@@ -74,8 +79,8 @@ export class ServiceAdapter {
 	 * @param requests List of objects with id and missingInfo keys
 	 */
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
-		let videos: Video[] = [];
-		for (let req of requests) {
+		const videos: Video[] = [];
+		for (const req of requests) {
 			try {
 				videos.push(await this.fetchVideoInfo(req.id, req.missingInfo));
 			} catch (error) {

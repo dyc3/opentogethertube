@@ -94,11 +94,11 @@ const generateRoom: RequestHandler<unknown, OttResponseBody<OttApiResponseRoomGe
 
 	const body = OttApiRequestRoomGenerateSchema.parse(req.body);
 
-	let points = 50;
+	const points = 50;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
-	let roomName = uuidv4();
+	const roomName = uuidv4();
 	log.debug(`Generating room: ${roomName}`);
 	await roommanager.createRoom({
 		name: roomName,
@@ -453,7 +453,7 @@ const removeFromQueue: RequestHandler<
 	OttApiRequestRemoveFromQueue
 > = async (req, res) => {
 	const body = OttApiRequestRemoveFromQueueSchema.parse(req.body);
-	let points = 5;
+	const points = 5;
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}

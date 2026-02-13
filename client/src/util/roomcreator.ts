@@ -1,6 +1,6 @@
 import { API } from "@/common-http";
 import { ToastStyle } from "@/models/toast";
-import {
+import type {
 	OttResponseBody,
 	OttApiResponseRoomGenerate,
 	OttApiResponseRoomCreate,
@@ -14,10 +14,10 @@ import type { FullOTTStoreState } from "@/store";
 export async function generateRoom(
 	options: OttApiRequestRoomGenerate
 ): Promise<OttApiResponseRoomGenerate> {
-	let resp = await API.post("/room/generate", options, {
+	const resp = await API.post("/room/generate", options, {
 		validateStatus: status => status >= 200 && status < 400,
 	});
-	let data: OttResponseBody<OttApiResponseRoomGenerate> = resp.data;
+	const data: OttResponseBody<OttApiResponseRoomGenerate> = resp.data;
 
 	if (data.success) {
 		return data;
@@ -30,10 +30,10 @@ export async function generateRoom(
 export async function createRoom(
 	options: OttApiRequestRoomCreate
 ): Promise<OttApiResponseRoomCreate> {
-	let resp = await API.post("/room/create", options, {
+	const resp = await API.post("/room/create", options, {
 		validateStatus: status => status >= 200 && status < 400,
 	});
-	let data: OttResponseBody<OttApiResponseRoomCreate> = resp.data;
+	const data: OttResponseBody<OttApiResponseRoomCreate> = resp.data;
 
 	if (data.success) {
 		return data;
@@ -61,7 +61,7 @@ export async function createRoomHelper(
 			store.commit("misc/ROOM_CREATED", { name: options.name });
 			return options.name;
 		} else {
-			let resp = await generateRoom({
+			const resp = await generateRoom({
 				autoSkipSegmentCategories:
 					store.state.settings.defaultRoomSettings?.autoSkipSegmentCategories,
 			});

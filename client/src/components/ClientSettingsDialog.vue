@@ -81,9 +81,9 @@
 
 <script lang="ts" setup>
 import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
-import { Ref, ref, watch } from "vue";
+import { type Ref, ref, watch } from "vue";
 import { useStore } from "@/store";
-import { SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
+import { type SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
 import _ from "lodash";
 import { useSfx } from "@/plugins/sfx";
 import { enumKeys } from "@/util/misc";

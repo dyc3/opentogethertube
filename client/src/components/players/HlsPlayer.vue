@@ -39,7 +39,7 @@ const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const qualities = useQualities();
-let hls: Hls | undefined = undefined;
+let hls: Hls | undefined;
 
 const emit = defineEmits<{
 	"apiready": [];

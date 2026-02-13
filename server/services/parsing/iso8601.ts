@@ -3,7 +3,7 @@
  * Examples: PT40M25S
  */
 export function parseIso8601Duration(duration: string): number {
-	let match = /P(\d+D)?(?:T(\d+H)?(\d+M)?([\d.]+S)?)?/
+	const match = /P(\d+D)?(?:T(\d+H)?(\d+M)?([\d.]+S)?)?/
 		.exec(duration)
 		?.slice(1)
 		.map(x => {

@@ -18,8 +18,8 @@ describe("SponsorBlock", () => {
 
 	it("should generate and return the same user id and only ping redis once", async () => {
 		sponsorblock.clearUserId();
-		let getSpy = vi.spyOn(redisClient, "get").mockResolvedValue(null);
-		let setSpy = vi.spyOn(redisClient, "set");
+		const getSpy = vi.spyOn(redisClient, "get").mockResolvedValue(null);
+		const setSpy = vi.spyOn(redisClient, "set");
 		const { getSponsorBlockUserId } = sponsorblock;
 		const userId = await getSponsorBlockUserId();
 		expect(userId).toBeDefined();
@@ -34,8 +34,8 @@ describe("SponsorBlock", () => {
 
 	it("should always return the same user id and only ping redis once", async () => {
 		sponsorblock.clearUserId();
-		let getSpy = vi.spyOn(redisClient, "get").mockResolvedValue("testuserid");
-		let setSpy = vi.spyOn(redisClient, "set");
+		const getSpy = vi.spyOn(redisClient, "get").mockResolvedValue("testuserid");
+		const setSpy = vi.spyOn(redisClient, "set");
 		const { getSponsorBlockUserId } = sponsorblock;
 		const userId = await getSponsorBlockUserId();
 		expect(userId).toBe("testuserid");
@@ -49,8 +49,8 @@ describe("SponsorBlock", () => {
 	});
 
 	it("should fetch new segments if parsing cached entry fails", async () => {
-		let getSpy = vi.spyOn(redisClient, "get").mockResolvedValue("[invalid json");
-		let setSpy = vi.spyOn(redisClient, "setEx");
+		const getSpy = vi.spyOn(redisClient, "get").mockResolvedValue("[invalid json");
+		const setSpy = vi.spyOn(redisClient, "setEx");
 		const { fetchSegments } = sponsorblock;
 		const segments = await fetchSegments("testvideo");
 		expect(segments).toEqual([{ start: 0, end: 1, category: "sponsor" }]);

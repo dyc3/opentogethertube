@@ -1,7 +1,7 @@
 import {
-	ClientMessageRoomRequest,
+	type ClientMessageRoomRequest,
 	RoomRequestType,
-	ServerMessage,
+	type ServerMessage,
 } from "ott-common/models/messages";
 import { PlayerStatus, Role } from "ott-common/models/types";
 import { defineComponent, h } from "vue";
@@ -151,9 +151,9 @@ describe("<Chat />", () => {
 		cy.get(".text").contains("foo");
 	});
 
-	for (let activated of [false, true]) {
+	for (const activated of [false, true]) {
 		it(`should automatically scroll to the bottom when receiving new messages (activated: ${activated})`, () => {
-			let page = defineComponent({
+			const page = defineComponent({
 				name: "Page",
 				components: { Chat },
 				setup() {},
@@ -201,14 +201,14 @@ describe("<Chat />", () => {
 			// See: https://github.com/cypress-io/cypress/issues/877
 			// So we have to manually check visibility ourselves
 			cy.get(".messages").then(elems => {
-				let msgs = elems[0];
+				const msgs = elems[0];
 				expect(msgs.scrollTop).to.be.greaterThan(0);
 			});
 			cy.get(".messages, .message:last-of-type").then(elems => {
-				let msgs = elems[0];
-				let last = elems[1];
-				let boxRect = msgs.getBoundingClientRect();
-				let msgRect = last.getBoundingClientRect();
+				const msgs = elems[0];
+				const last = elems[1];
+				const boxRect = msgs.getBoundingClientRect();
+				const msgRect = last.getBoundingClientRect();
 				expect(msgRect.top).to.be.lessThan(boxRect.bottom);
 				expect(msgRect.bottom).to.be.lessThan(boxRect.bottom);
 			});

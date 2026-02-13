@@ -8,7 +8,7 @@ import {
 } from "../exceptions.js";
 import { getMimeType, isSupportedMimeType } from "../mime.js";
 import { getLogger } from "../logger.js";
-import { Video } from "ott-common/models/video.js";
+import type { Video } from "ott-common/models/video.js";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import axios from "axios";
 import { parseIso8601Duration } from "./parsing/iso8601.js";

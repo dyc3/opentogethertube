@@ -22,7 +22,7 @@ import "cypress-real-events";
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-import { mount } from "cypress/vue";
+import type { mount } from "cypress/vue";
 import type { FullOTTStoreState } from "../../../src/store";
 import type { Store } from "vuex";
 import type { OttRoomConnectionMock } from "../../../src/plugins/connection";

@@ -1,12 +1,17 @@
-import { AuthToken, ClientId, ClientInfo, OttWebsocketError } from "ott-common/models/types.js";
+import {
+	type AuthToken,
+	type ClientId,
+	type ClientInfo,
+	OttWebsocketError,
+} from "ott-common/models/types.js";
 import type { ClientMessage, ServerMessage } from "ott-common/models/messages.js";
-import WebSocket from "ws";
-import { SessionInfo, setSessionInfo } from "./auth/tokens.js";
+import type WebSocket from "ws";
+import { type SessionInfo, setSessionInfo } from "./auth/tokens.js";
 import { v4 as uuidv4 } from "uuid";
 import EventEmitter from "events";
 import { getLogger } from "./logger.js";
 import { getSessionInfo } from "./auth/tokens.js";
-import { BalancerConnection, BalancerConnectionReal } from "./balancer.js";
+import { type BalancerConnection, BalancerConnectionReal } from "./balancer.js";
 import { replacer } from "ott-common/serialize.js";
 import { Counter } from "prom-client";
 

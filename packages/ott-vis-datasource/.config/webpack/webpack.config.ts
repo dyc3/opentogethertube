@@ -11,7 +11,7 @@ import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import LiveReloadPlugin from "webpack-livereload-plugin";
 import path from "path";
 import ReplaceInFileWebpackPlugin from "replace-in-file-webpack-plugin";
-import { Configuration } from "webpack";
+import type { Configuration } from "webpack";
 
 import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from "./utils";
 import { SOURCE_DIR, DIST_DIR } from "./constants";
@@ -110,7 +110,7 @@ const config = async (env): Promise<Configuration> => {
 						// Keep publicPath relative for host.com/grafana/ deployments
 						publicPath: `public/plugins/${pluginJson.id}/img/`,
 						outputPath: "img/",
-						filename: Boolean(env.production) ? "[hash][ext]" : "[file]",
+						filename: env.production ? "[hash][ext]" : "[file]",
 					},
 				},
 				{
@@ -120,7 +120,7 @@ const config = async (env): Promise<Configuration> => {
 						// Keep publicPath relative for host.com/grafana/ deployments
 						publicPath: `public/plugins/${pluginJson.id}/fonts/`,
 						outputPath: "fonts/",
-						filename: Boolean(env.production) ? "[hash][ext]" : "[name][ext]",
+						filename: env.production ? "[hash][ext]" : "[name][ext]",
 					},
 				},
 			],
@@ -128,7 +128,7 @@ const config = async (env): Promise<Configuration> => {
 
 		output: {
 			clean: {
-				keep: new RegExp(`(.*?_(amd64|arm(64)?)(.exe)?|go_plugin_build_manifest)`),
+				keep: /(.*?_(amd64|arm(64)?)(.exe)?|go_plugin_build_manifest)/,
 			},
 			filename: "[name].js",
 			library: {
@@ -165,15 +165,15 @@ const config = async (env): Promise<Configuration> => {
 					files: ["plugin.json", "README.md"],
 					rules: [
 						{
-							search: /\%VERSION\%/g,
+							search: /%VERSION%/g,
 							replace: getPackageJson().version,
 						},
 						{
-							search: /\%TODAY\%/g,
+							search: /%TODAY%/g,
 							replace: new Date().toISOString().substring(0, 10),
 						},
 						{
-							search: /\%PLUGIN_ID\%/g,
+							search: /%PLUGIN_ID%/g,
 							replace: pluginJson.id,
 						},
 					],

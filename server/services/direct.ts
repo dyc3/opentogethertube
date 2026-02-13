@@ -7,9 +7,14 @@ import {
 	MissingMetadataException,
 } from "../exceptions.js";
 import { getMimeType, isSupportedMimeType } from "../mime.js";
-import { FfprobeStrategy, OnDiskPreviewFfprobe, RunFfprobe, StreamFfprobe } from "../ffprobe.js";
+import {
+	type FfprobeStrategy,
+	OnDiskPreviewFfprobe,
+	RunFfprobe,
+	StreamFfprobe,
+} from "../ffprobe.js";
 import { getLogger } from "../logger.js";
-import { Video } from "ott-common/models/video.js";
+import type { Video } from "ott-common/models/video.js";
 import { conf } from "../ott-config.js";
 
 const log = getLogger("direct");

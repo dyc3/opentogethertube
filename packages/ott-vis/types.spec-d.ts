@@ -1,6 +1,6 @@
 import { assertType, expectTypeOf, describe, it } from "vitest";
-import { SystemState } from "./types";
-import { SystemState as SystemStateGenerated } from "./generated";
+import type { SystemState } from "./types";
+import type { SystemState as SystemStateGenerated } from "./generated";
 
 describe("SystemState", () => {
 	it("should remain in sync with the SystemState type", () => {

@@ -1,6 +1,6 @@
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
-import express, { RequestHandler, ErrorRequestHandler } from "express";
+import express, { type RequestHandler, type ErrorRequestHandler } from "express";
 import type { OttApiResponseAddPreview, OttResponseBody } from "ott-common/models/rest-api.js";
 import { OttException } from "ott-common/exceptions.js";
 import { BadApiArgumentException } from "../exceptions.js";

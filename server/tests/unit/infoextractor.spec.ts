@@ -7,7 +7,7 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
+	type MockInstance,
 } from "vitest";
 import InfoExtractor, { initExtractor } from "../../infoextractor.js";
 import storage from "../../storage.js";
@@ -19,7 +19,7 @@ import { buildClients, redisClient } from "../../redisclient.js";
 import _ from "lodash";
 import { loadModels } from "../../models/index.js";
 import { loadConfigFile, conf } from "../../ott-config.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 
 class TestAdapter extends ServiceAdapter {
 	get serviceId(): VideoService {
@@ -88,17 +88,17 @@ describe("InfoExtractor", () => {
 
 		it("should use cached search results", async () => {
 			await redisClient.set("search:fakeservice:asdf", JSON.stringify([vid]));
-			let adapter = new TestAdapter();
-			let getAdapterSpy = vi
+			const adapter = new TestAdapter();
+			const getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);
-			let getCacheSpy = vi
+			const getCacheSpy = vi
 				.spyOn(InfoExtractor, "getCachedSearchResults")
 				.mockResolvedValue([vid]);
-			let getManyVideoInfoSpy = vi
+			const getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
 				.mockResolvedValue([vid]);
-			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
+			const results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 			expect(getAdapterSpy).toBeCalledTimes(0);
 			expect(getCacheSpy).toBeCalledTimes(1);
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
@@ -112,24 +112,24 @@ describe("InfoExtractor", () => {
 		});
 
 		it("should cache fresh search results", async () => {
-			let adapter = new TestAdapter();
-			let getAdapterSpy = vi
+			const adapter = new TestAdapter();
+			const getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);
-			let getCacheSpy = vi
+			const getCacheSpy = vi
 				.spyOn(InfoExtractor, "getCachedSearchResults")
 				.mockResolvedValue([]);
-			let searchSpy = vi.spyOn(adapter, "searchVideos").mockResolvedValue([
+			const searchSpy = vi.spyOn(adapter, "searchVideos").mockResolvedValue([
 				{
 					service: "direct",
 					id: "asdf1234",
 				},
 			]);
-			let getManyVideoInfoSpy = vi
+			const getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
 				.mockResolvedValue([vid]);
 
-			let results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
+			const results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 
 			expect(results).toEqual([vid]);
 
@@ -157,7 +157,7 @@ describe("InfoExtractor", () => {
 		let updateCache: MockInstance<[Video[] | Video], Promise<void>>;
 		let adapterFetchVideoInfo: MockInstance;
 		beforeAll(() => {
-			let adapter = new TestAdapter();
+			const adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
 			getCachedVideo = vi
 				.spyOn(InfoExtractor, "getCachedVideo")
@@ -185,7 +185,7 @@ describe("InfoExtractor", () => {
 			adapterFetchVideoInfo.mockRestore();
 		});
 
-		let vid: Video = {
+		const vid: Video = {
 			service: "direct",
 			id: "asdf",
 			title: "title",
@@ -281,7 +281,7 @@ describe("InfoExtractor", () => {
 		let adapterFetchManyVideoInfo: MockInstance;
 		let storageGetManyVideoInfo: MockInstance;
 		beforeAll(() => {
-			let adapter = new TestAdapter();
+			const adapter = new TestAdapter();
 			getAdapter = vi.spyOn(InfoExtractor, "getServiceAdapter").mockReturnValue(adapter);
 			getCachedVideo = vi
 				.spyOn(InfoExtractor, "getCachedVideo")

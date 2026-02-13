@@ -1,9 +1,9 @@
 import { getLogger } from "../logger.js";
 import express from "express";
-import tokens, { SessionInfo } from "./tokens.js";
+import tokens, { type SessionInfo } from "./tokens.js";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import passport from "passport";
-import { AuthToken, MySession } from "ott-common/models/types.js";
+import type { AuthToken, MySession } from "ott-common/models/types.js";
 import nocache from "nocache";
 import usermanager from "../usermanager.js";
 import { requireApiKey } from "../admin.js";
@@ -27,7 +27,7 @@ export async function authTokenMiddleware(
 	res: express.Response,
 	next: express.NextFunction
 ): Promise<void> {
-	let apikey = req.get("apikey");
+	const apikey = req.get("apikey");
 	if (apikey) {
 		log.silly("API key was provided for auth");
 		try {

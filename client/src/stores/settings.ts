@@ -1,6 +1,6 @@
-import { Module } from "vuex/types";
+import type { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import { RoomSettings } from "ott-common";
+import type { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
@@ -64,7 +64,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	},
 	actions: {
 		load(context) {
-			let loaded = JSON.parse(localStorage.getItem("settings") ?? "{}");
+			const loaded = JSON.parse(localStorage.getItem("settings") ?? "{}");
 			context.commit("UPDATE", loaded);
 		},
 	},

@@ -1,6 +1,10 @@
-import { ServerMessageUser, ServerMessageYou, PartialUserInfo } from "ott-common/models/messages";
-import { ClientId, Role, RoomUserInfo } from "ott-common/models/types";
-import { Module } from "vuex/types";
+import type {
+	ServerMessageUser,
+	ServerMessageYou,
+	PartialUserInfo,
+} from "ott-common/models/messages";
+import { type ClientId, Role, type RoomUserInfo } from "ott-common/models/types";
+import type { Module } from "vuex/types";
 import { API } from "@/common-http";
 import { reactive } from "vue";
 import type { GrantMask } from "ott-common/permissions";
@@ -37,7 +41,7 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 			state.users = new Map(payload.map(u => [u.id, u]));
 		},
 		UPDATE_USER(state, payload: PartialUserInfo) {
-			let user = state.users.get(payload.id);
+			const user = state.users.get(payload.id);
 			if (!user) {
 				state.users.set(payload.id, payload as RoomUserInfo);
 			} else {

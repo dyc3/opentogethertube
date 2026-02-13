@@ -5,7 +5,7 @@ import { useStore } from "../../../src/store";
 import { Grants, parseIntoGrantMask } from "ott-common/permissions";
 import { PlayerStatus, Role, RoomUserInfo } from "ott-common/models/types";
 
-let page = defineComponent({
+const page = defineComponent({
 	setup() {
 		const store = useStore();
 		store.state.room.name = "foo";
@@ -71,7 +71,7 @@ describe("<RoomSettingsForm />", () => {
 		cy.intercept("GET", "/api/room/foo", {
 			fixture: "get-room-foo.json",
 		});
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				const store = useStore();
 				store.state.room.name = "foo";

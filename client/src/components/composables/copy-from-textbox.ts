@@ -1,4 +1,4 @@
-import { Ref, ref, ComputedRef } from "vue";
+import { type Ref, ref, type ComputedRef } from "vue";
 
 export function useCopyFromTextbox(
 	text: Ref<string> | ComputedRef<string>,
@@ -21,7 +21,7 @@ export function useCopyFromTextbox(
 				copySuccess.value = false;
 			}, 3000);
 		} else {
-			let textfield: HTMLInputElement | HTMLTextAreaElement | null = (
+			const textfield: HTMLInputElement | HTMLTextAreaElement | null = (
 				textboxComponent.value.$el as HTMLInputElement | HTMLTextAreaElement
 			).querySelector("input, textarea");
 			if (!textfield) {

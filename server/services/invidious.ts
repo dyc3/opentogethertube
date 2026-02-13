@@ -5,7 +5,7 @@ import { ServiceAdapter } from "../serviceadapter.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
 import { conf } from "../ott-config.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException, UpstreamInvidiousException } from "../exceptions.js";
 import storage from "../storage.js";
 

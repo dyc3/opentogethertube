@@ -1,8 +1,8 @@
 import { RoomRequestType } from "ott-common/models/messages";
 import _ from "lodash";
-import { Module } from "vuex/types";
+import type { Module } from "vuex/types";
 
-import { Toast } from "../models/toast";
+import type { Toast } from "../models/toast";
 
 export interface ToastState {
 	notifications: Toast[];
@@ -24,7 +24,10 @@ export const toastModule: Module<ToastState, unknown> = {
 						last.event?.request.type === RoomRequestType.SeekRequest &&
 						last.event?.user.name === notification.event?.user.name
 					) {
-						let removed = state.notifications.splice(state.notifications.length - 1, 1);
+						const removed = state.notifications.splice(
+							state.notifications.length - 1,
+							1
+						);
 						notification.event.additional.prevPosition =
 							removed[0].event?.additional.prevPosition;
 					}

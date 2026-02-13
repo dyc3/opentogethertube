@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { PanelProps } from "@grafana/data";
+import type { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";
 import type { SystemState } from "ott-vis";
 import { css, cx } from "@emotion/css";
@@ -66,7 +66,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 
 	const { assign: assignColor, assignments: colorAssignments } = useColorProvider();
 
-	let view = useMemo(() => {
+	const view = useMemo(() => {
 		if (options.view === "region") {
 			return (
 				<RegionView
@@ -187,8 +187,14 @@ const sampleSystemState: SystemState = [
 					{
 						name: "foo",
 						clients: [
-							{ id: "caa15370-8861-459e-997d-3e97f08f37d0", edge_region: "ewr" },
-							{ id: "12726a0c-02de-49f0-ab59-d87baf9c289f", edge_region: "lga" },
+							{
+								id: "caa15370-8861-459e-997d-3e97f08f37d0",
+								edge_region: "ewr",
+							},
+							{
+								id: "12726a0c-02de-49f0-ab59-d87baf9c289f",
+								edge_region: "lga",
+							},
 						],
 					},
 					{ name: "bar", clients: [] },
@@ -201,9 +207,18 @@ const sampleSystemState: SystemState = [
 					{
 						name: "baz",
 						clients: [
-							{ id: "f3207419-b1d6-4c55-bc9d-799b4d1a70d7", edge_region: "ewr" },
-							{ id: "0ecd5456-ba1f-4585-b64e-e76d2c515c17", edge_region: "lga" },
-							{ id: "6ed66113-cbd4-46ec-8b56-dae6e80d4f31", edge_region: "lax" },
+							{
+								id: "f3207419-b1d6-4c55-bc9d-799b4d1a70d7",
+								edge_region: "ewr",
+							},
+							{
+								id: "0ecd5456-ba1f-4585-b64e-e76d2c515c17",
+								edge_region: "lga",
+							},
+							{
+								id: "6ed66113-cbd4-46ec-8b56-dae6e80d4f31",
+								edge_region: "lax",
+							},
 						],
 					},
 				],
@@ -226,13 +241,19 @@ const sampleSystemState: SystemState = [
 					{
 						name: "foo",
 						clients: [
-							{ id: "4ac25d42-b0d3-49ff-9c43-cf98e1fde1d8", edge_region: "ewr" },
+							{
+								id: "4ac25d42-b0d3-49ff-9c43-cf98e1fde1d8",
+								edge_region: "ewr",
+							},
 						],
 					},
 					{
 						name: "bar",
 						clients: [
-							{ id: "f2e74aa2-8dbe-44bc-a2ef-75d201bb7387", edge_region: "ewr" },
+							{
+								id: "f2e74aa2-8dbe-44bc-a2ef-75d201bb7387",
+								edge_region: "ewr",
+							},
 						],
 					},
 				],
@@ -273,10 +294,22 @@ const sampleSystemState: SystemState = [
 					{
 						name: "qux",
 						clients: [
-							{ id: "fe768adf-730a-4cc5-a7e3-2c3438a538c6", edge_region: "cdg" },
-							{ id: "c4a6362a-61c8-45dd-9913-49f1bbccaeb9", edge_region: "bom" },
-							{ id: "3e3389ff-d3c2-4814-8089-44cc7ec01eb4", edge_region: "lax" },
-							{ id: "ddf9309a-8ace-4c53-9dd8-f742e9f282c3", edge_region: "ewr" },
+							{
+								id: "fe768adf-730a-4cc5-a7e3-2c3438a538c6",
+								edge_region: "cdg",
+							},
+							{
+								id: "c4a6362a-61c8-45dd-9913-49f1bbccaeb9",
+								edge_region: "bom",
+							},
+							{
+								id: "3e3389ff-d3c2-4814-8089-44cc7ec01eb4",
+								edge_region: "lax",
+							},
+							{
+								id: "ddf9309a-8ace-4c53-9dd8-f742e9f282c3",
+								edge_region: "ewr",
+							},
 						],
 					},
 				],

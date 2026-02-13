@@ -1,7 +1,7 @@
 import { getLogger } from "./logger.js";
 import { redisClient } from "./redisclient.js";
 import {
-	IRateLimiterStoreOptions,
+	type IRateLimiterStoreOptions,
 	RateLimiterMemory,
 	RateLimiterRedis,
 	type RateLimiterAbstract,
@@ -9,7 +9,7 @@ import {
 	RateLimiterRes,
 } from "rate-limiter-flexible";
 import { conf } from "./ott-config.js";
-import { RedisClientType } from "redis";
+import type { RedisClientType } from "redis";
 
 const log = getLogger("api/rate-limit");
 
@@ -41,7 +41,7 @@ export async function consumeRateLimitPoints(
 		return true;
 	}
 	try {
-		let info = await limiter.consume(key, points);
+		const info = await limiter.consume(key, points);
 		setRateLimitHeaders(res, info);
 		return true;
 	} catch (e) {

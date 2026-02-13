@@ -43,7 +43,7 @@ import { key, buildNewStore } from "../../../src/store";
 import { i18n } from "../../../src/i18n";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { routes } from "../../../src/router";
-import { VueWrapper } from "@vue/test-utils";
+import type { VueWrapper } from "@vue/test-utils";
 import { OttRoomConnectionMock, connectionInjectKey } from "../../../src/plugins/connection";
 import { OttSfx, sfxInjectKey } from "../../../src/plugins/sfx";
 import type { Role } from "ott-common";
@@ -52,11 +52,11 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	options.global = options.global || {};
 	options.global.plugins = options.global.plugins || [];
 	options.global.plugins.push(vuetify);
-	let store = buildNewStore();
+	const store = buildNewStore();
 	cy.wrap(store).as("store");
 	options.global.plugins.push([store, key]);
 	options.global.plugins.push(i18n);
-	let mockConnection = new OttRoomConnectionMock();
+	const mockConnection = new OttRoomConnectionMock();
 	cy.wrap(mockConnection).as("connection");
 	options.global.plugins.push({
 		install(app) {
@@ -91,7 +91,7 @@ Cypress.Commands.add("vue", () => {
  * Update the props and wait for Vue to re-render.
  * Must be chained of a chain that starts with `cy.mount`.
  */
-// @ts-ignore
+// @ts-expect-error
 Cypress.Commands.add("setProps", (props: Record<string, unknown> = {}) => {
 	return cy.get("@wrapper").then(async (wrapper: any) => {
 		// `wrapper` in inferred as JQuery<HTMLElement> since custom commands

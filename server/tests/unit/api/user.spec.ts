@@ -8,15 +8,15 @@ import {
 	afterEach,
 	vi,
 	MockInstance,
-	Mock,
+	type Mock,
 } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";
 import usermanager from "../../../usermanager.js";
 import { User as UserModel } from "../../../models/index.js";
 import { conf } from "../../../ott-config.js";
-import { User } from "../../../models/user.js";
-import { AuthToken } from "ott-common/models/types.js";
+import type { User } from "../../../models/user.js";
+import type { AuthToken } from "ott-common/models/types.js";
 
 describe("User API", () => {
 	let token;
@@ -47,7 +47,7 @@ describe("User API", () => {
 			discordId: 1234567890,
 		});
 
-		let resp = await request(app).get("/api/auth/grant").expect(200);
+		const resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 	});
 
@@ -59,7 +59,7 @@ describe("User API", () => {
 
 	describe("GET /user", () => {
 		it("should not fail by default", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.expect("Content-Type", /json/)
@@ -69,11 +69,11 @@ describe("User API", () => {
 		});
 
 		it("should have the forced test user logged in", async () => {
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user/test/forceLogin")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200);
-			let cookies = resp.header["set-cookie"];
+			const cookies = resp.header["set-cookie"];
 
 			await request(app)
 				.get("/api/user")
@@ -151,7 +151,7 @@ describe("User API", () => {
 					expect(onUserModifiedSpy).toBeCalled();
 				});
 
-			let resp = await request(app)
+			const resp = await request(app)
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.expect(200);
@@ -297,7 +297,7 @@ describe("User API", () => {
 
 		describe("POST /user/register", () => {
 			let onUserLogInSpy: Mock<[User, AuthToken]>;
-			let registeredUsers: User[] = [];
+			const registeredUsers: User[] = [];
 
 			beforeAll(() => {
 				onUserLogInSpy = vi.fn().mockImplementation((user, token) => {

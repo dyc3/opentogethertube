@@ -26,7 +26,7 @@ export function setup() {
 	}
 
 	const token = getAuthToken();
-	for (let room of rooms) {
+	for (const room of rooms) {
 		// TODO: some of the rooms should be permanent
 		createRoom(room, token, { visibility: "public", isTemporary: true });
 	}
@@ -103,7 +103,7 @@ class UserEmulator {
 					text: "foo",
 				});
 				break;
-			case "add":
+			case "add": {
 				const video = randomItem(VIDEOS);
 				const resp1 = reqVideo(this.room, this.token, video, {
 					action: "add",
@@ -113,7 +113,8 @@ class UserEmulator {
 					"response code was acceptable": r => r.status < 500,
 				});
 				break;
-			case "remove":
+			}
+			case "remove": {
 				const video2 = randomItem(VIDEOS);
 				const resp2 = reqVideo(this.room, this.token, video2, {
 					action: "remove",
@@ -123,19 +124,21 @@ class UserEmulator {
 					"response code was acceptable": r => r.status < 500,
 				});
 				break;
+			}
 			case "playpause":
 				this.roomRequest({
 					type: 2,
 					state: !state.state.isPlaying,
 				});
 				break;
-			case "seek":
+			case "seek": {
 				const max = state.state.currentSource ? state.state.currentSource.length : 0;
 				this.roomRequest({
 					type: 4,
 					value: Math.random() * max,
 				});
 				break;
+			}
 			case "skip":
 				this.roomRequest({
 					type: 3,

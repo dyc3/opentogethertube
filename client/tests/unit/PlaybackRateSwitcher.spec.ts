@@ -29,7 +29,7 @@ describe("PlaybackRateSwitcher component", () => {
 		const playbackRate = usePlaybackRate();
 		playbackRate.availablePlaybackRates.value = PLAYBACK_RATES.map(r => r[0]);
 		playbackRate.playbackRate.value = rate;
-		let wrapper = mount(PlaybackRateSwitcher, {
+		const wrapper = mount(PlaybackRateSwitcher, {
 			...mountOptions,
 			mounted: vi.fn(),
 		});

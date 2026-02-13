@@ -7,7 +7,7 @@ interface ColorProvider {
 }
 
 export function useColorProvider(): ColorProvider {
-	let [colorAssignments, setColorAssignments] = useState<Map<string, string>>(new Map());
+	const [colorAssignments, setColorAssignments] = useState<Map<string, string>>(new Map());
 	const color = d3.scaleOrdinal(d3.schemeCategory10).domain(colorAssignments.keys());
 	function assign(thing: string): string {
 		if (!colorAssignments.has(thing)) {

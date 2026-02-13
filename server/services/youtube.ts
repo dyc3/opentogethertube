@@ -1,8 +1,8 @@
 import { URL } from "url";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import _ from "lodash";
-import { RedisClientType } from "redis";
-import { ServiceAdapter, VideoRequest } from "../serviceadapter.js";
+import type { RedisClientType } from "redis";
+import { ServiceAdapter, type VideoRequest } from "../serviceadapter.js";
 import {
 	BadApiArgumentException,
 	InvalidVideoIdException,
@@ -178,7 +178,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
 	isCollectionURL(link: string): boolean {
 		const url = new URL(link);
-		let qList = url.searchParams.get("list");
+		const qList = url.searchParams.get("list");
 		return (
 			url.pathname.startsWith("/channel/") ||
 			url.pathname.startsWith("/c/") ||
@@ -194,7 +194,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		if (url.host.endsWith("youtu.be")) {
 			return url.pathname.replace("/", "").trim();
 		} else if (url.pathname.startsWith("/watch")) {
-			let videoId = url.searchParams.get("v");
+			const videoId = url.searchParams.get("v");
 			if (!videoId) {
 				throw new BadApiArgumentException("input", "No video ID found in URL");
 			}
@@ -247,7 +247,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video> {
-		let result = await this.videoApiRequest([id], onlyProperties);
+		const result = await this.videoApiRequest([id], onlyProperties);
 		if (result.length === 0) {
 			throw new VideoNotFoundException();
 		}
@@ -257,11 +257,11 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
 	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
 		const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
-		let results: Video[] = [];
-		for (let group of Object.values(groupedByMissingInfo)) {
+		const results: Video[] = [];
+		for (const group of Object.values(groupedByMissingInfo)) {
 			const ids = group.map(request => request.id);
 			try {
-				let result = await this.videoApiRequest(ids, group[0].missingInfo);
+				const result = await this.videoApiRequest(ids, group[0].missingInfo);
 				// @ts-expect-error this was fine before
 				results.push(...result);
 			} catch (e) {
@@ -333,8 +333,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			"handle",
 		];
 		let idKey: keyof YoutubeChannelData | undefined;
-		for (let key of possibleKeys) {
-			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+		for (const key of possibleKeys) {
+			if (Object.hasOwn(channelData, key)) {
 				idKey = key;
 				break;
 			}
@@ -348,7 +348,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		const redisKey = `ytchannel:${idKey}:${idValue}`;
 		log.debug(`grabbing channel playlist id from cache: ${redisKey}`);
 
-		let result = await this.redisClient.get(redisKey);
+		const result = await this.redisClient.get(redisKey);
 		log.debug(`got channel playlist id from cache: ${result}`);
 
 		return result;
@@ -361,8 +361,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			"user",
 			"handle",
 		];
-		for (let key of possibleKeys) {
-			if (Object.prototype.hasOwnProperty.call(channelData, key)) {
+		for (const key of possibleKeys) {
+			if (Object.hasOwn(channelData, key)) {
 				const idValue = channelData[key];
 				const redisKey = `ytchannel:${key}:${idValue}`;
 				log.info(`caching channel playlist id: ${redisKey}`);

@@ -3,7 +3,7 @@ import { useStore } from "../../../src/store";
 import AddPreview from "../../../src/components/AddPreview.vue";
 import Notifier from "../../../src/components/Notifier.vue";
 
-let page = defineComponent({
+const page = defineComponent({
 	setup() {
 		const store = useStore();
 		store.state.production = true;
@@ -76,7 +76,7 @@ describe("<AddPreview />", () => {
 	});
 
 	it.skip("should show test videos in dev environment", () => {
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				const store = useStore();
 				store.state.production = true;

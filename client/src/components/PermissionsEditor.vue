@@ -48,9 +48,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, Ref, toRefs, watch } from "vue";
+import { ref, type Ref, toRefs, watch } from "vue";
 import _ from "lodash";
-import { PERMISSIONS, Permission, Grants } from "ott-common/permissions";
+import { PERMISSIONS, type Permission, Grants } from "ott-common/permissions";
 import { Role } from "ott-common/models/types";
 import { useGrants } from "./composables/grants";
 

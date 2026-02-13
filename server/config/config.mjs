@@ -5,7 +5,7 @@ import convict from "convict";
 import toml from "toml";
 
 if (process.env.NODE_ENV !== "production") {
-  let rootDir = path.resolve(process.cwd());
+  const rootDir = path.resolve(process.cwd());
   if (!fs.existsSync(path.join(rootDir, "./db"))) {
     fs.mkdirSync(path.join(rootDir, "./db"));
   }

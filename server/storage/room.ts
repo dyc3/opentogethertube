@@ -1,6 +1,6 @@
 import { Room as DbRoomModel, User as UserModel } from "../models/index.js";
-import { Room as DbRoom, RoomAttributes } from "../models/room.js";
-import { Role, RoomOptions } from "ott-common/models/types.js";
+import type { Room as DbRoom, RoomAttributes } from "../models/room.js";
+import { Role, type RoomOptions } from "ott-common/models/types.js";
 import { getLogger } from "../logger.js";
 import Sequelize from "sequelize";
 import permissions from "ott-common/permissions.js";
@@ -131,7 +131,7 @@ function dbToRoomArgs(db: DbRoom): RoomOptions {
  * Converts a room into an object that can be stored in the database
  */
 export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id"> {
-	let grantsFiltered = _.cloneDeep(room.grants);
+	const grantsFiltered = _.cloneDeep(room.grants);
 	// No need to waste storage space on these
 	grantsFiltered.deleteRole(Role.Administrator);
 	grantsFiltered.deleteRole(Role.Owner);
@@ -185,7 +185,7 @@ export function roomToDbPartial(
 		v => !!v
 	);
 	if (room.grants) {
-		let grantsFiltered = _.cloneDeep(room.grants);
+		const grantsFiltered = _.cloneDeep(room.grants);
 		// No need to waste storage space on these
 		grantsFiltered.deleteRole(Role.Administrator);
 		grantsFiltered.deleteRole(Role.Owner);

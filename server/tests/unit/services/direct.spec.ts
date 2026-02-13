@@ -24,9 +24,9 @@ class FfprobeFixtures extends FfprobeStrategy {
 	}
 
 	getFixture(file: string) {
-		let path = `${FIXTURE_DIRECTORY}/${file}`;
+		const path = `${FIXTURE_DIRECTORY}/${file}`;
 		if (fs.existsSync(path)) {
-			let content = fs.readFileSync(path, "utf8");
+			const content = fs.readFileSync(path, "utf8");
 			return JSON.parse(content);
 		}
 		throw new Error("fixture not found");

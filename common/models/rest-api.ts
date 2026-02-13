@@ -1,9 +1,9 @@
-import { Grants } from "../permissions.js";
-import { ServerMessageEvent } from "./messages.js";
-import { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types.js";
-import { QueueItem, Video, VideoId } from "./video.js";
+import type { Grants } from "../permissions.js";
+import type { ServerMessageEvent } from "./messages.js";
+import type { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types.js";
+import { type QueueItem, type Video, VideoId } from "./video.js";
 import type { Category } from "sponsorblock-api";
-import {
+import type {
 	OttApiRequestRoomCreateSchema,
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
@@ -15,7 +15,7 @@ import {
 	RoomSettingsSchema,
 	OttApiRequestRoomGenerateSchema,
 } from "./zod-schemas.js";
-import { z } from "zod";
+import type { z } from "zod";
 
 export type OttResponseBody<T = unknown, E extends OttApiError = OttApiError> =
 	| OttSuccessResponseBody<T>
@@ -51,7 +51,7 @@ export interface OttApiResponseRoomGenerate {
 export type OttApiRequestRoomCreate = z.infer<typeof OttApiRequestRoomCreateSchema>;
 
 /** Endpoint: `/api/room/create` */
-export interface OttApiResponseRoomCreate {}
+export type OttApiResponseRoomCreate = {};
 
 /** Endpoint: `GET /api/room/:name` */
 export interface OttApiResponseGetRoom extends RoomSettings {

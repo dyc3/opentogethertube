@@ -1,7 +1,7 @@
-import { OttRoomConnection } from "@/plugins/connection";
-import { ClientMessageNotify, RoomRequestType } from "ott-common/models/messages";
-import { ClientId, Role } from "ott-common/models/types";
-import { VideoId } from "ott-common/models/video";
+import type { OttRoomConnection } from "@/plugins/connection";
+import { type ClientMessageNotify, RoomRequestType } from "ott-common/models/messages";
+import type { ClientId, Role } from "ott-common/models/types";
+import type { VideoId } from "ott-common/models/video";
 
 export function useRoomApi(connection: OttRoomConnection) {
 	return new RoomApi(connection);

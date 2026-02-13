@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from "react";
+import React, { type ChangeEvent } from "react";
 import { InlineField, Input } from "@grafana/ui";
-import { QueryEditorProps } from "@grafana/data";
-import { DataSource } from "../datasource";
-import { MyDataSourceOptions, MyQuery } from "../types";
+import type { QueryEditorProps } from "@grafana/data";
+import type { DataSource } from "../datasource";
+import type { MyDataSourceOptions, MyQuery } from "../types";
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
