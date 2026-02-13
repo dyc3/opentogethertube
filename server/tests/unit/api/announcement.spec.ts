@@ -7,7 +7,7 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
+	type MockInstance,
 } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";

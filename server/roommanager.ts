@@ -1,15 +1,20 @@
-import { Room, RoomState, RoomStateFromRedis, RoomStatePersistable } from "./room.js";
-import { AuthToken, Role, RoomOptions, Visibility } from "ott-common/models/types.js";
+import { Room, type RoomState, type RoomStateFromRedis, RoomStatePersistable } from "./room.js";
+import {
+	AuthToken,
+	type Role,
+	type RoomOptions,
+	type Visibility,
+} from "ott-common/models/types.js";
 import _ from "lodash";
 import { getLogger } from "./logger.js";
 import { redisClient } from "./redisclient.js";
 import storage from "./storage.js";
 import {
-	RoomAlreadyLoadedException,
+	type RoomAlreadyLoadedException,
 	RoomNameTakenException,
 	RoomNotFoundException,
 } from "./exceptions.js";
-import { RoomRequest, RoomRequestContext, ServerMessage } from "ott-common/models/messages.js";
+import { RoomRequest, RoomRequestContext, type ServerMessage } from "ott-common/models/messages.js";
 import { Gauge } from "prom-client";
 import { EventEmitter } from "events";
 import { type Result, ok, err } from "ott-common/result.js";
@@ -233,7 +238,7 @@ const gaugeRoomCount = new Gauge({
 	help: "The number of loaded rooms.",
 	labelNames: ["roomType", "visibility"],
 	collect() {
-		let counts: Record<"temporary" | "permanent", Record<Visibility, number>> = {
+		const counts: Record<"temporary" | "permanent", Record<Visibility, number>> = {
 			temporary: {
 				public: 0,
 				unlisted: 0,
@@ -248,9 +253,9 @@ const gaugeRoomCount = new Gauge({
 		for (const room of rooms) {
 			counts[room.isTemporary ? "temporary" : "permanent"][room.visibility] += 1;
 		}
-		for (let roomType of Object.keys(counts)) {
-			for (let visibility of Object.keys(counts[roomType])) {
-				let value = counts[roomType][visibility];
+		for (const roomType of Object.keys(counts)) {
+			for (const visibility of Object.keys(counts[roomType])) {
+				const value = counts[roomType][visibility];
 				this.set({ roomType, visibility }, value);
 			}
 		}

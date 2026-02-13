@@ -7,12 +7,15 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
+	type MockInstance,
 } from "vitest";
-import PlutoAdapter, { PlutoBootResponse, type PlutoParsedIds } from "../../../services/pluto.js";
-import { AxiosResponse } from "axios";
+import PlutoAdapter, {
+	type PlutoBootResponse,
+	type PlutoParsedIds,
+} from "../../../services/pluto.js";
+import type { AxiosResponse } from "axios";
 import fs from "fs";
-import { VideoRequest } from "../../../serviceadapter.js";
+import type { VideoRequest } from "../../../serviceadapter.js";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [
 	[

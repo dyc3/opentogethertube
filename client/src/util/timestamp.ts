@@ -15,7 +15,7 @@ export function timestampToSeconds(timestamp: string): number {
 	if (!timestamp) {
 		throw new Error("Invalid timestamp");
 	}
-	let spl = timestamp
+	const spl = timestamp
 		.split(":")
 		.map(i => parseInt(i))
 		.reverse();
@@ -24,7 +24,7 @@ export function timestampToSeconds(timestamp: string): number {
 	}
 	let seconds = 0;
 	for (let i = 0; i < spl.length; i++) {
-		seconds += spl[i] * Math.pow(60, i);
+		seconds += spl[i] * 60 ** i;
 	}
 	return seconds;
 }

@@ -106,7 +106,7 @@ export function useActivityAnimations(
 			const data = node.data()[0] as d3.HierarchyNode<TreeNode>;
 			const endRadius = data ? getRadius(data.data.group) : 20;
 			let radiusCurrent = parseFloat(node.attr("r"));
-			let colorCurrent = d3.color(node.attr("stroke"));
+			const colorCurrent = d3.color(node.attr("stroke"));
 			if (isNaN(radiusCurrent)) {
 				radiusCurrent = 0;
 			}
@@ -135,7 +135,7 @@ export function useActivityAnimations(
 					const link = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
 						this
 					) as d3.Selection<any, d3.HierarchyLink<TreeNode>, any, unknown>;
-					let colorCurrent = d3.color(link.attr("stroke"));
+					const colorCurrent = d3.color(link.attr("stroke"));
 					const newColor = d3.interpolateRgb(
 						colorCurrent?.formatRgb() ?? "#fff",
 						color

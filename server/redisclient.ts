@@ -1,4 +1,4 @@
-import redis, { RedisClientOptions, RedisClientType } from "redis";
+import redis, { type RedisClientOptions, type RedisClientType } from "redis";
 import { Counter, Gauge } from "prom-client";
 import { conf } from "./ott-config.js";
 import { getLogger } from "./logger.js";
@@ -89,7 +89,7 @@ function parseRedisInfo(lines: string[]): Record<string, string> {
 }
 
 /** Map of the redis metric name to our prometheus counter. */
-let redisMetrics: Record<string, Counter | Gauge> = {};
+const redisMetrics: Record<string, Counter | Gauge> = {};
 
 export async function registerRedisMetrics(): Promise<void> {
 	if (Object.keys(redisMetrics).length > 0) {
@@ -219,8 +219,8 @@ async function collectRedisMetrics() {
 	let countMetricsSkipped = 0;
 	for (const [key, value] of Object.entries(mergedInfo)) {
 		if (key in redisMetrics) {
-			let metric = redisMetrics[key];
-			let parsed = Number(value);
+			const metric = redisMetrics[key];
+			const parsed = Number(value);
 			if (metric instanceof Counter) {
 				metric.reset();
 				metric.inc(parsed);

@@ -4,7 +4,7 @@ import { CachedVideo, Room as DbRoom, User, loadModels } from "../../models/inde
 import storage from "../../storage.js";
 import permissions, { Grants } from "ott-common/permissions.js";
 import { Visibility, QueueMode } from "ott-common/models/types.js";
-import { Video, VideoId } from "ott-common/models/video.js";
+import { type Video, VideoId } from "ott-common/models/video.js";
 import { Room } from "../../room.js";
 import { roomToDb, roomToDbPartial } from "../../storage/room.js";
 import { buildClients } from "../../redisclient.js";
@@ -33,8 +33,8 @@ describe(
 				description: "This is an example room.",
 				owner: user,
 			});
-			let dbroom = roomToDb(room);
-			let dbroomPartial = roomToDbPartial(room);
+			const dbroom = roomToDb(room);
+			const dbroomPartial = roomToDbPartial(room);
 			expect(dbroom).toMatchObject(dbroomPartial);
 		});
 
@@ -113,7 +113,7 @@ describe(
 
 			await new Promise(resolve => setTimeout(resolve, 200));
 
-			let room = await DbRoom.findOne({ where: { name: "example" } });
+			const room = await DbRoom.findOne({ where: { name: "example" } });
 			expect(room).toBeInstanceOf(DbRoom);
 			expect(room?.id).toBeDefined();
 			expect(room).toMatchObject({
@@ -152,7 +152,7 @@ describe(
 			// HACK: wait for the database to update. This test is flaky without this.
 			await new Promise(resolve => setTimeout(resolve, 200));
 
-			let room = await DbRoom.findOne({ where: { name: "example" } });
+			const room = await DbRoom.findOne({ where: { name: "example" } });
 			expect(room).toBeInstanceOf(DbRoom);
 			expect(room?.id).toBeDefined();
 			expect(room).toMatchObject({

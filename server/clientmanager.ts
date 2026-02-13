@@ -1,32 +1,37 @@
-import express from "express";
-import WebSocket from "ws";
+import type express from "express";
+import type WebSocket from "ws";
 import _ from "lodash";
 import { wss } from "./websockets.js";
 import { getLogger } from "./logger.js";
-import { Request } from "express";
+import type { Request } from "express";
 import { createSubscriber, redisClient } from "./redisclient.js";
 import {
-	ClientMessage,
+	type ClientMessage,
 	ClientMessageKickMe,
-	RoomRequest,
+	type RoomRequest,
 	RoomRequestType,
-	ServerMessage,
-	ServerMessageSync,
-	ServerMessageUser,
-	ServerMessageYou,
+	type ServerMessage,
+	type ServerMessageSync,
+	type ServerMessageUser,
+	type ServerMessageYou,
 } from "ott-common/models/messages.js";
 import { ClientNotFoundInRoomException, MissingToken } from "./exceptions.js";
-import { MySession, OttWebsocketError, AuthToken, ClientId } from "ott-common/models/types.js";
+import {
+	type MySession,
+	OttWebsocketError,
+	type AuthToken,
+	type ClientId,
+} from "ott-common/models/types.js";
 import roommanager from "./roommanager.js";
 import { ANNOUNCEMENT_CHANNEL, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import tokens, { SessionInfo } from "./auth/tokens.js";
+import tokens, { type SessionInfo } from "./auth/tokens.js";
 import { RoomStateSyncable } from "./room.js";
 import { Gauge } from "prom-client";
 import { replacer } from "ott-common/serialize.js";
-import { Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";
+import { type Client, ClientJoinStatus, DirectClient, BalancerClient } from "./client.js";
 import {
-	BalancerConnection,
-	MsgB2M,
+	type BalancerConnection,
+	type MsgB2M,
 	balancerManager,
 	buildGossipMessage,
 	initBalancerConnections,
@@ -184,7 +189,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			client.kick(msg.reason ?? OttWebsocketError.UNKNOWN);
 			return;
 		} else if (msg.action === "status") {
-			let request: RoomRequest = {
+			const request: RoomRequest = {
 				type: RoomRequestType.UpdateUser,
 				info: {
 					id: client.id,
@@ -224,13 +229,13 @@ async function onClientDisconnect(client: Client) {
 	log.debug(`Client ${client.id} disconnected`);
 	const index = connections.indexOf(client);
 	if (index !== -1) {
-		let clients = connections.splice(index, 1);
+		const clients = connections.splice(index, 1);
 		if (clients.length !== 1) {
 			log.error("failed to remove client from connections");
 			return;
 		}
-		let client = clients[0];
-		let joins = roomJoins.get(client.room);
+		const client = clients[0];
+		const joins = roomJoins.get(client.room);
 		if (joins) {
 			const index = joins.indexOf(client);
 			if (index !== -1) {

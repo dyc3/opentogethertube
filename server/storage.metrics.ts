@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import type { Sequelize } from "sequelize";
 import { QueryTypes } from "sequelize";
 import { Counter, Gauge } from "prom-client";
 import { getLogger } from "./logger.js";

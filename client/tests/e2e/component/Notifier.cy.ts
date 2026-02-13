@@ -38,7 +38,7 @@ describe("<Notifier />", () => {
 		cy.get(".toast").should("have.length", 0);
 	});
 
-	for (let [style, cssClass] of [
+	for (const [style, cssClass] of [
 		[ToastStyle.Success, "bg-success"],
 		[ToastStyle.Error, "bg-error"],
 	]) {

@@ -39,7 +39,7 @@ describe("Account Recovery", () => {
 			password: "test1234",
 		});
 
-		let resp = await request(app).get("/api/auth/grant").expect(200);
+		const resp = await request(app).get("/api/auth/grant").expect(200);
 		token = resp.body.token;
 
 		conf.set("mail.enabled", true);

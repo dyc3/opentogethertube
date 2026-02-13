@@ -145,7 +145,7 @@ export class MediaPlayerV2 {
 		if (!this.checkForPlayer(this.player.value)) {
 			return;
 		}
-		return this.player.value.setPosition(position);
+		this.player.value.setPosition(position);
 	}
 }
 

@@ -5,7 +5,7 @@ import { conf } from "../ott-config.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 import { InvalidVideoIdException, OdyseeUnavailableVideo } from "../exceptions.js";
-import { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { Parser as M3U8Parser } from "m3u8-parser";
 import type { Manifest } from "m3u8-parser";
 import { getMimeType } from "../mime.js";
@@ -574,7 +574,7 @@ async function verifyStream(
 			};
 		} catch (e2: unknown) {
 			const status = axios.isAxiosError(e2) ? e2.response?.status : undefined;
-			let msg = e2 instanceof Error ? e2.message : String(e2);
+			const msg = e2 instanceof Error ? e2.message : String(e2);
 
 			// try to extract plain-text body (e.g. "this content cannot be accessed at the moment")
 			let extraMessage: string | undefined;

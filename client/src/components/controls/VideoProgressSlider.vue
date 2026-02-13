@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, Ref, onMounted, onUpdated, computed } from "vue";
+import { ref, type Ref, onMounted, onUpdated, computed } from "vue";
 import VueSlider from "vue-slider-component";
 import { useStore } from "@/store";
 import { secondsToTimestamp } from "@/util/timestamp";

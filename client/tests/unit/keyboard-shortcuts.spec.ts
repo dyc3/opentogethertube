@@ -80,11 +80,11 @@ describe("KeyboardShortcuts", () => {
 				shortcuts.handleKeyDown(event);
 			}
 			document.onkeydown = doOnKeyDown;
-			let element = document.createElement(nodeName);
+			const element = document.createElement(nodeName);
 			element.onkeydown = doOnKeyDown;
 			document.body.appendChild(element);
 			shortcuts.bind(binding, action);
-			let event = new KeyboardEvent("keydown", {
+			const event = new KeyboardEvent("keydown", {
 				code: "KeyA",
 			});
 			document.dispatchEvent(event);

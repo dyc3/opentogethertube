@@ -4,7 +4,7 @@
 // https://github.com/yeahoffline/redis-mock/issues/195
 import redis from "redis-mock";
 // @ts-expect-error Work-around redis-mock types reporting incorrectly as v4 redis.
-import { RedisClient } from "@types/redis";
+import type { RedisClient } from "@types/redis";
 import { promisify } from "util";
 const client = redis.createClient() as unknown as RedisClient;
 const setEx = promisify(client.setex).bind(client);
@@ -40,7 +40,7 @@ async function setFixed(key: string, value: string, opts: Record<string, any>): 
 	const set: any = promisify(client.set).bind(client);
 	const extras: any[] = [];
 	// eslint-disable-next-line no-prototype-builtins
-	if (opts !== undefined && opts.hasOwnProperty("EX")) {
+	if (opts !== undefined && Object.hasOwn(opts, "EX")) {
 		extras.push("EX", opts.EX);
 	}
 	await set(key, value, ...extras);

@@ -24,8 +24,8 @@
 
 <script lang="ts" setup>
 import { mdiClose, mdiCheckBold, mdiAlertCircle } from "@mdi/js";
-import { ref, toRefs, onMounted, onUnmounted, Ref, computed } from "vue";
-import { Toast, ToastStyle } from "@/models/toast";
+import { ref, toRefs, onMounted, onUnmounted, type Ref, computed } from "vue";
+import { type Toast, ToastStyle } from "@/models/toast";
 import { RoomRequestType } from "ott-common/models/messages";
 import { API } from "@/common-http";
 import toasts from "@/util/toast";

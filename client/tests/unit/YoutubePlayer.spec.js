@@ -62,7 +62,7 @@ describe("YoutubePlayer", () => {
 		wrapper.vm.onStateChange({ data: 2 });
 		wrapper.vm.onStateChange({ data: 3 });
 		wrapper.vm.onStateChange({ data: 5 });
-		for (let event of ["ended", "playing", "paused", "buffering", "ready"]) {
+		for (const event of ["ended", "playing", "paused", "buffering", "ready"]) {
 			expect(wrapper.emitted()).toHaveProperty(event);
 		}
 		wrapper.vm.onError();

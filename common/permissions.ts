@@ -266,7 +266,7 @@ export class Grants {
 			this.setAllGrants(grants.masks);
 		} else if (grants instanceof Map) {
 			for (const role of grants.keys()) {
-				let mask = grants.get(role);
+				const mask = grants.get(role);
 				if (!mask) {
 					continue;
 				}
@@ -275,7 +275,7 @@ export class Grants {
 		} else {
 			for (const r in grants) {
 				const role = _normalizeRoleId(r);
-				if (Object.hasOwnProperty.call(grants, role)) {
+				if (Object.hasOwn(grants, role)) {
 					this.setRoleGrants(role, grants[role]!);
 				}
 			}

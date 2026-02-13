@@ -1,7 +1,7 @@
 import { Mutex } from "@divine/synchronization";
 
 import { Dirtyable } from "./util/index.js";
-import { QueueItem, Video, VideoId } from "ott-common/models/video.js";
+import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import _ from "lodash";
 import { VideoNotFoundException } from "./exceptions.js";
 
@@ -56,7 +56,7 @@ export class VideoQueue extends Dirtyable {
 	/** Dequeue the next video in the queue. */
 	async dequeue(): Promise<QueueItem | undefined> {
 		return this.lock.protect(() => {
-			let item = this._items.shift();
+			const item = this._items.shift();
 			this.markDirty();
 			return item;
 		});

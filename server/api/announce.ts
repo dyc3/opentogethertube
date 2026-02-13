@@ -1,6 +1,6 @@
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
-import express, { RequestHandler } from "express";
+import express, { type RequestHandler } from "express";
 import { redisClient } from "../redisclient.js";
 import { ANNOUNCEMENT_CHANNEL } from "ott-common/constants.js";
 import type { OttResponseBody } from "ott-common/models/rest-api.js";

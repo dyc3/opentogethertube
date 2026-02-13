@@ -15,7 +15,7 @@ export function setup() {
 	}
 
 	const token = getAuthToken();
-	for (let room of rooms) {
+	for (const room of rooms) {
 		createRoom(room, token, { visibility: "public", isTemporary: true });
 	}
 	sleep(1);

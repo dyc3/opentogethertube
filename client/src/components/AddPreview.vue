@@ -123,7 +123,7 @@
 
 <script lang="ts" setup>
 import { mdiMagnify, mdiPlus } from "@mdi/js";
-import { ref, computed, watch, Ref } from "vue";
+import { ref, computed, watch, type Ref } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
@@ -132,8 +132,8 @@ import _ from "lodash";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { ToastStyle } from "@/models/toast";
 import toast from "@/util/toast";
-import { Video } from "ott-common/models/video";
-import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
+import type { Video } from "ott-common/models/video";
+import type { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
 import axios from "axios";
 import AddPreviewHelper from "./AddPreviewHelper.vue";
 import { ALL_VIDEO_SERVICES } from "ott-common/constants";

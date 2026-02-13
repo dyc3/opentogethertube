@@ -19,7 +19,7 @@ describe.skip("Login form", () => {
 	});
 
 	it("should render without failing", () => {
-		let wrapper = shallowMount(LogInForm, {
+		const wrapper = shallowMount(LogInForm, {
 			store,
 			vuetify,
 			i18n,
@@ -36,7 +36,7 @@ describe.skip("Login form", () => {
 			stubs: ["router-link"],
 		});
 
-		let passwordFields = wrapper
+		const passwordFields = wrapper
 			.findAll(".v-input")
 			.filter(e => e.find("label").text.lower().includes("password"));
 		for (let i = 0; i < passwordFields.length; i++) {
@@ -52,7 +52,7 @@ describe.skip("Login form", () => {
 			stubs: ["router-link"],
 		});
 
-		let fields = wrapper.findAll(".v-input");
+		const fields = wrapper.findAll(".v-input");
 		for (let i = 0; i < fields.length; i++) {
 			expect(fields.at(i).find("input").required).toEqual("required");
 		}

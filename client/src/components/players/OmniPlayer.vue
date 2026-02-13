@@ -151,20 +151,20 @@ import { mdiClose, mdiAlertCircle } from "@mdi/js";
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import { PlayerStatus } from "ott-common/models/types";
-import { QueueItem } from "ott-common/models/video";
+import type { QueueItem } from "ott-common/models/video";
 import { calculateCurrentPosition } from "ott-common/timestamp";
-import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
+import { defineAsyncComponent, type PropType, ref, type Ref, computed, watch } from "vue";
 import {
-	MediaPlayer,
-	MediaPlayerWithCaptions,
-	MediaPlayerWithQuality,
-	MediaPlayerWithPlaybackRate,
+	type MediaPlayer,
+	type MediaPlayerWithCaptions,
+	type MediaPlayerWithQuality,
+	type MediaPlayerWithPlaybackRate,
 	useCaptions,
 	useQualities,
 	useMediaPlayer,
 	usePlaybackRate,
 	useVolume,
-	MediaPlayerError,
+	type MediaPlayerError,
 } from "../composables";
 import { watchEffect } from "vue";
 import { ALL_VIDEO_SERVICES } from "ott-common";

@@ -1,4 +1,4 @@
-import { inject, InjectionKey, onUnmounted } from "vue";
+import { inject, type InjectionKey, onUnmounted } from "vue";
 import _ from "lodash";
 
 const BINDING_DEFAULTS = {
@@ -11,14 +11,14 @@ export class KeyboardShortcuts {
 
 	bind(binding: KeyBinding | KeyBinding[], action: (event: KeyboardEvent) => void) {
 		if (Array.isArray(binding)) {
-			for (let b of binding) {
+			for (const b of binding) {
 				this.bind(b, action);
 			}
 		} else {
-			let bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
+			const bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
 
 			// don't allow duplicate bindings
-			for (let [b] of this.shortcuts) {
+			for (const [b] of this.shortcuts) {
 				if (_.isEqual(b, bindStrict)) {
 					console.warn("duplicate keyboard shortcut binding", bindStrict);
 					return;
@@ -38,7 +38,7 @@ export class KeyboardShortcuts {
 	}
 
 	unbind(binding: KeyBinding) {
-		let bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
+		const bindStrict: KeyBindingStrict = _.defaults(binding, BINDING_DEFAULTS);
 
 		this.shortcuts = this.shortcuts.filter(s => {
 			return !_.isEqual(s[0], bindStrict);
@@ -52,7 +52,7 @@ export class KeyboardShortcuts {
 			}
 		}
 
-		for (let [binding, action] of this.shortcuts) {
+		for (const [binding, action] of this.shortcuts) {
 			if (this.eventMatches(event, binding)) {
 				event.preventDefault();
 				console.debug("found matching binding", binding);

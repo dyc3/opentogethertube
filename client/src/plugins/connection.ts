@@ -1,4 +1,4 @@
-import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
+import { inject, type InjectionKey, type App, type Plugin, ref, type Ref } from "vue";
 import type {
 	ClientMessage,
 	ClientMessageAuthenticate,
@@ -120,7 +120,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		if (!this.connected.value) {
 			throw new Error("send(): connection is not connected");
 		}
-		let text = JSON.stringify(message);
+		const text = JSON.stringify(message);
 		this.socket!.send(text);
 	}
 
@@ -144,7 +144,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		this.reconnecting.value = false;
 		this.reconnectAttempts.value = 0;
 		console.info("socket open");
-		let authMsg: ClientMessageAuthenticate = {
+		const authMsg: ClientMessageAuthenticate = {
 			action: "auth",
 			token: window.localStorage.getItem("token") as AuthToken,
 		};
@@ -172,7 +172,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	private onMessage(e: { data: string | unknown }) {
 		if (typeof e.data === "string") {
 			try {
-				let msg = JSON.parse(e.data) as ServerMessage;
+				const msg = JSON.parse(e.data) as ServerMessage;
 				this.handleMessage(msg);
 			} catch (e) {
 				console.error("unable to process message: ", e.data, e);
@@ -185,14 +185,14 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	}
 
 	addMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void) {
-		let handlers = this.messageHandlers.get(action) ?? [];
+		const handlers = this.messageHandlers.get(action) ?? [];
 		handlers.push(handler);
 		this.messageHandlers.set(action, handlers);
 	}
 
 	removeMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void) {
-		let handlers = this.messageHandlers.get(action) ?? [];
-		let index = handlers.indexOf(handler);
+		const handlers = this.messageHandlers.get(action) ?? [];
+		const index = handlers.indexOf(handler);
 		if (index >= 0) {
 			handlers.splice(index, 1);
 			this.messageHandlers.set(action, handlers);
@@ -204,25 +204,25 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	}
 
 	private handleMessage(msg: ServerMessage) {
-		let handlers = this.messageHandlers.get(msg.action) ?? [];
+		const handlers = this.messageHandlers.get(msg.action) ?? [];
 		if (handlers.length === 0) {
 			console.error("connection: no message handlers for message: ", msg.action);
 			return;
 		}
-		for (let handler of handlers) {
+		for (const handler of handlers) {
 			handler(msg);
 		}
 	}
 
 	addEventHandler(event: ConnectionEventKind, handler: (e: unknown) => void) {
-		let handlers = this.eventHandlers.get(event) ?? [];
+		const handlers = this.eventHandlers.get(event) ?? [];
 		handlers.push(handler);
 		this.eventHandlers.set(event, handlers);
 	}
 
 	removeEventHandler(event: ConnectionEventKind, handler: (e: unknown) => void) {
-		let handlers = this.eventHandlers.get(event) ?? [];
-		let index = handlers.indexOf(handler);
+		const handlers = this.eventHandlers.get(event) ?? [];
+		const index = handlers.indexOf(handler);
 		if (index >= 0) {
 			handlers.splice(index, 1);
 			this.eventHandlers.set(event, handlers);
@@ -231,8 +231,8 @@ class OttRoomConnectionReal implements OttRoomConnection {
 
 	dispatchEvent(e: ConnectionEvent) {
 		console.info("dispatching event", e);
-		let handlers = this.eventHandlers.get(e.kind) ?? [];
-		for (let handler of handlers) {
+		const handlers = this.eventHandlers.get(e.kind) ?? [];
+		for (const handler of handlers) {
 			handler(e);
 		}
 	}
@@ -272,7 +272,7 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		action: ServerMessageActionType,
 		handler: (msg: ServerMessage) => void
 	) {
-		let handlers = this.messageHandlers.get(action) ?? [];
+		const handlers = this.messageHandlers.get(action) ?? [];
 		handlers.push(handler);
 		this.messageHandlers.set(action, handlers);
 	}
@@ -281,8 +281,8 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		action: ServerMessageActionType,
 		handler: (msg: ServerMessage) => void
 	) {
-		let handlers = this.messageHandlers.get(action) ?? [];
-		let index = handlers.indexOf(handler);
+		const handlers = this.messageHandlers.get(action) ?? [];
+		const index = handlers.indexOf(handler);
 		if (index >= 0) {
 			handlers.splice(index, 1);
 			this.messageHandlers.set(action, handlers);
@@ -294,11 +294,11 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 	}
 
 	private handleMessage(msg: ServerMessage) {
-		let handlers = this.messageHandlers.get(msg.action) ?? [];
+		const handlers = this.messageHandlers.get(msg.action) ?? [];
 		if (handlers.length === 0) {
 			return;
 		}
-		for (let handler of handlers) {
+		for (const handler of handlers) {
 			handler(msg);
 		}
 	}

@@ -1,4 +1,4 @@
-import { inject, InjectionKey, App, Plugin, ref, Ref } from "vue";
+import { inject, type InjectionKey, type App, type Plugin, ref, type Ref } from "vue";
 import axios from "axios";
 
 export const sfxInjectKey: InjectionKey<OttSfx> = Symbol("ott:sfx");

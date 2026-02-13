@@ -106,7 +106,7 @@ describe("Data API", () => {
 	});
 
 	it("GET /data/previewAdd with adapter parameter", async () => {
-		let resolveQuerySpy = vi
+		const resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
 			.mockResolvedValue(new AddPreview([], 0));
 

@@ -2,7 +2,7 @@ import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { getLogger } from "./logger.js";
 import childProcess from "child_process";
 import axios from "axios";
-import { Stream } from "stream";
+import type { Stream } from "stream";
 import fs from "fs/promises";
 import path from "path";
 // FIXME: remove node-abort-controller package when we stop supporting node 14.
@@ -88,8 +88,8 @@ function streamDataIntoFfprobe(
 			}
 		};
 
-		let args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
-		let child = childProcess.spawn(ffprobePath, args, {
+		const args = ["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format", "-"];
+		const child = childProcess.spawn(ffprobePath, args, {
 			stdio: "pipe",
 			windowsHide: true,
 		});
@@ -282,15 +282,15 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
-		let tmpdir = await fs.mkdtemp("/tmp/ott");
-		let tmpfile = path.join(tmpdir, "./preview");
+		const tmpdir = await fs.mkdtemp("/tmp/ott");
+		const tmpfile = path.join(tmpdir, "./preview");
 		log.debug(`saving preview to ${tmpfile}`);
-		let handle = await fs.open(tmpfile, "w");
+		const handle = await fs.open(tmpfile, "w");
 
 		const httpAgent = new http.Agent({ keepAlive: false });
 		const httpsAgent = new https.Agent({ keepAlive: false });
 		const controller = new AbortController();
-		let resp = await axios.get<Stream>(uri, {
+		const resp = await axios.get<Stream>(uri, {
 			responseType: "stream",
 			signal: controller.signal,
 			httpAgent,
@@ -394,14 +394,14 @@ export class StreamFfprobe extends FfprobeStrategy {
 		const httpAgent = new http.Agent({ keepAlive: false });
 		const httpsAgent = new https.Agent({ keepAlive: false });
 		const controller = new AbortController();
-		let resp = await axios.get<Stream>(uri, {
+		const resp = await axios.get<Stream>(uri, {
 			responseType: "stream",
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
 		});
 		try {
-			let stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
+			const stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
 			return JSON.parse(stdout);
 		} finally {
 			controller.abort();

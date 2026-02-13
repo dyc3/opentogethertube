@@ -1,7 +1,7 @@
-import permissions, { GrantMask, Grants } from "ott-common/permissions.js";
+import permissions, { type GrantMask, Grants } from "ott-common/permissions.js";
 import { redisClient } from "./redisclient.js";
 import { getLogger } from "./logger.js";
-import winston from "winston";
+import type winston from "winston";
 import type {
 	AddRequest,
 	ApplySettingsRequest,
@@ -33,22 +33,22 @@ import _ from "lodash";
 import InfoExtract from "./infoextractor.js";
 import usermanager from "./usermanager.js";
 import {
-	ClientInfo,
+	type ClientInfo,
 	QueueMode,
 	Visibility,
-	RoomOptions,
-	RoomUserInfo,
+	type RoomOptions,
+	type RoomUserInfo,
 	Role,
-	ClientId,
+	type ClientId,
 	PlayerStatus,
-	RoomEventContext,
-	RoomSettings,
-	AuthToken,
+	type RoomEventContext,
+	type RoomSettings,
+	type AuthToken,
 	BehaviorOption,
 } from "ott-common/models/types.js";
-import { User } from "./models/user.js";
+import type { User } from "./models/user.js";
 import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import type { PickFunctions } from "ott-common/typeutils.js";
 import { replacer } from "ott-common/serialize.js";
 import {
@@ -58,16 +58,20 @@ import {
 	VideoNotFoundException,
 } from "./exceptions.js";
 import storage from "./storage.js";
-import tokens, { SessionInfo } from "./auth/tokens.js";
+import tokens, { type SessionInfo } from "./auth/tokens.js";
 import { OttException } from "ott-common/exceptions.js";
 import { fetchSegments, getSponsorBlock } from "./sponsorblock.js";
-import { ResponseError as SponsorblockResponseError, Segment, Category } from "sponsorblock-api";
+import {
+	ResponseError as SponsorblockResponseError,
+	type Segment,
+	type Category,
+} from "sponsorblock-api";
 import { VideoQueue } from "./videoqueue.js";
 import { Counter } from "prom-client";
 import roommanager from "./roommanager.js";
 import { calculateCurrentPosition } from "ott-common/timestamp.js";
-import { RestoreQueueRequest } from "ott-common/models/messages.js";
-import { Result, countEligibleVoters, err, ok, voteSkipThreshold } from "ott-common";
+import type { RestoreQueueRequest } from "ott-common/models/messages.js";
+import { type Result, countEligibleVoters, err, ok, voteSkipThreshold } from "ott-common";
 import type { ClientManagerCommand } from "./clientmanager.js";
 import { canKickUser } from "ott-common/userutils.js";
 import { conf } from "./ott-config.js";
@@ -331,10 +335,10 @@ export class Room implements RoomState {
 			}
 		}
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
+		// @ts-expect-error
 		if (options._playbackStart) {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
+			// @ts-expect-error
 			this._playbackStart = dayjs(options._playbackStart);
 		}
 		if (Array.isArray(this.votesToSkip)) {
@@ -870,7 +874,7 @@ export class Room implements RoomState {
 			await this.publish(msg);
 		}
 
-		let settings: Partial<RoomStatePersistable> = _.pick(
+		const settings: Partial<RoomStatePersistable> = _.pick(
 			this,
 			"name",
 			"title",
@@ -991,7 +995,7 @@ export class Room implements RoomState {
 
 		// the user is not in the room, but they may have a valid session
 
-		let session = await tokens.getSessionInfo(authorization.token);
+		const session = await tokens.getSessionInfo(authorization.token);
 		if (!session) {
 			throw new Error("Invalid token, unauthorized request");
 		}
@@ -1027,7 +1031,7 @@ export class Room implements RoomState {
 
 	/** Process the room request, but unsafely trust the client id of the room request */
 	public async processRequestUnsafe(request: RoomRequest, clientid: ClientId): Promise<void> {
-		let userInfo = this.getUserInfo(clientid);
+		const userInfo = this.getUserInfo(clientid);
 		await this.processRequest(request, {
 			username: userInfo.name,
 			role: userInfo.role,
@@ -1253,7 +1257,6 @@ export class Room implements RoomState {
 				}
 				if (this.isVideoInQueue(video)) {
 					videos.splice(i--, 1);
-					continue;
 				}
 			}
 			if (videos.length === 0) {
@@ -1263,7 +1266,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			for (let vid of videos) {
+			for (const vid of videos) {
 				counterMediaQueued.labels({ service: vid.service }).inc();
 			}
 		} else {
@@ -1535,7 +1538,7 @@ export class Room implements RoomState {
 		// TODO: have clients only send properties that they actually intend to change.
 		// For now, we'll determine what the request is trying to change here, and delete the identical fields from the request.
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				if (this[prop] === request.settings[prop]) {
 					this.log.silly(`deleting ${prop} from request because it did not change`);
 					delete request.settings[prop];
@@ -1544,7 +1547,7 @@ export class Room implements RoomState {
 		}
 		if (request.settings.grants) {
 			for (const role of request.settings.grants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					if (request.settings.grants.getMask(role) === this.grants.getMask(role)) {
 						this.log.silly(
 							`deleting permissions for role ${role} from request because it did not change`
@@ -1566,7 +1569,7 @@ export class Room implements RoomState {
 
 		// check permissions
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				this.grants.check(context.role, propsToPerms[prop]);
 			}
 		}
@@ -1574,7 +1577,7 @@ export class Room implements RoomState {
 		if (request.settings.grants) {
 			const newGrants = request.settings.grants;
 			for (const role of newGrants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					this.grants.check(context.role, roleToPerms[role]);
 				}
 			}
@@ -1599,7 +1602,7 @@ export class Room implements RoomState {
 
 		// apply the simple ones
 		for (const prop in request.settings) {
-			if (Object.prototype.hasOwnProperty.call(propsToPerms, prop)) {
+			if (Object.hasOwn(propsToPerms, prop)) {
 				this[prop] = request.settings[prop];
 			}
 		}
@@ -1607,7 +1610,7 @@ export class Room implements RoomState {
 		// special handling required for permissions
 		if (request.settings.grants) {
 			for (const role of request.settings.grants.getRoles()) {
-				if (Object.hasOwnProperty.call(roleToPerms, role)) {
+				if (Object.hasOwn(roleToPerms, role)) {
 					this.grants.setRoleGrants(role, request.settings.grants.getMask(role));
 					this.markDirty("grants");
 				}

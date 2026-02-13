@@ -3,9 +3,9 @@ import type { Module } from "vuex/types";
 import Vuex from "vuex";
 import { Grants } from "ott-common/permissions";
 import { QueueMode } from "ott-common/models/types";
-import { QueueItem } from "ott-common/models/video";
-import dayjs, { Dayjs } from "dayjs";
-import { ServerMessageSync } from "ott-common/models/messages";
+import type { QueueItem } from "ott-common/models/video";
+import dayjs, { type Dayjs } from "dayjs";
+import type { ServerMessageSync } from "ott-common/models/messages";
 import { deserializeMap, deserializeSet } from "ott-common/serialize";
 import type { FullOTTStoreState } from "@/store";
 

@@ -4,7 +4,7 @@ import WebSocket from "ws";
 
 import { getLogger } from "./logger.js";
 import { conf } from "./ott-config.js";
-import { Result, err, ok, intoResult } from "ott-common/result.js";
+import { type Result, err, ok, intoResult } from "ott-common/result.js";
 import { AuthToken, ClientId } from "ott-common/models/types.js";
 import { replacer } from "ott-common/serialize.js";
 import { OttWebsocketError } from "ott-common/models/types.js";
@@ -168,7 +168,7 @@ class BalancerManager {
 					resolve();
 				});
 				setTimeout(reject, 1000 * 10, new Error("Balancer did not disconnect in time"));
-				let result = conn.disconnect(1001, "Server shutting down");
+				const result = conn.disconnect(1001, "Server shutting down");
 				if (!result.ok) {
 					log.error(`Error disconnecting from balancer ${conn.id}: ${result.value}`);
 				}
@@ -297,7 +297,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 	}
 
 	private onSocketMessage(data: WebSocket.Data) {
-		let result = intoResult(() => JSON.parse(data.toString()));
+		const result = intoResult(() => JSON.parse(data.toString()));
 		if (result.ok) {
 			if (!validateB2M(result.value)) {
 				log.error(

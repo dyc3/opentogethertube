@@ -19,7 +19,7 @@ import bodyParser from "body-parser";
 import { loadConfigFile, conf, setLogger, validateConfig } from "./ott-config.js";
 import { buildRateLimiter } from "./rate-limit.js";
 import { initExtractor } from "./infoextractor.js";
-import session, { SessionOptions } from "express-session";
+import session, { type SessionOptions } from "express-session";
 import RedisStore from "connect-redis";
 import { setupPostgresMetricsCollection } from "./storage.metrics.js";
 import cookieparser from "cookie-parser";
@@ -33,7 +33,7 @@ export async function main() {
 	loadConfigFile();
 	setLogLevel(conf.get("log.level"));
 	if (process.argv.includes("--validate")) {
-		let result = validateConfig();
+		const result = validateConfig();
 		if (!result.ok) {
 			log.error("Config validation failed:");
 			log.error(result.value.message);
@@ -83,9 +83,9 @@ export async function main() {
 	const server = http.createServer(app);
 	async function checkRedis() {
 		if (performance) {
-			let start = performance.now();
+			const start = performance.now();
 			await redisClient.ping();
-			let duration = performance.now() - start;
+			const duration = performance.now() - start;
 			log.info(`Latency to redis: ${duration}ms`);
 		}
 	}
@@ -165,7 +165,7 @@ export async function main() {
 			if (!(await tokens.validate(token))) {
 				return done(null, false);
 			}
-			let ottsession = await tokens.getSessionInfo(token);
+			const ottsession = await tokens.getSessionInfo(token);
 			if (ottsession.isLoggedIn) {
 				return done(null, ottsession);
 			}
@@ -228,7 +228,7 @@ export async function main() {
 	//start our server
 	if (conf.get("env") !== "test") {
 		server.listen(conf.get("port"), () => {
-			let addr = server.address();
+			const addr = server.address();
 			if (!addr) {
 				log.error("Failed to start server!");
 				process.exit(1);
