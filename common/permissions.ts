@@ -183,7 +183,7 @@ function defaultPermissions(): Grants {
  * Creates a deterministic mask given a list of string form permissions.
  */
 export function parseIntoGrantMask(perms: PermissionName[]): GrantMask {
-	if (!(perms instanceof Array)) {
+	if (!Array.isArray(perms)) {
 		throw new TypeError(`perms must be an array of strings, got ${typeof perms}`);
 	}
 	let mask = 0;
@@ -285,7 +285,7 @@ export class Grants {
 	 * @returns Grant bitmask
 	 */
 	private _normalizePermissionsInput(permissions: PermissionName[] | GrantMask): GrantMask {
-		if (permissions instanceof Array) {
+		if (Array.isArray(permissions)) {
 			permissions = parseIntoGrantMask(permissions);
 		}
 		return permissions;

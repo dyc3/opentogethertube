@@ -5,7 +5,7 @@ import { conf } from "./ott-config.js";
 const myFormat = format.printf(({ level, message, timestamp, namespace, roomName, roomEvent }) => {
 	if (roomEvent) {
 		// HACK: video descriptions are long, so remove then to make logs easier to read.
-		if (roomEvent.parameters && roomEvent.parameters.video) {
+		if (roomEvent.parameters?.video) {
 			delete roomEvent.parameters.video.description;
 		}
 		return `${timestamp} ${namespace} Room/${

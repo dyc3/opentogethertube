@@ -8,7 +8,7 @@ import type { ClientMessage, ServerMessage } from "ott-common/models/messages.js
 import type WebSocket from "ws";
 import { type SessionInfo, setSessionInfo } from "./auth/tokens.js";
 import { v4 as uuidv4 } from "uuid";
-import EventEmitter from "events";
+import EventEmitter from "node:events";
 import { getLogger } from "./logger.js";
 import { getSessionInfo } from "./auth/tokens.js";
 import type { BalancerConnection } from "./balancer.js";

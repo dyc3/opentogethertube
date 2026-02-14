@@ -1,6 +1,6 @@
 import axios from "axios";
-import http from "http";
-import https from "https";
+import http from "node:http";
+import https from "node:https";
 import { conf } from "../ott-config.js";
 import { getLogger } from "../logger.js";
 import { ServiceAdapter } from "../serviceadapter.js";

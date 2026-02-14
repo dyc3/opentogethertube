@@ -107,7 +107,7 @@ export function useActivityAnimations(
 			const endRadius = data ? getRadius(data.data.group) : 20;
 			let radiusCurrent = parseFloat(node.attr("r"));
 			const colorCurrent = d3.color(node.attr("stroke"));
-			if (isNaN(radiusCurrent)) {
+			if (Number.isNaN(radiusCurrent)) {
 				radiusCurrent = 0;
 			}
 			const newRadius = Math.max(Math.min(radiusCurrent + 5, 40), endRadius);

@@ -1,4 +1,4 @@
-import { URL } from "url";
+import { URL } from "node:url";
 import axios from "axios";
 import { ServiceAdapter } from "../serviceadapter.js";
 import { getLogger } from "../logger.js";

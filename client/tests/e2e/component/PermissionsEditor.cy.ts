@@ -2,10 +2,6 @@ import { Grants } from "ott-common/permissions";
 import PermissionsEditor from "../../../src/components/PermissionsEditor.vue";
 import { Role } from "ott-common";
 
-function getPermissionCheckbox(permission: string, role: Role) {
-	return cy.get(`[data-cy="perm-chk-${permission}-${role}"] input`);
-}
-
 describe("<PermissionsEditor />", () => {
 	it("should render grants correctly", () => {
 		const grants = new Grants();

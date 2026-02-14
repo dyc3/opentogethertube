@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { redisClient } from "../redisclient.js";
 import type { AuthToken } from "ott-common/models/types.js";
 

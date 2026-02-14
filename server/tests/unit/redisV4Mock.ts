@@ -5,7 +5,7 @@
 import redis from "redis-mock";
 // @ts-expect-error Work-around redis-mock types reporting incorrectly as v4 redis.
 import type { RedisClient } from "@types/redis";
-import { promisify } from "util";
+import { promisify } from "node:util";
 const client = redis.createClient() as unknown as RedisClient;
 const setEx = promisify(client.setex).bind(client);
 const v4Client = {

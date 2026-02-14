@@ -188,7 +188,7 @@ describe("<Chat />", () => {
 							status: PlayerStatus.ready,
 							role: Role.UnregisteredUser,
 						},
-						text: "foo " + i,
+						text: `foo ${i}`,
 					};
 					connection.mockReceive(message);
 				}

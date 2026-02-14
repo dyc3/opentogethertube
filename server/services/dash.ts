@@ -1,4 +1,4 @@
-import URL from "url";
+import URL from "node:url";
 import { ServiceAdapter } from "../serviceadapter.js";
 import {
 	LocalFileException,
@@ -91,10 +91,10 @@ export default class DashVideoAdapter extends ServiceAdapter {
 	extractTitle(manifest: any): string | undefined {
 		try {
 			if ("ProgramInformation" in manifest["MPD"]) {
-				return manifest["MPD"]["ProgramInformation"]["Title"];
+				return manifest?.MPD?.ProgramInformation?.Title;
 			}
 
-			const periods = manifest["MPD"]["Period"];
+			const periods = manifest?.MPD?.Period;
 			for (const period of periods) {
 				const adaptationSets = period["AdaptationSet"];
 				for (const adaptationSet of adaptationSets) {

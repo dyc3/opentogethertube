@@ -9,7 +9,7 @@ import CopyWebpackPlugin from "copy-webpack-plugin";
 import ESLintPlugin from "eslint-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import LiveReloadPlugin from "webpack-livereload-plugin";
-import path from "path";
+import path from "node:path";
 import ReplaceInFileWebpackPlugin from "replace-in-file-webpack-plugin";
 import type { Configuration } from "webpack";
 

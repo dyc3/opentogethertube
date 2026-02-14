@@ -11,7 +11,7 @@ import {
 } from "./exceptions.js";
 import type { ServerMessage } from "ott-common/models/messages.js";
 import { Gauge } from "prom-client";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { type Result, ok, err } from "ott-common/result.js";
 import { Grants } from "ott-common/permissions.js";
 import type { ClientManagerCommand } from "./clientmanager.js";

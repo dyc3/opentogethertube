@@ -7,9 +7,9 @@ import YouTubeAdapter, {
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
 import { buildClients, redisClient } from "../../../redisclient.js";
 import type { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
-import fs from "fs";
+import fs from "node:fs";
 import type { VideoRequest } from "server/serviceadapter.js";
-import { URL } from "url";
+import { URL } from "node:url";
 import { loadModels } from "../../../models/index.js";
 
 const validVideoLinks = [

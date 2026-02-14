@@ -3,7 +3,7 @@ import _ from "lodash";
 import * as argon2 from "argon2";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import passport from "passport";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index.js";
 import type { User } from "./models/user.js";
 import { delPattern, redisClient } from "./redisclient.js";
@@ -22,7 +22,7 @@ import {
 } from "./exceptions.js";
 import { conf } from "./ott-config.js";
 import type { AuthToken } from "ott-common/models/types.js";
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
 import { type Email, type Mailer, type MailerError, MailjetMailer, MockMailer } from "./mailer.js";
 import { type Result, err } from "ott-common/result.js";

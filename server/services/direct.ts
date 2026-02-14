@@ -1,4 +1,4 @@
-import URL from "url";
+import URL from "node:url";
 import _ from "lodash";
 import { ServiceAdapter } from "../serviceadapter.js";
 import {
