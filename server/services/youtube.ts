@@ -1,4 +1,4 @@
-import { URL } from "url";
+import { URL } from "node:url";
 import axios, { type AxiosResponse } from "axios";
 import _ from "lodash";
 import type { RedisClientType } from "redis";
@@ -568,7 +568,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 			video.title = item.snippet.title;
 			const truncDescription = conf.get("info_extractor.youtube.truncate_description");
 			if (truncDescription && item.snippet.description.length > truncDescription) {
-				video.description = item.snippet.description.substring(0, truncDescription) + "...";
+				video.description = `${item.snippet.description.substring(0, truncDescription)}...`;
 			} else {
 				video.description = item.snippet.description;
 			}

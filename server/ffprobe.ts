@@ -1,14 +1,14 @@
 import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import { getLogger } from "./logger.js";
-import childProcess from "child_process";
+import childProcess from "node:child_process";
 import axios from "axios";
-import type { Stream } from "stream";
-import fs from "fs/promises";
-import path from "path";
+import type { Stream } from "node:stream";
+import fs from "node:fs/promises";
+import path from "node:path";
 // FIXME: remove node-abort-controller package when we stop supporting node 14.
 import { AbortController } from "node-abort-controller";
-import http from "http";
-import https from "https";
+import http from "node:http";
+import https from "node:https";
 import { Counter } from "prom-client";
 import { FfprobeTimeoutError } from "./exceptions.js";
 import { conf } from "./ott-config.js";

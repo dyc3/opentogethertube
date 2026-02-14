@@ -299,7 +299,7 @@ function onBalancerDisconnect(conn: BalancerConnection) {
 }
 
 async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
-	log.silly("balancer message: " + JSON.stringify(message));
+	log.silly(`balancer message: ${JSON.stringify(message)}`);
 
 	/**
 	 * This is a type that maps the message type to the handler for that message type.

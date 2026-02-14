@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis";

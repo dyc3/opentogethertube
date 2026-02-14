@@ -55,7 +55,7 @@ export function ConfigEditor(props: Props) {
 			</InlineField>
 			<InlineField label="API Key" labelWidth={12}>
 				<SecretInput
-					isConfigured={(secureJsonFields && secureJsonFields.apiKey) as boolean}
+					isConfigured={secureJsonFields?.apiKey as boolean}
 					value={secureJsonData.apiKey || ""}
 					placeholder="secure json field (backend only)"
 					width={40}

@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useEffect, useMemo, useState } from "react";
 import type { PanelProps } from "@grafana/data";
 import type { CoreOptions } from "types";

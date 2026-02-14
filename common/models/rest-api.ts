@@ -1,7 +1,7 @@
 import type { Grants } from "../permissions.js";
 import type { ServerMessageEvent } from "./messages.js";
 import type { BehaviorOption, QueueMode, RoomSettings, RoomUserInfo, Visibility } from "./types.js";
-import { type QueueItem, type Video } from "./video.js";
+import type { QueueItem, Video } from "./video.js";
 import type { Category } from "sponsorblock-api";
 import type {
 	OttApiRequestRoomCreateSchema,

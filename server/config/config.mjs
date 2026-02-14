@@ -1,6 +1,6 @@
 // import { conf } from "../ott-config.js";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import convict from "convict";
 import toml from "toml";
 

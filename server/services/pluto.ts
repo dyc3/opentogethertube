@@ -1,7 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { URL } from "url";
+import { URL } from "node:url";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions.js";
 import { getLogger } from "../logger.js";

@@ -5,7 +5,7 @@
  * https://grafana.com/developers/plugin-tools/create-a-plugin/extend-a-plugin/extend-configurations#extend-the-jest-config
  */
 
-const path = require("path");
+const path = require("node:path");
 const { grafanaESModules, nodeModulesToTransform } = require("./jest/utils");
 
 module.exports = {

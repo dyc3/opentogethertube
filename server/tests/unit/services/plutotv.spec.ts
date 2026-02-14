@@ -13,7 +13,7 @@ import PlutoAdapter, {
 	type PlutoParsedIds,
 } from "../../../services/pluto.js";
 import type { AxiosResponse } from "axios";
-import fs from "fs";
+import fs from "node:fs";
 import type { VideoRequest } from "../../../serviceadapter.js";
 
 const singleVideoLinks: [string, PlutoParsedIds][] = [

@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { URL } from "url";
+import { URL } from "node:url";
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { ServiceAdapter } from "../serviceadapter.js";

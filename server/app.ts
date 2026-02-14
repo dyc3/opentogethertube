@@ -1,6 +1,6 @@
 import express from "express";
-import http from "http";
-import fs from "fs";
+import http from "node:http";
+import fs from "node:fs";
 import { getLogger, setLogLevel } from "./logger.js";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -48,10 +48,10 @@ export async function main() {
 	const heroku = conf.get("heroku");
 	const docker = conf.get("docker");
 	const dbmode = conf.get("db.mode");
-	log.info("Environment: " + env);
-	log.info("Is Heroku? " + heroku);
-	log.info("Is Docker? " + docker);
-	log.info("Database mode: " + dbmode);
+	log.info(`Environment: ${env}`);
+	log.info(`Is Heroku? ${heroku}`);
+	log.info(`Is Docker? ${docker}`);
+	log.info(`Database mode: ${dbmode}`);
 
 	const searchEnabled = conf.get("add_preview.search.enabled");
 	log.info(`Search enabled: ${searchEnabled}`);

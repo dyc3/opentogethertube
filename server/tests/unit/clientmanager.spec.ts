@@ -187,7 +187,7 @@ describe("ClientManager", () => {
 		const clients = [client1, client2, client3, client4, client5];
 		for (const [i, client] of clients.entries()) {
 			clientmanager.addClient(client);
-			client.emit("auth", client, "token" + i, { isLoggedIn: false, username: "foo" + i });
+			client.emit("auth", client, `token${i}`, { isLoggedIn: false, username: `foo${i}` });
 		}
 		await new Promise(resolve => setTimeout(resolve, 100));
 		const joins = clientmanager.getClientsInRoom("foo");

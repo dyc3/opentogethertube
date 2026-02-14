@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import PeertubeAdapter from "../../../services/peertube.js";
-import fs from "fs";
+import fs from "node:fs";
 import { InvalidVideoIdException } from "../../../exceptions.js";
 import type { AxiosRequestHeaders, AxiosResponse } from "axios";
 import { conf } from "../../../ott-config.js";

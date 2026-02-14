@@ -1,4 +1,4 @@
-import { fail } from "assert";
+import { fail } from "node:assert";
 import "cypress-iframe";
 
 // TODO: skip this test if youtube api key is not available AND/OR create another test that uses a different video source

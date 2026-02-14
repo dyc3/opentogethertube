@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import EventEmitter from "events";
+import EventEmitter from "node:events";
 import WebSocket from "ws";
 
 import { getLogger } from "./logger.js";

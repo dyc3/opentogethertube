@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import DirectVideoAdapter from "../../../services/direct.js";
 import { FfprobeStrategy } from "../../../ffprobe.js";
-import fs from "fs";
+import fs from "node:fs";
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
 
