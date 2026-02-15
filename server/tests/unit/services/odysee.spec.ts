@@ -50,10 +50,6 @@ vi.mock("axios", () => {
 	};
 });
 
-vi.mock("../../../ott-config.js", () => ({
-	conf: { get: vi.fn().mockReturnValue("test.local") },
-}));
-
 import axios from "axios";
 import OdyseeAdapter from "../../../services/odysee.js";
 import { OdyseeUnavailableVideo } from "../../../exceptions.js";
