@@ -238,6 +238,8 @@ describe("Room API", () => {
 				},
 			],
 			[{ name: "test1", isTemporary: true, visibility: "invalid" }],
+			[{ name: "foo", title: "title\nwith newline", isTemporary: true }],
+			[{ name: "foo", title: "title\rwith carriage return", isTemporary: true }],
 		])("should fail to create room for validation errors: %s", async body => {
 			const resp = await request(app)
 				.post("/api/room/create")
@@ -356,6 +358,16 @@ describe("Room API", () => {
 			[
 				{
 					autoSkipSegmentCategories: ["invalid", "intro"],
+				},
+			],
+			[
+				{
+					title: "title\nwith newline",
+				},
+			],
+			[
+				{
+					title: "title\rwith carriage return",
 				},
 			],
 		])("should fail to modify room for validation errors: %s", async body => {
