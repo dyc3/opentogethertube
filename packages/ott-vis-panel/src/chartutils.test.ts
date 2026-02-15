@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
-import type { BoundingBox } from "treeutils";
-import { calcZoomTransform } from "../src/chartutils";
+import type { BoundingBox } from "./treeutils.js";
+import { calcZoomTransform } from "./chartutils.js";
 
 describe("calcZoomTransform", () => {
 	it("should calculate the zoom transform correctly", () => {

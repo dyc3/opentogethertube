@@ -1,17 +1,17 @@
 // biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useEffect, useMemo, useState } from "react";
 import type { PanelProps } from "@grafana/data";
-import type { CoreOptions } from "types";
+import type { CoreOptions } from "../types";
 import type { SystemState } from "ott-vis";
 import { css, cx } from "@emotion/css";
 import { useStyles2 } from "@grafana/ui";
 import RegionView from "./views/RegionView";
 import { LoadingState } from "@grafana/schema";
-import { useEventBus, type BusEvent } from "eventbus";
+import { useEventBus, type BusEvent } from "../eventbus.js";
 import TreeView from "./views/TreeView";
 import { TopologyView } from "./views/TopologyView";
 import Legend from "./Legend";
-import { useColorProvider } from "colors";
+import { useColorProvider } from "../colors.js";
 
 interface Props extends PanelProps<CoreOptions> {}
 
