@@ -30,7 +30,9 @@ export enum Theme {
 	strawberry = "strawberry",
 }
 
-export const ALL_THEMES = Object.keys(Theme).filter(key => Theme[key]);
+export const ALL_THEMES = Object.keys(Theme).filter(
+	(key: string) => Theme[key as keyof typeof Theme]
+);
 
 export const settingsModule: Module<SettingsState, unknown> = {
 	namespaced: true,

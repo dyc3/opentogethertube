@@ -1,11 +1,8 @@
 {
 	"compilerOptions": {
-		"lib": ["esnext", "es2020.promise", "es2020.bigint", "es2020.string", "DOM"],
+		"lib": ["esnext", "es2020.promise", "es2020.bigint", "es2020.string", "DOM", "es2022"],
 		"module": "esnext",
 		"moduleResolution": "node",
-		// TODO: transition to new module resolution:
-    // "module": "nodenext",
-    // "moduleResolution": "nodenext",
 		"allowSyntheticDefaultImports": true,
 		"preserveConstEnums": true,
 		"allowJs": true,
@@ -20,7 +17,9 @@
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
 		"strictBindCallApply": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"ignoreDeprecations": "6.0",
+		"useUnknownInCatchVariables": false
 	},
 	"include": [
 		"**/*.ts",

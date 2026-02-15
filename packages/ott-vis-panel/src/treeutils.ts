@@ -1,4 +1,4 @@
-import { dedupeItems } from "aggregate";
+import { dedupeItems } from "./aggregate.js";
 import * as d3 from "d3";
 import type { Monolith, Room, SystemState } from "ott-vis/types";
 

@@ -472,14 +472,16 @@ async function authCallback(emailOrUser: string, password: string, done) {
 	// by "Buffer", we must trim them before verification.
 	const hash = user.hash.toString().replace(/\0+$/, "");
 	try {
+		// @ts-expect-error TypeScript 6.0 has stricter ArrayBuffer types
 		const result = await argon2.verify(hash, Buffer.concat([user.salt, Buffer.from(password)]));
 
 		if (result) {
 			if (argon2.needsRehash(hash)) {
 				log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
-				user.hash = Buffer.from(
-					await argon2.hash(Buffer.concat([user.salt, Buffer.from(password)]))
-				);
+				// @ts-expect-error TypeScript 6.0 has stricter ArrayBuffer types
+				const hashBuffer = Buffer.concat([user.salt, Buffer.from(password)]);
+				const hashed = await argon2.hash(hashBuffer);
+				user.hash = Buffer.from(hashed);
 				await user.save();
 			} else {
 				log.debug(`User ${user.username} (${user.id}): Hash is valid`);
@@ -611,6 +613,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	}
 
 	const salt = crypto.randomBytes(128);
+	// @ts-expect-error TypeScript 6.0 has stricter ArrayBuffer types
 	const hash = Buffer.from(await argon2.hash(Buffer.concat([salt, Buffer.from(password)])));
 
 	// HACK: the unique constraint on the model is fucking broken
@@ -879,6 +882,7 @@ async function changeUserPassword(
 		throw new BadPasswordError();
 	}
 	const newSalt = crypto.randomBytes(128);
+	// @ts-expect-error TypeScript 6.0 has stricter ArrayBuffer types
 	const hash = Buffer.from(await argon2.hash(Buffer.concat([newSalt, Buffer.from(newPassword)])));
 	user.hash = hash;
 	user.salt = newSalt;
