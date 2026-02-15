@@ -1362,6 +1362,7 @@ export class Room implements RoomState {
 
 	public async undo(request: UndoRequest, context: RoomRequestContext): Promise<void> {
 		// FIXME: room event type definitions suck ass, and needs to be reworked
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 		switch (request.event.request.type) {
 			case RoomRequestType.SeekRequest:
 				if (request.event.additional.prevPosition) {
@@ -1445,6 +1446,7 @@ export class Room implements RoomState {
 		);
 
 		let perm: string | undefined;
+		// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 		switch (request.role) {
 			case Role.Administrator:
 				perm = "manage-users.promote-admin";
@@ -1464,6 +1466,7 @@ export class Room implements RoomState {
 		const targetCurrentRole = this.getRole(targetUser);
 		if (request.role < targetCurrentRole) {
 			let demotePerm;
+			// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 			switch (targetCurrentRole) {
 				case Role.Administrator:
 					demotePerm = "manage-users.demote-admin";

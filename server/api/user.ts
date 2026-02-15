@@ -32,8 +32,8 @@ const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[
 		title: dbRoom.title,
 		description: dbRoom.description,
 		isTemporary: false,
-		visibility: dbRoom.visibility as Visibility,
-		queueMode: dbRoom.queueMode as QueueMode,
+		visibility: dbRoom.visibility,
+		queueMode: dbRoom.queueMode,
 		currentSource: null,
 		users: 0,
 	}));

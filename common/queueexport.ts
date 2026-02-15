@@ -5,6 +5,8 @@ export function exportQueue(queue: QueueItem[]): string {
 }
 
 export function buildUrlForQueueItem(item: QueueItem): string {
+	// FIXME: add new services
+	// eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
 	switch (item.service) {
 		case "youtube":
 			return `https://youtu.be/${item.id}`;
