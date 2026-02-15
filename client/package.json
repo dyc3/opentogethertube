@@ -48,7 +48,7 @@
     "@vue/test-utils": "2.2.1",
     "cypress": "15.2.0",
     "cypress-real-events": "^1.15.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-cypress": "^2.12.1",
     "eslint-plugin-vitest": "0.3.22",
     "eslint-plugin-vue": "^9.9.0",

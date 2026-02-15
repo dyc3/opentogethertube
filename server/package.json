@@ -72,7 +72,7 @@
     "@types/uuid": "^3.4.0",
     "@types/validator": "^13.15.2",
     "@types/ws": "^7.4.4",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-plugin-vitest": "0.3.22",
     "faker": "^5.5.3",
     "nodemon": "^2.0.4",
