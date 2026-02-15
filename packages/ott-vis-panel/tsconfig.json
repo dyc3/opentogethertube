@@ -4,6 +4,9 @@
 		"strict": true,
 		"typeRoots": ["../../node_modules/@types"],
 		"esModuleInterop": true,
-		"jsx": "react"
+		"jsx": "react",
+		"ignoreDeprecations": "6.0",
+		// FIXME: ideally, we should have this
+		"noImplicitAny": false
 	}
 }

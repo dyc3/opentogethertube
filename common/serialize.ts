@@ -14,7 +14,7 @@ export function deserializeSet<T>(set: T[]): Set<T> {
 	return new Set(set);
 }
 
-export function replacer<T>(key, value: T): ConvertToJsonSafe<T> {
+export function replacer<T>(key: string, value: T): ConvertToJsonSafe<T> {
 	if (value instanceof Map) {
 		return serializeMap(value) as ConvertToJsonSafe<T>;
 	} else if (value instanceof Set) {

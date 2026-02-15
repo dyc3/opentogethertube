@@ -2,8 +2,8 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis";
-import { buildFullTree, filterTreeGroups, mergeTrees, type TreeNode } from "treeutils";
-import { useD3Zoom } from "chartutils";
+import { buildFullTree, filterTreeGroups, mergeTrees, type TreeNode } from "../../treeutils";
+import { useD3Zoom } from "../../chartutils";
 
 interface Props {
 	systemState: SystemState;

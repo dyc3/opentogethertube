@@ -13,11 +13,11 @@ import {
 	superBoundingBox,
 	offsetBBox,
 	expandBBox,
-} from "treeutils";
-import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
-import { dedupeMonoliths } from "aggregate";
-import type { NodeRadiusOptions } from "types";
-import ZoomReset from "components/ZoomReset";
+} from "../../treeutils.js";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "../../chartutils.js";
+import { dedupeMonoliths } from "../../aggregate.js";
+import type { NodeRadiusOptions } from "../../types.js";
+import ZoomReset from "../../components/ZoomReset.js";
 
 interface TreeViewProps extends TreeViewStyleProps {
 	systemState: SystemState;
@@ -341,27 +341,27 @@ const TreeView: React.FC<TreeViewProps> = ({
 			// create groups for all the monoliths
 			const monolithGroup = wholeGraph.select("g.monoliths");
 			const monolithGroups = monolithGroup
-				.selectAll("g.monolith")
-				.data(monolithNodes, (d: any) => d.id);
+				.selectAll<SVGGElement, MonolithNode>("g.monolith")
+				.data(monolithNodes, (d: MonolithNode) => d.id);
 			// for debugging, draw the bounding boxes of the monolith trees
 			if (DEBUG_BOUNDING_BOXES) {
-				monolithGroups
+				(monolithGroups as any)
 					.join("rect")
-					.attr("x", d => d.x + d.boundingBox[0])
-					.attr("y", d => d.y + d.boundingBox[1])
-					.attr("width", d => d.boundingBox[2] - d.boundingBox[0])
-					.attr("height", d => d.boundingBox[3] - d.boundingBox[1])
+					.attr("x", (d: any) => d.x + d.boundingBox[0])
+					.attr("y", (d: any) => d.y + d.boundingBox[1])
+					.attr("width", (d: any) => d.boundingBox[2] - d.boundingBox[0])
+					.attr("height", (d: any) => d.boundingBox[3] - d.boundingBox[1])
 					.attr("fill", "rgba(255, 255, 255, 0.1)")
 					.attr("stroke", "white")
 					.attr("stroke-width", 1);
 			}
-			monolithGroups
+			(monolithGroups as any)
 				.join(
-					create => {
+					(create: any) => {
 						const group = create
 							.append("g")
 							.attr("class", "monolith")
-							.attr("transform", d => `translate(${d.x}, ${d.y})`);
+							.attr("transform", (d: any) => `translate(${d.x}, ${d.y})`);
 						group.append("g").attr("class", "links");
 						group.append("g").attr("class", "circles");
 						group.append("g").attr("class", "texts g-text");
@@ -371,8 +371,8 @@ const TreeView: React.FC<TreeViewProps> = ({
 					exit => exit.remove()
 				)
 				.transition(tr)
-				.attr("transform", d => `translate(${d.x}, ${d.y})`)
-				.each(function (d) {
+				.attr("transform", (d: MonolithNode) => `translate(${d.x}, ${d.y})`)
+				.each(function (this: SVGGElement, d: MonolithNode) {
 					const diagonal = d3
 						.linkRadial<any, TreeNode>()
 						.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
@@ -381,8 +381,12 @@ const TreeView: React.FC<TreeViewProps> = ({
 					const monolith = d3.select(this);
 					monolith
 						.select(".links")
-						.selectAll(".treelink")
-						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
+						.selectAll<SVGPathElement, d3.HierarchyLink<TreeNode>>(".treelink")
+						.data(
+							d.tree.links(),
+							(d: d3.HierarchyLink<TreeNode>) =>
+								d.source?.data?.id + d.target?.data?.id
+						)
 						.join(
 							create => create.append("path").attr("class", "treelink"),
 							update => update,
@@ -390,16 +394,22 @@ const TreeView: React.FC<TreeViewProps> = ({
 						)
 						.attr("fill", "none")
 						.attr("stroke", "white")
-						.attr("data-nodeid-source", d => d.source.data.id)
-						.attr("data-nodeid-target", d => d.target.data.id)
+						.attr(
+							"data-nodeid-source",
+							(d: d3.HierarchyLink<TreeNode>) => d.source.data.id
+						)
+						.attr(
+							"data-nodeid-target",
+							(d: d3.HierarchyLink<TreeNode>) => d.target.data.id
+						)
 						.transition(tr)
 						.attr("d", diagonal)
 						.attr("stroke-width", 1.5);
 
 					monolith
 						.select(".circles")
-						.selectAll(".monolith")
-						.data(d.tree.descendants(), (d: any) => d.data?.id)
+						.selectAll<SVGCircleElement, d3.HierarchyNode<TreeNode>>(".monolith")
+						.data(d.tree.descendants(), (d: d3.HierarchyNode<TreeNode>) => d.data?.id)
 						.join(
 							create =>
 								create
@@ -418,22 +428,22 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
-						.attr("data-nodeid", d => d.data.id)
-						.attr("fill", d => assignColor(d.data.group))
+						.attr("data-nodeid", (d: any) => d.data.id)
+						.attr("fill", (d: any) => assignColor(d.data.group))
 						.transition(tr)
 						.attr("cx", (d: any) => d.x)
 						.attr("cy", (d: any) => d.y)
-						.attr("r", d => getRadius(d.data.group));
+						.attr("r", (d: any) => getRadius(d.data.group));
 
 					const monolithTexts = monolith
 						.select(".texts")
-						.selectAll(".monolith-text")
+						.selectAll<SVGTextElement, d3.HierarchyNode<TreeNode>>(".monolith-text")
 						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithTexts
 						.join(
 							create =>
 								create
-									.filter(d => d.data.group === "monolith")
+									.filter((d: any) => d.data.group === "monolith")
 									.append("text")
 									.attr("class", "monolith-text")
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
@@ -447,7 +457,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
-						.text(d => `${d.data.id}`.substring(0, 6))
+						.text((d: any) => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
 						.attr("font-size", 10)
 						.attr("x", (d: any) => d.x)

@@ -246,7 +246,7 @@ const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 });
