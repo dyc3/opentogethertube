@@ -550,6 +550,75 @@ describe("Youtube", () => {
 		});
 	});
 
+	describe("credentials", () => {
+		const adapter = new YouTubeAdapter("server-api-key", redisClient);
+		const apiGet = vi.spyOn(adapter.api, "get");
+
+		beforeEach(() => {
+			apiGet.mockReset();
+			apiGet.mockImplementation(mockYoutubeApi);
+		});
+
+		it("should use OAuth bearer header when credentials are provided", async () => {
+			const credentials = { youtube_access_token: "test-oauth-token" };
+			await adapter.videoApiRequest(["BTZ5KVRUy1Q"], undefined, credentials);
+			expect(apiGet).toHaveBeenCalledWith("/videos", expect.objectContaining({
+				headers: expect.objectContaining({
+					Authorization: "Bearer test-oauth-token",
+				}),
+			}));
+		});
+
+		it("should NOT include API key in params when OAuth token is provided", async () => {
+			const credentials = { youtube_access_token: "test-oauth-token" };
+			await adapter.videoApiRequest(["BTZ5KVRUy1Q"], undefined, credentials);
+			const callArgs = apiGet.mock.calls[0]!;
+			expect(callArgs[1]!.params).not.toHaveProperty("key");
+		});
+
+		it("should use server API key when no credentials provided", async () => {
+			await adapter.videoApiRequest(["BTZ5KVRUy1Q"]);
+			expect(apiGet).toHaveBeenCalledWith("/videos", expect.objectContaining({
+				params: expect.objectContaining({
+					key: "server-api-key",
+				}),
+			}));
+		});
+
+		it("should use server API key when credentials object has no token", async () => {
+			const credentials = {};
+			await adapter.videoApiRequest(["BTZ5KVRUy1Q"], undefined, credentials);
+			expect(apiGet).toHaveBeenCalledWith("/videos", expect.objectContaining({
+				params: expect.objectContaining({
+					key: "server-api-key",
+				}),
+			}));
+		});
+
+		it("should pass credentials through fetchVideoInfo", async () => {
+			const credentials = { youtube_access_token: "test-oauth-token" };
+			await adapter.fetchVideoInfo("BTZ5KVRUy1Q", undefined, credentials);
+			expect(apiGet).toHaveBeenCalledWith("/videos", expect.objectContaining({
+				headers: expect.objectContaining({
+					Authorization: "Bearer test-oauth-token",
+				}),
+			}));
+		});
+
+		it("should pass credentials through fetchManyVideoInfo", async () => {
+			const credentials = { youtube_access_token: "test-oauth-token" };
+			const requests: VideoRequest[] = [
+				{ id: "BTZ5KVRUy1Q", missingInfo: ["title"] },
+			];
+			await adapter.fetchManyVideoInfo(requests, credentials);
+			expect(apiGet).toHaveBeenCalledWith("/videos", expect.objectContaining({
+				headers: expect.objectContaining({
+					Authorization: "Bearer test-oauth-token",
+				}),
+			}));
+		});
+	});
+
 	describe("getChannelId", () => {
 		it.each([
 			["https://youtube.com/@rollthedyc3", { handle: "@rollthedyc3" }],

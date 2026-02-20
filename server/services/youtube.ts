@@ -12,6 +12,7 @@ import {
 } from "../exceptions.js";
 import { getLogger } from "../logger.js";
 import type { Video, VideoId, VideoMetadata } from "ott-common/models/video.js";
+import type { VideoServiceCredentials } from "ott-common/models/messages.js";
 import storage from "../storage.js";
 import { OttException } from "ott-common/exceptions.js";
 import { conf } from "../ott-config.js";
@@ -246,8 +247,12 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 	}
 
-	async fetchVideoInfo(id: string, onlyProperties?: (keyof VideoMetadata)[]): Promise<Video> {
-		let result = await this.videoApiRequest([id], onlyProperties);
+	async fetchVideoInfo(
+		id: string,
+		onlyProperties?: (keyof VideoMetadata)[],
+		credentials?: VideoServiceCredentials
+	): Promise<Video> {
+		let result = await this.videoApiRequest([id], onlyProperties, credentials);
 		if (result.length === 0) {
 			throw new VideoNotFoundException();
 		}
@@ -255,13 +260,16 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		return result[0];
 	}
 
-	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
+	async fetchManyVideoInfo(
+		requests: VideoRequest[],
+		credentials?: VideoServiceCredentials
+	): Promise<Video[]> {
 		const groupedByMissingInfo = _.groupBy(requests, request => request.missingInfo);
 		let results: Video[] = [];
 		for (let group of Object.values(groupedByMissingInfo)) {
 			const ids = group.map(request => request.id);
 			try {
-				let result = await this.videoApiRequest(ids, group[0].missingInfo);
+				let result = await this.videoApiRequest(ids, group[0].missingInfo, credentials);
 				// @ts-expect-error this was fine before
 				results.push(...result);
 			} catch (e) {
@@ -446,7 +454,8 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
 	async videoApiRequest(
 		ids: string | string[],
-		onlyProperties?: (keyof VideoMetadata)[]
+		onlyProperties?: (keyof VideoMetadata)[],
+		credentials?: VideoServiceCredentials
 	): Promise<Partial<Video>[]> {
 		if (!Array.isArray(ids)) {
 			ids = [ids];
@@ -460,14 +469,25 @@ export default class YouTubeAdapter extends ServiceAdapter {
 
 		const parts = this.getNeededParts(onlyProperties);
 		log.silly(`Requesting ${parts.length} parts for ${ids.length} videos`);
+
+		const params: Record<string, string> = {
+			part: parts.join(","),
+			id: ids.join(","),
+			fields: this.getNeededFields(parts),
+		};
+		const headers: Record<string, string> = {};
+
+		if (credentials?.youtube_access_token) {
+			headers["Authorization"] = `Bearer ${credentials.youtube_access_token}`;
+			log.info("Using per-request OAuth token for YouTube API call");
+		} else {
+			params["key"] = this.apiKey;
+		}
+
 		try {
 			const res: AxiosResponse<YoutubeApiVideoListResponse> = await this.api.get("/videos", {
-				params: {
-					key: this.apiKey,
-					part: parts.join(","),
-					id: ids.join(","),
-					fields: this.getNeededFields(parts),
-				},
+				params,
+				headers,
 			});
 			const results: Video[] = [];
 			let foundLivestream = false;

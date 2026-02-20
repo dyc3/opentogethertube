@@ -255,11 +255,16 @@ export interface SeekRequest extends RoomRequestBase {
 	value: number;
 }
 
+export interface VideoServiceCredentials {
+	youtube_access_token?: string;
+}
+
 export interface AddRequest extends RoomRequestBase {
 	type: RoomRequestType.AddRequest;
 	video?: VideoId;
 	videos?: VideoId[];
 	url?: string;
+	credentials?: VideoServiceCredentials;
 }
 
 export interface RemoveRequest extends RoomRequestBase {

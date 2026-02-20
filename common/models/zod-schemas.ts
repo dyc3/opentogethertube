@@ -47,13 +47,23 @@ export const OttApiRequestVoteSchema = z.object({
 	...VideoIdSchema.shape,
 });
 
+const CredentialsSchema = z
+	.object({
+		youtube_access_token: z.string().optional(),
+	})
+	.optional();
+
 export const OttApiRequestAddToQueueSchema = z.union([
 	z.object({
 		videos: z.array(VideoIdSchema),
+		credentials: CredentialsSchema,
 	}),
-	VideoIdSchema,
+	VideoIdSchema.extend({
+		credentials: CredentialsSchema,
+	}),
 	z.object({
 		url: z.string(),
+		credentials: CredentialsSchema,
 	}),
 ]);
 

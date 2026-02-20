@@ -1217,6 +1217,8 @@ export class Room implements RoomState {
 	 * @param request
 	 */
 	public async addToQueue(request: AddRequest, context: RoomRequestContext): Promise<void> {
+		const credentials = request.credentials;
+
 		if (request.url) {
 			const adapter = InfoExtract.getServiceAdapterForURL(request.url);
 			request.video = {} as VideoId;
@@ -1231,7 +1233,8 @@ export class Room implements RoomState {
 
 			const video: Video = await InfoExtract.getVideoInfo(
 				request.video.service,
-				request.video.id
+				request.video.id,
+				credentials
 			);
 			if (video === undefined) {
 				this.log.error("video was undefined, which is bad");
@@ -1243,7 +1246,10 @@ export class Room implements RoomState {
 			await this.publishRoomEvent(request, context, { video });
 			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
-			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
+			const videos: Video[] = await InfoExtract.getManyVideoInfo(
+				request.videos,
+				credentials
+			);
 
 			for (let i = 0; i < videos.length; i++) {
 				const video = videos[i];

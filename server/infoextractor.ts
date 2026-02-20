@@ -18,6 +18,7 @@ import { getLogger } from "./logger.js";
 import { redisClient } from "./redisclient.js";
 import { isSupportedMimeType } from "./mime.js";
 import type { Video, VideoId, VideoMetadata, VideoService } from "ott-common/models/video.js";
+import type { VideoServiceCredentials } from "ott-common/models/messages.js";
 import type { ServiceAdapter } from "./serviceadapter.js";
 import { OttException } from "ott-common/exceptions.js";
 import TubiAdapter from "./services/tubi.js";
@@ -191,7 +192,11 @@ export default {
 	 * Returns metadata for a single video. Uses cached info if possible and writes newly fetched info
 	 * to the cache.
 	 */
-	async getVideoInfo(service: VideoService, videoId: string): Promise<Video> {
+	async getVideoInfo(
+		service: VideoService,
+		videoId: string,
+		credentials?: VideoServiceCredentials
+	): Promise<Video> {
 		counterMethodsInvoked.labels({ method: "getVideoInfo" }).inc();
 
 		const adapter = this.getServiceAdapter(service);
@@ -207,7 +212,11 @@ export default {
 			);
 
 			try {
-				const fetchedVideo = await adapter.fetchVideoInfo(cachedVideo.id, missingInfo);
+				const fetchedVideo = await adapter.fetchVideoInfo(
+					cachedVideo.id,
+					missingInfo,
+					credentials
+				);
 				if (fetchedVideo.service === cachedVideo.service) {
 					const video = mergeVideo(cachedVideo, fetchedVideo);
 					if (adapter.isCacheSafe) {
@@ -252,7 +261,10 @@ export default {
 		}
 	},
 
-	async getManyVideoInfo(videoIds: VideoId[]): Promise<Video[]> {
+	async getManyVideoInfo(
+		videoIds: VideoId[],
+		credentials?: VideoServiceCredentials
+	): Promise<Video[]> {
 		counterMethodsInvoked.labels({ method: "getManyVideoInfo" }).inc();
 
 		const grouped = _.groupBy(videoIds, "service");
@@ -276,7 +288,7 @@ export default {
 					return cachedVideos;
 				}
 
-				const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
+				const fetchedVideos = await adapter.fetchManyVideoInfo(requests, credentials);
 				const finalResults = cachedVideos.map(video => {
 					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
 					if (fetchedVideo) {

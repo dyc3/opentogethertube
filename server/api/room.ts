@@ -421,16 +421,20 @@ const addToQueue: RequestHandler<
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
 
+	const credentials = "credentials" in body ? body.credentials : undefined;
+
 	let roomRequest: AddRequest;
 	if ("videos" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
 			videos: body.videos,
+			credentials,
 		};
 	} else if ("url" in body) {
 		roomRequest = {
 			type: RoomRequestType.AddRequest,
 			url: body.url,
+			credentials,
 		};
 	} else {
 		roomRequest = {
@@ -439,6 +443,7 @@ const addToQueue: RequestHandler<
 				service: body.service,
 				id: body.id,
 			},
+			credentials,
 		};
 	}
 
