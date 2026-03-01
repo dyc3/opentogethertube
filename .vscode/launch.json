@@ -4,18 +4,12 @@
 	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
-
 		{
 			"name": "Launch with Optic via NPM",
 			"request": "launch",
-			"runtimeArgs": [
-				"run-script",
-				"optic-api-server"
-			],
+			"runtimeArgs": ["run-script", "optic-api-server"],
 			"runtimeExecutable": "npm",
-			"skipFiles": [
-				"<node_internals>/**"
-			],
+			"skipFiles": ["<node_internals>/**"],
 			"type": "node"
 		},
 		{
@@ -40,9 +34,7 @@
 			"name": "Attach",
 			"port": 9229,
 			"request": "attach",
-			"skipFiles": [
-				"<node_internals>/**"
-			],
+			"skipFiles": ["<node_internals>/**"],
 			"type": "node"
 		},
 		{
@@ -56,6 +48,6 @@
 			"request": "attach",
 			"name": "Attach to ott-collector",
 			"program": "${workspaceFolder}/ott-collector"
-		},
+		}
 	]
 }
