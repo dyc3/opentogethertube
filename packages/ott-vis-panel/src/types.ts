@@ -1,5 +1,5 @@
-import type { TreeViewStyleProps } from "components/views/TreeView";
-import type { TopologyViewStyleProps } from "components/views/TopologyView";
+import type { TreeViewStyleProps } from "./components/views/TreeView.tsx";
+import type { TopologyViewStyleProps } from "./components/views/TopologyView.tsx";
 
 export interface CoreOptions {
 	view: "region" | "tree" | "topology";

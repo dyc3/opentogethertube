@@ -14,12 +14,12 @@ import {
 	offsetBBox,
 	expandBBox,
 	stackBoxes,
-} from "treeutils";
+} from "../../treeutils.js";
 import "./topology-view.css";
-import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "chartutils";
-import { dedupeItems } from "aggregate";
-import type { NodeRadiusOptions } from "types";
-import ZoomReset from "components/ZoomReset";
+import { calcZoomTransform, useActivityAnimations, useD3AutoZoom } from "../../chartutils.js";
+import { dedupeItems } from "../../aggregate.js";
+import type { NodeRadiusOptions } from "../../types.js";
+import ZoomReset from "../../components/ZoomReset.jsx";
 
 interface TopologyViewProps extends TopologyViewStyleProps {
 	systemState: SystemState;

@@ -89,6 +89,7 @@ async function startPasswordReset() {
 			style: ToastStyle.Error,
 			content: i18n.t("login-form.change-password.failed"),
 		});
+		console.error("Failed to start password reset", e);
 		return;
 	} finally {
 		isLoading.value = false;
