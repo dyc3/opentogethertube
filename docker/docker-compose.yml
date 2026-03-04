@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   opentogethertube:
     image: opentogethertube
@@ -23,9 +22,6 @@ services:
     ports:
       - 8080:8080
       - 3002:3002
-    links:
-      - redis_db
-      - postgres_db
     depends_on:
       - redis_db
       - postgres_db
@@ -35,7 +31,7 @@ services:
 
   redis_db:
     container_name: opentogethertube_redis
-    image: redis
+    image: redis:7-alpine
     healthcheck:
       test: "redis-cli ping"
     expose:
@@ -46,7 +42,7 @@ services:
 
   postgres_db:
     container_name: opentogethertube_postgres
-    image: postgres:15-bullseye
+    image: postgres:15.13-bullseye
     environment:
       - POSTGRES_DB=opentogethertube
       - POSTGRES_USER=opentogethertube
