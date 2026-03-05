@@ -232,6 +232,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 				balancerGroup.transition(tr).attr("transform", `translate(0, 0)`);
 
 				balancerCircles
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.data(balancerNodes, (d: any) => d.id)
 					.join(
 						create =>
@@ -252,6 +253,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 					.attr("cy", d => d.y)
 					.attr("r", balancerNodeRadius);
 				balancerTexts
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.data(balancerNodes, (d: any) => d.id)
 					.join(
 						create =>
@@ -272,12 +274,12 @@ const TreeView: React.FC<TreeViewProps> = ({
 				const balancerTree = buildBalancerRegionTree(systemState);
 				const root = d3
 					.hierarchy(balancerTree)
-					.sum(d => 1)
+					.sum(_d => 1)
 					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
 				const pack = d3
 					.pack<TreeNode>()
 					.padding(3)
-					.radius(d => balancerNodeRadius);
+					.radius(_d => balancerNodeRadius);
 				pack(root);
 
 				// HACK: for some reason the pack layout is not centered at 0, 0
@@ -294,12 +296,15 @@ const TreeView: React.FC<TreeViewProps> = ({
 					]);
 
 				balancerCircles
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.data(root.descendants(), (d: any) => d.data.id)
 					.join(
 						create =>
 							create
 								.append("circle")
+								// biome-ignore lint/suspicious/noExplicitAny: biome migration
 								.attr("cx", (d: any) => d.x)
+								// biome-ignore lint/suspicious/noExplicitAny: biome migration
 								.attr("cy", (d: any) => d.y)
 								.attr("class", "balancer")
 								.attr("stroke", "white")
@@ -315,17 +320,23 @@ const TreeView: React.FC<TreeViewProps> = ({
 					)
 					.attr("data-nodeid", d => d.data.id)
 					.transition(tr)
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.attr("cx", (d: any) => d.x)
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.attr("cy", (d: any) => d.y)
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.attr("r", (d: any) => d.r);
 
 				balancerTexts
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.data(root.leaves(), (d: any) => d.data.id)
 					.join(
 						create =>
 							create
 								.append("text")
+								// biome-ignore lint/suspicious/noExplicitAny: biome migration
 								.attr("x", (d: any) => d.x)
+								// biome-ignore lint/suspicious/noExplicitAny: biome migration
 								.attr("y", (d: any) => d.y)
 								.attr("class", "balancer-text"),
 						update => update,
@@ -334,7 +345,9 @@ const TreeView: React.FC<TreeViewProps> = ({
 					.text(d => `${d.data.id}`.substring(0, 8))
 					.transition(tr)
 					.attr("font-size", 10)
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.attr("x", (d: any) => d.x)
+					// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					.attr("y", (d: any) => d.y);
 			}
 
@@ -342,6 +355,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 			const monolithGroup = wholeGraph.select("g.monoliths");
 			const monolithGroups = monolithGroup
 				.selectAll("g.monolith")
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				.data(monolithNodes, (d: any) => d.id);
 			// for debugging, draw the bounding boxes of the monolith trees
 			if (DEBUG_BOUNDING_BOXES) {
@@ -374,14 +388,18 @@ const TreeView: React.FC<TreeViewProps> = ({
 				.attr("transform", d => `translate(${d.x}, ${d.y})`)
 				.each(function (d) {
 					const diagonal = d3
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.linkRadial<any, TreeNode>()
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 
 					const monolith = d3.select(this);
 					monolith
 						.select(".links")
 						.selectAll(".treelink")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(d.tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join(
 							create => create.append("path").attr("class", "treelink"),
@@ -399,6 +417,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 					monolith
 						.select(".circles")
 						.selectAll(".monolith")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(d.tree.descendants(), (d: any) => d.data?.id)
 						.join(
 							create =>
@@ -407,27 +426,34 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("class", "monolith")
 									.attr("stroke", "white")
 									.attr("stroke-width", 2)
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("r", 0)
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.attr("fill", d => assignColor(d.data.group))
 						.transition(tr)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("cx", (d: any) => d.x)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group));
 
 					const monolithTexts = monolith
 						.select(".texts")
 						.selectAll(".monolith-text")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(d.tree.descendants(), (d: any) => d.data?.id);
 					monolithTexts
 						.join(
@@ -436,21 +462,27 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.filter(d => d.data.group === "monolith")
 									.append("text")
 									.attr("class", "monolith-text")
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("font-size", 0)
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
 						.attr("font-size", 10)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("x", (d: any) => d.x)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("y", (d: any) => d.y);
 				});
 
@@ -479,6 +511,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 			});
 			gb2mLinks
 				.selectAll(".b2m-link")
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				.data(b2mLinkData, (d: any) => d.source?.data?.id + d.target?.data?.id)
 				.join(
 					create =>

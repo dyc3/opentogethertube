@@ -60,9 +60,13 @@ export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, h
 			.join("circle")
 			.attr("class", "node")
 			.transition(tr)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("cx", (d: any) => d.x)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("cy", (d: any) => d.y)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("r", (d: any) => d.r)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("fill", (d: any) => assignColor(d.data.group))
 			.attr("stroke", "#fff")
 			.attr("stroke-width", 1.5);
@@ -76,7 +80,9 @@ export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, h
 			.join("text")
 			.attr("class", "text")
 			.transition(tr)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("x", (d: any) => d.x)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.attr("y", (d: any) => d.y - d.r + 6)
 			.text(d => d.data.id.substring(0, 8));
 	});

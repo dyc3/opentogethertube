@@ -37,10 +37,10 @@ declare global {
 	namespace Cypress {
 		interface Chainable {
 			mount: typeof mount;
-			vue(): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
+			vue(): Chainable<{ wrapper: VueWrapper; component: unknown }>;
 			setProps(
 				props: Record<string, unknown>
-			): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
+			): Chainable<{ wrapper: VueWrapper; component: unknown }>;
 			emitted(event: string): Chainable<unknown[]>;
 			store(): Chainable<Store<FullOTTStoreState>>;
 			router(): Chainable<Router>;

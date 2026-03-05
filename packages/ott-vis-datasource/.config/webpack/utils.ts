@@ -22,10 +22,12 @@ export function isWSL() {
 }
 
 export function getPackageJson() {
+	// biome-ignore lint/style/noCommonJs: biome migration
 	return require(path.resolve(process.cwd(), "package.json"));
 }
 
 export function getPluginJson() {
+	// biome-ignore lint/style/noCommonJs: biome migration
 	return require(path.resolve(process.cwd(), `${SOURCE_DIR}/plugin.json`));
 }
 

@@ -20,14 +20,16 @@ import "cypress-real-events";
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
+type UserCreds = { email: string; username: string; password: string };
+
 declare global {
 	namespace Cypress {
 		interface Chainable {
 			ottEnsureToken(): Chainable<Element>;
 			ottRequest(options: Partial<Cypress.RequestOptions>): Chainable<Element>;
 			ottResetRateLimit(): Chainable<Element>;
-			ottCreateUser(userCreds: any): Chainable<Element>;
-			ottLogin(userCreds: any): Chainable<Element>;
+			ottCreateUser(userCreds: UserCreds): Chainable<Element>;
+			ottLogin(userCreds: UserCreds): Chainable<Element>;
 			/**
 			 * Helper function for moving a vue-slider component to a desired percentage.
 			 * @param percent number between 0 and 1

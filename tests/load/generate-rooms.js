@@ -70,7 +70,7 @@ export default function () {
 	check(room, { "room is not empty": r => r && r.length > 0 });
 
 	const url = `ws://${HOSTNAME}/api/room/${room}`;
-	const res = ws.connect(url, null, (socket) => {
+	const res = ws.connect(url, null, socket => {
 		const msgs = [];
 		socket.on("open", () => {
 			console.log("connected");

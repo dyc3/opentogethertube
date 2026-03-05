@@ -126,6 +126,7 @@ export interface YoutubeErrorResponse {
 export type YoutubeApiPart = "id" | "snippet" | "contentDetails" | "status" | "statistics";
 
 function isYoutubeApiError(
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	response: AxiosResponse<any>
 ): response is AxiosResponse<YoutubeErrorResponse> {
 	return "error" in response.data;
@@ -720,6 +721,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	async getChannelIdFromYoutubeCustomOrHandleUrl(
 		channelData: YoutubeChannelData
 	): Promise<string | undefined> {
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		let res: AxiosResponse<any, any>;
 		if (channelData.handle) {
 			log.debug(`web scraping to find channel id for handle: ${channelData.handle}`);

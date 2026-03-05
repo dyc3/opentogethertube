@@ -300,6 +300,7 @@ export function mergeTrees(trees: d3.HierarchyNode<TreeNode>[]): d3.HierarchyNod
 			continue;
 		}
 		if (seen.has(tree.data.id)) {
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			const existing = seen.get(tree.data.id)!;
 			existing.children?.push(...tree.children);
 		} else {

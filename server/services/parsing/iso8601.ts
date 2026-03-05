@@ -6,6 +6,7 @@ export function parseIso8601Duration(duration: string): number {
 	const match = /P(\d+D)?(?:T(\d+H)?(\d+M)?([\d.]+S)?)?/
 		.exec(duration)
 		?.slice(1)
+		// biome-ignore lint/suspicious/useIterableCallbackReturn: biome migration
 		.map(x => {
 			if (x !== null && x !== undefined) {
 				return x.replace(/[^\d.]/, "");

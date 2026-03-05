@@ -126,7 +126,7 @@ export function addClient(client: Client) {
 	client.on("disconnect", onClientDisconnect);
 }
 
-async function onClientAuth(client: Client, token: AuthToken, session: SessionInfo) {
+async function onClientAuth(client: Client, _token: AuthToken, _session: SessionInfo) {
 	const result = await roommanager.getRoom(client.room);
 	if (!result.ok) {
 		client.kick(OttWebsocketError.ROOM_NOT_FOUND);
@@ -198,6 +198,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 			await makeRoomRequest(client, msg.request);
 		} else if (msg.action === "notify") {
 			if (msg.message === "usernameChanged") {
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				onUserModified(client.token!);
 			} else {
 				log.warn(`Unknown notify message: ${msg.message}`);
@@ -367,6 +368,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 		log.error(`Unknown balancer message type: ${(message as { type: string }).type}`);
 		return;
 	}
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	await handler(message as any); // this cast is safe because the type is checked and narrowed above
 }
 
@@ -436,7 +438,7 @@ async function onRoomPublish(roomName: string, msg: ServerMessage) {
 	await broadcast(roomName, msg);
 }
 
-async function handleCommand(roomName: string, command: ClientManagerCommand) {
+async function handleCommand(_roomName: string, command: ClientManagerCommand) {
 	if (command.type === "kick") {
 		const client = getClient(command.clientId);
 		client?.kick(OttWebsocketError.KICKED);
@@ -535,7 +537,7 @@ export interface CmdKick extends CmdBase {
 	clientId: ClientId;
 }
 
-const gaugeWebsocketConnections = new Gauge({
+const _gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
 	help: "The number of active websocket connections (deprecated)",
 	collect() {
@@ -543,7 +545,7 @@ const gaugeWebsocketConnections = new Gauge({
 	},
 });
 
-const gaugeClients = new Gauge({
+const _gaugeClients = new Gauge({
 	name: "ott_clients_connected",
 	help: "The number of clients connected.",
 	labelNames: ["clientType", "joinStatus"],

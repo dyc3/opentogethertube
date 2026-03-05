@@ -154,8 +154,10 @@ describe("InvidiousAdapter (unit)", () => {
   </Period>
 </MPD>`;
 			// mock axios instance on this adapter (DashMPD expects raw XML string)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi.fn().mockResolvedValue({ data: mpd, headers: {} });
 
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			const out = await (adapter as any).probeManifest("inv.nadeko.net", "abc", "dash");
 			// Assert fields individually to avoid matcher differences
 			expect(out).not.toBeNull();
@@ -180,8 +182,10 @@ low.m3u8
 #EXT-X-STREAM-INF:BANDWIDTH=4200000,RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2"
 hi.m3u8
 `;
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi.fn().mockResolvedValue({ data: m3u, headers: {} });
 
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			const out = await (adapter as any).probeManifest("inv.nadeko.net", "abc", "hls");
 			expect(out).toEqual({
 				kind: "hls",
@@ -206,6 +210,7 @@ hi.m3u8
 
 		it("preserves the port from the videoId when building the API URL", async () => {
 			// Arrange: spy parseAsDirect to avoid probing manifests and to control the return value.
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			const parseSpy = vi.spyOn(adapter as any, "parseAsDirect").mockResolvedValue({
 				service: "direct",
 				id: "x",
@@ -218,6 +223,7 @@ hi.m3u8
 			const getMock = vi.spyOn(adapter.api, "get").mockResolvedValueOnce({
 				data: { title: "T", lengthSeconds: 10 },
 				headers: {},
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			} as any);
 
 			await adapter.fetchVideoInfo("inv.nadeko.net:8443:abc");
@@ -237,6 +243,7 @@ hi.m3u8
 		});
 
 		function mockVideoJson() {
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi
 				.fn()
 				// first call: /api/v1/videos?id&local=1
@@ -249,6 +256,7 @@ hi.m3u8
 
 		it("picks DASH when DASH topKbps > HLS", async () => {
 			mockVideoJson();
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
 				const kind = args[2] as "dash" | "hls";
 				return kind === "dash"
@@ -272,6 +280,7 @@ hi.m3u8
 
 		it("picks HLS when HLS topKbps > DASH", async () => {
 			mockVideoJson();
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
 				const kind = args[2] as "dash" | "hls";
 				return kind === "dash"
@@ -306,6 +315,7 @@ hi.m3u8
 		});
 
 		function mockVideoJson() {
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi
 				.fn()
 				// first call: /api/v1/videos?id&local=1
@@ -317,6 +327,7 @@ hi.m3u8
 
 		it("uses DASH when HLS probe rejects and DASH succeeds", async () => {
 			mockVideoJson();
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
 				const kind = args[2] as "dash" | "hls";
 				if (kind === "dash") {
@@ -334,6 +345,7 @@ hi.m3u8
 
 		it("uses HLS when DASH probe rejects and HLS succeeds", async () => {
 			mockVideoJson();
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockImplementation(async (...args: any[]) => {
 				const kind = args[2] as "dash" | "hls";
 				if (kind === "hls") {
@@ -360,10 +372,12 @@ hi.m3u8
 
 		it("prefers highest-quality progressive and falls back to MP4 MIME via itag", async () => {
 			// Arrange: make probeManifest fail so we go progressive
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockRejectedValue(new Error("nope"));
 			// Invidious /api/v1/videos payload
 			// Important: include 'url' fields so progressive selection is exercised.
 			// Also: no MP4 entries present, so MIME must be derived from the iTag (22 → MP4).
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi.fn().mockResolvedValueOnce({
 				data: {
 					title: "T",
@@ -404,9 +418,11 @@ hi.m3u8
 			adapter.allowedHosts = ["inv.nadeko.net"];
 
 			// Force both probes to fail so we *must* use the no-formats fallback.
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			vi.spyOn(adapter as any, "probeManifest").mockRejectedValue(new Error("probe-failed"));
 
 			// Respond with a metadata payload that has *no* formatStreams.
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			(adapter.api.get as any) = vi.fn().mockResolvedValueOnce({
 				data: {
 					title: "NoFormats",
@@ -473,6 +489,7 @@ hi.m3u8
 	describe("pickBestThumbnail", () => {
 		it("returns URL with most pixels", () => {
 			const adapter = new InvidiousAdapter();
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			const out = adapter["pickBestThumbnail"]([
 				{ url: "a.jpg", width: 120, height: 90 },
 				{ url: "b.jpg", width: 640, height: 480 },
@@ -482,7 +499,10 @@ hi.m3u8
 		});
 		it("returns undefined for missing or empty lists", () => {
 			const adapter = new InvidiousAdapter();
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			expect(adapter["pickBestThumbnail"](undefined as any)).toBeUndefined();
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			expect(adapter["pickBestThumbnail"]([])).toBeUndefined();
 		});
 	});

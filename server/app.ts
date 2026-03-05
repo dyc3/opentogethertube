@@ -189,7 +189,7 @@ export async function main() {
 		})
 	);
 
-	app.use((req, res, next) => {
+	app.use((req, _res, next) => {
 		if (!req.path.startsWith("/api") || req.path.startsWith("/api/status")) {
 			next();
 			return;
@@ -199,8 +199,8 @@ export async function main() {
 		next();
 	});
 
-	function serveBuiltFiles(req, res) {
-		fs.readFile("../client/dist/index.html", (err, contents) => {
+	function serveBuiltFiles(_req, res) {
+		fs.readFile("../client/dist/index.html", (_err, contents) => {
 			res.setHeader("Content-type", "text/html");
 			if (contents) {
 				res.send(contents.toString());
@@ -216,7 +216,7 @@ export async function main() {
 		app.get("*", serveBuiltFiles);
 	} else {
 		log.warn("no dist folder found, run `yarn build` to build the client");
-		app.get("*", (req, res) => {
+		app.get("*", (_req, res) => {
 			res.status(404).send(
 				"File not found - Client files not found. Run `yarn build` to build the client."
 			);

@@ -56,6 +56,7 @@ const logger = createLogger({
 });
 
 if (conf.get("log.file")) {
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	logger.add(new transports.File({ filename: conf.get("log.file")! }));
 }
 

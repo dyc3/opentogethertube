@@ -2,8 +2,6 @@ export class Dirtyable {
 	private _dirty = false;
 	private callback: (() => void) | undefined = undefined;
 
-	constructor() {}
-
 	get dirty() {
 		return this._dirty;
 	}

@@ -1,4 +1,5 @@
 import faker from "faker";
+// biome-ignore lint/style/noCommonJs: biome migration
 const uuid = require("uuid");
 
 describe("Creating Rooms", () => {
@@ -85,7 +86,7 @@ describe("Creating Rooms", () => {
 	});
 
 	describe("Room Ownership", () => {
-		let userCreds = null;
+		let userCreds = { email: "", username: "", password: "" };
 		before(() => {
 			cy.ottEnsureToken();
 			cy.ottRequest({
@@ -137,10 +138,7 @@ describe("Creating Rooms", () => {
 			cy.contains("Settings").click();
 			cy.contains("button", "Claim Room").should("be.visible").click();
 			cy.wait(200);
-			cy.contains("button", "Save")
-				.should("exist")
-				.scrollIntoView()
-				.should("be.visible");
+			cy.contains("button", "Save").should("exist").scrollIntoView().should("be.visible");
 			checkPermissionsEditor();
 		});
 

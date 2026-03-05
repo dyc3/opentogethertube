@@ -25,6 +25,7 @@ const grafanaESModules = [
 	"uuid",
 ];
 
+// biome-ignore lint/style/noCommonJs: biome migration
 module.exports = {
 	nodeModulesToTransform,
 	grafanaESModules,

@@ -19,7 +19,7 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 		return false;
 	}
 
-	isCollectionURL(link: string): boolean {
+	isCollectionURL(_link: string): boolean {
 		return false;
 	}
 

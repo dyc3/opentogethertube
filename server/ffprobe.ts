@@ -203,10 +203,12 @@ export abstract class FfprobeStrategy {
 		log.debug(`ffprobe installed at ${this.ffprobePath}`);
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	abstract getFileInfo(uri: string): Promise<any>;
 }
 
 export class RunFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 		if (uri.includes('"')) {
@@ -279,6 +281,7 @@ export class RunFfprobe extends FfprobeStrategy {
 }
 
 export class OnDiskPreviewFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 
@@ -388,6 +391,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 }
 
 export class StreamFfprobe extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		log.debug(`Grabbing file info from ${uri}`);
 

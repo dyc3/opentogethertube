@@ -32,7 +32,7 @@ export const usersModule: Module<UsersState, FullOTTStoreState> = {
 		self(state): RoomUserInfo | undefined {
 			return state.users.get(state.you.id);
 		},
-		grants(state, getters, rootState): GrantMask {
+		grants(_state, getters, rootState): GrantMask {
 			return rootState.room.grants.getMask(getters.self?.role ?? Role.Owner);
 		},
 	},

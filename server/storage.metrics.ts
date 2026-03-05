@@ -6,7 +6,7 @@ import { getLogger } from "./logger.js";
 const log = getLogger("storage");
 
 /** Source: https://stackoverflow.com/questions/2596670/how-do-you-find-the-row-count-for-all-your-tables-in-postgres */
-const POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_SLOW_ACCURATE = `WITH tbl AS
+const _POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_SLOW_ACCURATE = `WITH tbl AS
 (SELECT table_schema,
 		TABLE_NAME
  FROM information_schema.tables
@@ -23,7 +23,7 @@ FROM pg_stat_user_tables
 ORDER BY n_live_tup DESC;`;
 
 export function setupPostgresMetricsCollection(sequelize: Sequelize) {
-	const gaugePostgresRowCount = new Gauge({
+	const _gaugePostgresRowCount = new Gauge({
 		name: "postgres_db_row_count",
 		help: "Number of rows in a table in the database",
 		labelNames: ["table"],
@@ -54,7 +54,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 		},
 	});
 
-	const gaugePostgresTableOps = new Gauge({
+	const _gaugePostgresTableOps = new Gauge({
 		name: "postgres_table_ops",
 		help: "Number of table operations in the database",
 		labelNames: ["table", "operation"],
@@ -91,7 +91,9 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 				log.debug(`result from query: ${JSON.stringify(result)}`);
 				for (const row of result) {
 					for (const op of tableOps) {
-						this.labels({ table: row.relname, operation: op }).set(parseInt(row[op]));
+						this.labels({ table: row.relname, operation: op }).set(
+							parseInt(row[op], 10)
+						);
 					}
 				}
 			} catch (e) {

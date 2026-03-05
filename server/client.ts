@@ -205,7 +205,7 @@ export class BalancerClient extends Client {
 		});
 	}
 
-	sendRaw(msg: string) {
+	sendRaw(_msg: string) {
 		throw new Error("Not implemented");
 	}
 

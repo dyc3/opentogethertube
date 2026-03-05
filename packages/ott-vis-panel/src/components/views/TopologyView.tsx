@@ -82,7 +82,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	const monolithTrees = dedupeItems(
 		pruneTrees(fullTree, "monolith", "room"),
 		tree => tree.data.id,
-		(a, b) => a
+		(a, _b) => a
 	);
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
 
@@ -137,11 +137,15 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		const tr = d3.transition().duration(1000).ease(d3.easeCubicInOut);
 		const diagonal = d3
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.linkRadial<any, TreeNode>()
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.angle((d: any) => Math.atan2(d.y, d.x) + Math.PI / 2)
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 		function renderTrees(
 			trees: Subtree[],
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
 		) {
 			base.selectAll(".tree")
@@ -168,6 +172,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					group
 						.select(".links")
 						.selectAll(".link")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(tree.links(), (d: any) => d.source?.data?.id + d.target?.data?.id)
 						.join(
 							create => create.append("path").attr("class", "link"),
@@ -185,26 +190,33 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					group
 						.select(".nodes")
 						.selectAll(".node")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(tree.descendants(), (d: any) => d.data.id)
 						.join(
 							create =>
 								create
 									.append("circle")
 									.attr("class", "node")
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("r", 0)
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.transition(tr)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("cx", (d: any) => d.x)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("cy", (d: any) => d.y)
 						.attr("r", d => getRadius(d.data.group))
 						.attr("fill", d => assignColor(d.data.group))
@@ -214,27 +226,34 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					group
 						.select(".texts")
 						.selectAll(".text")
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.data(tree.descendants(), (d: any) => d.data.id)
 						.join(
 							create =>
 								create
 									.append("text")
 									.attr("class", "text")
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y)),
 							update => update,
 							exit =>
 								exit
 									.transition(tr)
 									.attr("font-size", 0)
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
+									// biome-ignore lint/suspicious/noExplicitAny: biome migration
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
 									.remove()
 						)
 						.filter(d => d.data.group !== "room" && d.data.group !== "client")
 						.text(d => d.data.id.substring(0, 6))
 						.transition(tr)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("x", (d: any) => d.x)
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 						.attr("y", (d: any) => d.y)
 						.attr("font-size", 10);
 				});
@@ -323,6 +342,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		function renderRegion(
 			region: Region,
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
 		) {
 			const monolithSubtrees = region.monolithSubtrees;
@@ -359,10 +379,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 			const diagonal = d3
 				.link<B2M, Subtree>(d3.curveStep)
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				.x((d: any) => d.x + d.tree.x)
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				.y((d: any) => d.y + d.tree.y);
 			base.select(".b2m")
 				.selectAll(".link")
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 				.data(b2mLinks, (d: any) => d.source?.tree.data.id + d.target?.tree.data.id)
 				.join(
 					create => create.append("path").attr("class", "link"),
@@ -391,6 +414,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		svg.select(".regions")
 			.selectAll(".region")
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			.data(monolithBuiltRegions, (d: any) => d.name)
 			.join(
 				create => {

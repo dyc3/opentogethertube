@@ -54,9 +54,12 @@ function doConnection(room, token) {
 		socket.on("open", () => {
 			socket.send(JSON.stringify({ action: "auth", token: token }));
 		});
-		socket.setTimeout(() => {
-			socket.close(1000);
-		}, 1000 * 60 * 60 * 2);
+		socket.setTimeout(
+			() => {
+				socket.close(1000);
+			},
+			1000 * 60 * 60 * 2
+		);
 		socket.on("close", code => {
 			if (code >= 4000) {
 				console.log("disconnected ws", code);

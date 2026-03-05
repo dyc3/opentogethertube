@@ -113,7 +113,7 @@ describe("InfoExtractor", () => {
 
 		it("should cache fresh search results", async () => {
 			const adapter = new TestAdapter();
-			const getAdapterSpy = vi
+			const _getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);
 			const getCacheSpy = vi
@@ -137,6 +137,7 @@ describe("InfoExtractor", () => {
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
 			expect(searchSpy).toBeCalledTimes(1);
 			expect(
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				(await redisClient.get(`search:${adapter.serviceId}:asdf`))!.length
 			).toBeGreaterThan(0);
 
@@ -438,7 +439,9 @@ describe("InfoExtractor: Cache", () => {
 	});
 
 	describe("updateCache", () => {
+		// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 		let updateVideoInfoSpy;
+		// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 		let updateManyVideoInfoSpy;
 		beforeEach(() => {
 			updateVideoInfoSpy = vi.spyOn(storage, "updateVideoInfo").mockResolvedValue(true);

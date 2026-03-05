@@ -11,7 +11,7 @@ import { secondsToTimestamp } from "@/util/timestamp";
 
 export const eventsModule: Module<unknown, unknown> = {
 	actions: {
-		event(context, message: ServerMessageEvent) {
+		event(_context, message: ServerMessageEvent) {
 			let text = `TODO: room event: ${message.request.type}`;
 			let duration = 5000;
 			if (message.request.type === RoomRequestType.PlaybackRequest) {

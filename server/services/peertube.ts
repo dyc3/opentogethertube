@@ -50,7 +50,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		return this.allowedHosts.includes(url.host) && /^\/w\/\w+/.test(url.pathname);
 	}
 
-	isCollectionURL(link: string): boolean {
+	isCollectionURL(_link: string): boolean {
 		return false;
 	}
 
@@ -59,7 +59,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		return `${url.host}:${url.pathname.split("/").slice(-1)[0].trim()}`;
 	}
 
-	async fetchVideoInfo(videoId: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(videoId: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		if (!videoId.includes(":")) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}

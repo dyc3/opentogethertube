@@ -9,7 +9,9 @@ vi.mock("axios", () => {
 		post: vi.fn(),
 	};
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const rpcHandlers: Record<string, (params: any) => any> = {};
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const setRpc = (method: string, handler: (params: any) => any) => {
 		rpcHandlers[method] = handler;
 	};
@@ -19,6 +21,7 @@ vi.mock("axios", () => {
 		}
 	};
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const post = vi.fn(async (url: string, body?: any) => {
 		if (typeof url === "string" && url.includes("?m=auth_get")) {
 			return { data: { jsonrpc: "2.0", result: { auth_token: "TEST_TOKEN" } }, headers: {} };
@@ -36,6 +39,7 @@ vi.mock("axios", () => {
 	});
 
 	const create = vi.fn(() => ({ head: instance.head, get: instance.get, post }));
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const isAxiosError = (e: unknown) => Boolean(e && typeof e === "object" && (e as any).response);
 
 	return {
@@ -59,6 +63,7 @@ import OdyseeAdapter from "../../../services/odysee.js";
 import { OdyseeUnavailableVideo } from "../../../exceptions.js";
 
 type AxiosWithHelpers = typeof axios & {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	__rpcSet: (m: string, fn: (p: any) => any) => void;
 	__rpcClear: () => void;
 };
@@ -100,18 +105,21 @@ describe("OdyseeAdapter", () => {
 			value: { title: "Foo", source: { sd_hash: "SDHASH" }, video: { duration: 123 } },
 		}));
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockResolvedValueOnce({
 			status: 200,
 			headers: { "content-type": "video/mp4" },
 			request: { res: { responseUrl: undefined } },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockResolvedValueOnce({
 			status: 200,
 			headers: { "content-type": "application/vnd.apple.mpegurl" },
 			request: { res: { responseUrl: undefined } },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockResolvedValueOnce({
 			status: 200,
 			headers: { "content-type": "application/vnd.apple.mpegurl" },
@@ -155,36 +163,43 @@ describe("OdyseeAdapter", () => {
 			},
 		}));
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockResolvedValueOnce({
 			status: 200,
 			headers: { "content-type": "video/mp4" },
 			request: { res: { responseUrl: undefined } },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockRejectedValueOnce({
 			response: { status: 404 },
 			isAxiosError: true,
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).get.mockRejectedValueOnce({
 			response: { status: 404 },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockRejectedValueOnce({
 			response: { status: 404 },
 			isAxiosError: true,
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).get.mockRejectedValueOnce({
 			response: { status: 404 },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockResolvedValueOnce({
 			status: 200,
 			headers: { "content-type": "video/mp4" },
 			request: { res: { responseUrl: undefined } },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).get.mockResolvedValueOnce({
 			status: 206,
 			headers: { "content-type": "video/mp4" },
@@ -235,10 +250,12 @@ describe("OdyseeAdapter", () => {
 			},
 		}));
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).head.mockRejectedValueOnce({
 			response: { status: 401, data: "this content cannot be accessed at the moment" },
 		});
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		(axios as any).get.mockRejectedValueOnce({
 			response: { status: 401, data: "this content cannot be accessed at the moment" },
 		});
@@ -251,6 +268,7 @@ describe("OdyseeAdapter", () => {
 		}
 		expect(err).toBeInstanceOf(OdyseeUnavailableVideo);
 
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const msg = (err as any).userMessage ?? (err as any).message ?? "";
 		expect(typeof msg).toBe("string");
 		expect(

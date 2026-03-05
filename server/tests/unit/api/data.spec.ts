@@ -5,8 +5,11 @@ import InfoExtract, { AddPreview } from "../../../infoextractor.js";
 import tokens from "../../../auth/tokens.js";
 
 describe("Data API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let getSessionInfoSpy;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let validateSpy;
 
 	beforeAll(async () => {

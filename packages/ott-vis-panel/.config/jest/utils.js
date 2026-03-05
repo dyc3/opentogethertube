@@ -54,6 +54,7 @@ const grafanaESModules = [
 	"robust-predicates",
 ];
 
+// biome-ignore lint/style/noCommonJs: biome migration
 module.exports = {
 	nodeModulesToTransform,
 	grafanaESModules,

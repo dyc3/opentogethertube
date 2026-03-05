@@ -70,7 +70,7 @@ class RoomApi {
 		});
 	}
 
-	async undoEvent(event) {
+	async undoEvent(_event) {
 		throw new Error("Not yet implemented");
 		// await API.post(`/room/${this.$route.params.roomId}/undo`, { data: { event } });
 	}

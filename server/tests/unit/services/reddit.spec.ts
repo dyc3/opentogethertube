@@ -1336,7 +1336,7 @@ const subredditLinks = [
 	"https://www.reddit.com/r/youtubehaiku/top.json?t=year",
 ];
 
-const validLinks = [...subredditLinks].concat(singlePostLinks.map(([link, id]) => link));
+const validLinks = [...subredditLinks].concat(singlePostLinks.map(([link, _id]) => link));
 
 const invalidLinks = [
 	"https://reddit.com",

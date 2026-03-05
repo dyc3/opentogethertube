@@ -36,8 +36,12 @@ const v4Client = {
 /**
  * A version of set that supports the EX option. Doesn't any other options.
  */
+
+// biome-ignore lint/suspicious/noExplicitAny: biome migration
 async function setFixed(key: string, value: string, opts: Record<string, any>): Promise<"OK"> {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const set: any = promisify(client.set).bind(client);
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	const extras: any[] = [];
 	// eslint-disable-next-line no-prototype-builtins
 	if (opts !== undefined && Object.hasOwn(opts, "EX")) {
