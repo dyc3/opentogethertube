@@ -439,6 +439,7 @@ const addToQueue: RequestHandler<
 		};
 	}
 
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({
 		success: true,
@@ -462,6 +463,7 @@ const removeFromQueue: RequestHandler<
 			type: RoomRequestType.RemoveRequest,
 			video: { service: body.service, id: body.id },
 		},
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		{ token: req.token! }
 	);
 	res.json({
@@ -512,7 +514,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				success: false,
 				error: {
 					name: "FeatureDisabledException",
-					message: err.message,
+					message: e.message,
 				},
 			});
 		} else {

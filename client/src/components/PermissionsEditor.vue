@@ -82,7 +82,7 @@ const rolePerms = {
 function getLowestGranted(permission): Role {
 	const value = _.min(_.keys(_.pickBy(permission, v => v === true)));
 	if (value !== undefined) {
-		return parseInt(value);
+		return parseInt(value, 10);
 	} else {
 		return 4;
 	}

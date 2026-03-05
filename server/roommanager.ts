@@ -228,7 +228,7 @@ export function on<E extends RoomManagerEvents>(event: E, listener: RoomManagerE
 	bus.on(event, listener);
 }
 
-const gaugeRoomCount = new Gauge({
+const _gaugeRoomCount = new Gauge({
 	name: "ott_room_count",
 	help: "The number of loaded rooms.",
 	labelNames: ["roomType", "visibility"],
@@ -257,7 +257,7 @@ const gaugeRoomCount = new Gauge({
 	},
 });
 
-const gaugeUsersInRooms = new Gauge({
+const _gaugeUsersInRooms = new Gauge({
 	name: "ott_users_in_rooms",
 	help: "The number of users that the room manager thinks are in rooms.",
 	collect() {

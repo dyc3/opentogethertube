@@ -10,7 +10,7 @@ function gitCommit() {
 	}
 	try {
 		return childProcess.execSync("git rev-parse --short HEAD").toString().trim();
-	} catch (e) {
+	} catch (_e) {
 		// eslint-disable-next-line no-console
 		console.warn("Failed to get git commit hash");
 		return "unknown";

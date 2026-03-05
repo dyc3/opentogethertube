@@ -230,7 +230,7 @@ const fixtureMappings = {
 		"boot-v4_series_judge_judy_stargate_forest_gump_titanic.json",
 };
 
-async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootResponse>> {
+async function mockPlutoBoot(_url, params): Promise<AxiosResponse<PlutoBootResponse>> {
 	const seriesId = params.params.seriesIds;
 	const file = fixtureMappings[seriesId];
 	if (!file) {
@@ -244,6 +244,7 @@ async function mockPlutoBoot(url, params): Promise<AxiosResponse<PlutoBootRespon
 		statusText: "OK",
 		headers: {},
 		config: {
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			headers: {} as any,
 		},
 	};

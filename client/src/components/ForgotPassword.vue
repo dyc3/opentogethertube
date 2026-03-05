@@ -84,7 +84,7 @@ async function startPasswordReset() {
 				duration: 5000,
 			});
 		}
-	} catch (e) {
+	} catch {
 		toast.add({
 			style: ToastStyle.Error,
 			content: i18n.t("login-form.change-password.failed"),

@@ -3,15 +3,15 @@ import express from "express";
 import { register } from "prom-client";
 
 const router = express.Router();
-const log = getLogger("api/status");
+const _log = getLogger("api/status");
 
-router.get("/", (req, res) => {
+router.get("/", (_req, res) => {
 	res.json({
 		status: "ok",
 	});
 });
 
-router.get("/metrics", async (req, res) => {
+router.get("/metrics", async (_req, res) => {
 	res.type("text/plain; version=0.0.4").send(await register.metrics());
 });
 

@@ -277,7 +277,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 		return ok(undefined);
 	}
 
-	private onSocketConnect(event: WebSocket.OpenEvent) {
+	private onSocketConnect(_event: WebSocket.OpenEvent) {
 		const init: MsgM2B = {
 			type: "init",
 			payload: {
@@ -435,7 +435,7 @@ const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait:
 
 interface GossipRoom extends RoomListItem {}
 
-const gaugeBalancerConnections = new Gauge({
+const _gaugeBalancerConnections = new Gauge({
 	name: "ott_balancer_connections",
 	help: "Number of balancer connections",
 	collect() {

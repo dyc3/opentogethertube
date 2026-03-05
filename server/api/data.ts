@@ -11,11 +11,13 @@ import { counterHttpErrors } from "../metrics.js";
 const router = express.Router();
 const log = getLogger("api/data");
 const addPreview: RequestHandler<
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	any,
 	OttResponseBody<OttApiResponseAddPreview>,
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	any,
 	{ input: string; adapter?: string }
-> = async (req, res, next) => {
+> = async (req, res, _next) => {
 	if (!req.query.input) {
 		throw new BadApiArgumentException("input", "missing");
 	}

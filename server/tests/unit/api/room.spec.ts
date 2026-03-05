@@ -79,6 +79,7 @@ expect.extend({
 });
 
 describe("Room API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let owner: User;
 	let token: AuthToken;

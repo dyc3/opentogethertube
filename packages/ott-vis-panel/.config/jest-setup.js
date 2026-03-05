@@ -4,6 +4,7 @@
  * In order to extend the configuration follow the steps in
  * https://grafana.com/developers/plugin-tools/create-a-plugin/extend-a-plugin/extend-configurations#extend-the-jest-config
  */
+// biome-ignore-all lint/correctness/noUndeclaredVariables: jest is a global here
 
 import "@testing-library/jest-dom";
 
@@ -22,4 +23,6 @@ Object.defineProperty(global, "matchMedia", {
 	})),
 });
 
-HTMLCanvasElement.prototype.getContext = () => {};
+HTMLCanvasElement.prototype.getContext = () => {
+	// no-op
+};

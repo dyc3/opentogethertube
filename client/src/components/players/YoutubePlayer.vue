@@ -14,10 +14,9 @@ import { ToastStyle } from "@/models/toast";
 import { useCaptions } from "../composables";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
-// TODO: convert to ts and use an enum for this.
 // eslint-disable-next-line no-unused-vars
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const YT_STATUS_UNSTARTED = -1;
+const _YT_STATUS_UNSTARTED = -1;
 const YT_STATUS_ENDED = 0;
 const YT_STATUS_PLAYING = 1;
 const YT_STATUS_PAUSED = 2;

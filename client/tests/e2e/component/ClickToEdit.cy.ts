@@ -39,7 +39,9 @@ describe("<ClickToEdit />", () => {
 
 	it(
 		"should not edit the value when escape is pressed or focus is lost",
-		{ browser: "!firefox" },
+		{
+			browser: "!firefox",
+		},
 		() => {
 			// This test is skipped on firefox because it always fails in run mode, but passes in open mode.
 			const changeSpy = cy.spy().as("changeSpy");

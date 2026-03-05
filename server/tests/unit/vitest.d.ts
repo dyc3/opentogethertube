@@ -7,6 +7,7 @@ interface OttMatchers<R = unknown> {
 }
 
 declare module "vitest" {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	interface Assertion<T = any> extends OttMatchers<T> {}
 	interface AsymmetricMatchersContaining extends OttMatchers {}
 }

@@ -86,6 +86,7 @@ function mockChannel(id: string): unknown {
 async function mockYoutubeApi(
 	path: string,
 	config?: AxiosRequestConfig
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 ): Promise<AxiosResponse<any>> {
 	const template = {
 		status: 200,

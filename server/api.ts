@@ -21,7 +21,7 @@ export function buildApiRouter(): express.Router {
 
 	router.use((req, res, next) => {
 		// eslint-disable-next-line no-unused-vars
-		passport.authenticate("bearer", (err, user, info) => {
+		passport.authenticate("bearer", (err, _user, _info) => {
 			// We are intentionally ignoring the case where authentication fails, because
 			// we want to allow users who are not logged in to an actual account to
 			// be able to use the website.

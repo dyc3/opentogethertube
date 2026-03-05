@@ -79,10 +79,11 @@ Cypress.Commands.add("mount", (component, options = {}) => {
 	});
 
 	// not sure why the cast to any is necessary, it worked with typescript 4.6.4
-	return mount(component as any, options).as("wrapper");
+	return mount(component, options).as("wrapper");
 });
 
 Cypress.Commands.add("vue", () => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@wrapper") as any;
 });
 
@@ -92,11 +93,13 @@ Cypress.Commands.add("vue", () => {
  */
 // @ts-expect-error
 Cypress.Commands.add("setProps", (props: Record<string, unknown> = {}) => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@wrapper").then(async (wrapper: any) => {
 		// `wrapper` in inferred as JQuery<HTMLElement> since custom commands
 		// generally receive a Cypress.Chainable as the first arg (the "subject").
 		// the custom `mount` command defined above returns a
 		// Test Utils' `VueWrapper`, so we need to cast this as `unknown` first.
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const vueWrapper = (wrapper.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
 		await vueWrapper.setProps(props);
 		return vueWrapper;
@@ -104,28 +107,37 @@ Cypress.Commands.add("setProps", (props: Record<string, unknown> = {}) => {
 });
 
 Cypress.Commands.add("emitted", (event: string) => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@wrapper").then((wrapper: any) => {
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const vueWrapper = (wrapper.wrapper || Cypress.vueWrapper) as unknown as VueWrapper<any>;
 		if (!vueWrapper) {
 			return [];
 		}
 
 		return vueWrapper.emitted(event) || [];
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	}) as any;
 });
 
 Cypress.Commands.add("store", () => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@store") as any;
 });
 
 Cypress.Commands.add("router", () => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@router") as any;
 });
 
 Cypress.Commands.add("connection", () => {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	return cy.get("@connection") as any;
 });
 
 Cypress.Commands.add("getPermissionCheckbox", (permission: string, role: Role) => {
-	return cy.get(`[data-cy="perm-chk-${permission}-${role}"] input`) as any;
+	return cy.get(
+		`[data-cy="perm-chk-${permission}-${role}"] input`
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
+	) as any;
 });

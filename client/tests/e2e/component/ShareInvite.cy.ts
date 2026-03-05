@@ -48,7 +48,9 @@ describe("<ShareInvite />", () => {
 
 	it(
 		"copies the link to the clipboard when the copy button is clicked",
-		{ browser: "!firefox" },
+		{
+			browser: "!firefox",
+		},
 		() => {
 			// This test is a bit flakey because you must have the actual page in cypress test runner focused,
 			// otherwise reading the clipboard will fail with "Document not focused".

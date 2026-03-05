@@ -533,6 +533,7 @@ async function verifyStream(
 			headers: { Accept: "application/json,text/plain,*/*" },
 		});
 		const mime = head.headers?.["content-type"];
+		// biome-ignore lint/complexity/useLiteralKeys: biome migration
 		const loc = head.headers?.["location"];
 		const finalUrl = responseFinalUrl(
 			head.request?.res?.responseUrl,
@@ -560,6 +561,7 @@ async function verifyStream(
 				},
 			});
 			const mime = get.headers?.["content-type"];
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			const loc = get.headers?.["location"];
 			const finalUrl = responseFinalUrl(
 				get.request?.res?.responseUrl,
@@ -663,7 +665,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 	}
 
-	isCollectionURL(url: string): boolean {
+	isCollectionURL(_url: string): boolean {
 		// maybe future update
 		return false;
 	}
@@ -824,10 +826,7 @@ export default class OdyseeAdapter extends ServiceAdapter {
 		}
 
 		const { canonicalUri, resolved } = await resolveCanonicalUri(videoId);
-		if (
-			resolved?.value?.license &&
-			resolved.value.license.toLowerCase().includes("copyright")
-		) {
+		if (resolved?.value?.license?.toLowerCase().includes("copyright")) {
 			log.warn?.("DRM/Copyright-locked video detected => blocking", {
 				uri: canonicalUri,
 				license: resolved.value.license,

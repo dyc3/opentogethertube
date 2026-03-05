@@ -63,6 +63,7 @@ describe("<Chat />", () => {
 
 		it("should close if you unfocus the text box and if the button was not used to activate", () => {
 			cy.mount(Chat).then(w => {
+				// @ts-expect-error the function is there
 				w.wrapper.vm.setActivated(true, false);
 			});
 
@@ -156,7 +157,9 @@ describe("<Chat />", () => {
 			const page = defineComponent({
 				name: "Page",
 				components: { Chat },
-				setup() {},
+				setup() {
+					// no-op
+				},
 				render() {
 					return h(
 						"div",

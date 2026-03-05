@@ -1,7 +1,7 @@
 import { collectDefaultMetrics, Counter, Histogram } from "prom-client";
 import type { Request, Response, NextFunction } from "express";
 import { getLogger } from "./logger.js";
-const log = getLogger("metrics");
+const _log = getLogger("metrics");
 
 collectDefaultMetrics();
 

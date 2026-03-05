@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";
 import usermanager from "../../../usermanager.js";
@@ -9,7 +9,9 @@ import { redisClient } from "../../../redisclient.js";
 import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";
 
 describe("Account Recovery", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let token;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let emailUser: User;
 	let noEmailUser: User;
@@ -34,8 +36,6 @@ describe("Account Recovery", () => {
 
 		conf.set("mail.enabled", true);
 	});
-
-	beforeEach(async () => {});
 
 	afterEach(() => {
 		const mailer: MockMailer = usermanager.mailer as MockMailer;
@@ -87,21 +87,22 @@ describe("Account Recovery", () => {
 		expect(mailer.sentEmails).toHaveLength(0);
 	});
 
-	it.each([{}, { email: "doesnot@exi.st" }])(
-		"should not send a recovery email when the request is bad: %s",
-		async (body: any) => {
-			const resp = await request(app)
-				.post("/api/user/recover/start")
-				.set("Authorization", `Bearer ${token}`)
-				.send(body)
-				.expect(400);
+	it.each([
+		{},
+		{ email: "doesnot@exi.st" },
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
+	])("should not send a recovery email when the request is bad: %s", async (body: any) => {
+		const resp = await request(app)
+			.post("/api/user/recover/start")
+			.set("Authorization", `Bearer ${token}`)
+			.send(body)
+			.expect(400);
 
-			expect(resp.body.success).toBe(false);
+		expect(resp.body.success).toBe(false);
 
-			const mailer: MockMailer = usermanager.mailer as MockMailer;
-			expect(mailer.sentEmails).toHaveLength(0);
-		}
-	);
+		const mailer: MockMailer = usermanager.mailer as MockMailer;
+		expect(mailer.sentEmails).toHaveLength(0);
+	});
 
 	it("should change the password when the verify key is valid", async () => {
 		await redisClient.set("accountrecovery:foo", "email@localhost.com");
@@ -127,6 +128,7 @@ describe("Account Recovery", () => {
 		{ newPassword: "test5678" },
 		{ verifyKey: "foo", newPassword: "asdf" },
 		{ verifyKey: "bar", newPassword: "asdf1234" },
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	])("should not change the password when the request is bad: %s", async (body: any) => {
 		await redisClient.set("accountrecovery:foo", "email@localhost.com");
 

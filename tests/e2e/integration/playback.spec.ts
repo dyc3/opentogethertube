@@ -6,7 +6,7 @@ import "cypress-iframe";
 describe("Video playback", () => {
 	// HACK: sometimes the player doesn't load in time. Ideally we'd fix this in the app, but for now we'll just
 	// ignore it because I want this test to pass, and it still makes sure that the video is added and played.
-	Cypress.on("uncaught:exception", (err, runnable) => {
+	Cypress.on("uncaught:exception", (_err, _runnable) => {
 		return false;
 	});
 
@@ -60,12 +60,16 @@ describe("Video playback", () => {
 		});
 		cy.wait(500);
 		cy.get(".video-controls button").eq(1).click();
-		cy.get("video").should("exist").should(element => {
-			expect(element[0].paused).to.be.false;
-		});
+		cy.get("video")
+			.should("exist")
+			.should(element => {
+				expect(element[0].paused).to.be.false;
+			});
 	});
 
-	it("should add a direct video and control it in various ways", { scrollBehavior: false }, () => {
+	it("should add a direct video and control it in various ways", {
+		scrollBehavior: false,
+	}, () => {
 		cy.contains("button", "Add a video").scrollIntoView().click();
 		cy.get('[data-cy="add-preview-input"]').type("https://vjs.zencdn.net/v/oceans.mp4");
 		cy.get(".video button").eq(1).click();
@@ -75,17 +79,17 @@ describe("Video playback", () => {
 		});
 		cy.wait(500);
 		// seek to some time via the seek bar
-		cy.get('#videoSlider').ottSliderMove(0.1);
+		cy.get("#videoSlider").ottSliderMove(0.1);
 		cy.get("video").should(element => {
 			expect(element[0].currentTime).to.be.greaterThan(0);
-		})
+		});
 
 		// seek to 10 seconds via click to edit timestamp
 		cy.get('[data-cy="timestamp-display"] .editable').click();
-		cy.get('[data-cy="timestamp-display"] .editor').type("{backspace}{backspace}10{enter}")
+		cy.get('[data-cy="timestamp-display"] .editor').type("{backspace}{backspace}10{enter}");
 		cy.get("video").should(element => {
 			expect(element[0].currentTime).to.be.equal(10);
-		})
+		});
 
 		// change the volume to 40%
 		cy.get('[data-cy="volume-slider"]').ottSliderMove(0.4);
@@ -94,9 +98,13 @@ describe("Video playback", () => {
 		});
 	});
 
-	it("should add a hls video and control it's playback rate and captions in various ways", { scrollBehavior: false }, () => {
+	it("should add a hls video and control it's playback rate and captions in various ways", {
+		scrollBehavior: false,
+	}, () => {
 		cy.contains("button", "Add a video").scrollIntoView().click();
-		cy.get('[data-cy="add-preview-input"]').type("https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8");
+		cy.get('[data-cy="add-preview-input"]').type(
+			"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8"
+		);
 		cy.get(".video button").eq(1).click();
 		cy.get("video").should("exist").scrollIntoView();
 		cy.get("video").should(element => {
@@ -114,10 +122,10 @@ describe("Video playback", () => {
 
 		// change the playback rate to 1.5x
 		cy.get('[aria-label="Playback Speed"]').click();
-		cy.get('.v-list').contains("1.5x").click();
+		cy.get(".v-list").contains("1.5x").click();
 		cy.get("video").should(element => {
 			expect(element[0].playbackRate).to.be.equal(1.5);
-		})
+		});
 
 		// // FIXME: change the volume to 10%
 		// cy.get('[data-cy="volume-slider"]').ottSliderMove(10);
@@ -127,28 +135,30 @@ describe("Video playback", () => {
 
 		// play the video
 		cy.get(".video-controls button").eq(1).click();
-		cy.get("video").should("exist").should(element => {
-			expect(element[0].paused).to.be.false;
-		});
+		cy.get("video")
+			.should("exist")
+			.should(element => {
+				expect(element[0].paused).to.be.false;
+			});
 
 		// change the playback rate to 2x
 		cy.get('[aria-label="Playback Speed"]').click();
-		cy.get('.v-list').contains("2x").click();
+		cy.get(".v-list").contains("2x").click();
 		cy.get("video").should(element => {
 			expect(element[0].playbackRate).to.be.equal(2);
 		});
 
 		// change the playback rate to 1x
 		cy.get('[aria-label="Playback Speed"]').click();
-		cy.get('.v-list').contains("1x").click();
+		cy.get(".v-list").contains("1x").click();
 		cy.get("video").should(element => {
 			expect(element[0].playbackRate).to.be.equal(1);
 		});
 
 		// enable captions
 		cy.get('[aria-label="Player settings"]').click();
-		cy.get('.menu-container > .v-list').contains("Subtitles/CC").click();
-		cy.get('.menu-container > .v-list').contains("English").eq(0).click();
+		cy.get(".menu-container > .v-list").contains("Subtitles/CC").click();
+		cy.get(".menu-container > .v-list").contains("English").eq(0).click();
 		cy.get("video").should(element => {
 			expect(element[0].textTracks[0].mode).to.be.equal("showing");
 			expect(element[0].textTracks[0].language).to.be.equal("en");
@@ -162,8 +172,8 @@ describe("Video playback", () => {
 
 		// show a different caption track
 		cy.get('[aria-label="Player settings"]').click();
-		cy.get('.menu-container > .v-list').contains("Subtitles/CC").click();
-		cy.get('.menu-container > .v-list').contains("Español").eq(0).click();
+		cy.get(".menu-container > .v-list").contains("Subtitles/CC").click();
+		cy.get(".menu-container > .v-list").contains("Español").eq(0).click();
 		// cy.get("video")
 		// .then(element => {
 		// 	for (let i = 0; i < element[0].textTracks.length; i++) {
@@ -179,10 +189,12 @@ describe("Video playback", () => {
 		// 		}));
 		// 	}
 		// });
-		cy.get("video")
-		.should(element => {
+		cy.get("video").should(element => {
 			for (let i = 0; i < element[0].textTracks.length; i++) {
-				if (element[0].textTracks[i].language === "es" && element[0].textTracks[i].kind === "captions") {
+				if (
+					element[0].textTracks[i].language === "es" &&
+					element[0].textTracks[i].kind === "captions"
+				) {
 					expect(element[0].textTracks[i].mode).to.be.equal("showing");
 					return;
 				}
@@ -191,7 +203,10 @@ describe("Video playback", () => {
 		});
 	});
 
-	["https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8", "https://vjs.zencdn.net/v/oceans.mp4"].forEach((url, i) => {
+	[
+		"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+		"https://vjs.zencdn.net/v/oceans.mp4",
+	].forEach((url, i) => {
 		it(`should add a couple videos and properly update the UI for things that are implemented for the current video player [${i}]`, () => {
 			cy.contains("button", "Add a video").scrollIntoView().click();
 			cy.get('[data-cy="add-preview-input"]').type("https://vimeo.com/94338566");
@@ -209,9 +224,13 @@ describe("Video playback", () => {
 			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
 			// the caption and quality settings should be disabled
 			cy.get('[aria-label="Player settings"]').click();
-			cy.get('.menu-container > .v-list').contains("Subtitles/CC").closest(".v-list-item")
+			cy.get(".menu-container > .v-list")
+				.contains("Subtitles/CC")
+				.closest(".v-list-item")
 				.should("have.class", "v-list-item--disabled");
-			cy.get('.menu-container > .v-list').contains("Quality").closest(".v-list-item")
+			cy.get(".menu-container > .v-list")
+				.contains("Quality")
+				.closest(".v-list-item")
 				.should("have.class", "v-list-item--disabled");
 
 			// skip the video
@@ -230,21 +249,19 @@ describe("Video playback", () => {
 			const menuItemExpectedClass = isHlsVideo ? "not.have.class" : "have.class";
 
 			// Test captions button state
-			cy.get('[aria-label="Closed Captions"]')
-				.should("exist")
-				.should(captionsExpectedState);
+			cy.get('[aria-label="Closed Captions"]').should("exist").should(captionsExpectedState);
 
 			// the settings button should always be enabled
 			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
 			cy.get('[aria-label="Player settings"]').click();
 
 			// Test settings menu items based on video type
-			cy.get('.menu-container > .v-list')
+			cy.get(".menu-container > .v-list")
 				.contains("Subtitles/CC")
 				.closest(".v-list-item")
 				.should(menuItemExpectedClass, "v-list-item--disabled");
 
-			cy.get('.menu-container > .v-list')
+			cy.get(".menu-container > .v-list")
 				.contains("Quality")
 				.closest(".v-list-item")
 				.should(menuItemExpectedClass, "v-list-item--disabled");
@@ -259,11 +276,14 @@ describe("Video playback", () => {
 			cy.get('[aria-label="Player settings"]').should("exist").should("be.enabled");
 			// the caption and quality settings should be disabled when the video goes away
 			cy.get('[aria-label="Player settings"]').click();
-			cy.get('.menu-container > .v-list').contains("Subtitles/CC").closest(".v-list-item")
+			cy.get(".menu-container > .v-list")
+				.contains("Subtitles/CC")
+				.closest(".v-list-item")
 				.should("have.class", "v-list-item--disabled");
-			cy.get('.menu-container > .v-list').contains("Quality").closest(".v-list-item")
+			cy.get(".menu-container > .v-list")
+				.contains("Quality")
+				.closest(".v-list-item")
 				.should("have.class", "v-list-item--disabled");
 		});
-	})
-
+	});
 });
