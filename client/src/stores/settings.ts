@@ -1,10 +1,11 @@
+import type { RoomSettings } from "ott-common";
 import type { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import type { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
 	muted: boolean;
+	audioBoost: number;
 	locale: string;
 	roomLayout: RoomLayoutMode;
 	theme: Theme;
@@ -37,6 +38,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	state: {
 		volume: 100,
 		muted: false,
+		audioBoost: 100,
 		locale: "en",
 		roomLayout: RoomLayoutMode.default,
 		theme: Theme.dark,

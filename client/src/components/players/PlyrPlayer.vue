@@ -5,12 +5,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Plyr from "plyr";
+import { defineComponent, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
 import "plyr/src/sass/plyr.scss";
-import type { MediaPlayerWithCaptions, MediaPlayerWithPlaybackRate } from "../composables";
-import { useCaptions } from "../composables";
 import type { CaptionTrack } from "@/models/media-tracks";
+import type {
+	MediaPlayerWithAudioBoost,
+	MediaPlayerWithCaptions,
+	MediaPlayerWithPlaybackRate,
+} from "../composables";
+import { useCaptions, useMediaAudioBoost } from "../composables";
 
 export default defineComponent({
 	name: "PlyrPlayer",
@@ -36,8 +40,11 @@ export default defineComponent({
 		const { videoUrl, videoMime, thumbnail } = toRefs(props);
 		const videoElem = ref<HTMLVideoElement | undefined>();
 		const player = ref<Plyr | undefined>();
+		const audioBoost = useMediaAudioBoost(videoElem);
 
-		const playerImpl: MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate = {
+		const playerImpl: MediaPlayerWithCaptions &
+			MediaPlayerWithPlaybackRate &
+			MediaPlayerWithAudioBoost = {
 			play() {
 				if (!player.value) {
 					console.error("player not ready");
@@ -132,6 +139,9 @@ export default defineComponent({
 				}
 				player.value.speed = rate;
 			},
+			setAudioBoost(boost: number): void {
+				audioBoost.setBoost(boost);
+			},
 		};
 
 		const captions = useCaptions();
@@ -184,6 +194,7 @@ export default defineComponent({
 				console.error("player not ready");
 				return;
 			}
+			audioBoost.resetFailedSetup();
 
 			player.value.source = {
 				sources: [

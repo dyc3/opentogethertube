@@ -1,5 +1,5 @@
 export default {
-	landing: {
+	"landing": {
 		hero: {
 			title: "Sail the seas together.",
 			description:
@@ -10,5 +10,11 @@ export default {
 				source: "View Source",
 			},
 		},
+	},
+	"client-settings": {
+		"audio-boost": "Audio Boost",
+		"audio-boost-hint":
+			"Boosts supported non-iframe players up to 300%. Sound effects stay as they be.",
+		"audio-boost-unsupported": "This player can't be boosted. Sound effects stay as they be.",
 	},
 };

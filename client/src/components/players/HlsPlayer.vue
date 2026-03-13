@@ -18,15 +18,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
 import Hls from "hls.js";
+import { onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
+import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type {
+	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions, useQualities } from "../composables";
-import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
+import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
 import type { MediaPlayerError } from "../composables/media-player";
 
 interface Props {
@@ -39,6 +40,7 @@ const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const qualities = useQualities();
+const audioBoost = useMediaAudioBoost(videoElem);
 let hls: Hls | undefined;
 
 const emit = defineEmits<{
@@ -161,7 +163,10 @@ function getVideoTracks(): VideoTrack[] {
 			return [];
 		}
 	}
-	return hls.levels.map(level => ({ width: level.width, height: level.height }));
+	return hls.levels.map(level => ({
+		width: level.width,
+		height: level.height,
+	}));
 }
 
 function setVideoTrack(track: number): void {
@@ -219,6 +224,10 @@ async function setPlaybackRate(rate: number): Promise<void> {
 	videoElem.value.playbackRate = rate;
 }
 
+function setAudioBoost(boost: number): void {
+	audioBoost.setBoost(boost);
+}
+
 function loadVideoSource() {
 	console.log("HlsPlayer: loading video source:", videoUrl.value);
 
@@ -226,6 +235,7 @@ function loadVideoSource() {
 		console.error("video element not ready");
 		return;
 	}
+	audioBoost.resetFailedSetup();
 
 	hls?.destroy();
 	hls = undefined;
@@ -245,7 +255,10 @@ function loadVideoSource() {
 		console.error("HlsPlayer: hls.js inner error:", data.error);
 		if (data.fatal) {
 			console.error("HlsPlayer: hls.js fatal error:", data);
-			const errorEvent: MediaPlayerError = { type: "unknown", message: JSON.stringify(data) };
+			const errorEvent: MediaPlayerError = {
+				type: "unknown",
+				message: JSON.stringify(data),
+			};
 			emit("error", errorEvent);
 		}
 	});
@@ -346,7 +359,8 @@ defineExpose({
 	getAvailablePlaybackRates,
 	getPlaybackRate,
 	setPlaybackRate,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate);
+	setAudioBoost,
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost);
 </script>
 
 <style lang="scss">

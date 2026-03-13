@@ -1,4 +1,4 @@
-import { OttWebsocketError, BehaviorOption, Role } from "ott-common/models/types";
+import { BehaviorOption, OttWebsocketError, Role } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -367,6 +367,11 @@ export default {
 		"activator": "@:client-settings.title",
 		"room-layout": "Layout da sala",
 		"theme": "Tema",
+		"audio-boost": "Amplificacao de audio",
+		"audio-boost-hint":
+			"Aumenta o audio de players compativeis sem iframe em ate 300%. Os efeitos sonoros nao sao alterados.",
+		"audio-boost-unsupported":
+			"O player atual nao oferece suporte a amplificacao de audio. Os efeitos sonoros nao sao alterados.",
 		"sfx-enable": "Ativar efeitos sonoros",
 		"sfx-volume": "Volume dos efeitos sonoros",
 	},
