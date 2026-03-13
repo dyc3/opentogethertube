@@ -11,18 +11,21 @@ use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::{RoomMetadata, Visibility};
 use ott_balancer_protocol::{Region, RoomName};
 use ott_common::websocket::{is_websocket_upgrade, upgrade};
-use prometheus::{register_int_gauge, Encoder, IntGauge, TextEncoder};
+use prometheus::{
+    register_histogram_vec, register_int_counter_vec, register_int_gauge, Encoder, HistogramVec,
+    IntCounterVec, IntGauge, TextEncoder,
+};
 use reqwest::Url;
 use route_recognizer::Router;
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
-use tracing::{debug, error, field, info, span, warn, Level};
+use tracing::{debug, error, field, info, span, trace, warn, Level};
 
 use crate::balancer::{BalancerContext, BalancerLink};
 use crate::client::client_entry;
 use crate::config::BalancerConfig;
 use crate::connection::BALANCER_ID;
-use crate::monolith::BalancerMonolith;
+use crate::monolith::MonolithProxyTarget;
 
 static NOTFOUND: &[u8] = b"Not Found";
 
@@ -93,7 +96,7 @@ impl Service<Request<IncomingBody>> for BalancerService {
         let handler = **route.handler();
         tracing::Span::current().record("handler", handler);
         match handler {
-            "status" | "health" | "metrics" => debug!("inbound request"),
+            "status" | "health" | "metrics" => trace!("inbound request"),
             _ => info!("inbound request"),
         }
 
@@ -203,13 +206,34 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         };
                     }
 
-                    let ctx_read = ctx.read().await;
-                    if ctx_read.monoliths.is_empty() {
-                        debug!(message = "no monoliths", request_id, room = %room_name);
-                        return Ok(no_monoliths());
-                    }
+                    let selected_monolith = {
+                        let ctx_read = ctx.read().await;
+                        if ctx_read.monoliths.is_empty() {
+                            None
+                        } else if let Some(locator) = ctx_read.rooms_to_monoliths.get(&room_name) {
+                            info!(
+                                "found room {} in monolith {}",
+                                room_name,
+                                locator.monolith_id()
+                            );
+                            ctx_read
+                                .monoliths
+                                .get(&locator.monolith_id())
+                                .map(|monolith| monolith.proxy_target())
+                        } else {
+                            ctx_read
+                                .select_monolith(&room_name)
+                                .ok()
+                                .map(|monolith| monolith.proxy_target())
+                        }
+                    };
 
                     if is_websocket_upgrade(&req) {
+                        let ctx_read = ctx.read().await;
+                        if ctx_read.monoliths.is_empty() {
+                            debug!(message = "no monoliths", request_id, room = %room_name);
+                            return Ok(no_monoliths());
+                        }
                         debug!(message = "upgrading to websocket", request_id, room = %room_name);
                         let (response, websocket) = match upgrade(req, None) {
                             Ok((response, websocket)) => (response, websocket),
@@ -243,36 +267,32 @@ impl Service<Request<IncomingBody>> for BalancerService {
 
                         // Return the response so the spawned future can continue.
                         Ok(response)
-                    } else {
-                        let monolith =
-                            if let Some(locator) = ctx_read.rooms_to_monoliths.get(&room_name) {
-                                info!(
-                                    "found room {} in monolith {}",
-                                    room_name,
-                                    locator.monolith_id()
-                                );
-                                ctx_read.monoliths.get(&locator.monolith_id())
-                            } else {
-                                ctx_read.select_monolith(&room_name).ok()
-                            };
-                        if let Some(monolith) = monolith {
-                            info!("proxying request to monolith {}", monolith.id());
-                            debug!(event = "proxy", balancer_id = %*BALANCER_ID,  direction = "tx", room = %room_name, node_id = %monolith.id());
-                            match proxy_request(req, monolith).await {
-                                Ok(res) => Ok(res),
-                                Err(err) => {
-                                    error!("error proxying request: {}", err);
-                                    mk_response("error proxying request".to_owned())
-                                }
+                    } else if let Some(monolith) = selected_monolith {
+                        info!("proxying request to monolith {}", monolith.id());
+                        debug!(event = "proxy", balancer_id = %*BALANCER_ID,  direction = "tx", room = %room_name, node_id = %monolith.id());
+                        match proxy_request(req, monolith).await {
+                            Ok(res) => Ok(res),
+                            Err(err) => {
+                                COUNTER_PROXY_REQUEST_ERRORS
+                                    .with_label_values(&["room"])
+                                    .inc();
+                                error!("error proxying request: {}", err);
+                                mk_response("error proxying request".to_owned())
                             }
-                        } else {
-                            Ok(no_monoliths())
                         }
+                    } else {
+                        debug!(message = "no monoliths", request_id, room = %room_name);
+                        Ok(no_monoliths())
                     }
                 }
                 "other" => {
-                    let ctx_read = ctx.read().await;
-                    let monolith = ctx_read.random_monolith().ok();
+                    let monolith = {
+                        let ctx_read = ctx.read().await;
+                        ctx_read
+                            .random_monolith()
+                            .ok()
+                            .map(|monolith| monolith.proxy_target())
+                    };
                     if let Some(monolith) = monolith {
                         info!(
                             message = "proxying request to monolith",
@@ -282,6 +302,9 @@ impl Service<Request<IncomingBody>> for BalancerService {
                         match proxy_request(req, monolith).await {
                             Ok(res) => Ok(res),
                             Err(err) => {
+                                COUNTER_PROXY_REQUEST_ERRORS
+                                    .with_label_values(&["other"])
+                                    .inc();
                                 error!("error proxying request: {}", err);
                                 mk_response("error proxying request".to_owned())
                             }
@@ -323,34 +346,44 @@ fn no_monoliths() -> Response<Full<Bytes>> {
 
 async fn proxy_request(
     in_req: Request<IncomingBody>,
-    target: &BalancerMonolith,
+    target: MonolithProxyTarget,
 ) -> anyhow::Result<Response<Full<Bytes>>> {
-    let client = target.http_client();
-    let (parts, body) = in_req.into_parts();
-    let mut url: Url = target.config().uri().clone();
-    url.set_scheme("http").expect("failed to set scheme");
-    url.set_port(Some(target.proxy_port()))
-        .expect("failed to set port");
-    url.set_path(parts.uri.path());
-    url.set_query(parts.uri.query());
-    // TODO: update X-Forwarded-For header
-    // TODO: stream the body instead of loading it all into memory?
+    let request_timer = HISTOGRAM_PROXY_REQUEST_SECONDS
+        .with_label_values(&[&target.id().to_string()])
+        .start_timer();
+    GAUGE_PROXY_REQUESTS_IN_FLIGHT.inc();
+    let response = async {
+        let client = target.http_client();
+        let (parts, body) = in_req.into_parts();
+        let mut url: Url = target.config().uri().clone();
+        url.set_scheme("http").expect("failed to set scheme");
+        url.set_port(Some(target.proxy_port()))
+            .expect("failed to set port");
+        url.set_path(parts.uri.path());
+        url.set_query(parts.uri.query());
+        // TODO: update X-Forwarded-For header
+        // TODO: stream the body instead of loading it all into memory?
 
-    let body: Bytes = body.collect().await?.to_bytes();
-    let out_body: reqwest::Body = reqwest::Body::from(body);
-    let req = client
-        .request(parts.method, url)
-        .headers(parts.headers)
-        .body(out_body)
-        .build()?;
-    let res = client.execute(req).await?;
-    let status = res.status();
-    let mut builder = Response::builder().status(status);
-    for (k, v) in res.headers().iter() {
-        builder = builder.header(k, v);
+        let body: Bytes = body.collect().await?.to_bytes();
+        let out_body: reqwest::Body = reqwest::Body::from(body);
+        let req = client
+            .request(parts.method, url)
+            .headers(parts.headers)
+            .body(out_body)
+            .build()?;
+        let res = client.execute(req).await?;
+        let status = res.status();
+        let mut builder = Response::builder().status(status);
+        for (k, v) in res.headers().iter() {
+            builder = builder.header(k, v);
+        }
+        let body = res.bytes().await?;
+        Ok::<_, anyhow::Error>(builder.body(Full::new(body)).unwrap())
     }
-    let body = res.bytes().await?;
-    Ok(builder.body(Full::new(body)).unwrap())
+    .await;
+    request_timer.observe_duration();
+    GAUGE_PROXY_REQUESTS_IN_FLIGHT.dec();
+    response
 }
 
 #[derive(serde::Serialize)]
@@ -422,6 +455,32 @@ static GAUGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
 
 static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
     register_int_gauge!("balancer_http_requests", "Number of HTTP requests received").unwrap()
+});
+
+static COUNTER_PROXY_REQUEST_ERRORS: Lazy<IntCounterVec> = Lazy::new(|| {
+    register_int_counter_vec!(
+        "balancer_proxy_request_errors_total",
+        "Count of proxy request failures",
+        &["route"]
+    )
+    .unwrap()
+});
+
+static GAUGE_PROXY_REQUESTS_IN_FLIGHT: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!(
+        "balancer_proxy_requests_in_flight",
+        "Number of proxied requests currently in flight"
+    )
+    .unwrap()
+});
+
+static HISTOGRAM_PROXY_REQUEST_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "balancer_proxy_request_seconds",
+        "Proxy request latency in seconds",
+        &["monolith_id"]
+    )
+    .unwrap()
 });
 
 #[cfg(test)]
