@@ -2,7 +2,10 @@ use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use once_cell::sync::Lazy;
-use prometheus::{register_int_counter_vec, IntCounterVec};
+use prometheus::{
+    register_histogram, register_int_counter, register_int_counter_vec, Histogram, IntCounter,
+    IntCounterVec,
+};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::sync::broadcast::error::{RecvError, TryRecvError};
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
@@ -16,6 +19,30 @@ use crate::messages::*;
 use crate::{balancer::BalancerLink, connection::BALANCER_ID};
 use ott_balancer_protocol::{client::*, *};
 use ott_common::websocket::HyperWebsocket;
+
+#[derive(Clone, Debug)]
+pub struct ClientSendHandle {
+    client_id: ClientId,
+    unicast_tx: tokio::sync::mpsc::Sender<SocketMessage>,
+}
+
+impl ClientSendHandle {
+    pub fn client_id(&self) -> ClientId {
+        self.client_id
+    }
+
+    pub async fn send(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
+        let timer = HISTOGRAM_CLIENT_SEND_SECONDS.start_timer();
+        let result = self.unicast_tx.send(msg.into()).await;
+        timer.observe_duration();
+        if result.is_err() {
+            COUNTER_CLIENT_SEND_ERRORS.inc();
+        }
+        result?;
+
+        Ok(())
+    }
+}
 
 pub struct UnauthorizedClient {
     pub id: ClientId,
@@ -138,9 +165,14 @@ impl BalancerClient {
     }
 
     pub async fn send(&self, msg: impl Into<SocketMessage>) -> anyhow::Result<()> {
-        self.unicast_tx.send(msg.into()).await?;
+        self.send_handle().send(msg).await
+    }
 
-        Ok(())
+    pub fn send_handle(&self) -> ClientSendHandle {
+        ClientSendHandle {
+            client_id: self.id,
+            unicast_tx: self.unicast_tx.clone(),
+        }
     }
 }
 
@@ -363,6 +395,22 @@ static COUNTER_WS_CLOSE_CODES: Lazy<IntCounterVec> = Lazy::new(|| {
         "balancer_client_websocket_close_codes",
         "Count of client websocket close codes",
         &["code"]
+    )
+    .unwrap()
+});
+
+static COUNTER_CLIENT_SEND_ERRORS: Lazy<IntCounter> = Lazy::new(|| {
+    register_int_counter!(
+        "balancer_client_send_errors_total",
+        "Count of balancer-to-client send errors"
+    )
+    .unwrap()
+});
+
+static HISTOGRAM_CLIENT_SEND_SECONDS: Lazy<Histogram> = Lazy::new(|| {
+    register_histogram!(
+        "balancer_client_send_seconds",
+        "Balancer-to-client send latency in seconds"
     )
     .unwrap()
 });
