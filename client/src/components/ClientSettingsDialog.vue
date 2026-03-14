@@ -37,6 +37,20 @@
 					v-model="settings.sfxEnabled"
 				/>
 				<v-slider
+					:label="$t('client-settings.audio-boost')"
+					:hint="audioBoostHint"
+					:disabled="isAudioBoostUnsupported"
+					persistent-hint
+					v-model="settings.audioBoost"
+					min="100"
+					max="300"
+					step="1"
+				>
+					<template #append>
+						<span class="audio-boost-value">{{ settings.audioBoost }}%</span>
+					</template>
+				</v-slider>
+				<v-slider
 					:label="$t('client-settings.sfx-volume')"
 					v-model="settings.sfxVolume"
 					v-if="settings.sfxEnabled"
@@ -80,15 +94,17 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
-import { type Ref, ref, watch } from "vue";
-import { useStore } from "@/store";
-import { type SettingsState, RoomLayoutMode, Theme } from "@/stores/settings";
+import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
 import _ from "lodash";
+import { ALL_SKIP_CATEGORIES } from "ott-common";
+import { computed, type Ref, ref, watch } from "vue";
+import type { MediaPlayer, MediaPlayerWithAudioBoost } from "@/components/composables";
+import { useMediaPlayer } from "@/components/composables";
 import { useSfx } from "@/plugins/sfx";
+import { useStore } from "@/store";
+import { RoomLayoutMode, type SettingsState, Theme } from "@/stores/settings";
 import { enumKeys } from "@/util/misc";
 import AutoSkipSegmentSettings from "./AutoSkipSegmentSettings.vue";
-import { ALL_SKIP_CATEGORIES } from "ott-common";
 
 type ExcludedFields = "volume" | "locale";
 type ExposedSettings = Omit<SettingsState, ExcludedFields>;
@@ -96,6 +112,7 @@ const EXCLUDED: ExcludedFields[] = ["volume", "locale"];
 
 const show = ref(false);
 const store = useStore();
+const controls = useMediaPlayer();
 const settings: Ref<ExposedSettings> = ref(loadSettings());
 const sfx = useSfx();
 
@@ -122,6 +139,10 @@ function applySettings() {
 	show.value = false;
 }
 
+function implementsAudioBoost(player: MediaPlayer | null): player is MediaPlayerWithAudioBoost {
+	return !!player && "setAudioBoost" in player;
+}
+
 function cancelSettings() {
 	show.value = false;
 }
@@ -139,4 +160,25 @@ store.subscribe(mutation => {
 
 const layouts = enumKeys(RoomLayoutMode);
 const themes = enumKeys(Theme);
+const isAudioBoostUnsupported = computed(() => {
+	if (!controls.checkForPlayer(controls.player.value)) {
+		return false;
+	}
+
+	return !implementsAudioBoost(controls.player.value);
+});
+const audioBoostHint = computed(() => {
+	if (isAudioBoostUnsupported.value) {
+		return $t("client-settings.audio-boost-unsupported");
+	}
+
+	return $t("client-settings.audio-boost-hint");
+});
 </script>
+
+<style scoped>
+.audio-boost-value {
+	min-width: 3.5rem;
+	text-align: right;
+}
+</style>
