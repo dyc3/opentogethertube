@@ -3,15 +3,110 @@ use std::sync::Arc;
 use std::{collections::HashMap, time::Duration};
 
 use anyhow::bail;
+use once_cell::sync::Lazy;
 use ott_balancer_protocol::monolith::*;
 use ott_balancer_protocol::*;
 use ott_common::discovery::ConnectionConfig;
+use prometheus::{register_histogram_vec, register_int_counter_vec, HistogramVec, IntCounterVec};
 use thiserror::Error;
 use tokio::sync::mpsc::error::SendTimeoutError;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::{debug, error, info, instrument, warn};
 
 use crate::messages::*;
+
+#[derive(Clone, Debug)]
+pub struct MonolithSendHandle {
+    monolith_id: MonolithId,
+    monolith_outbound_tx: Arc<tokio::sync::mpsc::Sender<SocketMessage>>,
+}
+
+impl MonolithSendHandle {
+    pub fn monolith_id(&self) -> MonolithId {
+        self.monolith_id
+    }
+
+    pub async fn send(&self, msg: impl Into<MsgB2M>) -> Result<(), MonolithSendError> {
+        let timer = HISTOGRAM_MONOLITH_SEND_SECONDS
+            .with_label_values(&[&self.monolith_id.to_string()])
+            .start_timer();
+        let text = serde_json::to_string(&msg.into()).map_err(MonolithSendError::SerdeError)?;
+        let socket_msg = Message::Text(text).into();
+        if self.monolith_outbound_tx.capacity() == 0 {
+            COUNTER_MONOLITH_OUTBOUND_FULL
+                .with_label_values(&[&self.monolith_id.to_string()])
+                .inc();
+            warn!(monolith_id = %self.monolith_id, "Monolith outbound tx is full");
+        }
+        let result = self
+            .monolith_outbound_tx
+            .send_timeout(socket_msg, Duration::from_secs(1))
+            .await
+            .map_err(MonolithSendError::SendTimeoutError);
+        timer.observe_duration();
+        if result.is_err() {
+            COUNTER_MONOLITH_SEND_ERRORS
+                .with_label_values(&[&self.monolith_id.to_string()])
+                .inc();
+        }
+        result?;
+
+        Ok(())
+    }
+}
+
+static COUNTER_MONOLITH_OUTBOUND_FULL: Lazy<IntCounterVec> = Lazy::new(|| {
+    register_int_counter_vec!(
+        "balancer_monolith_outbound_full_total",
+        "Count of times a monolith outbound channel was already full",
+        &["monolith_id"]
+    )
+    .unwrap()
+});
+
+static COUNTER_MONOLITH_SEND_ERRORS: Lazy<IntCounterVec> = Lazy::new(|| {
+    register_int_counter_vec!(
+        "balancer_monolith_send_errors_total",
+        "Count of monolith send errors",
+        &["monolith_id"]
+    )
+    .unwrap()
+});
+
+static HISTOGRAM_MONOLITH_SEND_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
+    register_histogram_vec!(
+        "balancer_monolith_send_seconds",
+        "Monolith send latency in seconds",
+        &["monolith_id"]
+    )
+    .unwrap()
+});
+
+#[derive(Clone, Debug)]
+pub struct MonolithProxyTarget {
+    id: MonolithId,
+    config: ConnectionConfig,
+    proxy_port: u16,
+    http_client: reqwest::Client,
+}
+
+impl MonolithProxyTarget {
+    pub fn id(&self) -> MonolithId {
+        self.id
+    }
+
+    pub fn config(&self) -> &ConnectionConfig {
+        &self.config
+    }
+
+    pub fn proxy_port(&self) -> u16 {
+        self.proxy_port
+    }
+
+    pub fn http_client(&self) -> &reqwest::Client {
+        &self.http_client
+    }
+}
 
 /// A Monolith refers to the NodeJS server that manages rooms and performs all business logic.
 #[derive(Debug)]
@@ -74,6 +169,22 @@ impl BalancerMonolith {
         &self.http_client
     }
 
+    pub fn send_handle(&self) -> MonolithSendHandle {
+        MonolithSendHandle {
+            monolith_id: self.id,
+            monolith_outbound_tx: self.monolith_outbound_tx.clone(),
+        }
+    }
+
+    pub fn proxy_target(&self) -> MonolithProxyTarget {
+        MonolithProxyTarget {
+            id: self.id,
+            config: self.config.clone(),
+            proxy_port: self.proxy_port,
+            http_client: self.http_client.clone(),
+        }
+    }
+
     pub fn add_room(&mut self, room_name: &RoomName) -> anyhow::Result<&mut Room> {
         if self.rooms.contains_key(room_name) {
             error!("Monolith already has room {}", room_name);
@@ -110,17 +221,7 @@ impl BalancerMonolith {
     }
 
     pub async fn send(&self, msg: impl Into<MsgB2M>) -> Result<(), MonolithSendError> {
-        let text = serde_json::to_string(&msg.into()).map_err(MonolithSendError::SerdeError)?;
-        let socket_msg = Message::Text(text).into();
-        if self.monolith_outbound_tx.capacity() == 0 {
-            warn!("Monolith outbound tx is full");
-        }
-        self.monolith_outbound_tx
-            .send_timeout(socket_msg, Duration::from_secs(1))
-            .await
-            .map_err(MonolithSendError::SendTimeoutError)?;
-
-        Ok(())
+        self.send_handle().send(msg).await
     }
 
     pub fn set_room_metadata(&mut self, metadata: RoomMetadata) {
