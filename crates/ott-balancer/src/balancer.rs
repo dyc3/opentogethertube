@@ -22,6 +22,7 @@ use crate::connection::BALANCER_ID;
 use crate::monolith::{MonolithSendError, Room};
 use crate::room::RoomLocator;
 use crate::selection::{MonolithSelection, MonolithSelectionStrategy};
+use crate::service::set_connected_monolith_metrics;
 use crate::{
     client::{BalancerClient, NewClient},
     messages::*,
@@ -296,6 +297,8 @@ impl BalancerContext {
 
         self.clients
             .retain(|_, v| self.rooms_to_monoliths.contains_key(&v.room));
+
+        set_connected_monolith_metrics(self.monoliths.len());
 
         Ok(())
     }

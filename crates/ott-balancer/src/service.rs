@@ -434,6 +434,23 @@ fn gather_metrics() -> anyhow::Result<Bytes> {
     Ok(Bytes::from(buffer))
 }
 
+fn update_health_gauge() {
+    let healthy = GAUGE_DISCOVERY_COMPLETED.get() != 0
+        && GAUGE_DISCOVERED_MONOLITHS.get() == GAUGE_CONNECTED_MONOLITHS.get();
+    GAUGE_HEALTHY.set(if healthy { 1 } else { 0 });
+}
+
+pub(crate) fn set_discovery_metrics(discovered_monolith_count: usize) {
+    GAUGE_DISCOVERY_COMPLETED.set(1);
+    GAUGE_DISCOVERED_MONOLITHS.set(discovered_monolith_count as i64);
+    update_health_gauge();
+}
+
+pub(crate) fn set_connected_monolith_metrics(connected_monolith_count: usize) {
+    GAUGE_CONNECTED_MONOLITHS.set(connected_monolith_count as i64);
+    update_health_gauge();
+}
+
 fn is_authorized<B>(req: &Request<B>) -> bool {
     if let Some(api_key) = BalancerConfig::get().api_key.as_ref() {
         let headers = req.headers();
@@ -451,6 +468,38 @@ fn is_authorized<B>(req: &Request<B>) -> bool {
 
 static GAUGE_CLIENTS: Lazy<IntGauge> = Lazy::new(|| {
     register_int_gauge!("balancer_clients", "Number of connected websocket clients").unwrap()
+});
+
+pub(crate) static GAUGE_DISCOVERY_COMPLETED: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!(
+        "balancer_discovery_completed",
+        "Whether the balancer has completed at least one discovery cycle"
+    )
+    .unwrap()
+});
+
+pub(crate) static GAUGE_DISCOVERED_MONOLITHS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!(
+        "balancer_discovered_monoliths",
+        "Number of monoliths currently discovered"
+    )
+    .unwrap()
+});
+
+pub(crate) static GAUGE_CONNECTED_MONOLITHS: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!(
+        "balancer_connected_monoliths",
+        "Number of monoliths currently connected to the balancer"
+    )
+    .unwrap()
+});
+
+pub(crate) static GAUGE_HEALTHY: Lazy<IntGauge> = Lazy::new(|| {
+    register_int_gauge!(
+        "balancer_readiness_healthy",
+        "Whether the balancer readiness check is currently healthy"
+    )
+    .unwrap()
 });
 
 static COUNTER_HTTP_REQUESTS: Lazy<IntGauge> = Lazy::new(|| {
@@ -486,6 +535,13 @@ static HISTOGRAM_PROXY_REQUEST_SECONDS: Lazy<HistogramVec> = Lazy::new(|| {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn reset_readiness_metrics() {
+        GAUGE_DISCOVERY_COMPLETED.set(0);
+        GAUGE_DISCOVERED_MONOLITHS.set(0);
+        GAUGE_CONNECTED_MONOLITHS.set(0);
+        GAUGE_HEALTHY.set(0);
+    }
 
     #[test]
     fn route_rules_status() {
@@ -602,5 +658,33 @@ mod test {
             .unwrap();
 
         assert!(!is_authorized(&req));
+    }
+
+    #[test]
+    fn readiness_metrics_unhealthy_before_discovery() {
+        reset_readiness_metrics();
+
+        assert_eq!(GAUGE_HEALTHY.get(), 0);
+    }
+
+    #[test]
+    fn readiness_metrics_healthy_when_counts_match() {
+        reset_readiness_metrics();
+        set_connected_monolith_metrics(0);
+        set_discovery_metrics(0);
+        assert_eq!(GAUGE_HEALTHY.get(), 1);
+
+        set_connected_monolith_metrics(2);
+        set_discovery_metrics(2);
+        assert_eq!(GAUGE_HEALTHY.get(), 1);
+    }
+
+    #[test]
+    fn readiness_metrics_unhealthy_when_counts_do_not_match() {
+        reset_readiness_metrics();
+        set_discovery_metrics(2);
+        set_connected_monolith_metrics(1);
+
+        assert_eq!(GAUGE_HEALTHY.get(), 0);
     }
 }
