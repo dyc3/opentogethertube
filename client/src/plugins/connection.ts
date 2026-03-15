@@ -54,6 +54,16 @@ export interface ConnectionEventKicked {
 	reason: OttWebsocketError;
 }
 
+function getReconnectDelayMs(
+	reconnectAttempts: number,
+	reconnectDelay: number,
+	reconnectDelayIncrease: number,
+	randomValue = Math.random()
+) {
+	const baseDelay = reconnectDelay + reconnectDelayIncrease * reconnectAttempts;
+	return Math.round(baseDelay * (0.5 + randomValue));
+}
+
 class OttRoomConnectionReal implements OttRoomConnection {
 	/**
 	 * Indicates if the client is actively attempting to maintain a connection. Not an indication of whether the connection is connected, see `connected`.
@@ -65,15 +75,13 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	roomName = ref("");
 	reconnectAttempts = ref(0);
 	reconnectDelay = 1000;
-	reconnectDelayIncrease = 1000;
+	reconnectDelayIncrease = 2000;
 	kickReason: Ref<OttWebsocketError | null> = ref(null);
 
 	private socket: WebSocket | null = null;
 	private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 	private messageHandlers = new Map<ServerMessageActionType, ((msg: ServerMessage) => void)[]>();
 	private eventHandlers = new Map<ConnectionEventKind, ((e: unknown) => void)[]>();
-
-	constructor() {}
 
 	get connectionUrl() {
 		return `${window.location.protocol.startsWith("https") ? "wss" : "ws"}://${
@@ -162,11 +170,16 @@ class OttRoomConnectionReal implements OttRoomConnection {
 			this.active.value = false;
 		} else if (this.active.value) {
 			this.reconnecting.value = true;
-			this.reconnectTimeout = setTimeout(
-				() => this.reconnect(),
-				this.reconnectDelay + this.reconnectDelayIncrease * this.reconnectAttempts.value
-			);
+			this.reconnectTimeout = setTimeout(() => this.reconnect(), this.getReconnectDelay());
 		}
+	}
+
+	private getReconnectDelay() {
+		return getReconnectDelayMs(
+			this.reconnectAttempts.value,
+			this.reconnectDelay,
+			this.reconnectDelayIncrease
+		);
 	}
 
 	private onMessage(e: { data: string | unknown }) {
