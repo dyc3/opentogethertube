@@ -171,7 +171,8 @@ jobs:
   deploy-fly-staging-balancer:
     runs-on: ubuntu-latest
     name: Deploy Balancer on fly.io (staging)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: false # temporarily disable balancer deploys because bugs
     needs: [test, lint, deploy-fly-staging-monolith]
     steps:
       - uses: actions/checkout@v4
@@ -194,7 +195,8 @@ jobs:
   deploy-fly-prod-balancer:
     runs-on: ubuntu-latest
     name: Deploy Balancer on fly.io (prod)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: false # temporarily disable balancer deploys because bugs
     needs: [test, lint, deploy-fly-prod-monolith]
     steps:
       - uses: actions/checkout@v4

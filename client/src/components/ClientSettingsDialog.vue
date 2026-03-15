@@ -98,6 +98,7 @@ import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
 import _ from "lodash";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
 import { computed, type Ref, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type { MediaPlayer, MediaPlayerWithAudioBoost } from "@/components/composables";
 import { useMediaPlayer } from "@/components/composables";
 import { useSfx } from "@/plugins/sfx";
@@ -113,6 +114,7 @@ const EXCLUDED: ExcludedFields[] = ["volume", "locale"];
 const show = ref(false);
 const store = useStore();
 const controls = useMediaPlayer();
+const { t } = useI18n();
 const settings: Ref<ExposedSettings> = ref(loadSettings());
 const sfx = useSfx();
 
@@ -169,10 +171,10 @@ const isAudioBoostUnsupported = computed(() => {
 });
 const audioBoostHint = computed(() => {
 	if (isAudioBoostUnsupported.value) {
-		return $t("client-settings.audio-boost-unsupported");
+		return t("client-settings.audio-boost-unsupported");
 	}
 
-	return $t("client-settings.audio-boost-hint");
+	return t("client-settings.audio-boost-hint");
 });
 </script>
 
