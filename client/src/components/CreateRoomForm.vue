@@ -65,12 +65,13 @@
 				<v-btn
 					variant="text"
 					@click="submit"
-					role="Submit"
+					role="submit"
 					:loading="isSubmitting"
 					:disabled="!isValid"
 					color="primary"
-					>{{ $t("create-room-form.create-room") }}</v-btn
 				>
+					{{ $t("create-room-form.create-room") }}
+				</v-btn>
 				<v-btn variant="text" @click="$emit('cancel')">{{ $t("common.cancel") }}</v-btn>
 			</v-card-actions>
 		</v-form>

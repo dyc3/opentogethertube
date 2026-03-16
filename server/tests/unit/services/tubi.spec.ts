@@ -17,7 +17,7 @@ const seriesLinks = [
 	"https://tubitv.com/series/3321",
 ];
 
-const validLinks = [...seriesLinks].concat(singleVideoLinks.map(([link, id]) => link));
+const validLinks = [...seriesLinks].concat(singleVideoLinks.map(([link, _id]) => link));
 
 const invalidLinks = [
 	"https://tubitv.com",
@@ -49,10 +49,10 @@ describe("Tubi TV", () => {
 			if (!fixtureText) {
 				throw new Error(`Fixture not found for ${id}`);
 			}
-			let data;
+			let data: unknown;
 			try {
 				data = JSON.parse(fixtureText);
-			} catch (e) {
+			} catch {
 				data = fixtureText;
 			}
 			const resp: AxiosResponse = {

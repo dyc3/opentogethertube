@@ -6,6 +6,7 @@ import fs from "node:fs";
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
 
 class FfprobeFixtures extends FfprobeStrategy {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	async getFileInfo(uri: string): Promise<any> {
 		const url = new URL(uri);
 

@@ -5,6 +5,7 @@
 // biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import React from "react";
 
+// biome-ignore lint/suspicious/noExplicitAny: biome migration
 type Callback = (...args: any[]) => void;
 
 export interface StorageItem {

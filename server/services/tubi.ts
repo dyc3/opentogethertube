@@ -5,7 +5,7 @@ import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 
-const log = getLogger("tubi");
+const _log = getLogger("tubi");
 
 interface TubiVideoResponse {
 	id: string;

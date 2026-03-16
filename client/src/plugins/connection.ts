@@ -129,6 +129,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 			throw new Error("send(): connection is not connected");
 		}
 		const text = JSON.stringify(message);
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		this.socket!.send(text);
 	}
 
@@ -137,6 +138,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 			console.log("disconnect(): connection is not active, ignoring");
 			return;
 		}
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		this.socket!.close();
 		this.socket = null;
 		if (this.reconnecting && this.reconnectTimeout) {
@@ -251,7 +253,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 	}
 }
 
-export const OttRoomConnectionPlugin: Plugin = (app: App, options) => {
+export const OttRoomConnectionPlugin: Plugin = (app: App, _options) => {
 	const connection = new OttRoomConnectionReal();
 	app.provide(connectionInjectKey, connection);
 };
@@ -274,9 +276,15 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		this.handleMessage(msg);
 	}
 
-	public connect(roomName: string) {}
-	public reconnect() {}
-	public disconnect() {}
+	public connect(_roomName: string) {
+		throw new Error("not implemented");
+	}
+	public reconnect() {
+		throw new Error("not implemented");
+	}
+	public disconnect() {
+		throw new Error("not implemented");
+	}
 	public send(message: ClientMessage) {
 		this.sent.push(message);
 	}
@@ -317,7 +325,7 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 	}
 }
 
-export const MockOttRoomConnectionPlugin: Plugin = (app: App, options) => {
+export const MockOttRoomConnectionPlugin: Plugin = (app: App, _options) => {
 	const connection = new OttRoomConnectionMock();
 	app.provide(connectionInjectKey, connection);
 };

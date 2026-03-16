@@ -99,7 +99,7 @@ export class RateLimiterRedisv4 extends RateLimiterRedis {
 	_getRateLimiterRes(_key, changedPoints, result) {
 		const [consumed, resTtlMs] = result;
 
-		const consumedPoints = parseInt(consumed);
+		const consumedPoints = parseInt(consumed, 10);
 		const isFirstInDuration = consumedPoints === changedPoints;
 		const remainingPoints = Math.max(this.points - consumedPoints, 0);
 		const msBeforeNext = resTtlMs;

@@ -4,9 +4,7 @@
 		"target": "es2018",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": [
-				"src/*"
-			],
+			"@/*": ["src/*"]
 		},
 		"jsx": "preserve"
 	},

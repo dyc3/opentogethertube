@@ -13,6 +13,7 @@ export function useColorProvider(): ColorProvider {
 		if (!colorAssignments.has(thing)) {
 			setColorAssignments(new Map(colorAssignments.set(thing, color(thing))));
 		}
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		return colorAssignments.get(thing)!;
 	}
 

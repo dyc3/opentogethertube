@@ -2,6 +2,7 @@ import { type Ref, ref, type ComputedRef } from "vue";
 
 export function useCopyFromTextbox(
 	text: Ref<string> | ComputedRef<string>,
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	textboxComponent: Ref<any>
 ) {
 	let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;

@@ -38,14 +38,14 @@ export class ServiceAdapter {
 	/**
 	 * Returns true if this service adapter can handle a given link.
 	 */
-	canHandleURL(link: string): boolean {
+	canHandleURL(_link: string): boolean {
 		return false;
 	}
 
 	/**
 	 * Determines whether a given URL points to a collection of videos.
 	 */
-	isCollectionURL(url: string): boolean {
+	isCollectionURL(_url: string): boolean {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method isCollectionURL`
 		);
@@ -54,7 +54,7 @@ export class ServiceAdapter {
 	/**
 	 * Returns the video ID from a URL.
 	 */
-	getVideoId(url: string): string {
+	getVideoId(_url: string): string {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method getVideoId`
 		);
@@ -63,7 +63,7 @@ export class ServiceAdapter {
 	/**
 	 * Fetches video metadata from the API.
 	 */
-	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(_id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method fetchVideoInfo`
 		);
@@ -91,8 +91,8 @@ export class ServiceAdapter {
 	 * Fetches all videos associated with a URL.
 	 */
 	async resolveURL(
-		url: string,
-		properties?: (keyof VideoMetadata)[]
+		_url: string,
+		_properties?: (keyof VideoMetadata)[]
 	): Promise<(Video | { url: string })[] | BulkVideoResult> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method resolveURL`
@@ -101,9 +101,8 @@ export class ServiceAdapter {
 
 	/**
 	 * Searches a video service.
-	 * @param {string} query
 	 */
-	async searchVideos(query: string): Promise<Video[]> {
+	async searchVideos(_query: string): Promise<Video[]> {
 		return [];
 	}
 

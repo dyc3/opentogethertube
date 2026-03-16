@@ -82,7 +82,9 @@ export function buildNewStore() {
 			},
 		},
 		actions: {
-			chat() {},
+			chat() {
+				// no-op
+			},
 			announcement(_context, message) {
 				this.commit("toast/ADD_TOAST", {
 					style: ToastStyle.Important,

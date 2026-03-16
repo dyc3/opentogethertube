@@ -66,6 +66,7 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 		sync(context, message: ServerMessageSync) {
 			const stateupdate: Partial<RoomState> = {
 				..._.omit(message, ["action", "grants", "voteCounts", "votesToSkip"]),
+				// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			} as any;
 			if (
 				message.isPlaying !== undefined &&

@@ -23,7 +23,7 @@ export default class DashVideoAdapter extends ServiceAdapter {
 		return false;
 	}
 
-	isCollectionURL(link: string): boolean {
+	isCollectionURL(_link: string): boolean {
 		return false;
 	}
 
@@ -59,11 +59,13 @@ export default class DashVideoAdapter extends ServiceAdapter {
 		return this.parseMpdManifest(url, manifest);
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	parseMpdManifest(url: URL.UrlWithStringQuery, manifest: any): Video {
 		// docs for how the parser works: https://github.com/liveinstantly/dash-mpd-parser
 
 		log.debug(JSON.stringify(manifest));
 
+		// biome-ignore lint/complexity/useLiteralKeys: biome migration
 		const durationRaw: string = manifest["MPD"]["@mediaPresentationDuration"];
 		if (!durationRaw) {
 			throw new UnsupportedVideoType("livestream");
@@ -88,19 +90,25 @@ export default class DashVideoAdapter extends ServiceAdapter {
 	 *
 	 * Video metadata is not always available in the manifest, and it's not standardized, so this method will probably usually fail.
 	 */
+
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	extractTitle(manifest: any): string | undefined {
 		try {
+			// biome-ignore lint/complexity/useLiteralKeys: biome migration
 			if ("ProgramInformation" in manifest["MPD"]) {
 				return manifest?.MPD?.ProgramInformation?.Title;
 			}
 
 			const periods = manifest?.MPD?.Period;
 			for (const period of periods) {
+				// biome-ignore lint/complexity/useLiteralKeys: biome migration
 				const adaptationSets = period["AdaptationSet"];
 				for (const adaptationSet of adaptationSets) {
+					// biome-ignore lint/complexity/useLiteralKeys: biome migration
 					const representations = adaptationSet["Representation"];
 					for (const representation of representations) {
 						if ("Title" in representation) {
+							// biome-ignore lint/complexity/useLiteralKeys: biome migration
 							return representation["Title"];
 						}
 					}

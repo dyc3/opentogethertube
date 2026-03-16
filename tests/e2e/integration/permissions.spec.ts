@@ -1,8 +1,10 @@
 import faker from "faker";
+// biome-ignore lint/style/noCommonJs: biome migration
 const uuid = require("uuid");
 
 describe("promotion and demotion", () => {
 	let roomName = "";
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let userCreds;
 	const roles = [
 		{

@@ -13,7 +13,7 @@ const log = getLogger("api/announce");
 const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = async (
 	req,
 	res,
-	next
+	_next
 ) => {
 	if (req.get("apikey")) {
 		if (req.get("apikey") !== conf.get("api_key")) {

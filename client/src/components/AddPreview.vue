@@ -80,7 +80,7 @@
 			</div>
 			<v-container
 				v-if="
-					videos.length == 0 &&
+					videos.length === 0 &&
 					inputAddPreview.length > 0 &&
 					!hasAddPreviewFailed &&
 					!isAddPreviewInputUrl
@@ -246,7 +246,7 @@ const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 });

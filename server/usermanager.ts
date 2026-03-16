@@ -53,7 +53,9 @@ export type UserManagerEventHandlers<E> = E extends "userModified"
 	: never;
 const bus = new EventEmitter();
 
+// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 let maxWrongAttemptsByIPperDay;
+// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 let maxConsecutiveFailsByUsernameAndIP;
 let limiterSlowBruteByIP: RateLimiterAbstract;
 let limiterConsecutiveFailsByUsernameAndIP: RateLimiterAbstract;
@@ -198,12 +200,14 @@ router.post("/", nocache(), async (req, res) => {
 		}
 		oldUsername = req.ottsession.username;
 		req.ottsession.username = req.body.username;
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		await tokens.setSessionInfo(req.token!, req.ottsession);
 		res.json({
 			success: true,
 		});
 	}
 	log.info(`${oldUsername} changed username to ${req.body.username}`);
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	onUserModified(req.token!);
 });
 
@@ -267,8 +271,10 @@ router.post("/login", async (req, res, next) => {
 					return;
 				}
 				req.ottsession = { isLoggedIn: true, user_id: user.id };
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				await tokens.setSessionInfo(req.token!, req.ottsession);
 				try {
+					// biome-ignore lint/style/noNonNullAssertion: biome migration
 					onUserLogIn(user, req.token!);
 				} catch (err) {
 					log.error(
@@ -300,7 +306,9 @@ router.post("/logout", async (req, res) => {
 				return;
 			}
 			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			await tokens.setSessionInfo(req.token!, req.ottsession);
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			onUserLogOut(user, req.token!);
 			res.json({
 				success: true,
@@ -325,8 +333,10 @@ router.post("/register", async (req, res) => {
 		log.info(`User registered: ${result.id}`);
 		req.login(result, async () => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			await tokens.setSessionInfo(req.token!, req.ottsession);
 			try {
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				onUserLogIn(result, req.token!);
 			} catch (err) {
 				log.error(
@@ -502,7 +512,7 @@ async function authCallback(emailOrUser: string, password: string, done) {
 	}
 }
 
-async function authCallbackDiscord(req, accessToken, refreshToken, profile, done) {
+async function authCallbackDiscord(req, _accessToken, _refreshToken, profile, done) {
 	if (req.user) {
 		log.info(`${req.user.username} already logged in, linking discord account...`);
 		try {
@@ -517,7 +527,7 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 		if (user) {
 			return done(null, user);
 		}
-	} catch (e) {
+	} catch {
 		log.warn("Couldn't find existing user for discord profile, making a new one...");
 		try {
 			let username = buildUsernameFromDiscordProfile(profile);
@@ -581,7 +591,7 @@ async function deserializeUser(id: number, done) {
 /**
  * Middleware to handle errors in serialize and deserialize callbacks
  */
-function passportErrorHandler(err, req: express.Request, res: express.Response, next) {
+function passportErrorHandler(err, req: express.Request, _res: express.Response, next) {
 	if (err) {
 		log.error(`Error in middleware ${err}, logging user out.`);
 		req.logout(err => {
@@ -660,7 +670,7 @@ async function connectSocial(user: User, options: { discordId: string }) {
 	try {
 		socialUser = await getUser(options);
 		log.warn("Detected duplicate accounts for social login!");
-	} catch (error) {
+	} catch {
 		log.info("No account merging required.");
 	}
 	if (socialUser) {
@@ -735,14 +745,14 @@ function onUserModified(token: AuthToken) {
 async function isUsernameTaken(username: string): Promise<boolean> {
 	// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 	return await UserModel.findOne({ where: { username } })
-		.then(room => (room ? true : false))
+		.then(user => !!user)
 		.catch(() => false);
 }
 
 async function isEmailTaken(email: string): Promise<boolean> {
 	// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
 	return await UserModel.findOne({ where: { email } })
-		.then(room => (room ? true : false))
+		.then(user => !!user)
 		.catch(() => false);
 }
 
@@ -929,6 +939,7 @@ if (conf.get("env") === "test") {
 		const user = await getUser({ user: "forced@localhost" });
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			await tokens.setSessionInfo(req.token!, req.ottsession);
 			res.json({
 				success: !!err,

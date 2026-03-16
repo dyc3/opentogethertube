@@ -126,7 +126,7 @@
 								{{
 									Array.from(
 										{ length: store.state.playerBufferSpans.length },
-										(v, k) => k++
+										(_v, k) => k++
 									)
 										.map(
 											i =>
@@ -356,7 +356,7 @@ export default defineComponent({
 			const currentTime = player.getPosition();
 
 			const diff = Math.abs(newPosition - (await currentTime));
-			if (isNaN(diff)) {
+			if (Number.isNaN(diff)) {
 				console.error("player diff is NaN, this is a bug", newPosition, currentTime);
 				return;
 			}

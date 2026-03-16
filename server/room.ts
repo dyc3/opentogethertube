@@ -862,6 +862,7 @@ export class Room implements RoomState {
 
 		const state: RoomStateSyncable = this.syncableState();
 		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			storableProps.includes(prop as any)
 		);
 
@@ -1093,6 +1094,7 @@ export class Room implements RoomState {
 		const handler = handlers[request.type];
 		if (handler) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			await this[handler](request as any, context);
 		} else {
 			this.log.error(`No room request handler: ${request.type}`);
@@ -1288,7 +1290,7 @@ export class Room implements RoomState {
 		await this.publishRoomEvent(request, context, { video: removed, queueIdx: matchIdx });
 	}
 
-	public async reorderQueue(request: OrderRequest, context: RoomRequestContext): Promise<void> {
+	public async reorderQueue(request: OrderRequest, _context: RoomRequestContext): Promise<void> {
 		await this.queue.move(request.fromIdx, request.toIdx);
 	}
 
@@ -1337,7 +1339,7 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async updateUser(request: UpdateUser, context: RoomRequestContext): Promise<void> {
+	public async updateUser(request: UpdateUser, _context: RoomRequestContext): Promise<void> {
 		this.log.debug(`User was updated: ${request.info.id} ${JSON.stringify(request.info)}`);
 		for (let i = 0; i < this.realusers.length; i++) {
 			if (this.realusers[i].id === request.info.id) {
@@ -1417,6 +1419,7 @@ export class Room implements RoomState {
 		}
 		const key = request.video.service + request.video.id;
 		if (this.votes.has(key)) {
+			// biome-ignore lint/style/noNonNullAssertion: biome migration
 			const votes = this.votes.get(key)!;
 			if (request.add) {
 				votes.add(context.clientId);
@@ -1463,6 +1466,7 @@ export class Room implements RoomState {
 		}
 		const targetCurrentRole = this.getRole(targetUser);
 		if (request.role < targetCurrentRole) {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let demotePerm;
 			switch (targetCurrentRole) {
 				case Role.Administrator:
@@ -1670,14 +1674,14 @@ export class Room implements RoomState {
 		}
 	}
 
-	public async shuffle(request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
+	public async shuffle(_request: ShuffleRequest, context: RoomRequestContext): Promise<void> {
 		this.grants.check(context.role, "manage-queue.order");
 		await this.queue.shuffle();
 	}
 
 	public async setPlaybackSpeed(
 		request: PlaybackSpeedRequest,
-		context: RoomRequestContext
+		_context: RoomRequestContext
 	): Promise<void> {
 		this.flushPlaybackPosition();
 		this.playbackSpeed = request.speed;

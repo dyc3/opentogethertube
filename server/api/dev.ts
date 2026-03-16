@@ -17,13 +17,14 @@ router.post("/reset-rate-limit", async (req, res) => {
 	res.json({ success: true });
 });
 
-router.post("/reset-rate-limit/user", async (req, res) => {
+router.post("/reset-rate-limit/user", async (_req, res) => {
 	await usermanager.clearAllRateLimiting();
 	log.warn(`Reset all user manager rate limits`);
 	res.json({ success: true });
 });
 
 router.post("/room/:name/add-fake-user", async (req, res) => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let user;
 	const token = await tokens.mint();
 	if (req.body.register) {

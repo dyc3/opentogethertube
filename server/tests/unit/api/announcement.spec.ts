@@ -20,7 +20,9 @@ import type { AuthToken } from "ott-common/models/types.js";
 const TEST_API_KEY = "TESTAPIKEY";
 
 describe("Announcements API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	let publishSpy: MockInstance<any, Promise<number>>;
 	let getSessionInfoSpy: MockInstance<[AuthToken], Promise<SessionInfo>>;
 	let validateSpy: MockInstance<[AuthToken], Promise<boolean>>;

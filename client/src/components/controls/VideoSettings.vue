@@ -188,6 +188,7 @@ const autoQualityDisplay = computed(() => {
 		qualities.videoTracks.value.length > 0 &&
 		qualities.currentActiveQuality.value !== null;
 
+	// biome-ignore lint/style/noNonNullAssertion: biome migration
 	const currentQuality = qualities.videoTracks.value[qualities.currentActiveQuality.value!];
 	return hasActiveQuality ? `Auto (${formatQuality(currentQuality)})` : "Auto";
 });

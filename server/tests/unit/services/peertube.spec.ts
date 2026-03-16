@@ -33,15 +33,15 @@ describe("Peertube", () => {
 
 		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
-			const [host, id] = videoid.split(":");
+			const [_host, id] = videoid.split(":");
 			const fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
 				throw new Error(`Fixture not found for ${id}`);
 			}
-			let data;
+			let data: unknown;
 			try {
 				data = JSON.parse(fixtureText);
-			} catch (e) {
+			} catch {
 				data = fixtureText;
 			}
 			const resp: AxiosResponse = {

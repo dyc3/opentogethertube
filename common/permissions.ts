@@ -221,7 +221,7 @@ function isRoleValid(role: Role) {
 
 function _normalizeRoleId(role: Role | string | number): Role {
 	if (typeof role === "string") {
-		role = parseInt(role);
+		role = parseInt(role, 10);
 	}
 	return role;
 }
@@ -249,6 +249,7 @@ export class Grants {
 	}
 
 	getMask(role: Role): GrantMask {
+		// biome-ignore lint/style/noNonNullAssertion: biome migration
 		return this.masks.get(role)!;
 	}
 
@@ -275,6 +276,7 @@ export class Grants {
 			for (const r in grants) {
 				const role = _normalizeRoleId(r);
 				if (Object.hasOwn(grants, role)) {
+					// biome-ignore lint/style/noNonNullAssertion: biome migration
 					this.setRoleGrants(role, grants[role]!);
 				}
 			}

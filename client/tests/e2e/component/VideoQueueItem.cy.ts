@@ -5,7 +5,7 @@ import { QueueMode } from "ott-common/models/types";
 import _ from "lodash";
 
 describe("<VideoQueueItem />", () => {
-	Cypress.on("uncaught:exception", (err, runnable) => {
+	Cypress.on("uncaught:exception", (_err, _runnable) => {
 		return false;
 	});
 

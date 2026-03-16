@@ -1,0 +1,219 @@
+// This config has already been migrated from prettier and eslint
+{
+	"$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!!server/tests/unit/fixtures",
+			"!!**/coverage",
+			"!!**/dist",
+			"!!**/ts-out",
+			"!!**/benchmarks/**/*.json",
+			"!!**/*.lock",
+			"!!**/*.log",
+			"!!**/*.env",
+			"!server/generated.ts"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 100,
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"expand": "auto",
+		"useEditorconfig": true
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"vue": "all"
+		},
+		"rules": {
+			"recommended": true,
+			"a11y": {
+				"useMediaCaption": "off",
+				"useValidAriaRole": "off"
+			},
+			"complexity": {
+				"noAdjacentSpacesInRegex": "error",
+				"noExtraBooleanCast": "error",
+				"noUselessCatch": "error",
+				"noUselessEscapeInRegex": "error",
+				"useArrowFunction": "error"
+			},
+			"correctness": {
+				"noConstAssign": "error",
+				"noConstantCondition": "error",
+				"noEmptyCharacterClassInRegex": "error",
+				"noEmptyPattern": "error",
+				"noGlobalObjectCalls": "error",
+				"noInnerDeclarations": "error",
+				"noInvalidConstructorSuper": "error",
+				"noNonoctalDecimalEscape": "error",
+				"noPrecisionLoss": "error",
+				"noSelfAssign": "error",
+				"noSetterReturn": "error",
+				"noSwitchDeclarations": "error",
+				"noUndeclaredVariables": "error",
+				"noUnknownPseudoClass": { "level": "warn", "options": { "ignore": ["export"] } },
+				"noUnreachable": "error",
+				"noUnreachableSuper": "error",
+				"noUnsafeFinally": "error",
+				"noUnsafeOptionalChaining": "error",
+				"noUnusedLabels": "error",
+				"noUnusedVariables": "error",
+				"useIsNan": "error",
+				"useValidForDirection": "error",
+				"useValidTypeof": "error",
+				"useYield": "error"
+			},
+			"nursery": {
+				"noNestedPromises": "warn",
+				"useVueValidVBind": "off", // FIXME: rule has bug
+				"useVueValidVIf": "error",
+				"useVueValidVElse": "error",
+				"useVueValidVElseIf": "error"
+			},
+			"security": { "noGlobalEval": "error" },
+			"style": {
+				"noCommonJs": "warn",
+				"useBlockStatements": "error",
+				"useConsistentArrowReturn": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "error",
+				"noAsyncPromiseExecutor": "error",
+				"noCatchAssign": "error",
+				"noClassAssign": "error",
+				"noCompareNegZero": "error",
+				"noConsole": "off",
+				"noControlCharactersInRegex": "error",
+				"noDebugger": "error",
+				"noDoubleEquals": "error",
+				"noDuplicateCase": "error",
+				"noDuplicateClassMembers": "error",
+				"noDuplicateElseIf": "error",
+				"noDuplicateObjectKeys": "error",
+				"noDuplicateParameters": "error",
+				"noEmptyBlockStatements": "error",
+				"noFallthroughSwitchClause": "error",
+				"noFunctionAssign": "error",
+				"noGlobalAssign": "error",
+				"noImportAssign": "error",
+				"noIrregularWhitespace": "error",
+				"noMisleadingCharacterClass": "error",
+				"noPrototypeBuiltins": "error",
+				"noRedeclare": "error",
+				"noShadowRestrictedNames": "error",
+				"noSparseArray": "error",
+				"noUnknownAtRules": { "level": "warn", "options": { "ignore": ["use"] } },
+				"noUnsafeNegation": "error",
+				"noUselessRegexBackrefs": "error",
+				"noVar": "error",
+				"noWith": "error",
+				"useGetterReturn": "error"
+			}
+		}
+	},
+	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } },
+	"javascript": {
+		"formatter": {
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"arrowParentheses": "asNeeded",
+			"bracketSameLine": false,
+			"quoteStyle": "double",
+			"attributePosition": "auto",
+			"bracketSpacing": true
+		},
+		"globals": ["$t"]
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": { "indentScriptAndStyle": false, "selfCloseVoidElements": "always" }
+	},
+	"overrides": [
+		{
+			"includes": ["*.yaml", "*.yml"],
+			"formatter": { "indentStyle": "space", "indentWidth": 2 }
+		},
+		{
+			"includes": ["server", "common"],
+			"linter": { "rules": { "suspicious": { "noConsole": "error" } } }
+		},
+		{
+			"includes": ["server/migrations/**"],
+			"linter": {
+				"rules": {
+					"style": { "noCommonJs": "off" },
+					"correctness": { "noUnusedFunctionParameters": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["*.js"],
+			"linter": {
+				"rules": {
+					"nursery": { "useExplicitType": "off" },
+					"style": { "noCommonJs": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["*.ts", "*.tsx"],
+			"linter": {
+				"rules": {
+					"nursery": { "useExhaustiveSwitchCases": "error" },
+					"suspicious": { "useAdjacentOverloadSignatures": "error" }
+				}
+			}
+		},
+		{
+			"includes": [
+				"tests/e2e/**",
+				"client/tests/e2e/**",
+				"packages/ott-vis-datasource/cypress/**",
+				"packages/ott-vis-datasource/**/*.spec.ts",
+				"packages/ott-vis-panel/**/*.spec.ts",
+				"packages/ott-vis-panel/**/*.test.ts"
+			],
+			"javascript": {
+				"globals": [
+					"cy",
+					"Cypress",
+					"describe",
+					"it",
+					"before",
+					"after",
+					"beforeEach",
+					"afterEach",
+					"expect"
+				]
+			},
+			"linter": {
+				"rules": {
+					// The rule is dumb and doesn't use type info. Cypress commonly uses `.then`, but they aren't promises.
+					"nursery": { "noNestedPromises": "off" }
+				}
+			}
+		},
+		// HACK: these rules are buggy right now
+		{
+			"includes": ["**/*.vue"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUndeclaredVariables": "off" }
+				}
+			}
+		}
+	]
+}

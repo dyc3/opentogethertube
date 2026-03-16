@@ -15,8 +15,11 @@ vi.mock("@liveinstantly/dash-mpd-parser");
 
 describe("DashVideoAdapter", () => {
 	let adapter: DashVideoAdapter;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let mockAxiosGet;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let mockParseIso8601Duration;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let mockDashMPD;
 
 	beforeEach(() => {

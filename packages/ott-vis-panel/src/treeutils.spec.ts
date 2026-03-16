@@ -41,6 +41,7 @@ describe("treeutils", () => {
 				},
 			],
 		};
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const treeLayout = d3.tree<any>().nodeSize([10, 10]);
 		const root = d3.hierarchy(tree);
 		treeLayout(root);
@@ -72,6 +73,7 @@ describe("treeutils", () => {
 				},
 			],
 		};
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const treeLayout = d3.tree<any>().nodeSize([10, 10]);
 		const root = d3.hierarchy(tree);
 		treeLayout(root);

@@ -19,8 +19,8 @@
 		id="seek-preview"
 		:class="{ hide: !seekPreviewVisible }"
 		:style="{
-			left: seekPreviewX + 'px',
-			top: seekPreviewY + 'px',
+			left: `${seekPreviewX}px`,
+			top: `${seekPreviewY}px`,
 		}"
 	>
 		<span>{{ seekPreviewTimestamp }}</span>

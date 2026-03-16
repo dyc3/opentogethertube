@@ -42,10 +42,6 @@ class BalancerConnectionMock extends BalancerConnection {
 	sendMock = vi.fn<[MsgM2B], void>();
 	disconnectMock = vi.fn<[], void>();
 
-	constructor() {
-		super();
-	}
-
 	send(msg: MsgM2B): Result<void, Error> {
 		this.sendMock(msg);
 		return ok(undefined);

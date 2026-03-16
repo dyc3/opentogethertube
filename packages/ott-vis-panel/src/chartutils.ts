@@ -9,7 +9,9 @@ export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) 
 			return;
 		}
 		const svg = d3.select(svgRef.current);
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const zoom = d3.zoom<SVGSVGElement, any>().on("zoom", handleZoom);
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		function handleZoom(e: any) {
 			svg.select("g.chart").attr("transform", e.transform);
 		}
@@ -30,7 +32,9 @@ export function useD3AutoZoom(
 			return;
 		}
 		const svg = d3.select<SVGSVGElement, TreeNode>(svgRef.current);
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		const zoom = d3.zoom<SVGSVGElement, any>().on("zoom", handleZoom);
+		// biome-ignore lint/suspicious/noExplicitAny: biome migration
 		function handleZoom(e: { transform: d3.ZoomTransform; sourceEvent: any }) {
 			svg.select("g.chart").attr("transform", e.transform.toString());
 			if (e.sourceEvent) {
@@ -97,6 +101,7 @@ export function useActivityAnimations(
 		const proxyColor = "#f58d05";
 
 		function animateNode(
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			node: d3.Selection<any, d3.HierarchyNode<TreeNode>, any, any>,
 			color: string
 		) {
@@ -124,6 +129,7 @@ export function useActivityAnimations(
 		}
 
 		function animateLinks(
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			links: d3.Selection<any, d3.HierarchyLink<TreeNode>, any, any>,
 			color: string
 		) {
@@ -134,6 +140,7 @@ export function useActivityAnimations(
 				.attrTween("stroke", function () {
 					const link = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
 						this
+						// biome-ignore lint/suspicious/noExplicitAny: biome migration
 					) as d3.Selection<any, d3.HierarchyLink<TreeNode>, any, unknown>;
 					const colorCurrent = d3.color(link.attr("stroke"));
 					const newColor = d3.interpolateRgb(

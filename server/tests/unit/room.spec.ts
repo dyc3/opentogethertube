@@ -273,11 +273,13 @@ describe("Room", () => {
 					},
 					{ username: "test", role: Role.Owner, clientId: "1234" }
 				);
+				// biome-ignore lint/style/noNonNullAssertion: biome migration
 				expect(Array.from(room.votes.get("directabc123")!)).toEqual(["1234"]);
 			});
 		});
 
 		describe("ShuffleRequest", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let shuffleSpy;
 
 			beforeEach(() => {

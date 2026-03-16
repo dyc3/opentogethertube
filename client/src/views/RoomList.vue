@@ -5,7 +5,7 @@
 				<v-progress-circular indeterminate />
 			</v-col>
 		</v-row>
-		<v-row v-if="rooms.length == 0 && !isLoading" class="center-shit" style="width: 100%">
+		<v-row v-if="rooms.length === 0 && !isLoading" class="center-shit" style="width: 100%">
 			<div>
 				<h1>{{ $t("room-list.no-rooms") }}</h1>
 				<v-btn elevation="12" size="x-large" @click="createRoom">{{

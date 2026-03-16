@@ -17,7 +17,9 @@ import type { User } from "../../../models/user.js";
 import type { AuthToken } from "ott-common/models/types.js";
 
 describe("User API", () => {
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let token;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 	let app;
 	let forcedUser: User;
 	let testUser: User;
@@ -92,6 +94,7 @@ describe("User API", () => {
 	});
 
 	describe("POST /user", () => {
+		// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 		let onUserModifiedSpy;
 
 		beforeAll(() => {
@@ -128,6 +131,7 @@ describe("User API", () => {
 		});
 
 		it("should change the registered user's name without failing", async () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -158,6 +162,7 @@ describe("User API", () => {
 		});
 
 		it("should not change the registered user's name if it's already in use", async () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let cookies;
 			await request(app)
 				.get("/api/user/test/forceLogin")
@@ -185,6 +190,7 @@ describe("User API", () => {
 
 	describe("User login and registration", () => {
 		describe("POST /user/login", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let onUserLogInSpy;
 
 			beforeAll(() => {
@@ -250,6 +256,7 @@ describe("User API", () => {
 		});
 
 		describe("POST /user/logout", () => {
+			// biome-ignore lint/suspicious/noImplicitAnyLet: biome migration
 			let onUserLogOutSpy;
 
 			beforeAll(() => {
@@ -298,7 +305,7 @@ describe("User API", () => {
 			const registeredUsers: User[] = [];
 
 			beforeAll(() => {
-				onUserLogInSpy = vi.fn().mockImplementation((user, token) => {
+				onUserLogInSpy = vi.fn().mockImplementation((user, _token) => {
 					registeredUsers.push(user);
 				});
 				usermanager.on("login", onUserLogInSpy);
@@ -365,6 +372,7 @@ describe("User API", () => {
 					});
 			});
 
+			// biome-ignore lint/suspicious/noExplicitAny: biome migration
 			const denyCases: [string, any, number, any][] = [
 				[
 					"should not register user if email is already in use",

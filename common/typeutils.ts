@@ -25,6 +25,7 @@ export type OmitTypes<T, Cond> = Pick<T, NeverIfMatch<T, Cond>[keyof T]>;
 export type PickTypes<T, Cond> = Pick<T, NeverIfNotMatch<T, Cond>[keyof T]>;
 
 export type NeverIfArg1NotMatch<T, Cond> = {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	[P in keyof T]: T[P] extends (arg: any) => Promise<void>
 		? Parameters<T[P]>[0] extends Cond
 			? P
@@ -33,6 +34,7 @@ export type NeverIfArg1NotMatch<T, Cond> = {
 };
 
 export type NeverIfArg2NotMatch<T, Arg1, Arg2> = {
+	// biome-ignore lint/suspicious/noExplicitAny: biome migration
 	[P in keyof T]: T[P] extends (arg: any, arg2: any) => Promise<void>
 		? (Parameters<T[P]>[0] extends Arg1 ? P : never) &
 				(Parameters<T[P]>[1] extends Arg2 ? P : never)
