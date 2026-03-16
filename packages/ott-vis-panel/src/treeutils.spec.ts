@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import {
 	pruneTrees,
 	sizeOfTree,
@@ -13,7 +14,7 @@ import {
 	mergeTrees,
 	bboxCenter,
 	bboxSize,
-} from "treeutils";
+} from "./treeutils.js";
 import * as d3 from "d3";
 import type { Monolith } from "ott-vis/types";
 

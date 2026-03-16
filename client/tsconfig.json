@@ -4,11 +4,10 @@
 		"target": "es2018",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": [
-				"src/*"
-			],
+			"@/*": ["src/*"]
 		},
-		"jsx": "preserve"
+		"jsx": "preserve",
+		"ignoreDeprecations": "6.0"
 	},
 	"include": [
 		"src/**/*.ts",

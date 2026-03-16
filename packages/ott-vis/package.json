@@ -13,12 +13,12 @@
 		"server": "docker-compose up --build"
 	},
 	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "6.14.0",
-		"@typescript-eslint/parser": "6.14.0",
+		"@typescript-eslint/eslint-plugin": "8.55.0",
+		"@typescript-eslint/parser": "8.55.0",
 		"concurrently": "7.6.0",
 		"eslint": "^8.57.0",
 		"prettier": "^2.5.1",
-		"typescript": "5.4.5",
+		"typescript": "^6.0.0-beta",
 		"vitest": "^1.2.2"
 	}
 }

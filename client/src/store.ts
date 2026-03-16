@@ -100,12 +100,12 @@ export function buildNewStore() {
 			},
 		},
 		modules: {
-			room: roomModule,
-			toast: toastModule,
-			events: eventsModule,
-			users: usersModule,
-			settings: settingsModule,
-			misc: miscModule,
+			room: roomModule as any,
+			toast: toastModule as any,
+			events: eventsModule as any,
+			users: usersModule as any,
+			settings: settingsModule as any,
+			misc: miscModule as any,
 		},
 	}) as Store<FullOTTStoreState>;
 }
