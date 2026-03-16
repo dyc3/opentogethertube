@@ -120,7 +120,7 @@ impl MonolithSelection for HashRingSelector {
             monoliths
                 .iter()
                 // This makes it so that each monolith is added to the ring 5 times with different hashes to spread the load more evenly
-                .flat_map(|m| std::iter::repeat(m).take(weight).enumerate())
+                .flat_map(|m| std::iter::repeat_n(m, weight).enumerate())
                 .map(|(i, m)| RingNode {
                     monolith: m,
                     idx: i,

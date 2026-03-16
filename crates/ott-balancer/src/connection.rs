@@ -16,6 +16,7 @@ use tungstenite::Message;
 use crate::balancer::BalancerLink;
 use crate::messages::SocketMessage;
 use crate::monolith::NewMonolith;
+use crate::service::set_discovery_metrics;
 use ott_balancer_protocol::monolith::B2MInit;
 use ott_balancer_protocol::*;
 use uuid::Uuid;
@@ -77,6 +78,8 @@ impl MonolithConnectionManager {
 
             self.connection_tasks.insert(conf, active);
         }
+
+        set_discovery_metrics(self.monoliths.len());
 
         Ok(())
     }
