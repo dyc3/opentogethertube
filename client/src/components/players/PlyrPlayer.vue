@@ -1,13 +1,24 @@
 <template>
 	<div class="direct">
-		<video id="directplayer" preload="auto" crossorigin="anonymous"></video>
+		<video
+			ref="videoElem"
+			preload="auto"
+			@canplay="onCanPlay"
+			@playing="onPlaying"
+			@pause="onPaused"
+			@play="onWaiting"
+			@waiting="onWaiting"
+			@stalled="onBuffering"
+			@loadstart="onBuffering"
+			@progress="onProgress"
+			@ended="onEnd"
+			@error="onError"
+		></video>
 	</div>
 </template>
 
-<script lang="ts">
-import Plyr from "plyr";
-import { defineComponent, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
-import "plyr/src/sass/plyr.scss";
+<script lang="ts" setup>
+import { onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack } from "@/models/media-tracks";
 import type {
 	MediaPlayerWithAudioBoost,
@@ -16,261 +27,245 @@ import type {
 } from "../composables";
 import { useCaptions, useMediaAudioBoost } from "../composables";
 
-export default defineComponent({
-	name: "PlyrPlayer",
-	props: {
-		service: { type: String, required: true },
-		videoUrl: { type: String, required: true },
-		videoMime: { type: String, required: true },
-		thumbnail: { type: String },
-	},
-	emits: [
-		"apiready",
-		"ready",
-		"playing",
-		"paused",
-		"waiting",
-		"buffering",
-		"error",
-		"end",
-		"buffer-progress",
-		"buffer-spans",
-	],
-	setup(props, { emit }) {
-		const { videoUrl, videoMime, thumbnail } = toRefs(props);
-		const videoElem = ref<HTMLVideoElement | undefined>();
-		const player = ref<Plyr | undefined>();
-		const audioBoost = useMediaAudioBoost(videoElem);
+interface Props {
+	service: string;
+	videoUrl: string;
+	videoMime: string;
+	thumbnail?: string;
+}
 
-		const playerImpl: MediaPlayerWithCaptions &
-			MediaPlayerWithPlaybackRate &
-			MediaPlayerWithAudioBoost = {
-			play() {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				return player.value.play();
-			},
-			pause() {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				return player.value.pause();
-			},
-			setVolume(volume: number) {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				player.value.volume = volume / 100;
-			},
-			getPosition() {
-				if (!player.value) {
-					console.error("player not ready");
-					return 0;
-				}
-				return player.value.currentTime;
-			},
-			setPosition(position: number) {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				player.value.currentTime = position;
-			},
+const props = defineProps<Props>();
+const { videoUrl, videoMime, thumbnail } = toRefs(props);
+const videoElem = ref<HTMLVideoElement | undefined>();
+const captions = useCaptions();
+const audioBoost = useMediaAudioBoost(videoElem);
 
-			isCaptionsSupported(): boolean {
-				return ["direct"].includes(props.service);
-			},
-			setCaptionsEnabled(enabled: boolean): void {
-				player.value?.toggleCaptions(enabled);
-			},
-			isCaptionsEnabled(): boolean {
-				return player.value?.currentTrack !== -1;
-			},
-			getCaptionsTracks(): CaptionTrack[] {
-				const tracks: CaptionTrack[] = [];
-				for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-					const track = videoElem.value?.textTracks[i];
-					if (!track || !["subtitles", "captions"].includes(track.kind)) {
-						continue;
-					}
-					tracks.push({
-						kind:
-							track.kind === "subtitles" || track.kind === "captions"
-								? track.kind
-								: undefined,
-						label: track.label || undefined,
-						srclang: track.language || undefined,
-						default: false, // `TextTrack` type does not provide `default` property
-					});
-				}
-				return tracks;
-			},
-			setCaptionsTrack(track: number): void {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				console.log("PlyrPlayer: setCaptionsTrack:", track);
-				player.value.currentTrack = track;
-			},
+const emit = defineEmits<{
+	"apiready": [];
+	"ready": [];
+	"playing": [];
+	"paused": [];
+	"waiting": [];
+	"buffering": [];
+	"error": [];
+	"end": [];
+	"buffer-progress": [progress: number];
+	"buffer-spans": [spans: TimeRanges];
+}>();
 
-			isQualitySupported(): boolean {
-				return false;
-			},
+function play() {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	return videoElem.value.play();
+}
 
-			getAvailablePlaybackRates(): number[] {
-				return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
-			},
-			getPlaybackRate(): number {
-				if (!player.value) {
-					console.error("player not ready");
-					return 1;
-				}
-				return player.value.speed;
-			},
-			async setPlaybackRate(rate: number): Promise<void> {
-				if (!player.value) {
-					console.error("player not ready");
-					return;
-				}
-				player.value.speed = rate;
-			},
-			setAudioBoost(boost: number): void {
-				audioBoost.setBoost(boost);
-			},
-		};
+function pause() {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	videoElem.value.pause();
+}
 
-		const captions = useCaptions();
-		onMounted(() => {
-			videoElem.value = document.getElementById("directplayer") as HTMLVideoElement;
-			player.value = new Plyr(videoElem.value, {
-				controls: [],
-				clickToPlay: false,
-				keyboard: {
-					focused: false,
-					global: false,
-				},
-				disableContextMenu: false,
-				fullscreen: {
-					enabled: false,
-				},
-			});
+function setVolume(volume: number) {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	videoElem.value.volume = volume / 100;
+}
 
-			player.value.on("ready", () => emit("ready"));
-			player.value.on("ended", () => emit("end"));
-			player.value.on("playing", () => emit("playing"));
-			player.value.on("pause", () => emit("paused"));
-			player.value.on("play", () => emit("waiting"));
-			player.value.on("stalled", () => emit("buffering"));
-			player.value.on("loadstart", () => emit("buffering"));
-			player.value.on("canplay", () => {
-				emit("ready");
-				captions.captionsTracks.value = playerImpl.getCaptionsTracks();
-			});
-			player.value.on("progress", () => {
-				if (!player.value) {
-					return;
-				}
-				emit("buffer-progress", player.value.buffered);
-			});
-			player.value.on("error", err => {
-				emit("error");
-				console.error("PlyrPlayer: error:", err);
-			});
+function getPosition() {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return 0;
+	}
+	return videoElem.value.currentTime;
+}
 
-			loadVideoSource();
-		});
-		onBeforeUnmount(() => {
-			player.value?.destroy();
-		});
+function setPosition(position: number) {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	videoElem.value.currentTime = position;
+}
 
-		function loadVideoSource() {
-			console.log("PlyrPlayer: loading video source:", videoUrl.value, videoMime.value);
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			audioBoost.resetFailedSetup();
+function isCaptionsSupported(): boolean {
+	return ["direct"].includes(props.service);
+}
 
-			player.value.source = {
-				sources: [
-					{
-						src: videoUrl.value,
-						type: videoMime.value,
-					},
-				],
-				type: "video",
-				poster: thumbnail.value,
-			};
-			videoElem.value = document.querySelector("video") as HTMLVideoElement;
+function setCaptionsEnabled(enabled: boolean): void {
+	if (!videoElem.value) {
+		return;
+	}
+	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+		videoElem.value.textTracks[i].mode = enabled ? "showing" : "hidden";
+	}
+}
 
-			// this is needed to get the player to keep playing after the previous video has ended
-			player.value.play();
-
-			if (videoElem.value) {
-				videoElem.value.addEventListener("progress", () => {
-					if (player.value) {
-						emit("buffer-progress", player.value.buffered);
-					}
-					if (videoElem.value) {
-						emit("buffer-spans", videoElem.value.buffered);
-					}
-				});
-				videoElem.value.addEventListener("loadstart", () => {
-					console.debug("PlyrPlayer: video loadstart");
-					emit("buffering");
-				});
-				videoElem.value.addEventListener("waiting", () => {
-					console.debug("PlyrPlayer: video waiting");
-				});
-				videoElem.value.addEventListener("stalled", () => {
-					console.debug("PlyrPlayer: video stalled");
-					emit("buffering");
-				});
-				videoElem.value.addEventListener("canplay", () => {
-					console.debug("PlyrPlayer: video canplay");
-				});
-			} else {
-				console.error("video element not present");
-			}
-
-			emit("apiready");
+function isCaptionsEnabled(): boolean {
+	if (!videoElem.value) {
+		return false;
+	}
+	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+		if (videoElem.value.textTracks[i].mode === "showing") {
+			return true;
 		}
+	}
+	return false;
+}
 
-		watch(videoUrl, () => {
-			console.log("PlyrPlayer: videoUrl changed");
-			if (!player.value) {
-				console.error("player not ready");
-				return;
-			}
-			loadVideoSource();
+function getCaptionsTracks(): CaptionTrack[] {
+	const tracks: CaptionTrack[] = [];
+	for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
+		const track = videoElem.value?.textTracks[i];
+		if (!track || !["subtitles", "captions"].includes(track.kind)) {
+			continue;
+		}
+		tracks.push({
+			kind: track.kind === "subtitles" || track.kind === "captions" ? track.kind : undefined,
+			label: track.label || undefined,
+			srclang: track.language || undefined,
+			default: false, // `TextTrack` type does not provide `default` property
 		});
+	}
+	return tracks;
+}
 
-		return {
-			player,
-			...playerImpl,
-		};
-	},
+function setCaptionsTrack(track: number): void {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	console.log("PlyrPlayer: setCaptionsTrack:", track);
+	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
+	}
+}
+
+function isQualitySupported(): boolean {
+	return false;
+}
+
+function getAvailablePlaybackRates(): number[] {
+	return [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+}
+
+function getPlaybackRate(): number {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return 1;
+	}
+	return videoElem.value.playbackRate;
+}
+
+async function setPlaybackRate(rate: number): Promise<void> {
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	videoElem.value.playbackRate = rate;
+}
+
+function setAudioBoost(boost: number): void {
+	audioBoost.setBoost(boost);
+}
+
+function loadVideoSource() {
+	console.log("PlyrPlayer: loading video source:", videoUrl.value, videoMime.value);
+	if (!videoElem.value) {
+		console.error("player not ready");
+		return;
+	}
+	audioBoost.resetFailedSetup();
+
+	videoElem.value.src = videoUrl.value;
+	videoElem.value.poster = thumbnail.value ?? "";
+	videoElem.value.load();
+	// this is needed to get the player to keep playing after the previous video has ended
+	videoElem.value.pause();
+	videoElem.value.play();
+
+	emit("apiready");
+}
+
+function onCanPlay() {
+	emit("ready");
+	captions.captionsTracks.value = getCaptionsTracks();
+}
+
+function onPlaying() {
+	emit("playing");
+}
+
+function onPaused() {
+	emit("paused");
+}
+
+function onWaiting() {
+	emit("waiting");
+}
+
+function onBuffering() {
+	emit("buffering");
+}
+
+function onProgress() {
+	if (videoElem.value) {
+		const buffered = videoElem.value.buffered;
+		emit("buffer-spans", buffered);
+		const duration = videoElem.value.duration;
+		const bufferedPercentage =
+			buffered?.length && duration > 0 ? buffered.end(0) / duration : 0;
+		emit("buffer-progress", bufferedPercentage);
+	}
+}
+
+function onEnd() {
+	emit("end");
+}
+
+function onError(err: Event) {
+	emit("error");
+	console.error("PlyrPlayer: error:", err);
+}
+
+onMounted(() => {
+	loadVideoSource();
 });
+
+watch(videoUrl, () => {
+	console.log("PlyrPlayer: videoUrl changed");
+	loadVideoSource();
+});
+
+defineExpose({
+	play,
+	pause,
+	setVolume,
+	getPosition,
+	setPosition,
+	isCaptionsSupported,
+	setCaptionsEnabled,
+	isCaptionsEnabled,
+	getCaptionsTracks,
+	setCaptionsTrack,
+	isQualitySupported,
+	getAvailablePlaybackRates,
+	getPlaybackRate,
+	setPlaybackRate,
+	setAudioBoost,
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost);
 </script>
 
 <style lang="scss">
-.direct,
-.plyr {
+.direct {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	max-width: 100%;
-	max-height: 100%;
-	width: 100%;
-	height: 100%;
-}
-
-.plyr__video-wrapper {
 	max-width: 100%;
 	max-height: 100%;
 	width: 100%;
