@@ -1,4 +1,3 @@
-import { fail } from "node:assert";
 import "cypress-iframe";
 
 // TODO: skip this test if youtube api key is not available AND/OR create another test that uses a different video source
@@ -181,13 +180,11 @@ describe("Video playback", () => {
 		// });
 		cy.get("video")
 		.should(element => {
-			for (let i = 0; i < element[0].textTracks.length; i++) {
-				if (element[0].textTracks[i].language === "es" && element[0].textTracks[i].kind === "captions") {
-					expect(element[0].textTracks[i].mode).to.be.equal("showing");
-					return;
-				}
-			}
-			fail("No caption track found");
+			const esTrack = Array.from(element[0].textTracks).find(
+				t => t.language === "es" && t.kind === "captions"
+			);
+			expect(esTrack, "Spanish caption track").to.exist;
+			expect(esTrack!.mode).to.equal("showing");
 		});
 	});
 
