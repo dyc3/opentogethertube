@@ -3,6 +3,7 @@
 		<video
 			ref="videoElem"
 			preload="auto"
+			crossorigin="anonymous"
 			@canplay="onCanPlay"
 			@playing="onPlaying"
 			@pause="onPaused"
