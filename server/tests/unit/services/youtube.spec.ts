@@ -1,26 +1,15 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import YouTubeAdapter, {
-	YoutubeErrorResponse,
-	YoutubeApiVideoListResponse,
-	YoutubeApiVideo,
+	type YoutubeErrorResponse,
+	type YoutubeApiVideoListResponse,
+	type YoutubeApiVideo,
 } from "../../../services/youtube.js";
-import { Video } from "ott-common/models/video.js";
 import { InvalidVideoIdException, OutOfQuotaException } from "../../../exceptions.js";
 import { buildClients, redisClient } from "../../../redisclient.js";
-import { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
-import fs from "fs";
-import { VideoRequest } from "server/serviceadapter.js";
-import { URL } from "url";
+import type { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
+import fs from "node:fs";
+import type { VideoRequest } from "server/serviceadapter.js";
+import { URL } from "node:url";
 import { loadModels } from "../../../models/index.js";
 
 const validVideoLinks = [
@@ -77,9 +66,9 @@ function mockVideoList(ids: string[]): YoutubeApiVideoListResponse {
 }
 
 function mockPlaylistItems(id: string): unknown {
-	let path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
+	const path = `${FIXTURE_DIRECTORY}/playlistItems/${id}.json`;
 	if (fs.existsSync(path)) {
-		let content = fs.readFileSync(path, "utf8");
+		const content = fs.readFileSync(path, "utf8");
 		return JSON.parse(content);
 	}
 	throw new Error("playlistNotFound");
@@ -90,7 +79,7 @@ function mockChannel(id: string): unknown {
 	if (!fs.existsSync(path)) {
 		path = `${FIXTURE_DIRECTORY}/channels/empty.json`;
 	}
-	let content = fs.readFileSync(path, "utf8");
+	const content = fs.readFileSync(path, "utf8");
 	return JSON.parse(content);
 }
 
@@ -118,7 +107,10 @@ async function mockYoutubeApi(
 				data: mockPlaylistItems(config?.params.playlistId),
 			};
 		} catch (e) {
-			let content = fs.readFileSync(`${FIXTURE_DIRECTORY}/errors/${e.message}.json`, "utf8");
+			const content = fs.readFileSync(
+				`${FIXTURE_DIRECTORY}/errors/${e.message}.json`,
+				"utf8"
+			);
 			throw JSON.parse(content);
 		}
 	} else if (path === "/channels") {
@@ -212,7 +204,7 @@ describe("Youtube", () => {
 					missingInfo: ["length"],
 				},
 			];
-			let result = await adapter.fetchManyVideoInfo(requests);
+			const result = await adapter.fetchManyVideoInfo(requests);
 			expect(result).toHaveLength(requests.length);
 		});
 

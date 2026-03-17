@@ -1,7 +1,7 @@
-import permissions, { GrantMask, Grants } from "ott-common/permissions.js";
+import permissions, { type GrantMask, Grants } from "ott-common/permissions.js";
 import { redisClient } from "./redisclient.js";
 import { getLogger } from "./logger.js";
-import winston from "winston";
+import type winston from "winston";
 import type {
 	AddRequest,
 	ApplySettingsRequest,
@@ -1259,7 +1259,6 @@ export class Room implements RoomState {
 				}
 				if (this.isVideoInQueue(video)) {
 					videos.splice(i--, 1);
-					continue;
 				}
 			}
 			if (videos.length === 0) {
@@ -1269,7 +1268,7 @@ export class Room implements RoomState {
 			this.queue.enqueue(...videos);
 			this.log.info(`added ${videos.length} videos`);
 			await this.publishRoomEvent(request, context, { videos });
-			for (let vid of videos) {
+			for (const vid of videos) {
 				counterMediaQueued.labels({ service: vid.service }).inc();
 			}
 		} else {
