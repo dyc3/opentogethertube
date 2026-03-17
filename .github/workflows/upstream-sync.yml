@@ -1,0 +1,73 @@
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/dyc3/opentogethertube.git
+          git fetch upstream master
+
+      - name: Check if sync branch already exists
+        id: check-branch
+        run: |
+          BRANCH="upstream-sync/$(date +%Y-%m-%d)"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge upstream and create PR
+        if: steps.check-branch.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.check-branch.outputs.branch }}
+        run: |
+          git checkout -b "$BRANCH"
+
+          CONFLICT=false
+          if ! git merge upstream/master --no-edit; then
+            CONFLICT=true
+            git add -A
+            git commit -m "Merge upstream master (conflicts — resolve manually)"
+          fi
+
+          git push -u origin "$BRANCH"
+
+          LABELS=""
+          BODY="Automated upstream sync from \`dyc3/opentogethertube\` master."
+          if [ "$CONFLICT" = "true" ]; then
+            LABELS="--label merge-conflicts"
+            BODY="$BODY
+
+          **⚠️ Merge conflicts detected — resolve manually before merging.**"
+          fi
+
+          gh pr create \
+            --draft \
+            --base master \
+            --head "$BRANCH" \
+            --title "Upstream sync $(date +%Y-%m-%d)" \
+            --body "$BODY" \
+            $LABELS

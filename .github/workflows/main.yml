@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   pull_request:
@@ -70,7 +70,6 @@ jobs:
       matrix:
         node-version: [20.x]
       fail-fast: true
-    continue-on-error: true
     services:
       redis:
         image: redis
@@ -107,98 +106,3 @@ jobs:
         env:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-      - name: Collect coverage reports
-        id: collect-coverage
-        run: |
-          echo "files=$(find . -name coverage-final.json | sed 's/\.\///g' | tr '\n' ',')" >> "$GITHUB_OUTPUT"
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v4
-        with:
-          files: ${{ steps.collect-coverage.outputs.files }}
-          token: ${{ secrets.CODECOV_TOKEN }}
-  grafana-compatibilitycheck:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package: [ott-vis-panel, ott-vis-datasource]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
-      - run: corepack enable
-      - name: Install dependencies
-        run: yarn install --immutable
-      - name: Build plugin
-        run: yarn workspace ${{ matrix.package }} build
-      - name: Compatibility check
-        run: npx @grafana/levitate@latest is-compatible --path packages/${{ matrix.package }}/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
-
-  deploy-docker:
-    runs-on: ubuntu-latest
-    name: Deploy docker image
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to Dockerhub
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "dyc3" --password-stdin
-          touch env/production.env
-      - name: Build image
-        run: |
-          docker compose -f docker/docker-compose.yml up -d --build
-          docker commit opentogethertube opentogethertube
-          docker compose -f docker/docker-compose.yml down
-          docker tag opentogethertube dyc3/opentogethertube:latest
-      - name: Push to Dockerhub
-        run: docker push dyc3/opentogethertube:latest
-
-  deploy-fly-staging-monolith:
-    runs-on: ubuntu-latest
-    name: Deploy Monolith on fly.io (staging)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deploy/fly.staging.monolith.toml --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  deploy-fly-staging-balancer:
-    runs-on: ubuntu-latest
-    name: Deploy Balancer on fly.io (staging)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint, deploy-fly-staging-monolith]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deploy/fly.staging.balancer.toml --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-  deploy-fly-prod-monolith:
-    runs-on: ubuntu-latest
-    name: Deploy Monolith on fly.io (prod)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deploy/fly.prod.monolith.toml --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-  deploy-fly-prod-balancer:
-    runs-on: ubuntu-latest
-    name: Deploy Balancer on fly.io (prod)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: [test, lint, deploy-fly-prod-monolith]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --config deploy/fly.prod.balancer.toml --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
