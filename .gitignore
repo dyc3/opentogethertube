@@ -33,3 +33,4 @@ yarn-error.log*
 *.sw?
 
 .opencode/plans
+server/test.local
