@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, type Ref, ref, type ShallowRef, shallowRef, watch } from "vue";
+import { onBeforeUnmount, onMounted, type Ref, ref, type ShallowRef, shallowRef } from "vue";
 
 const MIN_AUDIO_BOOST = 100;
 const MAX_AUDIO_BOOST = 300;
@@ -50,11 +50,6 @@ export function useAudioContext(
 
 	onMounted(() => {
 		context.value = createContext();
-		connectSource();
-	});
-
-	watch(mediaElement, () => {
-		connectSource();
 	});
 
 	onBeforeUnmount(() => {
@@ -97,14 +92,6 @@ export function useGain(context: ShallowRef<AudioContext | undefined>) {
 		gain.value = gainNode;
 		return true;
 	}
-
-	onMounted(() => {
-		ensureGain();
-	});
-
-	watch(context, () => {
-		ensureGain();
-	});
 
 	onBeforeUnmount(() => {
 		gain.value?.disconnect();
@@ -149,7 +136,10 @@ export function useMediaAudioBoost(
 
 	function setBoost(boost: number): void {
 		const normalizedBoost = clampAudioBoost(boost);
-		if (normalizedBoost <= MIN_AUDIO_BOOST && !gain.value) {
+		if (normalizedBoost <= MIN_AUDIO_BOOST) {
+			if (gain.value) {
+				gain.value.gain.value = 1;
+			}
 			return;
 		}
 
