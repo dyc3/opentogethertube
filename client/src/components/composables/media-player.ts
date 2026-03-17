@@ -1,6 +1,6 @@
+import { computed, inject, onMounted, type Ref, ref, shallowRef, watch } from "vue";
+import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import { useStore } from "@/store";
-import { onMounted, ref, watch, type Ref, shallowRef, provide, inject, computed } from "vue";
-import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
 
 const volume = ref(100);
 const prevVolume = ref(100);
@@ -61,6 +61,10 @@ export interface MediaPlayer {
 	isCaptionsSupported(): boolean;
 	isQualitySupported(): boolean;
 	getAvailablePlaybackRates(): number[];
+}
+
+export interface MediaPlayerWithAudioBoost extends MediaPlayer {
+	setAudioBoost(boost: number): void;
 }
 
 export interface MediaPlayerWithCaptions extends MediaPlayer {
@@ -145,7 +149,7 @@ export class MediaPlayerV2 {
 		if (!this.checkForPlayer(this.player.value)) {
 			return;
 		}
-		return this.player.value.setPosition(position);
+		this.player.value.setPosition(position);
 	}
 }
 

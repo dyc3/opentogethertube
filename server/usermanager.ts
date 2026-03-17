@@ -1,20 +1,19 @@
 import { getLogger } from "./logger.js";
 import _ from "lodash";
 import * as argon2 from "argon2";
-import express, { ErrorRequestHandler, RequestHandler } from "express";
+import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import passport from "passport";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { User as UserModel, Room as RoomModel } from "./models/index.js";
-import { User } from "./models/user.js";
+import type { User } from "./models/user.js";
 import { delPattern, redisClient } from "./redisclient.js";
-import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRedis } from "rate-limiter-flexible";
+import { type RateLimiterAbstract, RateLimiterMemory } from "rate-limiter-flexible";
 import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
 import tokens from "./auth/tokens.js";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
 import {
-	BadApiArgumentException,
 	FeatureDisabledException,
 	InvalidVerifyKey,
 	LengthOutOfRangeException,
@@ -22,11 +21,11 @@ import {
 	UserNotFound,
 } from "./exceptions.js";
 import { conf } from "./ott-config.js";
-import { AuthToken } from "ott-common/models/types.js";
-import { EventEmitter } from "events";
+import type { AuthToken } from "ott-common/models/types.js";
+import { EventEmitter } from "node:events";
 import { Sequelize, UniqueConstraintError } from "sequelize";
-import { Email, Mailer, MailerError, MailjetMailer, MockMailer } from "./mailer.js";
-import { Result, err } from "ott-common/result.js";
+import { type Email, type Mailer, type MailerError, MailjetMailer, MockMailer } from "./mailer.js";
+import { type Result, err } from "ott-common/result.js";
 import type {
 	OttApiRequestAccountRecoveryStart,
 	OttApiRequestAccountRecoveryVerify,
@@ -294,7 +293,7 @@ router.post("/login", async (req, res, next) => {
 
 router.post("/logout", async (req, res) => {
 	if (req.user) {
-		let user = req.user;
+		const user = req.user;
 		req.logout(async err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
@@ -322,7 +321,7 @@ router.post("/register", async (req, res) => {
 		return;
 	}
 	try {
-		let result = await registerUser(req.body);
+		const result = await registerUser(req.body);
 		log.info(`User registered: ${result.id}`);
 		req.login(result, async () => {
 			req.ottsession = { isLoggedIn: true, user_id: result.id };
@@ -709,7 +708,7 @@ async function getUser(options: { user?: string; id?: number; discordId?: string
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
 	}
-	let user = await UserModel.findOne({ where });
+	const user = await UserModel.findOne({ where });
 	if (!user) {
 		log.error("User not found");
 		throw new UserNotFound();
@@ -753,7 +752,7 @@ function isEmailRequest(request: OttApiRequestAccountRecoveryStart): request is 
 
 const accountRecoveryStart: RequestHandler<
 	unknown,
-	OttResponseBody<{}>,
+	OttResponseBody<{ success: boolean }>,
 	OttApiRequestAccountRecoveryStart
 > = async (req, res) => {
 	const body = OttApiRequestAccountRecoveryStartSchema.parse(req.body);
@@ -780,7 +779,7 @@ const accountRecoveryStart: RequestHandler<
 
 const accountRecoveryVerify: RequestHandler<
 	unknown,
-	OttResponseBody<{}>,
+	OttResponseBody<{ success: boolean }>,
 	OttApiRequestAccountRecoveryVerify
 > = async (req, res) => {
 	const body = OttApiRequestAccountRecoveryVerifySchema.parse(req.body);

@@ -18,7 +18,7 @@
 				<v-card hover class="room" :to="`/room/${room.name}`">
 					<v-img
 						:src="
-							room.currentSource && room.currentSource.thumbnail
+							room.currentSource?.thumbnail
 								? room.currentSource.thumbnail
 								: placeholderUrl
 						"
@@ -40,10 +40,7 @@
 							{{ $t("room-list.no-description") }}
 						</div>
 
-						<div
-							class="video-title"
-							v-if="room.currentSource && room.currentSource.title"
-						>
+						<div class="video-title" v-if="room.currentSource?.title">
 							{{ room.currentSource.title }}
 						</div>
 						<div class="video-title empty" v-else>

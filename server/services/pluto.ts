@@ -1,7 +1,7 @@
 import axios from "axios";
 import _ from "lodash";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import { URL } from "url";
+import { URL } from "node:url";
 import { v1 as uuidv1 } from "uuid";
 import { InvalidVideoIdException } from "../exceptions.js";
 import { getLogger } from "../logger.js";
@@ -95,7 +95,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 		return this.parsedIdsToVideoId(parsed);
 	}
 
-	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
+	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		const plutoIds = this.videoIdToSlugs(id);
 
 		const resp = await this.plutoBoot(plutoIds.id);

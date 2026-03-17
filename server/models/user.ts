@@ -1,5 +1,5 @@
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
-import { UserAccountAttributes } from "ott-common/models/types.js";
+import { type Sequelize, Model, DataTypes, type Optional } from "sequelize";
+import type { UserAccountAttributes } from "ott-common/models/types.js";
 import { conf } from "../ott-config.js";
 
 type UserCreationAttributes = Optional<UserAccountAttributes, "id">;
@@ -41,7 +41,7 @@ export const createModel = (sequelize: Sequelize) => {
 				validate: {
 					isEmail: {
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						// @ts-ignore because I think the type annotation is wrong.
+						// @ts-expect-error because I think the type annotation is wrong.
 						args: [
 							{
 								require_tld: conf.get("env") === "production",

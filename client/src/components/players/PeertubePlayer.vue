@@ -1,5 +1,10 @@
 <template>
-	<iframe class="peertube" id="peertube-player" :src="peertubeUrl"></iframe>
+	<iframe
+		title="PeerTube Player"
+		class="peertube"
+		id="peertube-player"
+		:src="peertubeUrl"
+	></iframe>
 </template>
 
 <script lang="ts">
@@ -16,7 +21,7 @@ const PeertubePlayer = defineComponent({
 	},
 	emits: ["playing", "paused", "ready", "buffering", "error", "apiready"],
 	setup(props, { emit }) {
-		let player: Peertube | undefined = undefined;
+		let player: Peertube | undefined;
 
 		const videoId = computed(() => props.videoId.split(":"));
 		const peertubeHost = computed(() => videoId.value[0]);

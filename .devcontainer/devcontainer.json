@@ -10,10 +10,7 @@
 	},
 	"customizations": {
 		"vscode": {
-			"extensions": [
-				"Vue.volar",
-				"Vue.vscode-typescript-vue-plugin"
-			]
+			"extensions": ["Vue.volar", "Vue.vscode-typescript-vue-plugin"]
 		}
 	}
 }

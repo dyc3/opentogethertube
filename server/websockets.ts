@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { getLogger } from "./logger.js";
-import type { Server } from "http";
-import type { Socket } from "net";
+import type { Server } from "node:http";
+import type { Socket } from "node:net";
 
 const log = getLogger("websockets");
 export const wss = new WebSocket.Server({ noServer: true });

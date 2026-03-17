@@ -171,7 +171,7 @@ import { ref, toRefs, computed, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import { QueueItem, VideoId } from "ott-common/models/video";
+import type { QueueItem, VideoId } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";

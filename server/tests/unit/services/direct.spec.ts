@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import DirectVideoAdapter from "../../../services/direct.js";
 import { FfprobeStrategy } from "../../../ffprobe.js";
-import fs from "fs";
+import fs from "node:fs";
 
 const FIXTURE_DIRECTORY = "./tests/unit/fixtures/services/direct";
 
@@ -24,9 +24,9 @@ class FfprobeFixtures extends FfprobeStrategy {
 	}
 
 	getFixture(file: string) {
-		let path = `${FIXTURE_DIRECTORY}/${file}`;
+		const path = `${FIXTURE_DIRECTORY}/${file}`;
 		if (fs.existsSync(path)) {
-			let content = fs.readFileSync(path, "utf8");
+			const content = fs.readFileSync(path, "utf8");
 			return JSON.parse(content);
 		}
 		throw new Error("fixture not found");

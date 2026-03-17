@@ -1,15 +1,15 @@
 import {
-	DataQueryRequest,
-	DataQueryResponse,
+	type DataQueryRequest,
+	type DataQueryResponse,
 	DataSourceApi,
-	DataSourceInstanceSettings,
+	type DataSourceInstanceSettings,
 	MutableDataFrame,
 	FieldType,
 	CircularDataFrame,
 	LoadingState,
 } from "@grafana/data";
 
-import { MyQuery, MyDataSourceOptions } from "./types";
+import type { MyQuery, MyDataSourceOptions } from "./types";
 import { getBackendSrv } from "@grafana/runtime";
 import type { SystemState } from "ott-vis";
 import { Observable, lastValueFrom, merge } from "rxjs";

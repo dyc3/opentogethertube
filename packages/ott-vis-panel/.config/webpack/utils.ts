@@ -1,7 +1,7 @@
-import fs from "fs";
-import process from "process";
-import os from "os";
-import path from "path";
+import fs from "node:fs";
+import process from "node:process";
+import os from "node:os";
+import path from "node:path";
 import { glob } from "glob";
 import { SOURCE_DIR } from "./constants";
 

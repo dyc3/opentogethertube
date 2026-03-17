@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
@@ -216,7 +217,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 						region: balancer.region,
 						group: "balancer",
 						x: 0,
-						y: isNaN(y) ? 0 : y,
+						y: Number.isNaN(y) ? 0 : y,
 					};
 					return node;
 				})
@@ -545,6 +546,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 		<>
 			{!enableAutoZoom ? <ZoomReset onClick={resetZoom} /> : null}
 			<svg ref={svgRef} width={width} height={height}>
+				<title>Tree View</title>
 				<g className="chart">
 					<g className={`${horizontal ? "ott-horizontal" : ""}`}>
 						<g className="b2m-links" />

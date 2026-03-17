@@ -66,7 +66,7 @@ import { Theme } from "@/stores/settings";
 import VideoControls from "@/components/controls/VideoControls.vue";
 import { useStore } from "@/store";
 import ToastNotification from "@/components/ToastNotification.vue";
-import { Toast, ToastStyle } from "@/models/toast";
+import { type Toast, ToastStyle } from "@/models/toast";
 import { enumKeys } from "@/util/misc";
 
 const store = useStore();

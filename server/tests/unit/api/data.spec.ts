@@ -1,14 +1,4 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import { main } from "../../../app.js";
 import InfoExtract, { AddPreview } from "../../../infoextractor.js";
@@ -100,6 +90,29 @@ describe("Data API", () => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
 				expect(resolveQuerySpy).toBeCalled();
+			});
+
+		resolveQuerySpy.mockRestore();
+	});
+
+	it("GET /data/previewAdd with adapter parameter", async () => {
+		const resolveQuerySpy = vi
+			.spyOn(InfoExtract, "resolveVideoQuery")
+			.mockResolvedValue(new AddPreview([], 0));
+
+		await request(app)
+			.get("/api/data/previewAdd")
+			.set({ Authorization: "Bearer foobar" })
+			.query({ input: "https://example.com/video", adapter: "direct" })
+			.expect(200)
+			.expect("Content-Type", /json/)
+			.then(resp => {
+				expect(resp.body.success).toBe(true);
+				expect(resolveQuerySpy).toHaveBeenCalledWith(
+					"https://example.com/video",
+					expect.any(String),
+					"direct"
+				);
 			});
 
 		resolveQuerySpy.mockRestore();

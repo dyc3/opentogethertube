@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import ProcessedText from "@/components/ProcessedText.vue";
-import { ChatMessage } from "ott-common";
+import type { ChatMessage } from "ott-common";
 
 defineProps<{
 	msg: ChatMessage;

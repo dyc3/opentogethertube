@@ -1,20 +1,19 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from "vitest";
 import clientmanager, {
 	parseWebsocketConnectionUrl,
 	setupBalancerManager,
 } from "../../clientmanager.js";
 import {
 	BalancerConnection,
-	BalancerConnectionEventHandlers,
-	BalancerConnectionEvents,
-	BalancerConnectionReal,
-	MsgM2B,
+	type BalancerConnectionEventHandlers,
+	type BalancerConnectionEvents,
+	type MsgM2B,
 	balancerManager,
 } from "../../balancer.js";
 import { BalancerClient, Client } from "../../client.js";
-import { OttWebsocketError } from "ott-common/models/types.js";
+import type { OttWebsocketError } from "ott-common/models/types.js";
 import { buildClients } from "../../redisclient.js";
-import { Result, ok } from "ott-common/result.js";
+import { type Result, ok } from "ott-common/result.js";
 import roommanager from "../../roommanager.js";
 import { loadModels } from "../../models/index.js";
 import type { Request } from "express";
@@ -186,9 +185,9 @@ describe("ClientManager", () => {
 		const client4 = new BalancerClient("foo", "bar", mockBalancerCon2);
 		const client5 = new BalancerClient("foo", "foo2", mockBalancerCon);
 		const clients = [client1, client2, client3, client4, client5];
-		for (let [i, client] of clients.entries()) {
+		for (const [i, client] of clients.entries()) {
 			clientmanager.addClient(client);
-			client.emit("auth", client, "token" + i, { isLoggedIn: false, username: "foo" + i });
+			client.emit("auth", client, `token${i}`, { isLoggedIn: false, username: `foo${i}` });
 		}
 		await new Promise(resolve => setTimeout(resolve, 100));
 		const joins = clientmanager.getClientsInRoom("foo");

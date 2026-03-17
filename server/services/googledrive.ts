@@ -1,12 +1,12 @@
-import { URL } from "url";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import { URL } from "node:url";
+import axios, { type AxiosResponse } from "axios";
 import { ServiceAdapter } from "../serviceadapter.js";
 import {
 	ServiceLinkParseException,
 	InvalidVideoIdException,
 	OutOfQuotaException,
 } from "../exceptions.js";
-import { Video, VideoService } from "ott-common/models/video.js";
+import type { Video, VideoService } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
 
 const log = getLogger("googledrive");
@@ -37,6 +37,7 @@ interface GoogleDriveErrorResponse {
 }
 
 function isGoogleDriveApiError(
+	// biome-ignore lint/suspicious/noExplicitAny: migration
 	response: AxiosResponse<any> | undefined
 ): response is AxiosResponse<GoogleDriveErrorResponse> {
 	return !!response && "error" in response.data;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Result, ok, err, intoResult, intoResultAsync } from "../../result.js";
+import { type Result, ok, err, intoResult, intoResultAsync } from "../../result.js";
 
 describe("Result", () => {
 	it("intoResult", () => {

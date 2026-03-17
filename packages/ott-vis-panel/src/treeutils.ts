@@ -123,7 +123,7 @@ export function calcGoodTreeRadius(
 
 	// https://stackoverflow.com/a/56008236/3315164
 
-	let children = tree.children?.length ?? 0;
+	const children = tree.children?.length ?? 0;
 	if (children <= 1) {
 		return 100;
 	}

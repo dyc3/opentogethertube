@@ -115,7 +115,7 @@ export default {
 		if (this.resizeObserver) {
 			this.resizeObserver.disconnect();
 		}
-		if (this.player && this.player.destroy) {
+		if (this.player?.destroy) {
 			this.player.destroy();
 			delete this.player;
 		}

@@ -1,5 +1,5 @@
 import http from "k6/http";
-import { sleep, check } from "k6";
+import { check } from "k6";
 
 export const HOSTNAME = "localhost:8080";
 
@@ -8,11 +8,11 @@ export const HOSTNAME = "localhost:8080";
  * @returns {string}
  */
 export function getAuthToken() {
-	let resp = http.get(`http://${HOSTNAME}/api/auth/grant`);
-	check(resp, { "token status is 200": r => r && r.status === 200 });
+	const resp = http.get(`http://${HOSTNAME}/api/auth/grant`);
+	check(resp, { "token status is 200": (r) => r && r.status === 200 });
 	try {
 		const token = JSON.parse(resp.body).token;
-		check(token, { "token is not empty": t => t && t.length > 0 });
+		check(token, { "token is not empty": (t) => t && t.length > 0 });
 		return token;
 	} catch (e) {
 		console.log(`Failed to parse response body as json: ${resp.body}`);
@@ -26,7 +26,8 @@ export function getAuthToken() {
  */
 export function randomRoomName() {
 	const prefix = "load-test-";
-	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+	const characters =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
 	let name = prefix;
 	for (let i = 0; i < 10; i++) {
 		name += characters.charAt(Math.floor(Math.random() * characters.length));
@@ -50,28 +51,33 @@ export function randomRoomNames(count) {
 	return names;
 }
 
-export function createRoom(name, token, roomOptions = {}, options = { doCheck: true }) {
+export function createRoom(
+	name,
+	token,
+	roomOptions = {},
+	options = { doCheck: true },
+) {
 	const body = Object.assign(
 		{
 			name: name,
 		},
-		roomOptions
+		roomOptions,
 	);
 	const url = `http://${HOSTNAME}/api/room/create`;
-	let resp = http.post(url, JSON.stringify(body), {
+	const resp = http.post(url, JSON.stringify(body), {
 		headers: {
 			"Content-Type": "application/json",
-			"Authorization": `Bearer ${token}`,
+			Authorization: `Bearer ${token}`,
 		},
 	});
 	if (options.doCheck) {
 		check(resp, {
-			"room created": r => {
+			"room created": (r) => {
 				if (r.status === 201) {
 					return true;
 				}
 				try {
-					let body = JSON.parse(r.body);
+					const body = JSON.parse(r.body);
 					if (body.error && body.error.name === "RoomNameTakenException") {
 						return true;
 					}
@@ -95,7 +101,12 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
  * @param {*} token
  * @param {*} videoId
  */
-export function reqVideo(room, token, videoId, options = { action: "add", target: "queue" }) {
+export function reqVideo(
+	room,
+	token,
+	videoId,
+	options = { action: "add", target: "queue" },
+) {
 	const url =
 		options.target === "queue"
 			? `http://${HOSTNAME}/api/room/${room}/queue`
@@ -112,7 +123,7 @@ export function reqVideo(room, token, videoId, options = { action: "add", target
 	const resp = fn(url, JSON.stringify(body), {
 		headers: {
 			"Content-Type": "application/json",
-			"Authorization": `Bearer ${token}`,
+			Authorization: `Bearer ${token}`,
 		},
 	});
 	return resp;
@@ -146,7 +157,7 @@ export class RoomState {
 				this.users.set(user.id, user);
 			}
 		} else if (update.kind === "update") {
-			let user = this.users.get(update.value.id);
+			const user = this.users.get(update.value.id);
 			if (!user) {
 				this.users.set(update.value.id, update.value);
 			} else {

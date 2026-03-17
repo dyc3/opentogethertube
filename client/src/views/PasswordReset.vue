@@ -34,7 +34,7 @@
 import { onMounted, ref } from "vue";
 import { API } from "@/common-http";
 import { useRoute, useRouter } from "vue-router";
-import { OttResponseBody } from "ott-common/models/rest-api";
+import type { OttResponseBody } from "ott-common/models/rest-api";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
 import toast from "@/util/toast";

@@ -18,16 +18,17 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch, onBeforeUnmount, toRefs } from "vue";
-import { MediaPlayer, type MediaPlayerClass, type ErrorEvent } from "dashjs";
+import { type ErrorEvent, MediaPlayer, type MediaPlayerClass } from "dashjs";
+import { onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
+import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type {
 	MediaPlayerError,
+	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions, useQualities } from "../composables";
-import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
+import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
 
 interface Props {
 	videoUrl: string;
@@ -41,6 +42,7 @@ const ttlmCaption = ref<HTMLDivElement>();
 const captions = useCaptions();
 const qualities = useQualities();
 const dash = ref<MediaPlayerClass | undefined>(undefined);
+const audioBoost = useMediaAudioBoost(videoElem);
 
 const emit = defineEmits([
 	"apiready",
@@ -258,12 +260,17 @@ async function setPlaybackRate(rate: number): Promise<void> {
 	videoElem.value.playbackRate = rate;
 }
 
+function setAudioBoost(boost: number): void {
+	audioBoost.setBoost(boost);
+}
+
 function loadVideoSource() {
 	console.log("DashPlayer: loading video source:", props.videoUrl);
 	if (!videoElem.value) {
 		console.error("video element not ready");
 		return;
 	}
+	audioBoost.resetFailedSetup();
 
 	dash.value?.destroy();
 	dash.value = undefined;
@@ -303,7 +310,10 @@ function loadVideoSource() {
 	dash.value.on(MediaPlayer.events.ERROR, (event: ErrorEvent) => {
 		console.error("DashPlayer: dash.js error:", event);
 		console.log("DashPlayer: dash.js error event type:", typeof event);
-		const errorEvent: MediaPlayerError = { type: "unknown", message: JSON.stringify(event) };
+		const errorEvent: MediaPlayerError = {
+			type: "unknown",
+			message: JSON.stringify(event),
+		};
 		emit("error", errorEvent);
 	});
 	// dash.value.on(MediaPlayer.events.PLAYBACK_ERROR, (event: unknown) => {
@@ -371,7 +381,7 @@ function onProgress() {
 		emit("buffer-spans", buffered);
 		const duration = videoElem.value.duration;
 		const bufferedPercentage =
-			buffered && buffered.length && duration > 0 ? buffered.end(0) / duration : 0;
+			buffered?.length && duration > 0 ? buffered.end(0) / duration : 0;
 		emit("buffer-progress", bufferedPercentage);
 	}
 }
@@ -404,7 +414,8 @@ defineExpose({
 	getAvailablePlaybackRates,
 	getPlaybackRate,
 	setPlaybackRate,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate);
+	setAudioBoost,
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithQuality & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost);
 </script>
 
 <style lang="scss">

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import VimeoAdapter from "../../../services/vimeo.js";
 import { InvalidVideoIdException } from "../../../exceptions.js";
 

@@ -1,19 +1,9 @@
-import {
-	describe,
-	it,
-	expect,
-	beforeAll,
-	beforeEach,
-	afterAll,
-	afterEach,
-	vi,
-	MockInstance,
-} from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import PeertubeAdapter from "../../../services/peertube.js";
-import fs from "fs";
+import fs from "node:fs";
 import { InvalidVideoIdException } from "../../../exceptions.js";
-import { AxiosRequestHeaders, AxiosResponse } from "axios";
-import { conf, loadConfigFile } from "../../../ott-config.js";
+import type { AxiosRequestHeaders, AxiosResponse } from "axios";
+import { conf } from "../../../ott-config.js";
 
 const validVideoLinks = [
 	[
@@ -34,7 +24,7 @@ describe("Peertube", () => {
 	beforeAll(async () => {
 		await adapter.initialize();
 
-		for (let file of fs.readdirSync(FIXTURE_DIRECTORY)) {
+		for (const file of fs.readdirSync(FIXTURE_DIRECTORY)) {
 			FIXTURES.set(
 				file.split(".")[0],
 				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8")
@@ -44,7 +34,7 @@ describe("Peertube", () => {
 		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
 			const [host, id] = videoid.split(":");
-			let fixtureText = FIXTURES.get(id);
+			const fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
 				throw new Error(`Fixture not found for ${id}`);
 			}
@@ -54,7 +44,7 @@ describe("Peertube", () => {
 			} catch (e) {
 				data = fixtureText;
 			}
-			let resp: AxiosResponse = {
+			const resp: AxiosResponse = {
 				status: 200,
 				statusText: "OK",
 				data,

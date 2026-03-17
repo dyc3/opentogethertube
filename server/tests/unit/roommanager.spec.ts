@@ -1,14 +1,11 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import { Room as DbRoom, loadModels } from "../../models/index.js";
-import { Room, RoomStateFromRedis } from "../../room.js";
-import { AuthToken, QueueMode, Role, Visibility } from "ott-common/models/types.js";
+import { Room, type RoomStateFromRedis } from "../../room.js";
+import { QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions.js";
 import storage from "../../storage.js";
-import { RoomRequest, RoomRequestType } from "ott-common/models/messages.js";
 import { VideoQueue } from "../../../server/videoqueue.js";
 import { buildClients } from "../../redisclient.js";
 import { UnloadReason } from "../../generated.js";
@@ -42,7 +39,7 @@ describe("Room manager", () => {
 				expect(room?.permissions).toBeInstanceOf(Array);
 				// eslint-disable-next-line vitest/no-conditional-in-test
 				if (Array.isArray(room?.permissions)) {
-					let roles = room?.permissions.map(p => p[0]);
+					const roles = room?.permissions.map(p => p[0]);
 					expect(roles).not.toContain(Role.Administrator);
 					expect(roles).not.toContain(Role.Owner);
 				}
@@ -121,7 +118,7 @@ describe("Room manager", () => {
 
 	it("should not load the room if it is not already loaded in memory", async () => {
 		const getRoomByNameSpy = vi.spyOn(storage, "getRoomByName").mockResolvedValue(null);
-		let result = await roommanager.getRoom("test", {
+		const result = await roommanager.getRoom("test", {
 			mustAlreadyBeLoaded: true,
 		});
 		expect(result.ok).toEqual(false);

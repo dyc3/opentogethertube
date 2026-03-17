@@ -1,6 +1,6 @@
 import { defineComponent, h } from "vue";
 import VideoQueueItem from "../../../src/components/VideoQueueItem.vue";
-import { QueueItem } from "ott-common/models/video";
+import type { QueueItem } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
 import _ from "lodash";
 
@@ -10,14 +10,14 @@ describe("<VideoQueueItem />", () => {
 	});
 
 	it("should render basic metadata regardless of isPreview and queue mode", () => {
-		let video: QueueItem = {
+		const video: QueueItem = {
 			service: "youtube",
 			id: "1",
 			title: "Foo",
 			description: "Bar",
 			length: 100,
 		};
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				return () =>
 					h(VideoQueueItem, {

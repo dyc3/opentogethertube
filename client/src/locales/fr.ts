@@ -1,4 +1,4 @@
-import { OttWebsocketError, Role } from "ott-common/models/types";
+import { OttWebsocketError } from "ott-common/models/types";
 
 export default {
 	"common": {
@@ -307,10 +307,15 @@ export default {
 		"permission": "Permission",
 	},
 	"client-settings": {
-		title: "Préférences",
-		description:
+		"title": "Préférences",
+		"description":
 			"Ces paramètres sont enregistrés dans votre navigateur et n'affectent que vous.",
-		activator: "@:client-settings.title",
+		"activator": "@:client-settings.title",
+		"audio-boost": "Amplification audio",
+		"audio-boost-hint":
+			"Amplifie l'audio des lecteurs compatibles sans iframe jusqu'a 300 %. Les effets sonores ne changent pas.",
+		"audio-boost-unsupported":
+			"Le lecteur actuel ne prend pas en charge l'amplification audio. Les effets sonores restent inchanges.",
 	},
 	"connect-overlay": {
 		"title": "Déconnecté",

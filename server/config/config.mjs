@@ -1,11 +1,11 @@
 // import { conf } from "../ott-config.js";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import convict from "convict";
 import toml from "toml";
 
 if (process.env.NODE_ENV !== "production") {
-  let rootDir = path.resolve(process.cwd());
+  const rootDir = path.resolve(process.cwd());
   if (!fs.existsSync(path.join(rootDir, "./db"))) {
     fs.mkdirSync(path.join(rootDir, "./db"));
   }

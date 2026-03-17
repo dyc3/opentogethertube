@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis";
@@ -89,6 +90,7 @@ export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, h
 			height={height}
 			ref={svgRef}
 		>
+			<title>Region View</title>
 			<g className="chart">
 				<g className="nodes" />
 				<g className="texts" />

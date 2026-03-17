@@ -79,7 +79,7 @@
 
 <script lang="ts" setup>
 import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
-import { onMounted, reactive, Ref, ref, watch } from "vue";
+import { onMounted, reactive, type Ref, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";

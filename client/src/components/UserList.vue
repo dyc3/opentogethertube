@@ -116,7 +116,7 @@ import {
 } from "@mdi/js";
 import { ref, inject } from "vue";
 import { API } from "@/common-http";
-import { ClientId, PlayerStatus, RoomUserInfo } from "ott-common/models/types";
+import { type ClientId, PlayerStatus, type RoomUserInfo } from "ott-common/models/types";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { Role } from "ott-common/models/types";
 import { ROLE_NAMES } from "ott-common/permissions";

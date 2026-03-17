@@ -17,7 +17,7 @@ export function setApiKey(key: string) {
 }
 
 export function requireApiKey(input: string) {
-	let apikey = conf.get("api_key");
+	const apikey = conf.get("api_key");
 	if (!apikey) {
 		throw new OttException("apikey is not set");
 	}

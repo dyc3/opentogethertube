@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-// import { document } from "jsdom";
 import { KeyboardShortcuts } from "../../src/util/keyboard-shortcuts";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, onMounted } from "vue";
+import { defineComponent, h } from "vue";
 
 describe("KeyboardShortcuts", () => {
 	it("should bind and unbind", () => {
@@ -80,11 +79,11 @@ describe("KeyboardShortcuts", () => {
 				shortcuts.handleKeyDown(event);
 			}
 			document.onkeydown = doOnKeyDown;
-			let element = document.createElement(nodeName);
+			const element = document.createElement(nodeName);
 			element.onkeydown = doOnKeyDown;
 			document.body.appendChild(element);
 			shortcuts.bind(binding, action);
-			let event = new KeyboardEvent("keydown", {
+			const event = new KeyboardEvent("keydown", {
 				code: "KeyA",
 			});
 			document.dispatchEvent(event);

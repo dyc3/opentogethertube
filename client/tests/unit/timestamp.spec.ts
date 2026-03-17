@@ -1,20 +1,19 @@
 import { it, describe, expect } from "vitest";
-import dayjs from "dayjs";
 import { secondsToTimestamp, timestampToSeconds } from "../../src/util/timestamp.js";
 
 describe("secondsToTimestamp spec", () => {
 	it("handles positive values", () => {
-		let t = secondsToTimestamp(120);
+		const t = secondsToTimestamp(120);
 		expect(t).toMatch("02:00");
 	});
 
 	it("handles negative values", () => {
-		let t = secondsToTimestamp(-120);
+		const t = secondsToTimestamp(-120);
 		expect(t).toMatch("-02:00");
 	});
 
 	it("handles time spans over an hour", () => {
-		let t = secondsToTimestamp(5400);
+		const t = secondsToTimestamp(5400);
 		expect(t).toMatch("01:30:00");
 	});
 });

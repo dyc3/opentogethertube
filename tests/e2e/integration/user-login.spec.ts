@@ -17,8 +17,8 @@ describe("User login/registration", () => {
 		cy.contains("button", "Log In").click();
 		cy.get('[role="tablist"]').contains(".v-tab", "Register").click();
 		cy.wait(500);
-		let username = faker.internet.userName();
-		let password = faker.internet.password(10);
+		const username = faker.internet.userName();
+		const password = faker.internet.password(10);
 		cy.get("form")
 			.contains("Register")
 			.parent()
@@ -60,8 +60,8 @@ describe("User login/registration", () => {
 		cy.contains("button", "Log In").click();
 		cy.get('[role="tablist"]').contains(".v-tab", "Register").click();
 		cy.wait(500);
-		let username = faker.internet.userName();
-		let password = faker.internet.password(10);
+		const username = faker.internet.userName();
+		const password = faker.internet.password(10);
 		cy.get("form")
 			.contains("Register")
 			.parent()
@@ -93,7 +93,7 @@ describe("User login/registration", () => {
 
 	it("should log in an existing user using email/password", () => {
 		// setup
-		let userCreds = {
+		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
@@ -116,7 +116,7 @@ describe("User login/registration", () => {
 
 	it("should log in an existing user using username/password", () => {
 		// setup
-		let userCreds = {
+		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
@@ -139,7 +139,7 @@ describe("User login/registration", () => {
 
 	it("should keep the user logged in when the page is refreshed", () => {
 		// setup
-		let userCreds = {
+		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),

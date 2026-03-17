@@ -7,15 +7,15 @@ import {
 	afterAll,
 	afterEach,
 	vi,
-	MockInstance,
+	type MockInstance,
 } from "vitest";
 import dayjs from "dayjs";
-import tokens, { SessionInfo } from "../../auth/tokens.js";
+import tokens, { type SessionInfo } from "../../auth/tokens.js";
 import { RoomRequestType } from "ott-common/models/messages.js";
-import { AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
+import { type AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
 import { Room, RoomUser } from "../../room.js";
 import infoextractor from "../../infoextractor.js";
-import { Video, VideoId } from "ott-common/models/video.js";
+import type { Video, VideoId } from "ott-common/models/video.js";
 import permissions from "ott-common/permissions.js";
 import _ from "lodash";
 import { VideoQueue } from "../../videoqueue.js";

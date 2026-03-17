@@ -12,7 +12,7 @@ function assertValueInClipboard(value: string) {
 
 describe("<ShareInvite />", () => {
 	it("renders full url without query params if there is no short url present", () => {
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				const store = useStore();
 				store.state.room.name = "foobar";
@@ -27,7 +27,7 @@ describe("<ShareInvite />", () => {
 	});
 
 	it("renders with short url if present", () => {
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				const store = useStore();
 				store.state.room.name = "foobar";
@@ -55,7 +55,7 @@ describe("<ShareInvite />", () => {
 			// See: https://github.com/cypress-io/cypress/issues/18198#issuecomment-1003756021
 			// also important to note that this can't test the fallback copy method because all browsers cypress supports also support navigator.clipboard
 
-			let page = defineComponent({
+			const page = defineComponent({
 				setup() {
 					const store = useStore();
 					store.state.room.name = "foobar";
@@ -80,7 +80,7 @@ describe("<ShareInvite />", () => {
 
 	it("becomes success color when you click copy", () => {
 		cy.clock();
-		let page = defineComponent({
+		const page = defineComponent({
 			setup() {
 				const store = useStore();
 				store.state.room.name = "foobar";

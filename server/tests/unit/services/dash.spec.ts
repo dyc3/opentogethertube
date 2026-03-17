@@ -7,7 +7,7 @@ import { UnsupportedVideoType } from "../../../exceptions.js";
 import { parseIso8601Duration } from "../../../services/parsing/iso8601.js";
 import axios from "axios";
 import { DashMPD } from "@liveinstantly/dash-mpd-parser";
-import URL from "url";
+import URL from "node:url";
 
 vi.mock("axios");
 vi.mock("../../../services/parsing/iso8601");

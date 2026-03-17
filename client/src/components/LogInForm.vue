@@ -177,7 +177,7 @@ import { USERNAME_LENGTH_MAX } from "ott-common/constants";
 import { reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-import { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
+import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 import { goLoginDiscord } from "@/util/discord";
 import ForgotPassword from "./ForgotPassword.vue";
 

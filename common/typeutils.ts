@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { NonNever } from "ts-essentials";
+import type { NonNever } from "ts-essentials";
 
 /**
  * Takes an object type and a type condition, and returns a new object whose

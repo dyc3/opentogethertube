@@ -2,6 +2,7 @@ import { it, describe, expect, afterEach, vi } from "vitest";
 import { shallowMount } from "@vue/test-utils";
 import YoutubePlayer from "@/components/players/YoutubePlayer.vue";
 // we need to import the mocks so mounting the component doesn't fail.
+// biome-ignore lint/correctness/noUnusedImports: we need to import the mocks so mounting the component doesn't fail.
 // eslint-disable-next-line no-unused-vars
 import ResizeObserver from "./__mocks__/ResizeObserver";
 
@@ -62,7 +63,7 @@ describe("YoutubePlayer", () => {
 		wrapper.vm.onStateChange({ data: 2 });
 		wrapper.vm.onStateChange({ data: 3 });
 		wrapper.vm.onStateChange({ data: 5 });
-		for (let event of ["ended", "playing", "paused", "buffering", "ready"]) {
+		for (const event of ["ended", "playing", "paused", "buffering", "ready"]) {
 			expect(wrapper.emitted()).toHaveProperty(event);
 		}
 		wrapper.vm.onError();

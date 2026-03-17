@@ -1,3 +1,4 @@
+// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
@@ -455,6 +456,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		<>
 			{!enableAutoZoom ? <ZoomReset onClick={resetZoom} /> : null}
 			<svg width={width} height={height} ref={svgRef}>
+				<title>Topology View</title>
 				<g className="chart">
 					<g className="regions" />
 					<g className="b2m links" />

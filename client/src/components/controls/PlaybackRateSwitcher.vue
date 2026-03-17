@@ -30,11 +30,9 @@ const roomApi = useRoomApi(connection);
 const playbackRate = usePlaybackRate();
 
 function formatRate(rate: number) {
-	return (
-		rate.toLocaleString(undefined, {
-			maximumFractionDigits: 2,
-		}) + "x"
-	);
+	return `${rate.toLocaleString(undefined, {
+		maximumFractionDigits: 2,
+	})}x`;
 }
 
 function setRate(rate: number) {

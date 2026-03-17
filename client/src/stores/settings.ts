@@ -1,16 +1,18 @@
-import { Module } from "vuex/types";
+import type { RoomSettings } from "ott-common";
+import type { Module } from "vuex/types";
 import vuetify from "@/plugins/vuetify";
-import { RoomSettings } from "ott-common";
 
 export interface SettingsState {
 	volume: number;
 	muted: boolean;
+	audioBoost: number;
 	locale: string;
 	roomLayout: RoomLayoutMode;
 	theme: Theme;
 	sfxEnabled: boolean;
 	sfxVolume: number;
 	defaultRoomSettings?: DefaultRoomSettings;
+	enableAdapterSelector: boolean;
 }
 
 export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
@@ -36,11 +38,13 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	state: {
 		volume: 100,
 		muted: false,
+		audioBoost: 100,
 		locale: "en",
 		roomLayout: RoomLayoutMode.default,
 		theme: Theme.dark,
 		sfxEnabled: true,
 		sfxVolume: 0.8,
+		enableAdapterSelector: false,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {
@@ -62,7 +66,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 	},
 	actions: {
 		load(context) {
-			let loaded = JSON.parse(localStorage.getItem("settings") ?? "{}");
+			const loaded = JSON.parse(localStorage.getItem("settings") ?? "{}");
 			context.commit("UPDATE", loaded);
 		},
 	},

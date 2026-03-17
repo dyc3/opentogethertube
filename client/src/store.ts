@@ -1,13 +1,12 @@
-import { createStore, Store, useStore as baseUseStore } from "vuex";
-import { toastModule, ToastState } from "@/stores/toast";
-import { usersModule, UsersState } from "@/stores/users";
-import { settingsModule, SettingsState } from "@/stores/settings";
+import { createStore, type Store, useStore as baseUseStore } from "vuex";
+import { toastModule, type ToastState } from "@/stores/toast";
+import { usersModule, type UsersState } from "@/stores/users";
+import { settingsModule, type SettingsState } from "@/stores/settings";
 import { ToastStyle } from "./models/toast";
 import { eventsModule } from "@/stores/events";
-import { miscModule, MiscState } from "@/stores/misc";
-import { InjectionKey } from "vue";
-import _ from "lodash";
-import { RoomState, roomModule } from "./stores/room";
+import { miscModule, type MiscState } from "@/stores/misc";
+import type { InjectionKey } from "vue";
+import { type RoomState, roomModule } from "./stores/room";
 
 export type FullOTTStoreState = BaseStoreState & {
 	room: RoomState;
@@ -84,14 +83,14 @@ export function buildNewStore() {
 		},
 		actions: {
 			chat() {},
-			announcement(context, message) {
+			announcement(_context, message) {
 				this.commit("toast/ADD_TOAST", {
 					style: ToastStyle.Important,
 					content: message.text,
 					duration: 60000,
 				});
 			},
-			error(context, message) {
+			error(_context, message) {
 				// console.log(`Server sent error: ${message.error}`);
 				this.commit("toast/ADD_TOAST", {
 					style: ToastStyle.Error,
