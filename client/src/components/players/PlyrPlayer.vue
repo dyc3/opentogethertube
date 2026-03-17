@@ -186,7 +186,6 @@ function loadVideoSource() {
 	videoElem.value.poster = thumbnail.value ?? "";
 	videoElem.value.load();
 	// this is needed to get the player to keep playing after the previous video has ended
-	videoElem.value.pause();
 	videoElem.value.play();
 
 	emit("apiready");
