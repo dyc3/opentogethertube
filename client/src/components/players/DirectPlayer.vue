@@ -140,7 +140,7 @@ function setCaptionsTrack(track: number): void {
 		console.error("player not ready");
 		return;
 	}
-	console.log("PlyrPlayer: setCaptionsTrack:", track);
+	console.log("DirectPlayer: setCaptionsTrack:", track);
 	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
 		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
 	}
@@ -175,7 +175,7 @@ function setAudioBoost(boost: number): void {
 }
 
 function loadVideoSource() {
-	console.log("PlyrPlayer: loading video source:", videoUrl.value, videoMime.value);
+	console.log("DirectPlayer: loading video source:", videoUrl.value, videoMime.value);
 	if (!videoElem.value) {
 		console.error("player not ready");
 		return;
@@ -229,7 +229,7 @@ function onEnd() {
 
 function onError(err: Event) {
 	emit("error");
-	console.error("PlyrPlayer: error:", err);
+	console.error("DirectPlayer: error:", err);
 }
 
 onMounted(() => {
@@ -237,7 +237,7 @@ onMounted(() => {
 });
 
 watch(videoUrl, () => {
-	console.log("PlyrPlayer: videoUrl changed");
+	console.log("DirectPlayer: videoUrl changed");
 	loadVideoSource();
 });
 
