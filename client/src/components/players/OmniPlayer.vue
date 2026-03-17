@@ -147,27 +147,35 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiClose, mdiAlertCircle } from "@mdi/js";
+import { mdiAlertCircle, mdiClose } from "@mdi/js";
+import { ALL_VIDEO_SERVICES } from "ott-common";
+import { PlayerStatus } from "ott-common/models/types";
+import type { QueueItem } from "ott-common/models/video";
+import { calculateCurrentPosition } from "ott-common/timestamp";
+import {
+	computed,
+	defineAsyncComponent,
+	type PropType,
+	type Ref,
+	ref,
+	watch,
+	watchEffect,
+} from "vue";
 import { useStore } from "@/store";
 import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
-import { PlayerStatus } from "ott-common/models/types";
-import { QueueItem } from "ott-common/models/video";
-import { calculateCurrentPosition } from "ott-common/timestamp";
-import { defineAsyncComponent, PropType, ref, Ref, computed, watch } from "vue";
 import {
-	MediaPlayer,
-	MediaPlayerWithCaptions,
-	MediaPlayerWithQuality,
-	MediaPlayerWithPlaybackRate,
+	type MediaPlayer,
+	type MediaPlayerError,
+	type MediaPlayerWithAudioBoost,
+	type MediaPlayerWithCaptions,
+	type MediaPlayerWithPlaybackRate,
+	type MediaPlayerWithQuality,
 	useCaptions,
-	useQualities,
 	useMediaPlayer,
 	usePlaybackRate,
+	useQualities,
 	useVolume,
-	MediaPlayerError,
 } from "../composables";
-import { watchEffect } from "vue";
-import { ALL_VIDEO_SERVICES } from "ott-common";
 
 const props = defineProps({
 	source: {
@@ -206,6 +214,10 @@ function implementsPlaybackRate(p: MediaPlayer | null): p is MediaPlayerWithPlay
 	return !!p && p.getAvailablePlaybackRates().length > 1;
 }
 
+function implementsAudioBoost(p: MediaPlayer | null): p is MediaPlayerWithAudioBoost {
+	return !!p && "setAudioBoost" in p;
+}
+
 function isCaptionsSupported() {
 	if (!controls.checkForPlayer(player.value)) {
 		return false;
@@ -223,6 +235,14 @@ function isQualitySupported() {
 const volume = useVolume();
 const captions = useCaptions();
 const qualities = useQualities();
+watch(
+	() => store.state.settings.audioBoost,
+	v => {
+		if (player.value && implementsAudioBoost(player.value)) {
+			player.value.setAudioBoost(v);
+		}
+	}
+);
 watch(volume.volume, v => {
 	if (player.value) {
 		player.value.setVolume(v);
@@ -302,6 +322,9 @@ async function onApiReady() {
 	qualities.isQualitySupported.value = isQualitySupported();
 	if (player.value) {
 		player.value.setVolume(volume.volume.value);
+		if (implementsAudioBoost(player.value)) {
+			player.value.setAudioBoost(store.state.settings.audioBoost);
+		}
 	}
 	if (implementsCaptions(player.value)) {
 		captions.captionsTracks.value = player.value.getCaptionsTracks();
@@ -424,12 +447,12 @@ const renderedSpans = computed(() => {
 .player {
 	width: 100%;
 	height: 100%;
-	
+
 	// Ensure proper scaling on mobile devices
 	@media (max-width: variables.$xs-max) {
 		min-height: 200px;
 		max-height: calc(100dvh - 140px); // Account for controls and safe areas
-		
+
 		// Prevent player from becoming too small
 		aspect-ratio: 16/9;
 		object-fit: contain;

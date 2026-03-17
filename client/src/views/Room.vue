@@ -73,7 +73,7 @@
 			<div class="room-header" v-if="!store.state.fullscreen">
 				<h1 class="room-title">
 					{{
-						store.state.room.title != ""
+						store.state.room.title !== ""
 							? store.state.room.title
 							: store.state.room.isTemporary
 							? $t("room.title-temp")
@@ -264,7 +264,7 @@ import { mdiPlay, mdiFormatListBulleted, mdiPlus, mdiWrench } from "@mdi/js";
 import {
 	defineComponent,
 	ref,
-	Ref,
+	type Ref,
 	unref,
 	computed,
 	watch,
@@ -294,7 +294,7 @@ import WorkaroundUserStateNotifier from "@/components/WorkaroundUserStateNotifie
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
-import { ServerMessageSync } from "ott-common/models/messages";
+import type { ServerMessageSync } from "ott-common/models/messages";
 import { useScreenOrientation, useMouseInElement } from "@vueuse/core";
 import { KeyboardShortcuts, RoomKeyboardShortcutsKey } from "@/util/keyboard-shortcuts";
 import VideoControls from "@/components/controls/VideoControls.vue";
