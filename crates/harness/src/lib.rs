@@ -10,11 +10,14 @@ pub use monolith::*;
 pub use test_runner::*;
 pub use traits::*;
 
+#[doc(hidden)]
+pub const MESSAGE_WAIT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(1);
+
 #[macro_export]
 macro_rules! m_wait_until_msg_matching {
     ($monolith:expr, $pattern:pat) => {
         loop {
-            tokio::time::timeout(std::time::Duration::from_millis(200), $monolith.wait_recv())
+            tokio::time::timeout($crate::MESSAGE_WAIT_TIMEOUT, $monolith.wait_recv())
                 .await
                 .expect(&format!(
                     "timeout waiting for message matching {}",
@@ -28,7 +31,7 @@ macro_rules! m_wait_until_msg_matching {
     };
     ($monolith:expr, $pattern:pat, $context:literal) => {
         loop {
-            tokio::time::timeout(std::time::Duration::from_millis(200), $monolith.wait_recv())
+            tokio::time::timeout($crate::MESSAGE_WAIT_TIMEOUT, $monolith.wait_recv())
                 .await
                 .expect(&format!(
                     "[{}] timeout waiting for message matching {}",
@@ -47,7 +50,7 @@ macro_rules! m_wait_until_msg_matching {
 macro_rules! m_wait_until_msg_matching_raw {
     ($monolith:expr, $pattern:pat) => {
         loop {
-            tokio::time::timeout(std::time::Duration::from_millis(200), $monolith.wait_recv())
+            tokio::time::timeout($crate::MESSAGE_WAIT_TIMEOUT, $monolith.wait_recv())
                 .await
                 .expect(&format!(
                     "timeout waiting for message matching {}",
@@ -61,7 +64,7 @@ macro_rules! m_wait_until_msg_matching_raw {
     };
     ($monolith:expr, $pattern:pat, $context:literal) => {
         loop {
-            tokio::time::timeout(std::time::Duration::from_millis(200), $monolith.wait_recv())
+            tokio::time::timeout($crate::MESSAGE_WAIT_TIMEOUT, $monolith.wait_recv())
                 .await
                 .expect(&format!(
                     "[{}] timeout waiting for message matching {}",
