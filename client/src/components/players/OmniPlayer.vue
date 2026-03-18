@@ -100,7 +100,7 @@
 				@buffer-progress="onBufferProgress"
 				@buffer-spans="onBufferSpans"
 			/>
-			<PlyrPlayer
+			<DirectPlayer
 				v-else-if="
 					!!source &&
 					(['direct', 'googledrive'].includes(source.service) ||
@@ -192,7 +192,7 @@ const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
 const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
 const DashPlayer = defineAsyncComponent(() => import("./DashPlayer.vue"));
-const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
+const DirectPlayer = defineAsyncComponent(() => import("./DirectPlayer.vue"));
 const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
 
 const store = useStore();
