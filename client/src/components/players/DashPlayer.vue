@@ -394,7 +394,7 @@ onBeforeUnmount(() => {
 });
 
 watch(videoUrl, () => {
-	console.log("HlsPlayer: videoUrl changed");
+	console.log("DashPlayer: videoUrl changed");
 	loadVideoSource();
 });
 
