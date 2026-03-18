@@ -95,15 +95,15 @@ function setPosition(position: number) {
 }
 
 function isCaptionsSupported(): boolean {
-	return ["direct"].includes(props.service);
+	return true;
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
 	if (!videoElem.value) {
 		return;
 	}
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = enabled ? "showing" : "hidden";
+	for (const track of videoElem.value.textTracks) {
+		track.mode = enabled ? "showing" : "hidden";
 	}
 }
 
@@ -111,18 +111,15 @@ function isCaptionsEnabled(): boolean {
 	if (!videoElem.value) {
 		return false;
 	}
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		if (videoElem.value.textTracks[i].mode === "showing") {
-			return true;
-		}
-	}
-	return false;
+	return Array.from(videoElem.value.textTracks).find(t => t.mode === "showing") !== undefined;
 }
 
 function getCaptionsTracks(): CaptionTrack[] {
+	if (!videoElem.value) {
+		return [];
+	}
 	const tracks: CaptionTrack[] = [];
-	for (let i = 0; i < (videoElem.value?.textTracks?.length ?? 0); i++) {
-		const track = videoElem.value?.textTracks[i];
+	for (const track of videoElem.value.textTracks) {
 		if (!track || !["subtitles", "captions"].includes(track.kind)) {
 			continue;
 		}
