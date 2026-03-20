@@ -11,4 +11,12 @@ echo "DB_USERNAME: $DB_USERNAME"
 CONNECTION_URL=$(echo "$DATABASE_URL" | sed --regexp-extended "s/$DB_USERNAME(\?|$)/$DB_NAME?/g")
 echo "CONNECTION_URL: $CONNECTION_URL"
 
-psql --no-password --echo-queries "$CONNECTION_URL" -f "cleanup.sql"
+while true; do
+	DELETED_ROWS=$(psql --no-password --quiet --tuples-only --no-align "$CONNECTION_URL" -f "cleanup.sql")
+	DELETED_ROWS=$(echo "$DELETED_ROWS" | tr -d '[:space:]')
+	echo "Deleted rows: $DELETED_ROWS"
+
+	if [[ "$DELETED_ROWS" == "0" ]]; then
+		break
+	fi
+done

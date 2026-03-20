@@ -39,6 +39,7 @@ echo "DB_USERNAME: $DB_USERNAME"
 CONNECTION_URL=$(echo "$DATABASE_URL" | sed --regexp-extended "s/$DB_USERNAME(\?|$)/$DB_NAME?/g")
 echo "CONNECTION_URL: $CONNECTION_URL"
 
-pg_dump --no-password -d "$CONNECTION_URL" | gzip --best > "$OUTPUT_FILE"
+PGOPTIONS='-c work_mem=4MB -c temp_buffers=8MB' \
+	pg_dump --no-password -d "$CONNECTION_URL" --exclude-table-data='"CachedVideos"' | gzip --best > "$OUTPUT_FILE"
 ./rclone --progress --config ./rclone.conf --b2-chunk-size 10M --b2-upload-cutoff 100M --checkers 1 --transfers 1 copy "$OUTPUT_FILE" "b2:ott-backups/ott-prod"
 rm "$OUTPUT_FILE"
