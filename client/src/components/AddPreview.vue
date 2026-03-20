@@ -165,7 +165,7 @@ const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 			Direct: [
 				[
 					"test direct 0",
-					"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4",
+					"https://cdn.jsdelivr.net/gh/dyc3/opentogethertube@master/tests/assets/Big_Buck_Bunny_360_10s_1MB.mp4",
 				],
 				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
 			],
