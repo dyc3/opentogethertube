@@ -173,12 +173,12 @@ function formatCaption(track: CaptionTrack): string {
 		new Intl.DisplayNames([track.srclang], { type: "language", fallback: "none" }).of(
 			track.srclang
 		);
-	const label = track.label || localiedLabel || track.srclang || "unknown";
+	const label = track.label ?? localiedLabel ?? track.srclang ?? "unknown";
 	return label;
 }
 
 function formatQuality(videoTrack: VideoTrack): string {
-	const resolution = getFriendlyResolutionLabel(videoTrack);
+	const resolution = videoTrack.label ?? getFriendlyResolutionLabel(videoTrack);
 	return `${resolution}p`;
 }
 
