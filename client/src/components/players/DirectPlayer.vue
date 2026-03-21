@@ -19,8 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, toRefs, watch } from "vue";
-import type { CaptionTrack, CustomMediaManifest, VideoTrack } from "@/models/media-tracks";
+import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
 import type {
 	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
