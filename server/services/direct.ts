@@ -113,7 +113,9 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 			const response = await fetch(link);
 			if (!response.ok) {
 				log.error(`Failed to fetch manifest at ${link}: ${response.status}`);
-				throw new MissingMetadataException();
+				throw new MissingMetadataException(
+					`Failed to fetch the media manifest (HTTP ${response.status}). Please check that the URL is accessible.`
+				);
 			}
 			json = await response.json();
 		} catch (e) {
