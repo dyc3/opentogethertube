@@ -504,6 +504,11 @@ export class Room implements RoomState {
 		this.queue.clean();
 	}
 
+	private clearQueueItemTrim(queueItem: QueueItem): QueueItem {
+		const { startAt: _startAt, endAt: _endAt, ...queueItemWithoutTrim } = queueItem;
+		return queueItemWithoutTrim;
+	}
+
 	async dequeueNext() {
 		this.log.debug(`dequeuing next video. mode: ${this.queueMode}`);
 		if (this.enableVoteSkip) {
@@ -517,12 +522,13 @@ export class Room implements RoomState {
 				.inc(this.calcDurationFromPlaybackStart());
 			if (this.queueMode === QueueMode.Dj) {
 				this.log.debug(`queue in dj mode, restarting current item`);
-				this.playbackPosition = this.currentSource?.startAt ?? 0;
+				this.currentSource = this.clearQueueItemTrim(this.currentSource);
+				this.playbackPosition = 0;
 				this._playbackStart = dayjs();
 				return;
 			} else if (this.queueMode === QueueMode.Loop) {
 				this.log.debug(`queue in loop mode, requeuing current item`);
-				await this.queue.enqueue(this.currentSource);
+				await this.queue.enqueue(this.clearQueueItemTrim(this.currentSource));
 			}
 		}
 		if (this.queue.length > 0) {

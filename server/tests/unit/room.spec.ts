@@ -431,6 +431,44 @@ describe("Room", () => {
 			});
 		});
 
+		it.each([
+			{
+				mode: QueueMode.Loop,
+				expectedCurrentSource: { service: "direct", id: "video2" },
+				expectedQueueItem: { service: "direct", id: "video" },
+				expectedPlaybackPosition: 0,
+			},
+			{
+				mode: QueueMode.Dj,
+				expectedCurrentSource: { service: "direct", id: "video" },
+				expectedQueueItem: { service: "direct", id: "video2" },
+				expectedPlaybackPosition: 0,
+			},
+		])(
+			"should clear trim metadata when mode is $mode",
+			async ({
+				mode,
+				expectedCurrentSource,
+				expectedQueueItem,
+				expectedPlaybackPosition,
+			}) => {
+				room.queueMode = mode;
+				room.currentSource = {
+					service: "direct",
+					id: "video",
+					startAt: 10,
+					endAt: 20,
+				};
+				room.playbackPosition = 10;
+				await room.dequeueNext();
+
+				expect(room.currentSource).toEqual(expectedCurrentSource);
+				expect(room.playbackPosition).toEqual(expectedPlaybackPosition);
+				expect(room.queue).toHaveLength(1);
+				expect(room.queue.items[0]).toEqual(expectedQueueItem);
+			}
+		);
+
 		it.each([QueueMode.Loop])(
 			"should requeue the current item when mode is %s, with empty queue",
 			async mode => {
