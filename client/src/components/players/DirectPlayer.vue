@@ -102,12 +102,21 @@ function isCaptionsSupported(): boolean {
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
-	if (!videoElem.value) {
+	if (!videoElem.value || !manifest.value?.textTracks || captions.currentTrack.value === null) {
 		return;
 	}
-	for (const track of videoElem.value.textTracks) {
-		track.mode = enabled ? "showing" : "hidden";
+	if (captions.currentTrack.value === -1) {
+		if (enabled) {
+			videoElem.value.textTracks[0].mode = "showing";
+			captions.currentTrack.value = 0;
+		}
+		return;
 	}
+	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
+		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
+		return;
+	}
+	videoElem.value.textTracks[captions.currentTrack.value].mode = enabled ? "showing" : "hidden";
 }
 
 function isCaptionsEnabled(): boolean {
