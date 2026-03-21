@@ -14,11 +14,23 @@
 			@progress="onProgress"
 			@ended="onEnd"
 			@error="onError"
-		></video>
+		>
+			<track
+				v-for="(track, i) in manifest?.textTracks ?? []"
+				:key="i"
+				kind="subtitles"
+				:src="track.url"
+				:srclang="track.srclang"
+				:label="track.name"
+				:default="track.default"
+			/>
+		</video>
 	</div>
 </template>
 
 <script lang="ts" setup>
+import { nextTick, onMounted, ref, toRefs, watch } from "vue";
+import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
 import type {
 	MediaPlayerWithAudioBoost,
@@ -232,8 +244,6 @@ async function loadVideoSource() {
 	}
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
-	// Remove any existing track elements before loading new source, otherwise old tracks may persist across sources
-	Array.from(videoElem.value.querySelectorAll("track")).forEach(t => t.remove());
 
 	if (videoMime.value === "application/json") {
 		try {
@@ -260,20 +270,9 @@ async function loadVideoSource() {
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = 0;
 
-		for (const textTrack of manifest.value.textTracks ?? []) {
-			const trackEl = document.createElement("track");
-			trackEl.kind = "subtitles";
-			trackEl.src = textTrack.url;
-			trackEl.srclang = textTrack.srclang;
-			if (textTrack.name) {
-				trackEl.label = textTrack.name;
-			}
-			if (textTrack?.default) {
-				trackEl.default = true;
-			}
-			videoElem.value.appendChild(trackEl);
-		}
 		captions.captionsTracks.value = getCaptionsTracks();
+		// we need to wait for the text tracks to be added to the video element before we can get the current track
+		await nextTick();
 		captions.currentTrack.value =
 			Array.from(videoElem.value.textTracks).findIndex(t => t.mode === "showing") ?? -1;
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
