@@ -1,0 +1,33 @@
+{
+    "title": "Big Buck Bunny Test Video",
+    "duration": 5,
+    "live": false,
+    "thumbnail": "https://cdn.jsdelivr.net/gh/bower-media-samples/big-buck-bunny-1080p-5s@master/poster.jpg",
+    "sources": [
+        {
+            "url": "https://cdn.jsdelivr.net/gh/bower-media-samples/big-buck-bunny-480p-5s@master/video.mp4",
+            "contentType": "video/mp4",
+            "quality": 480
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/bower-media-samples/big-buck-bunny-1080p-5s@master/video.mp4",
+            "contentType": "video/mp4",
+            "quality": 1080
+        }
+    ],
+    "textTracks": [
+        {
+            "url": "https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_adv_example_hevc/s1/en/fileSequence0.webvtt",
+            "contentType": "text/vtt",
+            "srclang": "en",
+            "name": "English",
+            "default": true
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/brenopolanski/html5-video-webvtt-example@master/MIB2-subtitles-pt-BR.vtt",
+            "contentType": "text/vtt",
+            "srclang": "pt-BR",
+            "name": "Portuguese"
+        }
+    ]
+}
