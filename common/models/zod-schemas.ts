@@ -114,27 +114,10 @@ const CustomMediaSourceSchema = z.object({
 			message: `contentType must be one of: ${CUSTOM_MEDIA_SOURCE_CONTENT_TYPES.join(", ")}`,
 		}),
 	}),
-	quality: z.union(
-		[
-			z.literal(240),
-			z.literal(360),
-			z.literal(480),
-			z.literal(540),
-			z.literal(720),
-			z.literal(1080),
-			z.literal(1440),
-			z.literal(2160),
-			z.literal(2880),
-			z.literal(3456),
-			z.literal(4320),
-		],
-		{
-			errorMap: () => ({
-				message:
-					"quality must be one of: 240, 360, 480, 540, 720, 1080, 1440, 2160, 2880, 3456, 4320",
-			}),
-		}
-	),
+	quality: z
+		.number({ invalid_type_error: "quality must be a number" })
+		.positive("quality must be positive")
+		.finite("quality must be finite"),
 	bitrate: z
 		.number({ invalid_type_error: "bitrate must be a number" })
 		.positive("bitrate must be positive")
