@@ -16,6 +16,7 @@ import {
 import { getLogger } from "../logger.js";
 import type { Video } from "ott-common/models/video.js";
 import { conf } from "../ott-config.js";
+import { CustomMediaManifestSchema } from "ott-common/models/zod-schemas.js";
 
 const log = getLogger("direct");
 
@@ -59,7 +60,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg)$/.test(
+		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg|json)$/.test(
 			(url.path ?? "/").split("?")[0]
 		);
 	}
@@ -106,6 +107,36 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		return matchedFormat ? formatToMime[matchedFormat] : undefined;
 	}
 
+	async fetchManifestInfo(link: string): Promise<Video> {
+		let json: unknown;
+		try {
+			const response = await fetch(link);
+			if (!response.ok) {
+				log.error(`Failed to fetch manifest at ${link}: ${response.status}`);
+				throw new MissingMetadataException(
+					`Failed to fetch the media manifest (HTTP ${response.status}). Please check that the URL is accessible.`
+				);
+			}
+			json = await response.json();
+		} catch (e) {
+			if (e instanceof MissingMetadataException) {
+				throw e;
+			}
+			log.error(`Error fetching manifest at ${link}:`, e);
+			throw new MissingMetadataException();
+		}
+		const manifest = CustomMediaManifestSchema.parse(json);
+		return {
+			service: this.serviceId,
+			id: link,
+			title: manifest.title,
+			description: `Full Link: ${link}`,
+			length: Math.ceil(manifest.duration),
+			thumbnail: manifest.thumbnail,
+			mime: "application/json",
+		};
+	}
+
 	async fetchVideoInfo(link: string): Promise<Video> {
 		const url = URL.parse(link);
 		if (url.protocol === "file:") {
@@ -113,6 +144,12 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		}
 		const fileName = (url.pathname ?? "").split("/").slice(-1)[0].trim();
 		const extension = fileName.split(".").slice(-1)[0];
+
+		// If the extension is .json, we treat it as a custom media manifest instead of a direct media file
+		if (extension === "json") {
+			return this.fetchManifestInfo(link);
+		}
+
 		let mime = getMimeType(extension);
 
 		// If we can't determine a supported MIME type from extension, use ffprobe to detect it

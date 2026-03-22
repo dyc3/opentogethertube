@@ -1,0 +1,43 @@
+{
+    "title": "Big Buck Bunny Test Video",
+    "duration": 30,
+    "live": false,
+    "thumbnail": "https://cdn.jsdelivr.net/gh/bower-media-samples/big-buck-bunny-1080p-5s@master/poster.jpg",
+    "sources": [
+        {
+            "url": "https://cdn.jsdelivr.net/gh/chintan9/Big-Buck-Bunny@master/BigBuckBunny480p30s.mp4",
+            "contentType": "video/mp4",
+            "quality": 480
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/chintan9/Big-Buck-Bunny@master/BigBuckBunny576p30s.mp4",
+            "contentType": "video/mp4",
+            "quality": 576
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/chintan9/Big-Buck-Bunny@master/BigBuckBunny720p30s.mp4",
+            "contentType": "video/mp4",
+            "quality": 720
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/chintan9/Big-Buck-Bunny@master/BigBuckBunny1080p30s.mp4",
+            "contentType": "video/mp4",
+            "quality": 1080
+        }
+    ],
+    "textTracks": [
+        {
+            "url": "https://cdn.jsdelivr.net/gh/chintan9/Big-Buck-Bunny@master/subtitles-en.vtt",
+            "contentType": "text/vtt",
+            "srclang": "en",
+            "name": "English",
+            "default": true
+        },
+        {
+            "url": "https://cdn.jsdelivr.net/gh/brenopolanski/html5-video-webvtt-example@master/MIB2-subtitles-pt-BR.vtt",
+            "contentType": "text/vtt",
+            "srclang": "pt-BR",
+            "name": "Portuguese"
+        }
+    ]
+}

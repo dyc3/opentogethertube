@@ -14,19 +14,31 @@
 			@progress="onProgress"
 			@ended="onEnd"
 			@error="onError"
-		></video>
+		>
+			<track
+				v-for="track in manifest?.textTracks ?? []"
+				:key="track.url"
+				kind="subtitles"
+				:src="track.url"
+				:srclang="track.srclang"
+				:label="track.name"
+				:default="track.default"
+			/>
+		</video>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, toRefs, watch } from "vue";
-import type { CaptionTrack } from "@/models/media-tracks";
+import { nextTick, onMounted, ref, toRefs, watch } from "vue";
+import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
+import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
 import type {
 	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
+	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions, useMediaAudioBoost } from "../composables";
+import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
 
 interface Props {
 	service: string;
@@ -40,6 +52,8 @@ const { videoUrl, videoMime, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
+const qualities = useQualities();
+const manifest = ref<CustomMediaManifest | null>(null);
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -99,12 +113,21 @@ function isCaptionsSupported(): boolean {
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
-	if (!videoElem.value) {
+	if (!videoElem.value || !manifest.value?.textTracks || captions.currentTrack.value === null) {
 		return;
 	}
-	for (const track of videoElem.value.textTracks) {
-		track.mode = enabled ? "showing" : "hidden";
+	if (captions.currentTrack.value === -1) {
+		if (enabled) {
+			videoElem.value.textTracks[0].mode = "showing";
+			captions.currentTrack.value = 0;
+		}
+		return;
 	}
+	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
+		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
+		return;
+	}
+	videoElem.value.textTracks[captions.currentTrack.value].mode = enabled ? "showing" : "hidden";
 }
 
 function isCaptionsEnabled(): boolean {
@@ -115,19 +138,16 @@ function isCaptionsEnabled(): boolean {
 }
 
 function getCaptionsTracks(): CaptionTrack[] {
-	if (!videoElem.value) {
+	if (!videoElem.value || !manifest.value) {
 		return [];
 	}
 	const tracks: CaptionTrack[] = [];
-	for (const track of videoElem.value.textTracks) {
-		if (!track || !["subtitles", "captions"].includes(track.kind)) {
-			continue;
-		}
+	for (const track of manifest.value.textTracks ?? []) {
 		tracks.push({
-			kind: track.kind === "subtitles" || track.kind === "captions" ? track.kind : undefined,
-			label: track.label || undefined,
-			srclang: track.language || undefined,
-			default: false, // `TextTrack` type does not provide `default` property
+			kind: "subtitles",
+			label: track.name ?? undefined,
+			srclang: track.srclang,
+			default: track.default,
 		});
 	}
 	return tracks;
@@ -142,10 +162,54 @@ function setCaptionsTrack(track: number): void {
 	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
 		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
 	}
+	captions.currentTrack.value = track;
 }
 
 function isQualitySupported(): boolean {
+	return manifest.value !== null && manifest.value.sources.length > 1;
+}
+
+function getVideoTracks(): VideoTrack[] {
+	if (!manifest.value) {
+		return [];
+	}
+	return manifest.value.sources.map(s => ({
+		label: s.quality,
+		width: 0,
+		height: s.quality,
+	}));
+}
+
+function setVideoTrack(idx: number): void {
+	if (!manifest.value || !videoElem.value) {
+		return;
+	}
+	const source = manifest.value.sources[idx];
+	if (!source) {
+		return;
+	}
+	const currentTime = videoElem.value.currentTime;
+	const wasPlaying = !videoElem.value.paused;
+	videoElem.value.src = source.url;
+	videoElem.value.load();
+	videoElem.value.currentTime = currentTime;
+	if (wasPlaying) {
+		videoElem.value.play().catch(e => {
+			console.error("DirectPlayer: error resuming after quality switch:", e);
+		});
+	}
+	qualities.currentVideoTrack.value = idx;
+}
+
+function isAutoQualitySupported(): boolean {
 	return false;
+}
+
+function getCurrentActiveQuality(): number | null {
+	if (!videoElem.value || !manifest.value) {
+		return null;
+	}
+	return manifest.value.sources.findIndex(s => s.url === videoElem.value?.src) ?? -1;
 }
 
 function getAvailablePlaybackRates(): number[] {
@@ -172,26 +236,70 @@ function setAudioBoost(boost: number): void {
 	audioBoost.setBoost(boost);
 }
 
-function loadVideoSource() {
+async function loadVideoSource() {
 	console.log("DirectPlayer: loading video source:", videoUrl.value, videoMime.value);
 	if (!videoElem.value) {
 		console.error("player not ready");
 		return;
 	}
 	audioBoost.resetFailedSetup();
+	manifest.value = null;
 
-	videoElem.value.src = videoUrl.value;
+	if (videoMime.value === "application/json") {
+		try {
+			const response = await fetch(videoUrl.value);
+			if (!response.ok) {
+				console.error("DirectPlayer: failed to fetch manifest:", response.status);
+				emit("error");
+				return;
+			}
+			manifest.value = (await response.json()) as CustomMediaManifest;
+		} catch (e) {
+			console.error("DirectPlayer: failed to fetch manifest:", e);
+			emit("error");
+			return;
+		}
+		const firstSource = manifest.value.sources[0];
+		if (!firstSource) {
+			console.error("DirectPlayer: manifest has no sources");
+			emit("error");
+			return;
+		}
+		videoElem.value.src = firstSource.url;
+
+		qualities.videoTracks.value = getVideoTracks();
+		qualities.currentVideoTrack.value = 0;
+
+		captions.captionsTracks.value = getCaptionsTracks();
+		// we need to wait for the text tracks to be added to the video element before we can get the current track
+		await nextTick();
+		captions.currentTrack.value =
+			Array.from(videoElem.value.textTracks).findIndex(t => t.mode === "showing") ?? -1;
+		captions.isCaptionsEnabled.value = isCaptionsEnabled();
+	} else {
+		videoElem.value.src = videoUrl.value;
+
+		qualities.videoTracks.value = [];
+		qualities.currentVideoTrack.value = -1;
+
+		captions.captionsTracks.value = [];
+		captions.currentTrack.value = -1;
+		captions.isCaptionsEnabled.value = false;
+	}
+
 	videoElem.value.poster = thumbnail.value ?? "";
 	videoElem.value.load();
 	// this is needed to get the player to keep playing after the previous video has ended
 	videoElem.value.play();
+
+	console.log("DirectPlayer: current subtitle track:", captions.currentTrack.value);
+	console.log("DirectPlayer: current video track:", qualities.currentVideoTrack.value);
 
 	emit("apiready");
 }
 
 function onCanPlay() {
 	emit("ready");
-	captions.captionsTracks.value = getCaptionsTracks();
 }
 
 function onPlaying() {
@@ -254,11 +362,15 @@ defineExpose({
 	getCaptionsTracks,
 	setCaptionsTrack,
 	isQualitySupported,
+	getVideoTracks,
+	setVideoTrack,
+	isAutoQualitySupported,
+	getCurrentActiveQuality,
 	getAvailablePlaybackRates,
 	getPlaybackRate,
 	setPlaybackRate,
 	setAudioBoost,
-} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost);
+} satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost & MediaPlayerWithQuality);
 </script>
 
 <style lang="scss">

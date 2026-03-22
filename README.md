@@ -21,6 +21,7 @@ Try it here: https://opentogethertube.com/
   - `.mp4` files served over HTTP
   - HLS VOD streams
   - DASH VOD streams
+  - [Custom media manifests](docs/custom-media-format.md)
   - [...and some others.](https://github.com/dyc3/opentogethertube/tree/master/server/services)
 - Vote mode: Vote on what to watch next
 - Vote to skip
