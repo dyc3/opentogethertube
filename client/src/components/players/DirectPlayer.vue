@@ -16,8 +16,8 @@
 			@error="onError"
 		>
 			<track
-				v-for="(track, i) in manifest?.textTracks ?? []"
-				:key="i"
+				v-for="track in manifest?.textTracks ?? []"
+				:key="track.url"
 				kind="subtitles"
 				:src="track.url"
 				:srclang="track.srclang"
