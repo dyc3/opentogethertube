@@ -181,9 +181,10 @@ export class LocalFileException extends OttException {
 export class MissingMetadataException extends OttException {
 	name = "MissingMetadataException";
 
-	constructor() {
+	constructor(message?: string) {
 		super(
-			`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`
+			message ??
+				`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`
 		);
 	}
 }

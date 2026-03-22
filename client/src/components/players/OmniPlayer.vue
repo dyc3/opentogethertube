@@ -269,7 +269,7 @@ watch(captions.isCaptionsEnabled, v => {
 	}
 });
 watch(captions.currentTrack, v => {
-	if (player.value && implementsCaptions(player.value) && v) {
+	if (player.value && implementsCaptions(player.value) && v !== null) {
 		player.value.setCaptionsTrack(v);
 	}
 });
