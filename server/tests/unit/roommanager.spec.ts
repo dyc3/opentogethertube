@@ -114,6 +114,36 @@ describe("Room manager", () => {
 			expect(loadedRoom._playbackStart).toEqual(room._playbackStart);
 			expect(loadedRoom.realPlaybackPosition).toBeCloseTo(20, 1);
 		});
+
+		it("should preserve empty prevQueue on unload and reload when current queue is empty", async () => {
+			const roomName = "test-prevqueue-empty";
+			try {
+				await roommanager.createRoom({ name: roomName, isTemporary: false });
+				const room = (await roommanager.getRoom(roomName)).unwrap();
+
+				room.prevQueue = [{ service: "direct", id: "foo" }];
+				room.queue = new VideoQueue([]);
+				room.currentSource = null;
+
+				await room.sync();
+
+				let dbRoom = await DbRoom.findOne({ where: { name: roomName } });
+				expect(dbRoom).not.toBeNull();
+				expect(dbRoom?.prevQueue).toEqual([{ service: "direct", id: "foo" }]);
+
+				// prevQueue becomes null in "room.onBeforeUnload()" if prevQueue.length is 0
+				await roommanager.unloadRoom(roomName, UnloadReason.Keepalive);
+
+				dbRoom = await DbRoom.findOne({ where: { name: roomName } });
+				expect(dbRoom).not.toBeNull();
+				expect(dbRoom?.prevQueue).toBeNull();
+
+				const loaded = (await roommanager.getRoom(roomName)).unwrap();
+				expect(loaded.prevQueue).toBeNull();
+			} finally {
+				await DbRoom.destroy({ where: { name: roomName } });
+			}
+		});
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
