@@ -178,12 +178,15 @@ export function roomToDbPartial(
 			visibility: room.visibility,
 			queueMode: room.queueMode,
 			autoSkipSegmentCategories: room.autoSkipSegmentCategories,
-			prevQueue: room.prevQueue,
 			restoreQueueBehavior: room.restoreQueueBehavior,
 			enableVoteSkip: room.enableVoteSkip,
 		},
 		v => !!v
 	);
+	// room.prevQueue will become null if its length is 0, so we need to explicitly check for null here
+	if (room.prevQueue || room.prevQueue === null) {
+		db.prevQueue = room.prevQueue;
+	}
 	if (room.grants) {
 		const grantsFiltered = _.cloneDeep(room.grants);
 		// No need to waste storage space on these
