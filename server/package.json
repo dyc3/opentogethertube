@@ -21,7 +21,7 @@
     "argon2": "^0.44.0",
     "axios": "1.13.5",
     "connect-redis": "7.1.0",
-    "convict": "^6.2.4",
+    "convict": "^6.2.5",
     "cookie-parser": "^1.4.6",
     "dayjs": "^1.10.4",
     "express": "^4.21.2",
