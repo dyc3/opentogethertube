@@ -23,31 +23,24 @@
 				</h1>
 				<ClientSettingsDialog />
 				<div class="grow"><!-- Spacer --></div>
-				<v-btn
-					class="room-visibility-badge"
-					data-cy="room-visibility"
-					variant="plain"
-					size="default"
-					slim
-					:prepend-icon="roomVisibilityIcon"
-					@click="onVisibilityClick"
-				>
-					{{ roomVisibilityLabel }}
-					<v-tooltip activator="parent" location="top">
-						{{ $t("room.visibility-badge-label") }}
-					</v-tooltip>
-				</v-btn>
-				<v-btn
-					id="connectStatus-color"
-					variant="text"
-					size="default"
-					slim
-					:ripple="false"
-					style="pointer-events: none"
-				>
+				<div class="room-status">
+					<v-btn
+						class="room-visibility-badge"
+						data-cy="room-visibility"
+						variant="plain"
+						size="default"
+						slim
+						:prepend-icon="roomVisibilityIcon"
+						@click="onVisibilityClick"
+					>
+						{{ roomVisibilityLabel }}
+						<v-tooltip activator="parent" location="top">
+							{{ $t("room.visibility-badge-label") }}
+						</v-tooltip>
+					</v-btn>
 					<v-icon :icon="mdiCircle" :color="connectionStatusColor" size="small" start />
 					<span id="connectStatus">{{ connectionStatus }}</span>
-				</v-btn>
+				</div>
 			</div>
 			<div class="video-container">
 				<div class="video-subcontainer">
@@ -1031,5 +1024,13 @@ $in-video-chat-width-small: 250px;
 	@media screen and (max-width: variables.$sm-max) {
 		width: 100%;
 	}
+}
+
+.room-status {
+	display: flex;
+	align-items: center;
+	text-transform: uppercase;
+	font-size: 14px;
+	font-weight: 500;
 }
 </style>
