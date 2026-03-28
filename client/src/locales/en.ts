@@ -161,6 +161,7 @@ export default {
 			connecting: "Connecting...",
 			connected: "Connected",
 		},
+		"visibility-badge-label": "Room visibility",
 		"tabs": {
 			queue: "Queue",
 			settings: "Settings",

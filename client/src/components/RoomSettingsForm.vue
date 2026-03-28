@@ -22,6 +22,8 @@
 					{ title: $t('room-settings.unlisted'), value: Visibility.Unlisted },
 				]"
 				v-model="settings.visibility.value"
+				:menu="visibilityMenuOpen"
+				@update:menu="visibilityMenuOpen = $event"
 				:loading="isLoadingRoomSettings || dirtySettings.includes('visibility')"
 				:disabled="!granted('configure-room.set-visibility')"
 				data-cy="select-visibility"
@@ -176,6 +178,12 @@ const granted = useGrants();
 const route = useRoute();
 
 const isLoadingRoomSettings = ref(false);
+const visibilityMenuOpen = ref(false);
+
+function openVisibilityMenu() {
+	visibilityMenuOpen.value = true;
+}
+
 const inputRoomSettings = reactive<RoomSettings>({
 	title: "",
 	description: "",
@@ -312,6 +320,7 @@ async function claimOwnership() {
 }
 defineExpose({
 	loadRoomSettings,
+	openVisibilityMenu,
 });
 </script>
 
