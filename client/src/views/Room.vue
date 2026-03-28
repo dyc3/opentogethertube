@@ -38,7 +38,7 @@
 					</v-tooltip>
 				</v-btn>
 				<v-btn
-					id="connectStatus"
+					id="connectStatus-color"
 					variant="text"
 					size="default"
 					slim
@@ -46,7 +46,7 @@
 					style="pointer-events: none"
 				>
 					<v-icon :icon="mdiCircle" :color="connectionStatusColor" size="small" start />
-					{{ connectionStatus }}
+					<span id="connectStatus">{{ connectionStatus }}</span>
 				</v-btn>
 			</div>
 			<div class="video-container">
