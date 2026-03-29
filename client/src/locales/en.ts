@@ -224,6 +224,10 @@ export default {
 			label: "Force adapter",
 			auto: "Auto-detect",
 		},
+		"subtitle-url": {
+			label: "Subtitle URL (optional)",
+			placeholder: "https://example.com/subtitles.vtt",
+		},
 	},
 	"processed-text": {
 		"link-hint": "Click to copy this link to the add tab.",
