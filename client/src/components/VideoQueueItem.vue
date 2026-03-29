@@ -240,6 +240,7 @@ function getPostData(): VideoId {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
+		subtitleUrl: item.value.subtitleUrl || undefined,
 	};
 	return data;
 }
