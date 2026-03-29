@@ -1669,6 +1669,10 @@ export class Room implements RoomState {
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 			if (request.video.subtitleUrl) {
+				if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
+					this.log.error("subtitle url was not a vtt file");
+					throw new Error("subtitle url must be a vtt file");
+				}
 				videoToPlay.subtitleUrl = request.video.subtitleUrl;
 			}
 		}
