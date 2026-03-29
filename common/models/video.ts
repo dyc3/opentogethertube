@@ -25,5 +25,4 @@ export type Video = VideoId & Partial<VideoMetadata>;
 export interface QueueItem extends Video {
 	startAt?: number;
 	endAt?: number;
-	subtitleUrl?: string;
 }
