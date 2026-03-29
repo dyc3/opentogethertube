@@ -19,6 +19,20 @@
 					persistent-clear
 					data-cy="add-preview-input"
 				/>
+				<v-textarea
+					v-if="selectedAdapter === 'direct'"
+					clearable
+					auto-grow
+					variant="underlined"
+					rows="1"
+					:label="$t('add-preview.subtitle-url.label')"
+					:placeholder="$t('add-preview.subtitle-url.placeholder')"
+					v-model="inputAddSubtitle"
+					base-color="primary"
+					color="primary"
+					persistent-clear
+					data-cy="subtitle-url-input"
+				/>
 				<v-select
 					v-if="showAdapterSelector"
 					v-model="selectedAdapter"
@@ -146,6 +160,7 @@ const videos: Ref<Video[]> = ref([]);
 const isLoadingAddPreview = ref(false);
 const hasAddPreviewFailed = ref(false);
 const inputAddPreview = ref("");
+const inputAddSubtitle = ref("");
 const isLoadingAddAll = ref(false);
 const videosLoadFailureText = ref("");
 const selectedTestVideo = ref<string | undefined>(undefined);
@@ -246,6 +261,21 @@ watch(inputAddPreview, () => {
 	onInputAddPreviewChange();
 });
 
+watch(inputAddSubtitle, () => {
+	// HACK: ensure that inputAddSubtitle is always a string
+	if (inputAddSubtitle.value === null) {
+		inputAddSubtitle.value = "";
+	}
+	if (selectedAdapter.value !== "direct") {
+		return;
+	}
+	const subUrl = inputAddSubtitle.value || undefined;
+	// Since the adapter is "direct", there's always only one video in the result
+	if (videos.value[0]) {
+		videos.value[0] = { ...videos.value[0], subtitleUrl: subUrl };
+	}
+});
+
 const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
@@ -286,6 +316,13 @@ async function requestAddPreview() {
 		if (res.data.success) {
 			videos.value = res.data.result;
 			highlightedAddPreviewItem.value = res.data.highlighted;
+			// Since the adapter is "direct", there's always only one video in the result
+			if (selectedAdapter.value === "direct" && videos.value[0]) {
+				videos.value[0] = {
+					...videos.value[0],
+					subtitleUrl: inputAddSubtitle.value || undefined,
+				};
+			}
 			console.log(`Got add preview with ${videos.value.length}`);
 		} else {
 			throw new Error(res.data.error.message);

@@ -5,6 +5,7 @@ export type VideoService = (typeof ALL_VIDEO_SERVICES)[number];
 export interface VideoId {
 	service: VideoService;
 	id: string;
+	subtitleUrl?: string;
 }
 
 export interface VideoMetadata {

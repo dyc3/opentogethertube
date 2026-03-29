@@ -41,6 +41,7 @@ export const OttApiRequestRoomCreateSchema = z
 const VideoIdSchema = z.object({
 	service: z.enum(ALL_VIDEO_SERVICES),
 	id: z.string(),
+	subtitleUrl: z.string().url().optional(),
 });
 
 export const OttApiRequestVoteSchema = z.object({

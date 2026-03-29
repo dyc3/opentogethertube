@@ -435,6 +435,7 @@ const addToQueue: RequestHandler<
 			video: {
 				service: body.service,
 				id: body.id,
+				subtitleUrl: body.subtitleUrl,
 			},
 		};
 	}

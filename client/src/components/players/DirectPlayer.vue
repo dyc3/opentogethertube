@@ -24,6 +24,12 @@
 				:label="track.name"
 				:default="track.default"
 			/>
+			<track
+				v-if="subtitleUrl && videoMime !== 'application/json'"
+				:src="subtitleUrl"
+				kind="subtitles"
+				default
+			/>
 		</video>
 	</div>
 </template>
@@ -45,10 +51,11 @@ interface Props {
 	videoUrl: string;
 	videoMime: string;
 	thumbnail?: string;
+	subtitleUrl?: string;
 }
 
 const props = defineProps<Props>();
-const { videoUrl, videoMime, thumbnail } = toRefs(props);
+const { videoUrl, videoMime, thumbnail, subtitleUrl } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
@@ -113,7 +120,14 @@ function isCaptionsSupported(): boolean {
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
-	if (!videoElem.value || !manifest.value?.textTracks || captions.currentTrack.value === null) {
+	if (!videoElem.value || captions.currentTrack.value === null) {
+		return;
+	}
+	if (
+		videoMime.value !== "application/json" &&
+		!manifest.value?.textTracks &&
+		!subtitleUrl.value
+	) {
 		return;
 	}
 	if (captions.currentTrack.value === -1) {
@@ -138,9 +152,17 @@ function isCaptionsEnabled(): boolean {
 }
 
 function getCaptionsTracks(): CaptionTrack[] {
-	if (!videoElem.value || !manifest.value) {
+	if (!videoElem.value) {
 		return [];
 	}
+	if (videoMime.value === "application/json") {
+		if (!manifest.value) {
+			return [];
+		}
+	} else {
+		return subtitleUrl.value ? [{ kind: "subtitles", default: true }] : [];
+	}
+
 	const tracks: CaptionTrack[] = [];
 	for (const track of manifest.value.textTracks ?? []) {
 		tracks.push({
@@ -282,9 +304,15 @@ async function loadVideoSource() {
 		qualities.videoTracks.value = [];
 		qualities.currentVideoTrack.value = -1;
 
-		captions.captionsTracks.value = [];
-		captions.currentTrack.value = -1;
-		captions.isCaptionsEnabled.value = false;
+		if (subtitleUrl.value) {
+			captions.captionsTracks.value = [{ kind: "subtitles", default: true }];
+			captions.currentTrack.value = 0;
+			captions.isCaptionsEnabled.value = true;
+		} else {
+			captions.captionsTracks.value = [];
+			captions.currentTrack.value = -1;
+			captions.isCaptionsEnabled.value = false;
+		}
 	}
 
 	videoElem.value.poster = thumbnail.value ?? "";
