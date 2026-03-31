@@ -170,7 +170,7 @@ const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 				["test direct 1", "https://vjs.zencdn.net/v/oceans.mp4"],
 				[
 					"test direct 2 (manifest)",
-					"https://cdn.jsdelivr.net/gh/dyc3/opentogethertube@master/assets/custom_manifest.json",
+					"https://cdn.jsdelivr.net/gh/dyc3/opentogethertube@master/tests/assets/custom_manifest.json",
 				],
 			],
 			HLS: [
