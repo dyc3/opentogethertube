@@ -242,6 +242,10 @@ async function loadVideoSource() {
 		console.error("player not ready");
 		return;
 	}
+	// Fix for captions from previous video still showing after source change
+	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+		videoElem.value.textTracks[i].mode = "hidden";
+	}
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
 
@@ -271,11 +275,17 @@ async function loadVideoSource() {
 		qualities.currentVideoTrack.value = 0;
 
 		captions.captionsTracks.value = getCaptionsTracks();
-		// we need to wait for the text tracks to be added to the video element before we can get the current track
-		await nextTick();
-		captions.currentTrack.value =
-			Array.from(videoElem.value.textTracks).findIndex(t => t.mode === "showing") ?? -1;
-		captions.isCaptionsEnabled.value = isCaptionsEnabled();
+		// The browser adds newly inserted <track> elements in "disabled" mode initially,
+		// the default attribute causes them to become "showing" asynchronously.
+		// To reflect this in the UI correctly, now the default track index is read directly
+		// from the manifest data, and we explicitly set its mode to "showing"
+		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
+		captions.currentTrack.value = defaultTrackIdx;
+		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
+		if (defaultTrackIdx !== -1) {
+			await nextTick();
+			videoElem.value.textTracks[defaultTrackIdx].mode = "showing";
+		}
 	} else {
 		videoElem.value.src = videoUrl.value;
 
