@@ -76,6 +76,18 @@
 						<span>{{ $t("video.add-explanation") }}</span>
 					</v-tooltip>
 				</v-btn>
+				<v-btn
+					icon
+					variant="flat"
+					@click="showEditDialog = true"
+					v-if="isPreview"
+					data-cy="btn-edit-preview"
+				>
+					<v-icon :icon="mdiPencil" />
+					<v-tooltip activator="parent" location="top">
+						<span>{{ $t("video-queue-item.edit.tooltip") }}</span>
+					</v-tooltip>
+				</v-btn>
 
 				<v-btn
 					icon
@@ -151,6 +163,29 @@
 				</v-menu>
 			</div>
 		</div>
+		<v-dialog v-model="showEditDialog" max-width="480" data-cy="edit-preview-dialog">
+			<v-card>
+				<v-card-title>{{ $t("video-queue-item.edit.title") }}</v-card-title>
+				<v-card-text>
+					<v-text-field
+						v-model="editedSubtitleUrl"
+						:label="$t('video-queue-item.edit.subtitle-url')"
+						variant="underlined"
+						clearable
+						data-cy="edit-subtitle-url"
+					/>
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer />
+					<v-btn @click="showEditDialog = false" data-cy="edit-cancel">{{
+						$t("common.cancel")
+					}}</v-btn>
+					<v-btn color="primary" @click="saveEdit" data-cy="edit-save">{{
+						$t("common.save")
+					}}</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 	</v-sheet>
 </template>
 
@@ -166,12 +201,13 @@ import {
 	mdiDotsVertical,
 	mdiSortDescending,
 	mdiSortAscending,
+	mdiPencil,
 } from "@mdi/js";
 import { ref, toRefs, computed, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import type { QueueItem, VideoId } from "ott-common/models/video";
+import type { QueueItem, VideoId, VideoAdd } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -207,7 +243,8 @@ const hasBeenAdded = ref(false);
 const thumbnailHasError = ref(false);
 const hasError = ref(false);
 const voted = ref(false);
-
+const showEditDialog = ref(false);
+const editedSubtitleUrl = ref("");
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -244,10 +281,19 @@ function getPostData(): VideoId {
 	return data;
 }
 
+function saveEdit() {
+	item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
+	showEditDialog.value = false;
+}
+
 async function addToQueue() {
 	isLoadingAdd.value = true;
+	const postData = {
+		...getPostData(),
+		subtitleUrl: item.value.subtitleUrl ?? undefined,
+	} as VideoAdd;
 	try {
-		const resp = await API.post(`/room/${store.state.room.name}/queue`, getPostData());
+		const resp = await API.post(`/room/${store.state.room.name}/queue`, postData);
 		hasError.value = !resp.data.success;
 		hasBeenAdded.value = true;
 		toast.add({

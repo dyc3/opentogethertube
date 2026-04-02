@@ -248,6 +248,11 @@ export default {
 			"video-removed": "Video removed",
 		},
 		"start-at": "Start at {timestamp}",
+		"edit": {
+			"title": "Edit video",
+			"subtitle-url": "Subtitle URL (.vtt)",
+			"tooltip": "Edit video settings",
+		},
 	},
 	"room-settings": {
 		"title": "@:create-room-form.title",
