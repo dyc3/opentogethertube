@@ -43,15 +43,23 @@ const VideoIdSchema = z.object({
 	id: z.string(),
 });
 
+const QueueItemExtrasSchema = z.object({
+	// startAt: z.number().nonnegative().optional(),
+	// endAt: z.number().positive().optional(),
+	subtitleUrl: z.string().url().optional(),
+});
+
+const VideoAddSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);
+
 export const OttApiRequestVoteSchema = z.object({
 	...VideoIdSchema.shape,
 });
 
 export const OttApiRequestAddToQueueSchema = z.union([
 	z.object({
-		videos: z.array(VideoIdSchema),
+		videos: z.array(VideoAddSchema),
 	}),
-	VideoIdSchema,
+	VideoAddSchema,
 	z.object({
 		url: z.string(),
 	}),
