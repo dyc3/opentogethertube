@@ -172,6 +172,9 @@
 						:label="$t('video-queue-item.edit.subtitle-url')"
 						variant="underlined"
 						clearable
+						:disabled="!['direct', 'googledrive'].includes(item.service)"
+						:hint="$t('video-queue-item.edit.subtitle-url-supported-services')"
+						:persistent-hint="true"
 						data-cy="edit-subtitle-url"
 					/>
 				</v-card-text>

@@ -251,6 +251,7 @@ export default {
 		"edit": {
 			"title": "Edit video",
 			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url-supported-services": "Supported services: direct, googledrive",
 			"tooltip": "Edit video settings",
 		},
 	},
