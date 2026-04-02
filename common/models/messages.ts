@@ -12,7 +12,7 @@ import type {
 	AuthToken,
 	BehaviorOption,
 } from "./types.js";
-import type { QueueItem, VideoId } from "./video.js";
+import type { QueueItem, VideoId, VideoAdd } from "./video.js";
 
 export type ServerMessage =
 	| ServerMessageSync
@@ -257,8 +257,8 @@ export interface SeekRequest extends RoomRequestBase {
 
 export interface AddRequest extends RoomRequestBase {
 	type: RoomRequestType.AddRequest;
-	video?: VideoId;
-	videos?: VideoId[];
+	video?: VideoAdd;
+	videos?: VideoAdd[];
 	url?: string;
 }
 
@@ -313,7 +313,7 @@ export interface ApplySettingsRequest extends RoomRequestBase {
  */
 export interface PlayNowRequest extends RoomRequestBase {
 	type: RoomRequestType.PlayNowRequest;
-	video: VideoId;
+	video: VideoAdd;
 }
 
 export interface ShuffleRequest extends RoomRequestBase {

@@ -1247,6 +1247,13 @@ export class Room implements RoomState {
 				this.log.error("video was undefined, which is bad");
 				throw new Error("video was undefined");
 			}
+			if (request.video.subtitleUrl) {
+				if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
+					this.log.error("subtitle URL does not end with .vtt");
+					throw new Error("Subtitle URL must end with .vtt");
+				}
+				video.subtitleUrl = request.video.subtitleUrl;
+			}
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			this.prevQueue = null;
@@ -1661,6 +1668,13 @@ export class Room implements RoomState {
 			videoToPlay = item;
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
+		}
+		if (request.video.subtitleUrl) {
+			if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
+				this.log.error("subtitle URL does not end with .vtt");
+				throw new Error("Subtitle URL must end with .vtt");
+			}
+			videoToPlay.subtitleUrl = request.video.subtitleUrl;
 		}
 		if (this.currentSource) {
 			this.currentSource.startAt = this.realPlaybackPosition;
