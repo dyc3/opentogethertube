@@ -46,7 +46,7 @@ import {
 	type AuthToken,
 	BehaviorOption,
 } from "ott-common/models/types.js";
-import type { User } from "./models/user.js";
+import type { UserAccountAttributes as User } from "ott-common/models/types.js";
 import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import dayjs, { type Dayjs } from "dayjs";
 import type { PickFunctions } from "ott-common/typeutils.js";

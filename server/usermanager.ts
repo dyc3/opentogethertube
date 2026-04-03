@@ -1,11 +1,12 @@
 import { getLogger } from "./logger.js";
 import _ from "lodash";
 import * as argon2 from "argon2";
+import validator from "validator";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import passport from "passport";
 import crypto from "node:crypto";
-import { User as UserModel, Room as RoomModel } from "./models/index.js";
-import type { User } from "./models/user.js";
+import { eq, sql } from "drizzle-orm";
+import { User as ModelUser } from "./models/user.js";
 import { delPattern, redisClient } from "./redisclient.js";
 import { type RateLimiterAbstract, RateLimiterMemory } from "rate-limiter-flexible";
 import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
@@ -21,9 +22,9 @@ import {
 	UserNotFound,
 } from "./exceptions.js";
 import { conf } from "./ott-config.js";
-import type { AuthToken } from "ott-common/models/types.js";
+import type { AuthToken, UserAccountAttributes } from "ott-common/models/types.js";
 import { EventEmitter } from "node:events";
-import { Sequelize, UniqueConstraintError } from "sequelize";
+import { getDb } from "./database/client.js";
 import { type Email, type Mailer, type MailerError, MailjetMailer, MockMailer } from "./mailer.js";
 import { type Result, err } from "ott-common/result.js";
 import type {
@@ -43,6 +44,8 @@ import { fromZodError } from "zod-validation-error";
 const log = getLogger("usermanager");
 export const router = express.Router();
 
+type User = ModelUser;
+
 export type UserManagerEvents = "userModified" | "login" | "logout";
 export type UserManagerEventHandlers<E> = E extends "userModified"
 	? (token: AuthToken) => void
@@ -58,6 +61,179 @@ let maxConsecutiveFailsByUsernameAndIP;
 let limiterSlowBruteByIP: RateLimiterAbstract;
 let limiterConsecutiveFailsByUsernameAndIP: RateLimiterAbstract;
 export let mailer: Mailer = new MockMailer();
+
+function isUniqueConstraintError(err: unknown) {
+	if (!err || typeof err !== "object") {
+		return false;
+	}
+	const code = "code" in err ? err.code : undefined;
+	return code === "23505" || code === "SQLITE_CONSTRAINT_UNIQUE" || code === "SQLITE_CONSTRAINT";
+}
+
+function getUniqueConstraintFields(err: unknown): string[] {
+	if (!err || typeof err !== "object") {
+		return [];
+	}
+	const detail = "detail" in err && typeof err.detail === "string" ? err.detail : "";
+	const message = "message" in err && typeof err.message === "string" ? err.message : "";
+	return ["username", "email", "discordId"].filter(
+		field => detail.includes(field) || message.includes(field)
+	);
+}
+
+async function createUser(values: {
+	username: string;
+	email?: string | null;
+	salt?: Buffer | null;
+	hash?: Buffer | null;
+	discordId?: string | null;
+}): Promise<User> {
+	const context = getDb();
+	const now = new Date();
+	const insertValues = {
+		username: values.username,
+		email: values.email ?? null,
+		salt: values.salt ?? null,
+		hash: values.hash ?? null,
+		discordId: values.discordId ?? null,
+		createdAt: now,
+		updatedAt: now,
+	};
+
+	const rows =
+		context.dialect === "postgres"
+			? await context.db.insert(context.schema.users).values(insertValues).returning()
+			: await context.db.insert(context.schema.users).values(insertValues).returning();
+
+	return new ModelUser(rows[0]);
+}
+
+async function updateUser(id: number, values: Partial<Omit<User, "id">>): Promise<User> {
+	const context = getDb();
+	const updateValues = {
+		...values,
+		updatedAt: new Date(),
+	};
+	const rows =
+		context.dialect === "postgres"
+			? await context.db
+					.update(context.schema.users)
+					.set(updateValues)
+					.where(eq(context.schema.users.id, id))
+					.returning()
+			: await context.db
+					.update(context.schema.users)
+					.set(updateValues)
+					.where(eq(context.schema.users.id, id))
+					.returning();
+	if (!rows[0]) {
+		throw new UserNotFound();
+	}
+	return new ModelUser(rows[0]);
+}
+
+async function deleteUser(id: number) {
+	const context = getDb();
+	if (context.dialect === "postgres") {
+		await context.db.delete(context.schema.users).where(eq(context.schema.users.id, id));
+		return;
+	}
+	await context.db.delete(context.schema.users).where(eq(context.schema.users.id, id));
+}
+
+async function transferOwnedRooms(fromUserId: number, toUserId: number) {
+	const context = getDb();
+	const values = { ownerId: toUserId, updatedAt: new Date() };
+	if (context.dialect === "postgres") {
+		await context.db
+			.update(context.schema.rooms)
+			.set(values)
+			.where(eq(context.schema.rooms.ownerId, fromUserId));
+		return;
+	}
+	await context.db
+		.update(context.schema.rooms)
+		.set(values)
+		.where(eq(context.schema.rooms.ownerId, fromUserId));
+}
+
+async function findUserById(id: number): Promise<User | null> {
+	const context = getDb();
+	const rows =
+		context.dialect === "postgres"
+			? await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.id, id))
+					.limit(1)
+			: await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.id, id))
+					.limit(1);
+	return rows[0] ? new ModelUser(rows[0]) : null;
+}
+
+async function findUserByDiscordId(discordId: string): Promise<User | null> {
+	const context = getDb();
+	const rows =
+		context.dialect === "postgres"
+			? await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.discordId, discordId))
+					.limit(1)
+			: await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.discordId, discordId))
+					.limit(1);
+	return rows[0] ? new ModelUser(rows[0]) : null;
+}
+
+async function findUserByEmail(email: string): Promise<User | null> {
+	const context = getDb();
+	const rows =
+		context.dialect === "postgres"
+			? await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.email, email))
+					.limit(1)
+			: await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.email, email))
+					.limit(1);
+	return rows[0] ? new ModelUser(rows[0]) : null;
+}
+
+async function findUserByUsername(username: string): Promise<User | null> {
+	const context = getDb();
+	const rows =
+		context.dialect === "postgres"
+			? await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.username, username))
+					.limit(1)
+			: await context.db
+					.select()
+					.from(context.schema.users)
+					.where(eq(context.schema.users.username, username))
+					.limit(1);
+	return rows[0] ? new ModelUser(rows[0]) : null;
+}
+
+async function findUserByEmailOrUsername(user: string): Promise<User | null> {
+	const context = getDb();
+	const whereClause = sql`${context.schema.users.email} = ${user} OR lower(${context.schema.users.username}) = lower(${user})`;
+	const rows =
+		context.dialect === "postgres"
+			? await context.db.select().from(context.schema.users).where(whereClause).limit(1)
+			: await context.db.select().from(context.schema.users).where(whereClause).limit(1);
+	return rows[0] ? new ModelUser(rows[0]) : null;
+}
 
 export function setup() {
 	log.debug("Setting up user manager");
@@ -145,19 +321,16 @@ router.post("/", nocache(), async (req, res) => {
 	let oldUsername: string = "";
 	if (req.user) {
 		oldUsername = req.user.username;
-		req.user.username = req.body.username;
 		try {
-			// HACK: the unique constraint on the model is fucking broken
-			if (await isUsernameTaken(req.body.username)) {
+			if ((await isUsernameTaken(req.body.username)) && req.body.username !== oldUsername) {
 				throw new UsernameTakenError();
 			}
-			await req.user.save();
+			req.user = await updateUser(req.user.id, { username: req.body.username });
 		} catch (err) {
 			if (
-				err.name === "SequelizeUniqueConstraintError" ||
-				err.name === "UsernameTakenError"
+				(err instanceof Error && err.name === "UsernameTakenError") ||
+				isUniqueConstraintError(err)
 			) {
-				await req.user.reload();
 				res.status(400).json({
 					success: false,
 					error: {
@@ -293,7 +466,7 @@ router.post("/login", async (req, res, next) => {
 
 router.post("/logout", async (req, res) => {
 	if (req.user) {
-		const user = req.user;
+		const user = req.user as User;
 		req.logout(async err => {
 			if (err) {
 				log.error(`Error logging out user ${err}`);
@@ -341,8 +514,8 @@ router.post("/register", async (req, res) => {
 	} catch (err) {
 		if (err instanceof Error) {
 			log.error(`Unable to register user ${err} ${err.message}`);
-			if (err instanceof UniqueConstraintError) {
-				const fields = Object.keys(err.fields);
+			if (isUniqueConstraintError(err)) {
+				const fields = getUniqueConstraintFields(err);
 				res.status(400).json({
 					success: false,
 					error: {
@@ -416,6 +589,13 @@ class BadPasswordError extends OttException {
 	}
 }
 
+class UserValidationError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "SequelizeValidationError";
+	}
+}
+
 class UsernameTakenError extends OttException {
 	constructor() {
 		super("Username taken.");
@@ -480,7 +660,7 @@ async function authCallback(emailOrUser: string, password: string, done) {
 				user.hash = Buffer.from(
 					await argon2.hash(Buffer.concat([user.salt, Buffer.from(password)]))
 				);
-				await user.save();
+				user = await updateUser(user.id, { hash: user.hash });
 			} else {
 				log.debug(`User ${user.username} (${user.id}): Hash is valid`);
 			}
@@ -606,8 +786,19 @@ async function registerUser({ email, username, password }): Promise<User> {
 	if (username.length > USERNAME_LENGTH_MAX) {
 		throw new LengthOutOfRangeException("Username length", { max: USERNAME_LENGTH_MAX });
 	}
+	if (username.length < 1) {
+		throw new UserValidationError("Username is required.");
+	}
 	if (email === "") {
 		email = null;
+	}
+	if (
+		email &&
+		!validator.isEmail(email, {
+			require_tld: conf.get("env") === "production",
+		})
+	) {
+		throw new UserValidationError("Invalid email address.");
 	}
 
 	const salt = crypto.randomBytes(128);
@@ -622,7 +813,7 @@ async function registerUser({ email, username, password }): Promise<User> {
 	}
 
 	try {
-		return await UserModel.create({
+		return await createUser({
 			email,
 			username,
 			salt,
@@ -642,7 +833,7 @@ async function registerUserSocial({ username, discordId }): Promise<User> {
 	if (!conf.get("users.enable_registration")) {
 		throw new FeatureDisabledException("Disabled by administrator.");
 	}
-	return await UserModel.create({
+	return await createUser({
 		discordId,
 		username,
 	});
@@ -673,12 +864,10 @@ async function connectSocial(user: User, options: { discordId: string }) {
 		log.warn(
 			`Merging local account ${user.username} with social account ${socialUser.username}...`
 		);
-		// transfer all owned rooms to local account
-		await RoomModel.update({ ownerId: user.id }, { where: { ownerId: socialUser.id } });
-		// delete old account
-		await socialUser.destroy();
+		await transferOwnedRooms(socialUser.id, user.id);
+		await deleteUser(socialUser.id);
 	}
-	await user.save();
+	await updateUser(user.id, { discordId: user.discordId });
 }
 
 /**
@@ -691,24 +880,11 @@ async function getUser(options: { user?: string; id?: number; discordId?: string
 		log.error("Invalid parameters to find user");
 		throw new Error("Invalid parameters to find user");
 	}
-	let where = {};
-	if (options.user) {
-		where = Sequelize.or(
-			Sequelize.where(Sequelize.col("email"), options.user),
-			Sequelize.where(
-				Sequelize.fn("lower", Sequelize.col("username")),
-				Sequelize.fn("lower", options.user)
-			)
-		);
-	} else if (options.id) {
-		where = { id: options.id };
-	} else if (options.discordId) {
-		where = { discordId: options.discordId };
-	} else {
-		log.error("Invalid parameters to find user");
-		throw new Error("Invalid parameters to find user");
-	}
-	const user = await UserModel.findOne({ where });
+	const user = options.user
+		? await findUserByEmailOrUsername(options.user)
+		: options.id
+		? await findUserById(options.id)
+		: await findUserByDiscordId(options.discordId!);
 	if (!user) {
 		log.error("User not found");
 		throw new UserNotFound();
@@ -733,15 +909,13 @@ function onUserModified(token: AuthToken) {
 }
 
 async function isUsernameTaken(username: string): Promise<boolean> {
-	// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
-	return await UserModel.findOne({ where: { username } })
+	return await findUserByUsername(username)
 		.then(room => (room ? true : false))
 		.catch(() => false);
 }
 
 async function isEmailTaken(email: string): Promise<boolean> {
-	// FIXME: remove when https://github.com/sequelize/sequelize/issues/12415 is fixed
-	return await UserModel.findOne({ where: { email } })
+	return await findUserByEmail(email)
 		.then(room => (room ? true : false))
 		.catch(() => false);
 }
@@ -797,7 +971,7 @@ const accountRecoveryVerify: RequestHandler<
 		throw new InvalidVerifyKey();
 	}
 
-	const user = await UserModel.findOne({ where: { email: accountEmail } });
+	const user = await findUserByEmail(accountEmail);
 	if (!user) {
 		throw new UserNotFound();
 	}
@@ -882,7 +1056,7 @@ async function changeUserPassword(
 	const hash = Buffer.from(await argon2.hash(Buffer.concat([newSalt, Buffer.from(newPassword)])));
 	user.hash = hash;
 	user.salt = newSalt;
-	await user.save();
+	await updateUser(user.id, { hash, salt: newSalt });
 }
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {

@@ -1,90 +1,140 @@
-import { type Sequelize, Model, DataTypes, type Optional } from "sequelize";
+import { eq } from "drizzle-orm";
 import type { UserAccountAttributes } from "ott-common/models/types.js";
-import { conf } from "../ott-config.js";
+import { getDb } from "../database/client.js";
 
-type UserCreationAttributes = Optional<UserAccountAttributes, "id">;
+export type UserCreationAttributes = Omit<UserAccountAttributes, "id">;
 
-export class User
-	extends Model<UserAccountAttributes, UserCreationAttributes>
-	implements UserAccountAttributes
-{
+export class User implements UserAccountAttributes {
 	declare id: number;
-	public declare readonly createdAt: Date;
-	public declare readonly updatedAt: Date;
 	declare username: string;
 	declare email: string | null;
 	declare salt: Buffer | null;
 	declare hash: Buffer | null;
 	declare discordId: string | null;
+	declare createdAt?: Date;
+	declare updatedAt?: Date;
+	declare dataValues: this;
+
+	constructor(values: Partial<User> = {}) {
+		this.id = values.id ?? 0;
+		this.username = values.username ?? "";
+		this.email = values.email ?? null;
+		this.salt = values.salt ?? null;
+		this.hash = values.hash ?? null;
+		this.discordId = values.discordId ?? null;
+		this.createdAt = values.createdAt;
+		this.updatedAt = values.updatedAt;
+		Object.defineProperty(this, "dataValues", {
+			enumerable: false,
+			get: () => ({ ...this }),
+		});
+	}
+
+	async save() {
+		const context = getDb();
+		const rows =
+			context.dialect === "postgres"
+				? await context.db
+						.update(context.schema.users)
+						.set({
+							username: this.username,
+							email: this.email,
+							salt: this.salt,
+							hash: this.hash,
+							discordId: this.discordId,
+							updatedAt: new Date(),
+						})
+						.where(eq(context.schema.users.id, this.id))
+						.returning()
+				: await context.db
+						.update(context.schema.users)
+						.set({
+							username: this.username,
+							email: this.email,
+							salt: this.salt,
+							hash: this.hash,
+							discordId: this.discordId,
+							updatedAt: new Date(),
+						})
+						.where(eq(context.schema.users.id, this.id))
+						.returning();
+		Object.assign(this, rows[0]);
+		return this;
+	}
+
+	async reload() {
+		const fresh = await User.findOne({ where: { id: this.id } });
+		if (fresh) {
+			Object.assign(this, fresh);
+		}
+		return this;
+	}
+
+	async destroy() {
+		const context = getDb();
+		if (context.dialect === "postgres") {
+			await context.db
+				.delete(context.schema.users)
+				.where(eq(context.schema.users.id, this.id));
+			return;
+		}
+		await context.db.delete(context.schema.users).where(eq(context.schema.users.id, this.id));
+	}
+
+	static async create(values: Partial<UserCreationAttributes>) {
+		const context = getDb();
+		const now = new Date();
+		const rows =
+			context.dialect === "postgres"
+				? await context.db
+						.insert(context.schema.users)
+						.values({
+							username: values.username ?? "",
+							email: values.email ?? null,
+							salt: values.salt ?? null,
+							hash: values.hash ?? null,
+							discordId: values.discordId ?? null,
+							createdAt: now,
+							updatedAt: now,
+						})
+						.returning()
+				: await context.db
+						.insert(context.schema.users)
+						.values({
+							username: values.username ?? "",
+							email: values.email ?? null,
+							salt: values.salt ?? null,
+							hash: values.hash ?? null,
+							discordId: values.discordId ?? null,
+							createdAt: now,
+							updatedAt: now,
+						})
+						.returning();
+		return new User(rows[0]);
+	}
+
+	static async findOne({ where }: { where: Partial<User> }) {
+		const context = getDb();
+		const key = Object.keys(where)[0] as keyof User | undefined;
+		const value = key ? where[key] : undefined;
+		if (!key) {
+			return null;
+		}
+		const column = context.schema.users[key as keyof typeof context.schema.users];
+		const rows =
+			context.dialect === "postgres"
+				? await context.db
+						.select()
+						.from(context.schema.users)
+						.where(eq(column as never, value as never))
+						.limit(1)
+				: await context.db
+						.select()
+						.from(context.schema.users)
+						.where(eq(column as never, value as never))
+						.limit(1);
+		return rows[0] ? new User(rows[0]) : null;
+	}
 }
 
-export const createModel = (sequelize: Sequelize) => {
-	User.init(
-		{
-			id: {
-				type: DataTypes.INTEGER,
-				primaryKey: true,
-				autoIncrement: true,
-			},
-			username: {
-				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true,
-				validate: {
-					len: [1, 255],
-				},
-			},
-			email: {
-				type: DataTypes.STRING,
-				allowNull: true,
-				unique: true,
-				validate: {
-					isEmail: {
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						// @ts-expect-error because I think the type annotation is wrong.
-						args: [
-							{
-								require_tld: conf.get("env") === "production",
-							},
-						],
-					},
-				},
-			},
-			salt: {
-				type: DataTypes.BLOB,
-				allowNull: true,
-				validate: {
-					len: [1, 256],
-				},
-			},
-			hash: {
-				type: DataTypes.BLOB,
-				allowNull: true,
-			},
-			discordId: {
-				type: DataTypes.STRING,
-				allowNull: true,
-			},
-		},
-		{
-			sequelize,
-			modelName: "User",
-			validate: {
-				ensureCredentials() {
-					if ((!this.username || !this.hash || !this.salt) && !this.discordId) {
-						throw new Error(
-							"Incomplete login credentials. Requires social login or username/password."
-						);
-					}
-				},
-			},
-		}
-	);
-	// // eslint-disable-next-line no-unused-vars
-	// User.associate = function(models) {
-	//   // User.hasMany(models.Room, { as: "rooms" });
-	// };
-	return User;
-};
-
-export default createModel;
+export default User;

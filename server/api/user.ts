@@ -1,7 +1,8 @@
 import express, { type RequestHandler } from "express";
 import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api.js";
 import type { QueueMode, Visibility } from "ott-common/models/types.js";
-import { Room as DbRoomModel } from "../models/index.js";
+import { eq } from "drizzle-orm";
+import { getDb } from "../database/client.js";
 
 const router = express.Router();
 
@@ -23,9 +24,29 @@ const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[
 		return;
 	}
 
-	const dbRooms = await DbRoomModel.findAll({
-		where: { ownerId: req.user.id },
-	});
+	const context = getDb();
+	const dbRooms =
+		context.dialect === "postgres"
+			? await context.db
+					.select({
+						name: context.schema.rooms.name,
+						title: context.schema.rooms.title,
+						description: context.schema.rooms.description,
+						visibility: context.schema.rooms.visibility,
+						queueMode: context.schema.rooms.queueMode,
+					})
+					.from(context.schema.rooms)
+					.where(eq(context.schema.rooms.ownerId, req.user.id))
+			: await context.db
+					.select({
+						name: context.schema.rooms.name,
+						title: context.schema.rooms.title,
+						description: context.schema.rooms.description,
+						visibility: context.schema.rooms.visibility,
+						queueMode: context.schema.rooms.queueMode,
+					})
+					.from(context.schema.rooms)
+					.where(eq(context.schema.rooms.ownerId, req.user.id));
 
 	const ownedRooms: RoomListItem[] = dbRooms.map(dbRoom => ({
 		name: dbRoom.name,

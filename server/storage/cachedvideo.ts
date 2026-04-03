@@ -1,93 +1,107 @@
 import dayjs from "dayjs";
-import { CachedVideo as DbCachedVideo } from "../models/index.js";
-import Sequelize from "sequelize";
+import { and, eq, or } from "drizzle-orm";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
 import _ from "lodash";
-import type { CachedVideoCreationAttributes, CachedVideo } from "../models/cachedvideo.js";
+import { getDb } from "../database/client.js";
+import { cachedVideoInfoFields, type CachedVideoRow } from "../database/schema/types.js";
 
 const log = getLogger("storage/cachedvideo");
 
-/**
- * Gets cached video information from the database. If cached information
- * is invalid, it will be omitted from the returned video object.
- * @param service The service that hosts the source video.
- * @param id The id of the video on the given service.
- * @return Video object, but it may contain missing properties.
- */
+type VideoLookup = {
+	service: VideoService;
+	serviceId: string;
+};
+
+type CachedVideoMutation = {
+	service: VideoService;
+	serviceId: string;
+	title?: string;
+	description?: string;
+	thumbnail?: string;
+	length?: number;
+	mime?: string;
+};
+
+function pickDefined<T extends object>(value: T): Partial<T> {
+	return Object.fromEntries(
+		Object.entries(value).filter(([, entryValue]) => entryValue !== undefined)
+	) as Partial<T>;
+}
+
 export async function getVideoInfo(service: VideoService, id: string): Promise<Video> {
 	try {
-		const cachedVideo = await DbCachedVideo.findOne({
-			where: { service: service, serviceId: id },
-		});
+		const context = getDb();
+		const cachedVideo =
+			context.dialect === "postgres"
+				? await context.db.query.cachedVideos.findFirst({
+						where: (cachedVideos, { and, eq }) =>
+							and(eq(cachedVideos.service, service), eq(cachedVideos.serviceId, id)),
+				  })
+				: await context.db.query.cachedVideos.findFirst({
+						where: (cachedVideos, { and, eq }) =>
+							and(eq(cachedVideos.service, service), eq(cachedVideos.serviceId, id)),
+				  });
 		if (cachedVideo) {
 			return filterVideoInfo(cachedVideo);
-		} else {
-			log.debug(`video not found in cache ${service} ${id}`);
-			return { service, id };
 		}
+		log.debug(`video not found in cache ${service} ${id}`);
+		return { service, id };
 	} catch (err) {
 		log.warn(`Cache failure ${err}`);
 		return { service, id };
 	}
 }
-/**
- * Gets cached video information from the database. If cached information
- * is invalid, it will be omitted from the returned video object.
- * Does not guarantee order will be maintained.
- * @param	{Array.<Video|Object>} videos The videos to find in the cache.
- * @return	{Promise.<Object>} Video object, but it may contain missing properties.
- */
-export async function getManyVideoInfo(videos) {
-	const { or, and } = Sequelize.Op;
 
-	videos = videos.map(video => {
-		video = _.cloneDeep(video);
-		video.serviceId = video.id;
-		delete video.id;
-		return video;
-	});
+export async function getManyVideoInfo(videos: Video[]): Promise<Video[]> {
+	if (videos.length === 0) {
+		return [];
+	}
+
+	const lookups: VideoLookup[] = videos.map(video => ({
+		service: video.service,
+		serviceId: video.id,
+	}));
 
 	try {
-		const foundVideos = await DbCachedVideo.findAll({
-			where: {
-				[or]: videos.map(video => {
-					return {
-						[and]: [{ service: video.service }, { serviceId: video.serviceId }],
-					};
-				}),
-			},
-		});
-		if (videos.length !== foundVideos.length) {
-			for (const video of videos) {
+		const context = getDb();
+		const whereClause = or(
+			...lookups.map(video =>
+				and(
+					eq(context.schema.cachedVideos.service, video.service),
+					eq(context.schema.cachedVideos.serviceId, video.serviceId)
+				)
+			)
+		);
+		const foundVideos =
+			context.dialect === "postgres"
+				? await context.db.select().from(context.schema.cachedVideos).where(whereClause)
+				: await context.db.select().from(context.schema.cachedVideos).where(whereClause);
+
+		if (lookups.length !== foundVideos.length) {
+			for (const video of lookups) {
 				if (!_.find(foundVideos, video)) {
-					foundVideos.push(video);
+					foundVideos.push(video as unknown as CachedVideoRow);
 				}
 			}
 		}
 		return foundVideos.map(filterVideoInfo);
 	} catch (err) {
 		log.warn(`Cache failure ${err}`);
-		return videos;
+		return lookups.map(video => ({ service: video.service, id: video.serviceId }));
 	}
 }
 
-function filterVideoInfo(cachedVideo: CachedVideo): Video {
-	const origCreatedAt = dayjs(cachedVideo.createdAt);
-	const lastUpdatedAt = dayjs(cachedVideo.updatedAt);
+function filterVideoInfo(cachedVideo: Partial<CachedVideoRow>): Video {
+	const origCreatedAt = cachedVideo.createdAt ? dayjs(cachedVideo.createdAt) : dayjs();
+	const lastUpdatedAt = cachedVideo.updatedAt ? dayjs(cachedVideo.updatedAt) : dayjs();
 	const today = dayjs();
-	// We check for changes every at an interval of 30 days, unless the original cache date was
-	// less than 7 days ago, then the interval is 7 days. The reason for this is that the uploader
-	// is unlikely to change the video info after a week of the original upload. Since we don't store
-	// the upload date, we pretend the original cache date is the upload date. This is potentially an
-	// over optimization.
 	const isCachedInfoValid =
 		lastUpdatedAt.diff(today, "days") <= (origCreatedAt.diff(today, "days") <= 7 ? 7 : 30);
 	const video: Video = {
-		service: cachedVideo.service,
-		id: cachedVideo.serviceId,
+		service: cachedVideo.service as VideoService,
+		id: cachedVideo.serviceId ?? "",
 	};
-	// We only invalidate the title and description because those are the only ones that can change.
 	if (cachedVideo.title && isCachedInfoValid) {
 		video.title = cachedVideo.title;
 	}
@@ -105,13 +119,7 @@ function filterVideoInfo(cachedVideo: CachedVideo): Video {
 	}
 	return video;
 }
-/**
- * Updates the database with the given video. If the video exists in
- * the database, it is overwritten. Omitted properties will not be
- * overwritten. If the video does not exist in the database, it will be
- * created.
- * @param video Video object to store
- */
+
 export async function updateVideoInfo(video: Video, shouldLog = true): Promise<boolean> {
 	video = _.cloneDeep(video);
 	if (!video.service || !video.id) {
@@ -123,10 +131,41 @@ export async function updateVideoInfo(video: Video, shouldLog = true): Promise<b
 		if (shouldLog) {
 			log.debug(`Updating video cache: ${video.service} ${video.id}`);
 		}
-		await DbCachedVideo.upsert(toDbVideo(video), {
-			conflictWhere: { service: video.service, serviceId: video.id },
-			conflictFields: ["service", "serviceId"],
-		});
+		const context = getDb();
+		const now = new Date();
+		const values = {
+			...toDbVideo(video.service, video.id, video),
+			createdAt: now,
+			updatedAt: now,
+		};
+		const updateSet = {
+			...pickDefined(toDbVideo(video.service, video.id, video)),
+			updatedAt: now,
+		};
+
+		if (context.dialect === "postgres") {
+			await context.db
+				.insert(context.schema.cachedVideos)
+				.values(values)
+				.onConflictDoUpdate({
+					target: [
+						context.schema.cachedVideos.service,
+						context.schema.cachedVideos.serviceId,
+					],
+					set: updateSet,
+				});
+		} else {
+			await context.db
+				.insert(context.schema.cachedVideos)
+				.values(values)
+				.onConflictDoUpdate({
+					target: [
+						context.schema.cachedVideos.service,
+						context.schema.cachedVideos.serviceId,
+					],
+					set: updateSet,
+				});
+		}
 	} catch (err) {
 		log.error(`Failed to cache video info ${err}`);
 		return false;
@@ -134,83 +173,52 @@ export async function updateVideoInfo(video: Video, shouldLog = true): Promise<b
 
 	return true;
 }
-/**
- * Updates the database for all the videos in the given list. If a video
- * exists in the database, it is overwritten. Omitted properties will not
- * be overwritten. If the video does not exist in the database, it will be
- * created.
- *
- * This also minimizes the number of database queries made by doing bulk
- * queries instead of a query for each video.
- * @param videos List of videos to store.
- */
-export async function updateManyVideoInfo(videos: Video[]): Promise<boolean> {
-	const { or, and } = Sequelize.Op;
 
+export async function updateManyVideoInfo(videos: Video[]): Promise<boolean> {
 	videos = videos.map(video => _.cloneDeep(video));
 
 	try {
-		const foundVideos = await DbCachedVideo.findAll({
-			where: {
-				[or]: videos.map(video => {
-					return {
-						[and]: [{ service: video.service }, { serviceId: video.id }],
-					};
-				}),
-			},
-		});
-
-		const [toUpdate, toCreate] = _.partition(videos, video =>
-			_.find(foundVideos, { service: video.service, serviceId: video.id })
-		);
-		log.debug(
-			`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`
-		);
-		const promises: Promise<unknown>[] = toUpdate.map(video => updateVideoInfo(video, false));
-		if (toCreate.length) {
-			promises.push(DbCachedVideo.bulkCreate(toCreate.map(toDbVideo)));
-		}
-		await Promise.all(promises);
-		log.info(`bulk cache: created ${toCreate.length} rows, updated ${toUpdate.length} rows`);
-		return true;
+		const results = await Promise.all(videos.map(video => updateVideoInfo(video, false)));
+		return results.every(Boolean);
 	} catch (err) {
 		log.error(`Failed to cache video info ${err}`);
 		return false;
 	}
 }
 
-function toDbVideo(video: Video): CachedVideoCreationAttributes {
-	return {
-		service: video.service,
-		serviceId: video.id,
-		title: video.title,
-		description: video.description,
-		thumbnail: video.thumbnail,
-		length: video.length,
-		mime: video.mime,
+function toDbVideo(service: VideoService, id: string, video: Video): CachedVideoMutation {
+	const dbVideo: CachedVideoMutation = {
+		service,
+		serviceId: id,
 	};
+	if (video.title !== undefined) {
+		dbVideo.title = video.title;
+	}
+	if (video.description !== undefined) {
+		dbVideo.description = video.description;
+	}
+	if (video.thumbnail !== undefined) {
+		dbVideo.thumbnail = video.thumbnail;
+	}
+	if (video.length !== undefined) {
+		dbVideo.length = video.length;
+	}
+	if (video.mime !== undefined) {
+		dbVideo.mime = video.mime;
+	}
+	return dbVideo;
 }
 
 export function getVideoInfoFields(service?: string): (keyof VideoMetadata)[] {
 	const fields: (keyof VideoMetadata)[] = [];
-	for (const column in DbCachedVideo.rawAttributes) {
-		if (
-			column === "id" ||
-			column === "createdAt" ||
-			column === "updatedAt" ||
-			column === "serviceId" ||
-			column === "service"
-		) {
-			continue;
-		}
-		// eslint-disable-next-line array-bracket-newline
+	for (const column of cachedVideoInfoFields) {
 		if (["youtube", "vimeo"].includes(service ?? "") && column === "mime") {
 			continue;
 		}
 		if (service === "googledrive" && column === "description") {
 			continue;
 		}
-		fields.push(column as keyof VideoMetadata);
+		fields.push(column);
 	}
 	return fields;
 }

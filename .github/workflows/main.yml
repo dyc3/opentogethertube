@@ -99,7 +99,7 @@ jobs:
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: corepack enable
       - run: yarn install --immutable
-      - run: yarn workspace ott-server run sequelize db:migrate
+      - run: yarn db:migrate
         env:
           NODE_ENV: test
       - run: yarn run build

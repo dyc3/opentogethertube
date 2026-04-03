@@ -8,17 +8,22 @@ This method will run OTT in production mode, using redis and postgresql. However
 
 1. Install docker and docker-compose
 2. Clone the repository
+
 ```bash
 git clone https://github.com/dyc3/opentogethertube.git
 cd opentogethertube
 ```
+
 1. Copy the example configuration file
+
 ```bash
 cp env/example.toml env/production.toml
 ```
+
 1. Edit the configuration file to your liking.
-   1. You'll likely want to grab a youtube api key from [Google Cloud](https://console.cloud.google.com)
+    1. You'll likely want to grab a youtube api key from [Google Cloud](https://console.cloud.google.com)
 2. Run docker-compose
+
 ```bash
 docker-compose up -d
 ```
@@ -28,26 +33,30 @@ docker-compose up -d
 Using docker-compose is the easiest way to deploy OTT, but you can also deploy it manually.
 
 In order to run OTT, you will need the following components:
-- A nodejs installation matches the versions specified in the [package.json](../package.json) file.
-- Redis
-- PostgreSQL (recommended) or you can use sqlite (not recommended)
-- A Youtube API key (obtained from [Google Cloud](https://console.cloud.google.com))
+
+-   A nodejs installation matches the versions specified in the [package.json](../package.json) file.
+-   Redis
+-   PostgreSQL (recommended) or you can use sqlite (not recommended)
+-   A Youtube API key (obtained from [Google Cloud](https://console.cloud.google.com))
 
 Copy the example configuration file and edit it to your liking.
+
 ```bash
 cp env/example.toml env/production.toml
 ```
 
 After you have set those up, you need to run the database migrations, and build the client. You have to do this every time you update OTT.
+
 ```bash
 corepack enable
 yarn set version stable
 yarn install
-NODE_ENV=production yarn workspace ott-server run sequelize-cli db:migrate
+NODE_ENV=production yarn db:migrate
 yarn run build
 ```
 
 After that, you can start the server.
+
 ```bash
 NODE_ENV=production yarn start
 ```
@@ -65,8 +74,9 @@ Read more about configuration in the [config docs](config.md).
 ## Using SQLite
 
 SQLite is not recommended for production use, but it is possible. To use SQLite, you must set `db.mode` to `sqlite` in your configuration file. You must also use this command to run the database migrations.
+
 ```bash
-NODE_ENV=production DB_MODE=sqlite yarn workspace ott-server run sequelize-cli db:migrate
+NODE_ENV=production DB_MODE=sqlite yarn db:migrate
 ```
 
 # Best Practices for Production
@@ -76,11 +86,12 @@ NODE_ENV=production DB_MODE=sqlite yarn workspace ott-server run sequelize-cli d
 While technically not required, it is highly recommended that you use a reverse proxy to serve OTT. This will allow you to use HTTPS, and to be able to serve applications on other domains on the same port. Running OTT without HTTPS is not supported.
 
 A couple of notes on what needs to be proxied:
-- Websocket upgrades
-- All requests for `index.html`
-  - It should be safe to use the proxy to serve all other static files, but it is not required.
-- The `Set-Cookie` header in responses
-- The `Authorization` header in requests
+
+-   Websocket upgrades
+-   All requests for `index.html`
+    -   It should be safe to use the proxy to serve all other static files, but it is not required.
+-   The `Set-Cookie` header in responses
+-   The `Authorization` header in requests
 
 Depending on how many layers of reverse proxies you are dealing with (eg. cloudflare -> nginx -> ott), you many need to set the `trust_proxy` option in your OTT config to the number of proxies.
 
