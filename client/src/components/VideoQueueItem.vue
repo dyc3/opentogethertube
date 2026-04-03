@@ -79,19 +79,6 @@
 				<v-btn
 					icon
 					variant="flat"
-					@click="showEditDialog = true"
-					v-if="isPreview"
-					data-cy="btn-edit-preview"
-				>
-					<v-icon :icon="mdiPencil" />
-					<v-tooltip activator="parent" location="top">
-						<span>{{ $t("video-queue-item.edit.tooltip") }}</span>
-					</v-tooltip>
-				</v-btn>
-
-				<v-btn
-					icon
-					variant="flat"
 					:loading="isLoadingAdd"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
@@ -116,6 +103,15 @@
 						>
 							<v-icon :icon="mdiPlay" />
 							<span>{{ $t("video.playnow") }}</span>
+						</v-list-item>
+						<v-list-item
+							class="button-with-icon"
+							@click="showEditDialog = true"
+							v-if="isPreview"
+							data-cy="menu-btn-edit-preview"
+						>
+							<v-icon :icon="mdiPencil" />
+							<span>{{ $t("video-queue-item.edit.tooltip") }}</span>
 						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
