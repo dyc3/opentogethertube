@@ -210,7 +210,7 @@ import { ref, toRefs, computed, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import type { QueueItem, VideoId, VideoAdd } from "ott-common/models/video";
+import type { QueueItem, VideoAdd } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -276,10 +276,11 @@ function updateHasBeenAdded() {
 	hasBeenAdded.value = false;
 }
 
-function getPostData(): VideoId {
+function getPostData(): VideoAdd {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
+		subtitleUrl: item.value.subtitleUrl ?? undefined,
 	};
 	return data;
 }
@@ -291,12 +292,8 @@ function saveEdit() {
 
 async function addToQueue() {
 	isLoadingAdd.value = true;
-	const postData = {
-		...getPostData(),
-		subtitleUrl: item.value.subtitleUrl ?? undefined,
-	} as VideoAdd;
 	try {
-		const resp = await API.post(`/room/${store.state.room.name}/queue`, postData);
+		const resp = await API.post(`/room/${store.state.room.name}/queue`, getPostData());
 		hasError.value = !resp.data.success;
 		hasBeenAdded.value = true;
 		toast.add({
