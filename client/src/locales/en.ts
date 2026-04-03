@@ -248,6 +248,12 @@ export default {
 			"video-removed": "Video removed",
 		},
 		"start-at": "Start at {timestamp}",
+		"edit": {
+			"title": "Edit video",
+			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url-supported-services": "Supported services: direct, googledrive",
+			"tooltip": "Edit video settings",
+		},
 	},
 	"room-settings": {
 		"title": "@:create-room-form.title",
