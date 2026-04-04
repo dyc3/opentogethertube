@@ -280,7 +280,9 @@ function getPostData(): VideoAdd {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
-		subtitleUrl: editedSubtitleUrl.value ?? undefined,
+		// Use `item.value.subtitlUrl` for preview since it might have been edited but not saved
+		subtitleUrl:
+			(props.isPreview ? item.value.subtitleUrl : editedSubtitleUrl.value) ?? undefined,
 	};
 	return data;
 }
