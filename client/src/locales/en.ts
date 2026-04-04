@@ -246,6 +246,7 @@ export default {
 		"messages": {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
+			"video-updated": "Video updated",
 		},
 		"start-at": "Start at {timestamp}",
 		"edit": {

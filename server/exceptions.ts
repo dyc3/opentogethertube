@@ -259,6 +259,14 @@ export class UnsupportedVideoType extends OttException {
 	}
 }
 
+export class UnsupportedSubtitleType extends OttException {
+	name = "UnsupportedSubtitleType";
+
+	constructor() {
+		super(`Subtitle URL must end with .vtt`);
+	}
+}
+
 export class ClientNotFoundInRoomException extends OttException {
 	name = "ClientNotFoundInRoomException";
 

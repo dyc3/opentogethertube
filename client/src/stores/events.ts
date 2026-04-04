@@ -55,6 +55,13 @@ export const eventsModule: Module<unknown, unknown> = {
 					text = `${message.user.name} removed a video`;
 				}
 				duration = 20000;
+			} else if (message.request.type === RoomRequestType.UpdateQueueItemRequest) {
+				if (message.additional.video) {
+					text = `${message.user.name} updated ${message.additional.video.title}'s settings`;
+				} else {
+					text = `${message.user.name} updated a video's settings`;
+				}
+				duration = 20000;
 			} else {
 				text = `${message.user.name} triggered event ${message.request.type}`;
 			}
