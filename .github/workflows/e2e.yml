@@ -136,7 +136,7 @@ jobs:
         run: yarn run build
 
       - run: yarn run cypress install
-      - run: yarn workspace ott-server run sequelize db:migrate
+      - run: yarn db:migrate
 
       - name: "E2E Tests"
         uses: cypress-io/github-action@v6.6.1

@@ -1,68 +1,92 @@
-import { ALL_VIDEO_SERVICES } from "ott-common/constants.js";
-import type { VideoService } from "ott-common/models/video.js";
-import { type Sequelize, Model, DataTypes } from "sequelize";
+import { eq } from "drizzle-orm";
+import { getDb } from "../database/client.js";
+import type { CachedVideoRow } from "../database/schema/types.js";
 
-interface CachedVideoAttributes {
-	id: number;
-	service: VideoService;
-	serviceId: string;
-	title?: string;
-	description?: string;
-	thumbnail?: string;
-	length?: number;
-	mime?: string;
-}
+export type CachedVideoCreationAttributes = Omit<CachedVideoRow, "id" | "createdAt" | "updatedAt">;
 
-export type CachedVideoCreationAttributes = Omit<CachedVideoAttributes, "id">;
-
-export class CachedVideo
-	extends Model<CachedVideoAttributes, CachedVideoCreationAttributes>
-	implements CachedVideoAttributes
-{
+export class CachedVideo implements CachedVideoRow {
 	declare id: number;
-	public declare readonly createdAt: Date;
-	public declare readonly updatedAt: Date;
-	declare service: VideoService;
+	declare service: string;
 	declare serviceId: string;
-	declare title?: string;
-	declare description?: string;
-	declare thumbnail?: string;
-	declare length?: number;
-	declare mime?: string;
+	declare title: string | null;
+	declare description: string | null;
+	declare thumbnail: string | null;
+	declare length: number | null;
+	declare mime: string | null;
+	declare createdAt: Date;
+	declare updatedAt: Date;
+	declare dataValues: this;
+
+	constructor(values: Partial<CachedVideoRow> = {}) {
+		Object.assign(this, values);
+		Object.defineProperty(this, "dataValues", {
+			enumerable: false,
+			get: () => ({ ...this }),
+		});
+	}
+
+	async destroy() {
+		const context = getDb();
+		if (context.dialect === "postgres") {
+			await context.db
+				.delete(context.schema.cachedVideos)
+				.where(eq(context.schema.cachedVideos.id, this.id));
+			return;
+		}
+		await context.db
+			.delete(context.schema.cachedVideos)
+			.where(eq(context.schema.cachedVideos.id, this.id));
+	}
+
+	static async create(values: Partial<CachedVideoCreationAttributes>) {
+		const context = getDb();
+		const now = new Date();
+		const rows =
+			context.dialect === "postgres"
+				? await context.db
+						.insert(context.schema.cachedVideos)
+						.values({ ...values, createdAt: now, updatedAt: now } as never)
+						.returning()
+				: await context.db
+						.insert(context.schema.cachedVideos)
+						.values({ ...values, createdAt: now, updatedAt: now } as never)
+						.returning();
+		return new CachedVideo(rows[0]);
+	}
+
+	static async bulkCreate(values: Array<Partial<CachedVideoCreationAttributes>>) {
+		return Promise.all(values.map(value => CachedVideo.create(value)));
+	}
+
+	static async destroy({ where }: { where: Partial<CachedVideoRow> }) {
+		const context = getDb();
+		const entries = Object.entries(where);
+		if (entries.length === 0) {
+			if (context.dialect === "postgres") {
+				const deleted = await context.db
+					.delete(context.schema.cachedVideos)
+					.returning({ id: context.schema.cachedVideos.id });
+				return deleted.length;
+			}
+			const deleted = await context.db
+				.delete(context.schema.cachedVideos)
+				.returning({ id: context.schema.cachedVideos.id });
+			return deleted.length;
+		}
+		const [key, value] = entries[0] as [keyof CachedVideoRow, unknown];
+		const column = context.schema.cachedVideos[key as keyof typeof context.schema.cachedVideos];
+		const deleted =
+			context.dialect === "postgres"
+				? await context.db
+						.delete(context.schema.cachedVideos)
+						.where(eq(column as never, value as never))
+						.returning({ id: context.schema.cachedVideos.id })
+				: await context.db
+						.delete(context.schema.cachedVideos)
+						.where(eq(column as never, value as never))
+						.returning({ id: context.schema.cachedVideos.id });
+		return deleted.length;
+	}
 }
 
-export const createModel = (sequelize: Sequelize) => {
-	CachedVideo.init(
-		{
-			id: {
-				type: DataTypes.INTEGER,
-				primaryKey: true,
-				autoIncrement: true,
-			},
-			service: {
-				type: DataTypes.STRING,
-				allowNull: false,
-				validate: {
-					isIn: [ALL_VIDEO_SERVICES],
-				},
-			},
-			serviceId: {
-				type: DataTypes.STRING,
-				allowNull: false,
-			},
-			title: DataTypes.STRING,
-			description: DataTypes.TEXT,
-			thumbnail: DataTypes.STRING,
-			length: DataTypes.INTEGER,
-			mime: DataTypes.STRING,
-		},
-		{
-			sequelize,
-			modelName: "CachedVideo",
-		}
-	);
-
-	return CachedVideo;
-};
-
-export default createModel;
+export default CachedVideo;

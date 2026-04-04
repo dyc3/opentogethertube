@@ -1,5 +1,4 @@
-import type { Sequelize } from "sequelize";
-import { QueryTypes } from "sequelize";
+import type { Pool } from "pg";
 import { Gauge } from "prom-client";
 import { getLogger } from "./logger.js";
 
@@ -22,7 +21,7 @@ const POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE = `SELECT schemaname AS 
 FROM pg_stat_user_tables
 ORDER BY n_live_tup DESC;`;
 
-export function setupPostgresMetricsCollection(sequelize: Sequelize) {
+export function setupPostgresMetricsCollection(pool: Pool) {
 	const gaugePostgresRowCount = new Gauge({
 		name: "postgres_db_row_count",
 		help: "Number of rows in a table in the database",
@@ -36,14 +35,11 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			}
 
 			try {
-				const result: ResultRow[] = await sequelize.query(
-					POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE,
-					{
-						type: QueryTypes.SELECT,
-					}
+				const result = await pool.query<ResultRow>(
+					POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE
 				);
 				log.debug(`result from query: ${JSON.stringify(result)}`);
-				for (const row of result) {
+				for (const row of result.rows) {
 					this.labels({ table: row.table_name }).set(row.rows_n);
 				}
 			} catch (e) {
@@ -82,14 +78,11 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 			];
 
 			try {
-				const result: ResultRow[] = await sequelize.query(
-					`SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del FROM pg_stat_user_tables`,
-					{
-						type: QueryTypes.SELECT,
-					}
+				const result = await pool.query<ResultRow>(
+					`SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del FROM pg_stat_user_tables`
 				);
 				log.debug(`result from query: ${JSON.stringify(result)}`);
-				for (const row of result) {
+				for (const row of result.rows) {
 					for (const op of tableOps) {
 						this.labels({ table: row.relname, operation: op }).set(parseInt(row[op]));
 					}

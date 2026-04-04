@@ -1,133 +1,93 @@
-import { type Sequelize, Model, DataTypes, type Optional } from "sequelize";
-import { QueueMode, Visibility, type Role, BehaviorOption } from "ott-common/models/types.js";
-import type { User } from "./user.js";
-import { ALL_SKIP_CATEGORIES, ROOM_NAME_REGEX } from "ott-common/constants.js";
-import type { OldRoleGrants, GrantMask } from "ott-common/permissions.js";
-import type { QueueItem } from "ott-common/models/video.js";
-import type { Category } from "sponsorblock-api";
+import { eq } from "drizzle-orm";
+import { getDb } from "../database/client.js";
+import type { RoomRow } from "../database/schema/types.js";
 
-export interface RoomAttributes {
-	"id": number;
-	"name": string;
-	"title": string;
-	"description": string;
-	"visibility": Visibility;
-	"queueMode": QueueMode;
-	"ownerId": number | null;
-	"permissions": [Role, GrantMask][] | OldRoleGrants;
-	"role-admin": Array<number>;
-	"role-mod": Array<number>;
-	"role-trusted": Array<number>;
-	"autoSkipSegmentCategories": Array<Category>;
-	"prevQueue": Array<QueueItem> | null;
-	"restoreQueueBehavior": BehaviorOption;
-	"enableVoteSkip": boolean;
-}
+export type RoomAttributes = RoomRow;
 
-type RoomCreationAttributes = Optional<RoomAttributes, "id">;
-
-export class Room extends Model<RoomAttributes, RoomCreationAttributes> implements RoomAttributes {
+export class Room implements RoomRow {
 	declare "id": number;
-	public declare readonly "createdAt": Date;
-	public declare readonly "updatedAt": Date;
 	declare "name": string;
 	declare "title": string;
 	declare "description": string;
-	declare "visibility": Visibility;
-	declare "queueMode": QueueMode;
+	declare "visibility": RoomRow["visibility"];
+	declare "queueMode": RoomRow["queueMode"];
 	declare "ownerId": number | null;
-	declare "owner": User | null;
-	declare "permissions": [Role, GrantMask][] | OldRoleGrants;
-	declare "role-admin": Array<number>;
-	declare "role-mod": Array<number>;
-	declare "role-trusted": Array<number>;
-	declare "autoSkipSegmentCategories": Array<Category>;
-	declare "prevQueue": Array<QueueItem> | null;
-	declare "restoreQueueBehavior": BehaviorOption;
+	declare "permissions": RoomRow["permissions"];
+	declare "role-admin": number[] | null;
+	declare "role-mod": number[] | null;
+	declare "role-trusted": number[] | null;
+	declare "autoSkipSegmentCategories": RoomRow["autoSkipSegmentCategories"];
+	declare "prevQueue": RoomRow["prevQueue"];
+	declare "restoreQueueBehavior": RoomRow["restoreQueueBehavior"];
 	declare "enableVoteSkip": boolean;
+	declare "createdAt": Date;
+	declare "updatedAt": Date;
+	declare "dataValues": this;
+
+	"constructor"(values: Partial<RoomRow> & { visibility?: string; queueMode?: string } = {}) {
+		Object.assign(this, values);
+		Object.defineProperty(this, "dataValues", {
+			enumerable: false,
+			get: () => ({ ...this }),
+		});
+	}
+
+	async "destroy"() {
+		return Room.destroy({ where: { id: this.id } });
+	}
+
+	static async "findOne"({ where }: { where: Partial<RoomRow> }) {
+		const context = getDb();
+		const key = Object.keys(where)[0] as keyof RoomRow | undefined;
+		const value = key ? where[key] : undefined;
+		if (!key) {
+			return null;
+		}
+		const column = context.schema.rooms[key as keyof typeof context.schema.rooms];
+		const rows =
+			context.dialect === "postgres"
+				? await context.db
+						.select()
+						.from(context.schema.rooms)
+						.where(eq(column as never, value as never))
+						.limit(1)
+				: await context.db
+						.select()
+						.from(context.schema.rooms)
+						.where(eq(column as never, value as never))
+						.limit(1);
+		return rows[0] ? new Room(rows[0] as never) : null;
+	}
+
+	static async "destroy"({ where }: { where: Partial<RoomRow> }) {
+		const context = getDb();
+		const entries = Object.entries(where);
+		if (entries.length === 0) {
+			if (context.dialect === "postgres") {
+				const deleted = await context.db
+					.delete(context.schema.rooms)
+					.returning({ id: context.schema.rooms.id });
+				return deleted.length;
+			}
+			const deleted = await context.db
+				.delete(context.schema.rooms)
+				.returning({ id: context.schema.rooms.id });
+			return deleted.length;
+		}
+		const [key, value] = entries[0] as [keyof RoomRow, unknown];
+		const column = context.schema.rooms[key as keyof typeof context.schema.rooms];
+		const deleted =
+			context.dialect === "postgres"
+				? await context.db
+						.delete(context.schema.rooms)
+						.where(eq(column as never, value as never))
+						.returning({ id: context.schema.rooms.id })
+				: await context.db
+						.delete(context.schema.rooms)
+						.where(eq(column as never, value as never))
+						.returning({ id: context.schema.rooms.id });
+		return deleted.length;
+	}
 }
 
-export const createModel = (sequelize: Sequelize) => {
-	Room.init(
-		{
-			"id": {
-				type: DataTypes.INTEGER,
-				primaryKey: true,
-				autoIncrement: true,
-			},
-			"name": {
-				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true,
-				validate: {
-					is: ROOM_NAME_REGEX,
-					len: [3, 32],
-				},
-			},
-			"title": DataTypes.STRING,
-			"description": DataTypes.TEXT,
-			"visibility": {
-				type: DataTypes.STRING,
-				defaultValue: Visibility.Public,
-				validate: {
-					// eslint-disable-next-line array-bracket-newline
-					isIn: [[Visibility.Public, Visibility.Unlisted, Visibility.Private]],
-				},
-			},
-			"queueMode": {
-				type: DataTypes.STRING,
-				defaultValue: QueueMode.Manual,
-				validate: {
-					// eslint-disable-next-line array-bracket-newline
-					isIn: [[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj]],
-				},
-			},
-			"ownerId": {
-				type: DataTypes.INTEGER,
-				allowNull: true,
-			},
-			"permissions": {
-				type: DataTypes.JSONB,
-			},
-			"role-admin": {
-				type: DataTypes.JSONB,
-			},
-			"role-mod": {
-				type: DataTypes.JSONB,
-			},
-			"role-trusted": {
-				type: DataTypes.JSONB,
-			},
-			"autoSkipSegmentCategories": {
-				type: DataTypes.JSONB,
-				allowNull: false,
-				defaultValue: ALL_SKIP_CATEGORIES,
-			},
-			"prevQueue": {
-				type: DataTypes.JSONB,
-				allowNull: true,
-			},
-			"restoreQueueBehavior": {
-				type: DataTypes.NUMBER,
-				allowNull: false,
-				defaultValue: BehaviorOption.Prompt,
-				validate: {
-					isIn: [[BehaviorOption.Always, BehaviorOption.Prompt, BehaviorOption.Never]],
-				},
-			},
-			"enableVoteSkip": {
-				type: DataTypes.BOOLEAN,
-				allowNull: false,
-				defaultValue: false,
-			},
-		},
-		{
-			sequelize,
-			modelName: "Room",
-		}
-	);
-
-	return Room;
-};
-
-export default createModel;
+export default Room;

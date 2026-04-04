@@ -70,7 +70,6 @@ cargo test -p ott-balancer
 
 ```bash
 yarn db:migrate        # Run migrations
-yarn db:migrate:undo   # Undo last migration
 ```
 
 ## Load Balancer (Rust)

@@ -1,5 +1,4 @@
-import { User as UserAccount } from "./models/user";
-import { AuthToken } from "ott-common/models/types.js";
+import type { AuthToken, UserAccountAttributes } from "ott-common/models/types.js";
 import { SessionInfo } from "./auth/tokens";
 // biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import * as core from "express-serve-static-core";
@@ -9,7 +8,12 @@ declare global {
 		export interface Request {
 			token?: AuthToken;
 			ottsession?: SessionInfo;
-			user?: UserAccount;
+			user?: UserAccountAttributes & {
+				save?: () => Promise<unknown>;
+				reload?: () => Promise<unknown>;
+				destroy?: () => Promise<unknown>;
+				dataValues?: unknown;
+			};
 		}
 
 		// export interface RequestHandler<
