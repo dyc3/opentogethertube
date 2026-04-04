@@ -12,7 +12,7 @@ import type {
 	AuthToken,
 	BehaviorOption,
 } from "./types.js";
-import type { QueueItem, VideoId, VideoAdd } from "./video.js";
+import type { QueueItem, QueueItemExtras, VideoId, VideoAdd } from "./video.js";
 
 export type ServerMessage =
 	| ServerMessageSync
@@ -193,6 +193,7 @@ export type RoomRequest =
 	| SeekRequest
 	| AddRequest
 	| RemoveRequest
+	| UpdateQueueItemRequest
 	| OrderRequest
 	| VoteRequest
 	| PromoteRequest
@@ -214,6 +215,7 @@ export enum RoomRequestType {
 	SeekRequest,
 	AddRequest,
 	RemoveRequest,
+	UpdateQueueItemRequest,
 	OrderRequest,
 	VoteRequest,
 	PromoteRequest,
@@ -265,6 +267,12 @@ export interface AddRequest extends RoomRequestBase {
 export interface RemoveRequest extends RoomRequestBase {
 	type: RoomRequestType.RemoveRequest;
 	video: VideoId;
+}
+
+export interface UpdateQueueItemRequest extends RoomRequestBase {
+	type: RoomRequestType.UpdateQueueItemRequest;
+	video: VideoId;
+	update: QueueItemExtras;
 }
 
 export interface OrderRequest extends RoomRequestBase {
