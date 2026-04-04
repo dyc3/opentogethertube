@@ -56,7 +56,7 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: "#/components/schemas/VideoId"
+                - $ref: "#/components/schemas/VideoAdd"
                 - type: object
                   properties:
                     url:
@@ -66,7 +66,7 @@ paths:
                     videos:
                       type: array
                       items:
-                        $ref: "#/components/schemas/VideoId"
+                        $ref: "#/components/schemas/VideoAdd"
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -78,7 +78,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VideoId"
+              $ref: "#/components/schemas/VideoAdd"
       responses:
         "200":
           $ref: "#/components/responses/Success"
@@ -674,6 +674,22 @@ components:
         id:
           type: string
           example: dQw4w9WgXcQ
+      required:
+        - service
+        - id
+    VideoAdd:
+      type: object
+      properties:
+        service:
+          type: string
+          example: youtube
+        id:
+          type: string
+          example: dQw4w9WgXcQ
+        subtitleUrl:
+          type: string
+          format: uri
+          description: URL to a WebVTT subtitle file.
       required:
         - service
         - id
