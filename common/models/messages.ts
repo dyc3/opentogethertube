@@ -193,7 +193,6 @@ export type RoomRequest =
 	| SeekRequest
 	| AddRequest
 	| RemoveRequest
-	| UpdateQueueItemRequest
 	| OrderRequest
 	| VoteRequest
 	| PromoteRequest
@@ -205,7 +204,8 @@ export type RoomRequest =
 	| ShuffleRequest
 	| PlaybackSpeedRequest
 	| RestoreQueueRequest
-	| KickRequest;
+	| KickRequest
+	| UpdateQueueItemRequest;
 
 export enum RoomRequestType {
 	JoinRequest,
@@ -215,7 +215,6 @@ export enum RoomRequestType {
 	SeekRequest,
 	AddRequest,
 	RemoveRequest,
-	UpdateQueueItemRequest,
 	OrderRequest,
 	VoteRequest,
 	PromoteRequest,
@@ -228,6 +227,7 @@ export enum RoomRequestType {
 	PlaybackSpeedRequest,
 	RestoreQueueRequest,
 	KickRequest,
+	UpdateQueueItemRequest,
 }
 
 export interface RoomRequestBase {
