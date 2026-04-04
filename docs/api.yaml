@@ -70,6 +70,18 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/Success"
+    patch:
+      tags:
+        - room
+      summary: Update a video in the queue.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoId"
+      responses:
+        "200":
+          $ref: "#/components/responses/Success"
     delete:
       tags:
         - room

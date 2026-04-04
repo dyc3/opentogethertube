@@ -302,7 +302,7 @@ async function saveEdit() {
 	} else {
 		isLoadingEdit.value = true;
 		try {
-			const resp = await API.put(`/room/${store.state.room.name}/queue`, getPostData());
+			const resp = await API.patch(`/room/${store.state.room.name}/queue`, getPostData());
 			hasError.value = !resp.data.success;
 			showEditDialog.value = false;
 			toast.add({

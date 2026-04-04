@@ -645,7 +645,7 @@ router.post("/:name/queue", async (req, res, next) => {
 	}
 });
 
-router.put("/:name/queue", async (req, res, next) => {
+router.patch("/:name/queue", async (req, res, next) => {
 	try {
 		await updateQueueItem(req, res, next);
 	} catch (e) {
