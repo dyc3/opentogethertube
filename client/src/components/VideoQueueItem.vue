@@ -247,7 +247,7 @@ const thumbnailHasError = ref(false);
 const hasError = ref(false);
 const voted = ref(false);
 const showEditDialog = ref(false);
-const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl ?? "");
+const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl);
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -280,7 +280,7 @@ function getPostData(): VideoAdd {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
-		// Use `item.value.subtitlUrl` for preview since it might have been edited but not saved
+		// Use `item.value.subtitleUrl` for preview since editedSubtitleUrl might have been edited but not saved
 		subtitleUrl:
 			(props.isPreview ? item.value.subtitleUrl : editedSubtitleUrl.value) ?? undefined,
 	};
