@@ -107,7 +107,6 @@
 						<v-list-item
 							class="button-with-icon"
 							@click="showEditDialog = true"
-							v-if="isPreview"
 							data-cy="menu-btn-edit-preview"
 						>
 							<v-icon :icon="mdiPencil" />
@@ -179,9 +178,13 @@
 					<v-btn @click="showEditDialog = false" data-cy="edit-cancel">{{
 						$t("common.cancel")
 					}}</v-btn>
-					<v-btn color="primary" @click="saveEdit" data-cy="edit-save">{{
-						$t("common.save")
-					}}</v-btn>
+					<v-btn
+						color="primary"
+						:loading="isLoadingEdit"
+						@click="saveEdit"
+						data-cy="edit-save"
+						>{{ $t("common.save") }}</v-btn
+					>
 				</v-card-actions>
 			</v-card>
 		</v-dialog>
@@ -202,7 +205,7 @@ import {
 	mdiSortAscending,
 	mdiPencil,
 } from "@mdi/js";
-import { ref, toRefs, computed, watchEffect } from "vue";
+import { ref, toRefs, computed, watch, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
@@ -238,12 +241,13 @@ const granted = useGrants();
 
 const isLoadingAdd = ref(false);
 const isLoadingVote = ref(false);
+const isLoadingEdit = ref(false);
 const hasBeenAdded = ref(false);
 const thumbnailHasError = ref(false);
 const hasError = ref(false);
 const voted = ref(false);
 const showEditDialog = ref(false);
-const editedSubtitleUrl = ref("");
+const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl ?? "");
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -276,14 +280,46 @@ function getPostData(): VideoAdd {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
-		subtitleUrl: item.value.subtitleUrl ?? undefined,
+		subtitleUrl: editedSubtitleUrl.value ?? undefined,
 	};
 	return data;
 }
 
-function saveEdit() {
-	item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
-	showEditDialog.value = false;
+// Ensure that the editedSubtitleUrl is reflected to the current subtitle URL after a failed update request
+watch(showEditDialog, open => {
+	if (!props.isPreview && open) {
+		editedSubtitleUrl.value = item.value.subtitleUrl ?? "";
+	}
+});
+
+async function saveEdit() {
+	if (props.isPreview) {
+		// Update the subtitle URL for playNow()
+		item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
+		showEditDialog.value = false;
+	} else {
+		isLoadingEdit.value = true;
+		try {
+			const resp = await API.put(`/room/${store.state.room.name}/queue`, getPostData());
+			hasError.value = !resp.data.success;
+			showEditDialog.value = false;
+			toast.add({
+				style: ToastStyle.Success,
+				content: t("video-queue-item.messages.video-updated").toString(),
+				duration: 5000,
+			});
+		} catch (e) {
+			hasError.value = true;
+			if (axios.isAxiosError(e)) {
+				toast.add({
+					style: ToastStyle.Error,
+					content: e.response?.data.error.message,
+					duration: 6000,
+				});
+			}
+		}
+		isLoadingEdit.value = false;
+	}
 }
 
 async function addToQueue() {
