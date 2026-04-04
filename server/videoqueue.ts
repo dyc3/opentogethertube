@@ -1,7 +1,7 @@
 import { Mutex } from "@divine/synchronization";
 
 import { Dirtyable } from "./util/index.js";
-import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
+import type { QueueItem, QueueItemExtras, Video, VideoId } from "ott-common/models/video.js";
 import _ from "lodash";
 import { VideoNotFoundException } from "./exceptions.js";
 
@@ -137,6 +137,18 @@ export class VideoQueue extends Dirtyable {
 			} else {
 				throw new VideoNotFoundException();
 			}
+		});
+	}
+
+	/** Update queue item extras (e.g. subtitleUrl) for a video already in the queue. */
+	async update(video: VideoId, patch: Partial<QueueItemExtras>): Promise<void> {
+		return this.lock.protect(() => {
+			const matchIdx = this.findIndex(video);
+			if (matchIdx < 0) {
+				throw new VideoNotFoundException();
+			}
+			Object.assign(this._items[matchIdx], patch);
+			this.markDirty();
 		});
 	}
 

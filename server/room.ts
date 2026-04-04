@@ -27,6 +27,7 @@ import type {
 	ShuffleRequest,
 	PlaybackSpeedRequest,
 	KickRequest,
+	UpdateQueueItemRequest,
 } from "ott-common/models/messages.js";
 import { RoomRequestType } from "ott-common/models/messages.js";
 import _ from "lodash";
@@ -56,6 +57,7 @@ import {
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
+	UnsupportedSubtitleType,
 } from "./exceptions.js";
 import storage from "./storage.js";
 import tokens, { type SessionInfo } from "./auth/tokens.js";
@@ -1052,6 +1054,7 @@ export class Room implements RoomState {
 			[RoomRequestType.SkipRequest, "playback.skip"],
 			[RoomRequestType.SeekRequest, "playback.seek"],
 			[RoomRequestType.AddRequest, "manage-queue.add"],
+			[RoomRequestType.UpdateQueueItemRequest, "manage-queue.add"],
 			[RoomRequestType.RemoveRequest, "manage-queue.remove"],
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
@@ -1081,6 +1084,7 @@ export class Room implements RoomState {
 			[RoomRequestType.SkipRequest]: "skip",
 			[RoomRequestType.SeekRequest]: "seek",
 			[RoomRequestType.AddRequest]: "addToQueue",
+			[RoomRequestType.UpdateQueueItemRequest]: "updateQueueItem",
 			[RoomRequestType.RemoveRequest]: "removeFromQueue",
 			[RoomRequestType.OrderRequest]: "reorderQueue",
 			[RoomRequestType.VoteRequest]: "vote",
@@ -1250,7 +1254,7 @@ export class Room implements RoomState {
 			if (request.video.subtitleUrl) {
 				if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
 					this.log.error("subtitle URL does not end with .vtt");
-					throw new Error("Subtitle URL must end with .vtt");
+					throw new UnsupportedSubtitleType();
 				}
 				video.subtitleUrl = request.video.subtitleUrl;
 			}
@@ -1286,6 +1290,21 @@ export class Room implements RoomState {
 			this.log.error("Invalid parameters for AddRequest");
 			return;
 		}
+	}
+
+	public async updateQueueItem(
+		request: UpdateQueueItemRequest,
+		context: RoomRequestContext
+	): Promise<void> {
+		if (
+			request.update.subtitleUrl !== undefined &&
+			!request.update.subtitleUrl.endsWith(".vtt")
+		) {
+			throw new UnsupportedSubtitleType();
+		}
+		await this.queue.update(request.video, request.update);
+		this.log.info(`Queue item updated: ${JSON.stringify(request.video)}`);
+		await this.publishRoomEvent(request, context);
 	}
 
 	public async removeFromQueue(
@@ -1672,7 +1691,7 @@ export class Room implements RoomState {
 		if (request.video.subtitleUrl) {
 			if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
 				this.log.error("subtitle URL does not end with .vtt");
-				throw new Error("Subtitle URL must end with .vtt");
+				throw new UnsupportedSubtitleType();
 			}
 			videoToPlay.subtitleUrl = request.video.subtitleUrl;
 		}
