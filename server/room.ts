@@ -1054,7 +1054,7 @@ export class Room implements RoomState {
 			[RoomRequestType.SkipRequest, "playback.skip"],
 			[RoomRequestType.SeekRequest, "playback.seek"],
 			[RoomRequestType.AddRequest, "manage-queue.add"],
-			[RoomRequestType.UpdateQueueItemRequest, "manage-queue.add"],
+			[RoomRequestType.UpdateQueueItemRequest, "manage-queue.edit"],
 			[RoomRequestType.RemoveRequest, "manage-queue.remove"],
 			[RoomRequestType.OrderRequest, "manage-queue.order"],
 			[RoomRequestType.VoteRequest, "manage-queue.vote"],
