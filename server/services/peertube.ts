@@ -47,7 +47,11 @@ export default class PeertubeAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
-		return this.allowedHosts.includes(url.host) && /^\/w\/\w+/.test(url.pathname);
+		const hostOk = this.allowedHosts.length === 0 || this.allowedHosts.includes(url.host);
+		return (
+			hostOk &&
+			(/^\/w\/\w+/.test(url.pathname) || /^\/videos\/watch\/[a-f0-9-]+/.test(url.pathname))
+		);
 	}
 
 	isCollectionURL(link: string): boolean {
