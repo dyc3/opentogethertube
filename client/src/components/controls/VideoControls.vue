@@ -221,18 +221,11 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 			scroll-behavior: smooth;
 			-webkit-overflow-scrolling: touch;
 			
-			// Hide scrollbar but keep functionality
-			scrollbar-width: thin;
+			// Hide scrollbar while keeping scroll functionality
+			scrollbar-width: none;
 			&::-webkit-scrollbar {
-				height: 3px;
-			}
-			&::-webkit-scrollbar-track {
-				background: rgba(255, 255, 255, 0.1);
-				border-radius: 3px;
-			}
-			&::-webkit-scrollbar-thumb {
-				background: rgba(255, 255, 255, 0.3);
-				border-radius: 3px;
+				display: none;
+				height: 0;
 			}
 		}
 	}

@@ -1269,18 +1269,6 @@ html, body {
 		// Ensure proper touch scrolling is disabled
 		touch-action: none;
 		-webkit-overflow-scrolling: touch;
-
-		// When embedded in another page, add balanced padding for external UI
-		padding-top: 80px; // Space for external header + margins
-		padding-bottom: 60px; // Space for external controls + safe area
-	}
-}
-
-// Projection booth mode - remove mobile padding (parent iframe container handles spacing)
-.embed-container:has(.video-container.projection-mode) {
-	@media (max-width: variables.$xs-max) {
-		padding: 0;
-		margin: 0;
 	}
 }
 

@@ -51,18 +51,29 @@ const isMobile = computed(() => {
 	return window.matchMedia("only screen and (max-width: 760px)").matches;
 });
 
+function tryVideoFullscreen() {
+	const video = document.querySelector("video") as any;
+	if (video?.webkitEnterFullscreen) {
+		video.webkitEnterFullscreen();
+	}
+}
+
 function toggleFullscreen() {
 	if (document.fullscreenElement) {
 		document.exitFullscreen();
+		return;
+	}
+	const el = document.documentElement;
+	if (el.requestFullscreen) {
+		el.requestFullscreen().catch(() => tryVideoFullscreen());
+	} else if ((el as any).webkitRequestFullscreen) {
+		(el as any).webkitRequestFullscreen();
 	} else {
-		document.documentElement.requestFullscreen();
-		if (isMobile.value) {
-			// force the device into landscape mode to get the user to rotate the device
-			// but still allow exiting fullscreen by rotating the device back to portrait
-			if (screen.orientation) {
-				screen.orientation.lock("landscape").then(() => screen.orientation.unlock());
-			}
-		}
+		tryVideoFullscreen();
+	}
+	if (isMobile.value && screen.orientation) {
+		// force landscape; allow exit by rotating back to portrait
+		screen.orientation.lock("landscape").then(() => screen.orientation.unlock()).catch(() => {});
 	}
 }
 
