@@ -17,11 +17,15 @@ export interface VideoMetadata {
 	hls_url?: string;
 	dash_url?: string;
 	src_url?: string;
+	subtitleUrl?: string;
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
-
-export interface QueueItem extends Video {
+export interface QueueItemExtras {
 	startAt?: number;
 	endAt?: number;
+	subtitleUrl?: string;
 }
+
+export type VideoAdd = VideoId & QueueItemExtras;
+export interface QueueItem extends Video, QueueItemExtras {}

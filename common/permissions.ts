@@ -147,6 +147,11 @@ export const PERMISSIONS = [
 		mask: 1 << 25,
 		minRole: Role.UnregisteredUser,
 	}),
+	new Permission({
+		name: "manage-queue.edit",
+		mask: 1 << 26,
+		minRole: Role.UnregisteredUser,
+	}),
 ];
 
 const permMaskMap = new Map(PERMISSIONS.map(p => [p.name, p.mask]));

@@ -100,7 +100,7 @@
 				@buffer-progress="onBufferProgress"
 				@buffer-spans="onBufferSpans"
 			/>
-			<PlyrPlayer
+			<DirectPlayer
 				v-else-if="
 					!!source &&
 					(['direct', 'googledrive'].includes(source.service) ||
@@ -111,6 +111,7 @@
 				:video-url="source.src_url ?? source.id"
 				:video-mime="source.mime!"
 				:thumbnail="source.thumbnail"
+				:subtitle-url="source.subtitleUrl"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"
@@ -192,7 +193,7 @@ const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
 const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
 const DashPlayer = defineAsyncComponent(() => import("./DashPlayer.vue"));
-const PlyrPlayer = defineAsyncComponent(() => import("./PlyrPlayer.vue"));
+const DirectPlayer = defineAsyncComponent(() => import("./DirectPlayer.vue"));
 const PeertubePlayer = defineAsyncComponent(() => import("./PeertubePlayer.vue"));
 
 const store = useStore();
@@ -269,7 +270,7 @@ watch(captions.isCaptionsEnabled, v => {
 	}
 });
 watch(captions.currentTrack, v => {
-	if (player.value && implementsCaptions(player.value) && v) {
+	if (player.value && implementsCaptions(player.value) && v !== null) {
 		player.value.setCaptionsTrack(v);
 	}
 });

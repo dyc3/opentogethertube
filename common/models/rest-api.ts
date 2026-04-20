@@ -8,6 +8,7 @@ import type {
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
 	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestUpdateQueueItemSchema,
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
 	OttApiRequestPatchRoomSchema,
@@ -79,6 +80,8 @@ export interface OttApiRequestUndo {
 export type OttApiRequestAddToQueue = z.infer<typeof OttApiRequestAddToQueueSchema>;
 
 export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFromQueueSchema>;
+
+export type OttApiRequestUpdateQueueItem = z.infer<typeof OttApiRequestUpdateQueueItemSchema>;
 
 export type OttApiResponseAddPreview = {
 	result: Video[];

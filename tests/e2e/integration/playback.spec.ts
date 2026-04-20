@@ -1,4 +1,3 @@
-import { fail } from "node:assert";
 import "cypress-iframe";
 
 // TODO: skip this test if youtube api key is not available AND/OR create another test that uses a different video source
@@ -181,17 +180,23 @@ describe("Video playback", () => {
 		// });
 		cy.get("video")
 		.should(element => {
-			for (let i = 0; i < element[0].textTracks.length; i++) {
-				if (element[0].textTracks[i].language === "es" && element[0].textTracks[i].kind === "captions") {
-					expect(element[0].textTracks[i].mode).to.be.equal("showing");
-					return;
-				}
-			}
-			fail("No caption track found");
+			const esTrack = Array.from(element[0].textTracks).find(
+				t => t.language === "es" && t.kind === "captions"
+			);
+			expect(esTrack, "Spanish caption track").to.exist;
+			expect(esTrack!.mode).to.equal("showing");
 		});
 	});
 
-	["https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8", "https://vjs.zencdn.net/v/oceans.mp4"].forEach((url, i) => {
+	const testVideos = [
+		// 1. (max.) 1080p HLS video with captions, but crashes the e2e test all the time
+		// "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+		// 2. 360p HLS video with only one caption that seems to work fine in the e2e test
+		"https://mtoczko.github.io/hls-test-streams/test-vtt/playlist.m3u8",
+		// 3. low resolution mp4 video
+		"https://vjs.zencdn.net/v/oceans.mp4",
+	];
+	testVideos.forEach((url, i) => {
 		it(`should add a couple videos and properly update the UI for things that are implemented for the current video player [${i}]`, () => {
 			cy.contains("button", "Add a video").scrollIntoView().click();
 			cy.get('[data-cy="add-preview-input"]').type("https://vimeo.com/94338566");

@@ -161,6 +161,7 @@ export default {
 			connecting: "Connecting...",
 			connected: "Connected",
 		},
+		"visibility-badge-label": "Room visibility",
 		"tabs": {
 			queue: "Queue",
 			settings: "Settings",
@@ -245,8 +246,15 @@ export default {
 		"messages": {
 			"video-added": "Video added",
 			"video-removed": "Video removed",
+			"video-updated": "Video updated",
 		},
 		"start-at": "Start at {timestamp}",
+		"edit": {
+			"title": "Edit video",
+			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url-supported-services": "Supported services: direct, googledrive",
+			"tooltip": "Edit video settings",
+		},
 	},
 	"room-settings": {
 		"title": "@:create-room-form.title",

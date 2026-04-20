@@ -76,7 +76,6 @@
 						<span>{{ $t("video.add-explanation") }}</span>
 					</v-tooltip>
 				</v-btn>
-
 				<v-btn
 					icon
 					variant="flat"
@@ -104,6 +103,14 @@
 						>
 							<v-icon :icon="mdiPlay" />
 							<span>{{ $t("video.playnow") }}</span>
+						</v-list-item>
+						<v-list-item
+							class="button-with-icon"
+							@click="showEditDialog = true"
+							data-cy="menu-btn-edit-preview"
+						>
+							<v-icon :icon="mdiPencil" />
+							<span>{{ $t("video-queue-item.edit.tooltip") }}</span>
 						</v-list-item>
 						<v-list-item
 							class="button-with-icon"
@@ -151,6 +158,36 @@
 				</v-menu>
 			</div>
 		</div>
+		<v-dialog v-model="showEditDialog" max-width="480" data-cy="edit-preview-dialog">
+			<v-card>
+				<v-card-title>{{ $t("video-queue-item.edit.title") }}</v-card-title>
+				<v-card-text>
+					<v-text-field
+						v-model="editedSubtitleUrl"
+						:label="$t('video-queue-item.edit.subtitle-url')"
+						variant="underlined"
+						clearable
+						:disabled="!['direct', 'googledrive'].includes(item.service)"
+						:hint="$t('video-queue-item.edit.subtitle-url-supported-services')"
+						:persistent-hint="true"
+						data-cy="edit-subtitle-url"
+					/>
+				</v-card-text>
+				<v-card-actions>
+					<v-spacer />
+					<v-btn @click="showEditDialog = false" data-cy="edit-cancel">{{
+						$t("common.cancel")
+					}}</v-btn>
+					<v-btn
+						color="primary"
+						:loading="isLoadingEdit"
+						@click="saveEdit"
+						data-cy="edit-save"
+						>{{ $t("common.save") }}</v-btn
+					>
+				</v-card-actions>
+			</v-card>
+		</v-dialog>
 	</v-sheet>
 </template>
 
@@ -166,12 +203,13 @@ import {
 	mdiDotsVertical,
 	mdiSortDescending,
 	mdiSortAscending,
+	mdiPencil,
 } from "@mdi/js";
-import { ref, toRefs, computed, watchEffect } from "vue";
+import { ref, toRefs, computed, watch, watchEffect } from "vue";
 import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
-import type { QueueItem, VideoId } from "ott-common/models/video";
+import type { QueueItem, VideoAdd } from "ott-common/models/video";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -203,11 +241,13 @@ const granted = useGrants();
 
 const isLoadingAdd = ref(false);
 const isLoadingVote = ref(false);
+const isLoadingEdit = ref(false);
 const hasBeenAdded = ref(false);
 const thumbnailHasError = ref(false);
 const hasError = ref(false);
 const voted = ref(false);
-
+const showEditDialog = ref(false);
+const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl);
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -236,12 +276,52 @@ function updateHasBeenAdded() {
 	hasBeenAdded.value = false;
 }
 
-function getPostData(): VideoId {
+function getPostData(): VideoAdd {
 	const data = {
 		service: item.value.service,
 		id: item.value.id,
+		// Use `item.value.subtitleUrl` for preview since editedSubtitleUrl might have been edited but not saved
+		subtitleUrl:
+			(props.isPreview ? item.value.subtitleUrl : editedSubtitleUrl.value) ?? undefined,
 	};
 	return data;
+}
+
+// Ensure that the editedSubtitleUrl is reflected to the current subtitle URL after a failed update request
+watch(showEditDialog, open => {
+	if (!props.isPreview && open) {
+		editedSubtitleUrl.value = item.value.subtitleUrl ?? "";
+	}
+});
+
+async function saveEdit() {
+	if (props.isPreview) {
+		// Update the subtitle URL for playNow()
+		item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
+		showEditDialog.value = false;
+	} else {
+		isLoadingEdit.value = true;
+		try {
+			const resp = await API.patch(`/room/${store.state.room.name}/queue`, getPostData());
+			hasError.value = !resp.data.success;
+			showEditDialog.value = false;
+			toast.add({
+				style: ToastStyle.Success,
+				content: t("video-queue-item.messages.video-updated").toString(),
+				duration: 5000,
+			});
+		} catch (e) {
+			hasError.value = true;
+			if (axios.isAxiosError(e)) {
+				toast.add({
+					style: ToastStyle.Error,
+					content: e.response?.data.error.message,
+					duration: 6000,
+				});
+			}
+		}
+		isLoadingEdit.value = false;
+	}
 }
 
 async function addToQueue() {

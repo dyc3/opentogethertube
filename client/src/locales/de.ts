@@ -152,10 +152,18 @@ export default {
 		"next-video": "Nächstes Video",
 		"next-video-vote": "Für Video überspringen abstimmen",
 		"toggle-fullscreen": "Vollbild umschalten",
+		"pip": "Bild-in-Bild",
+		"player-settings": "Player-Einstellungen",
+		"subtitles": "Untertitel",
+		"quality": "Qualität",
+		"playback-speed": "Wiedergabegeschwindigkeit",
+		"default-layout": "Standard-Layout",
+		"theater-mode": "Theatermodus",
 		"con-status": {
 			connecting: "Verbinden...",
 			connected: "Verbunden",
 		},
+		"visibility-badge-label": "Raum-Sichtbarkeit",
 		"tabs": {
 			queue: "Warteschlange",
 			settings: "Einstellungen",
@@ -216,6 +224,10 @@ export default {
 			"failed-to-get-add-preview":
 				"Fehler beim Laden der Vorschau. Dies ist wahrscheinlich ein Bug, überprüfen Sie die Konsole für Details.",
 			"failed-to-all-videos": "Fehler beim Hinzufügen aller Videos: {message}",
+		},
+		"adapter-selector": {
+			label: "Adapter erzwingen",
+			auto: "Automatisch erkennen",
 		},
 	},
 	"processed-text": {
@@ -384,6 +396,7 @@ export default {
 		"sfx-enable": "Soundeffekte aktivieren",
 		"sfx-volume": "Soundeffekt-Lautstärke",
 		"room-settings": "Standardraumeinstellungen",
+		"enable-adapter-selector": "Adapter-Auswahl anzeigen (erweitert)",
 	},
 	"connect-overlay": {
 		"title": "Verbindung getrennt",
@@ -419,6 +432,12 @@ export default {
 	"player": {
 		"buffer-warn": {
 			spans: "Sie haben noch nicht genug von dem Video gepuffert. Aktuelle Zeit-Bereiche gepuffert: {ranges}",
+		},
+		"playback-error-title": {
+			unknown: "Wiedergabefehler",
+		},
+		"playback-error-message": {
+			unknown: "Video konnte nicht geladen werden.",
 		},
 	},
 };

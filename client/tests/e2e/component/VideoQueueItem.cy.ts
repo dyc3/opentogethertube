@@ -213,6 +213,119 @@ describe("<VideoQueueItem />", () => {
 		});
 	});
 
+	it("should add the video to the queue with subtitleUrl", () => {
+		cy.intercept("POST", "/api/room/foo/queue", { success: true }).as("addToQueueWithSubtitle");
+		const video: QueueItem = {
+			service: "direct",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+			subtitleUrl: "https://example.com/subtitles.vtt",
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: true,
+			},
+		});
+		cy.store().then(store => {
+			store.state.room.name = "foo";
+		});
+
+		cy.get('[data-cy="btn-add-to-queue"]').click();
+
+		cy.wait("@addToQueueWithSubtitle").then(interception => {
+			expect(interception.request.body).to.deep.equal(
+				_.pick(video, ["service", "id", "subtitleUrl"])
+			);
+		});
+	});
+
+	it("should edit the subtitleUrl for an enqueued video", () => {
+		cy.intercept("PATCH", "/api/room/foo/queue", { success: true }).as("editQueueItem");
+		const video: QueueItem = {
+			service: "direct",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+			subtitleUrl: "https://example.com/old.vtt",
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: false,
+			},
+		});
+		cy.store().then(store => {
+			store.state.room.name = "foo";
+		});
+
+		cy.get('[data-cy="btn-menu"]').click();
+		cy.get('[data-cy="menu-btn-edit-preview"]').click();
+		cy.get('[data-cy="edit-subtitle-url"] input').clear().type("https://example.com/new.vtt");
+		cy.get('[data-cy="edit-save"]').click();
+
+		cy.wait("@editQueueItem").then(interception => {
+			expect(interception.request.body).to.deep.equal({
+				service: "direct",
+				id: "1",
+				subtitleUrl: "https://example.com/new.vtt",
+			});
+		});
+	});
+
+	it("should report an error when the edited subtitleUrl does not end with .vtt", () => {
+		cy.intercept("PATCH", "/api/room/foo/queue", {
+			statusCode: 400,
+			body: {
+				success: false,
+				error: {
+					name: "UnsupportedSubtitleType",
+					message: "Subtitle URL must end with .vtt",
+				},
+			},
+		}).as("editQueueItemInvalidSubtitle");
+
+		const video: QueueItem = {
+			service: "direct",
+			id: "1",
+			title: "Foo",
+			description: "Bar",
+			length: 100,
+			subtitleUrl: "https://example.com/old.vtt",
+		};
+
+		cy.mount(VideoQueueItem, {
+			props: {
+				item: video,
+				isPreview: false,
+			},
+		});
+		cy.store().then(store => {
+			store.state.room.name = "foo";
+		});
+
+		cy.get('[data-cy="btn-menu"]').click();
+		cy.get('[data-cy="menu-btn-edit-preview"]').click();
+		cy.get('[data-cy="edit-subtitle-url"] input').clear().type("https://example.com/new.srt");
+		cy.get('[data-cy="edit-save"]').click();
+
+		cy.wait("@editQueueItemInvalidSubtitle").then(interception => {
+			expect(interception.request.body).to.deep.equal({
+				service: "direct",
+				id: "1",
+				subtitleUrl: "https://example.com/new.srt",
+			});
+		});
+
+		// The dialog should remain open if there's an error
+		cy.get('[data-cy="edit-preview-dialog"]').should("be.visible");
+	});
+
 	it("should remove the video from the queue", () => {
 		cy.intercept("DELETE", "/api/room/foo/queue", { success: true }).as("removeFromQueue");
 		const video: QueueItem = {

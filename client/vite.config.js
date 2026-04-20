@@ -34,15 +34,15 @@ export default defineConfig({
 			},
 		}),
 	],
-	css: {
-		preprocessorOptions: {
-			scss: {
-				// unfortunately, some of our dependencies use deprecated sass features, and we can't really do much about it
-				silenceDeprecations: ["import", "global-builtin"],
-				quietDeps: true,
-			},
-		},
-	},
+	// css: {
+	// 	preprocessorOptions: {
+	// 		scss: {
+	// 			// unfortunately, some of our dependencies use deprecated sass features, and we can't really do much about it
+	// 			silenceDeprecations: ["import", "global-builtin"],
+	// 			quietDeps: true,
+	// 		},
+	// 	},
+	// },
 	resolve: {
 		alias: {
 			"@": path.resolve(searchForWorkspaceRoot(process.cwd()), "client/src"),

@@ -12,6 +12,7 @@ import {
 	RoomRequestType,
 	type UndoRequest,
 	type AddRequest,
+	type UpdateQueueItemRequest,
 } from "ott-common/models/messages.js";
 import storage from "../storage.js";
 import { Grants } from "ott-common/permissions.js";
@@ -19,6 +20,7 @@ import type {
 	OttApiRequestAddToQueue,
 	OttApiRequestPatchRoom,
 	OttApiRequestRemoveFromQueue,
+	OttApiRequestUpdateQueueItem,
 	OttApiRequestRoomCreate,
 	OttApiRequestVote,
 	OttApiResponseGetRoom,
@@ -37,6 +39,7 @@ import {
 	OttApiRequestVoteSchema,
 	OttApiRequestAddToQueueSchema,
 	OttApiRequestRemoveFromQueueSchema,
+	OttApiRequestUpdateQueueItemSchema,
 	OttApiRequestPatchRoomSchema,
 	OttApiRequestRoomGenerateSchema,
 } from "ott-common/models/zod-schemas.js";
@@ -440,6 +443,7 @@ const addToQueue: RequestHandler<
 			video: {
 				service: body.service,
 				id: body.id,
+				subtitleUrl: "subtitleUrl" in body ? body.subtitleUrl : undefined,
 			},
 			credentials,
 		};
@@ -470,6 +474,28 @@ const removeFromQueue: RequestHandler<
 		},
 		{ token: req.token! }
 	);
+	res.json({
+		success: true,
+	});
+};
+
+const updateQueueItem: RequestHandler<
+	{ name: string },
+	OttResponseBody<unknown>,
+	OttApiRequestUpdateQueueItem
+> = async (req, res) => {
+	const body = OttApiRequestUpdateQueueItemSchema.parse(req.body);
+	const points = 5;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+	const roomRequest: UpdateQueueItemRequest = {
+		type: RoomRequestType.UpdateQueueItemRequest,
+		video: { service: body.service, id: body.id },
+		update: { subtitleUrl: body.subtitleUrl },
+	};
+	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({
 		success: true,
 	});
@@ -620,6 +646,14 @@ router.delete("/:name/vote", async (req, res, next) => {
 router.post("/:name/queue", async (req, res, next) => {
 	try {
 		await addToQueue(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.patch("/:name/queue", async (req, res, next) => {
+	try {
+		await updateQueueItem(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

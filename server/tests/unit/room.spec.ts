@@ -261,6 +261,92 @@ describe("Room", () => {
 				expect(room.currentSource).toEqual(videoToPlay);
 				expect(room.playbackPosition).toEqual(0);
 			});
+
+			it("should preserve subtitleUrl from PlayNowRequest", async () => {
+				const subtitleUrl = "https://example.com/subtitles.vtt";
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.PlayNowRequest,
+						video: {
+							...videoToPlay,
+							subtitleUrl,
+						},
+					},
+					{ token: user.token }
+				);
+
+				expect(room.currentSource).toEqual({
+					...videoToPlay,
+					subtitleUrl,
+				});
+			});
+
+			it("should reject non-vtt subtitleUrl for PlayNowRequest", async () => {
+				await expect(
+					room.processUnauthorizedRequest(
+						{
+							type: RoomRequestType.PlayNowRequest,
+							video: {
+								...videoToPlay,
+								subtitleUrl: "https://example.com/subtitles.srt",
+							},
+						},
+						{ token: user.token }
+					)
+				).rejects.toThrow("Subtitle URL must end with .vtt");
+			});
+		});
+
+		describe("AddRequest", () => {
+			const videoToAdd: Video = {
+				service: "direct",
+				id: "video",
+				title: "add me",
+				description: "test",
+				thumbnail: "test",
+				length: 10,
+			};
+			const subtitleUrl = "https://example.com/subtitles.vtt";
+
+			it("should add video with subtitleUrl to queue", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.AddRequest,
+						video: {
+							...videoToAdd,
+							subtitleUrl,
+						},
+					},
+					{ token: user.token }
+				);
+
+				expect(room.queue).toHaveLength(1);
+				expect(room.queue.items[0]).toEqual({
+					...videoToAdd,
+					subtitleUrl,
+				});
+			});
+
+			it("should reject non-vtt subtitleUrl for AddRequest", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
+
+				await expect(
+					room.processUnauthorizedRequest(
+						{
+							type: RoomRequestType.AddRequest,
+							video: {
+								...videoToAdd,
+								subtitleUrl: "https://example.com/subtitles.srt",
+							},
+						},
+						{ token: user.token }
+					)
+				).rejects.toThrow("Subtitle URL must end with .vtt");
+			});
 		});
 
 		describe("VoteRequest", () => {
@@ -430,6 +516,44 @@ describe("Room", () => {
 				id: "video2",
 			});
 		});
+
+		it.each([
+			{
+				mode: QueueMode.Loop,
+				expectedCurrentSource: { service: "direct", id: "video2" },
+				expectedQueueItem: { service: "direct", id: "video" },
+				expectedPlaybackPosition: 0,
+			},
+			{
+				mode: QueueMode.Dj,
+				expectedCurrentSource: { service: "direct", id: "video" },
+				expectedQueueItem: { service: "direct", id: "video2" },
+				expectedPlaybackPosition: 0,
+			},
+		])(
+			"should clear trim metadata when mode is $mode",
+			async ({
+				mode,
+				expectedCurrentSource,
+				expectedQueueItem,
+				expectedPlaybackPosition,
+			}) => {
+				room.queueMode = mode;
+				room.currentSource = {
+					service: "direct",
+					id: "video",
+					startAt: 10,
+					endAt: 20,
+				};
+				room.playbackPosition = 10;
+				await room.dequeueNext();
+
+				expect(room.currentSource).toEqual(expectedCurrentSource);
+				expect(room.playbackPosition).toEqual(expectedPlaybackPosition);
+				expect(room.queue).toHaveLength(1);
+				expect(room.queue.items[0]).toEqual(expectedQueueItem);
+			}
+		);
 
 		it.each([QueueMode.Loop])(
 			"should requeue the current item when mode is %s, with empty queue",

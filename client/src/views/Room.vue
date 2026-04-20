@@ -82,7 +82,24 @@
 				</h1>
 				<ClientSettingsDialog />
 				<div class="grow"><!-- Spacer --></div>
-				<span id="connectStatus">{{ connectionStatus }}</span>
+				<div class="room-status">
+					<v-btn
+						class="room-visibility-badge"
+						data-cy="room-visibility"
+						variant="plain"
+						size="default"
+						slim
+						:prepend-icon="roomVisibilityIcon"
+						@click="onVisibilityClick"
+					>
+						{{ roomVisibilityLabel }}
+						<v-tooltip activator="parent" location="top">
+							{{ $t("room.visibility-badge-label") }}
+						</v-tooltip>
+					</v-btn>
+					<v-icon :icon="mdiCircle" :color="connectionStatusColor" size="small" start />
+					<span id="connectStatus">{{ connectionStatus }}</span>
+				</div>
 			</div>
 			<div class="video-container" :class="{ 'projection-mode': isProjectionMode }">
 				<div class="video-subcontainer">
@@ -260,7 +277,16 @@
 </template>
 
 <script lang="ts">
-import { mdiPlay, mdiFormatListBulleted, mdiPlus, mdiWrench } from "@mdi/js";
+import {
+	mdiPlay,
+	mdiFormatListBulleted,
+	mdiPlus,
+	mdiWrench,
+	mdiEarth,
+	mdiEyeOff,
+	mdiLock,
+	mdiCircle,
+} from "@mdi/js";
 import {
 	defineComponent,
 	ref,
@@ -308,6 +334,7 @@ import { secondsToTimestamp } from "@/util/timestamp";
 import { useCaptions, useMediaPlayer, useVolume } from "@/components/composables";
 import { useGrants } from "@/components/composables/grants";
 import { isOfficialSite } from "@/util/misc";
+import { Visibility } from "ott-common/models/types";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
@@ -604,6 +631,9 @@ export default defineComponent({
 				? t("room.con-status.connected")
 				: t("room.con-status.connecting");
 		});
+		const connectionStatusColor = computed(() =>
+			connection.connected.value ? "success" : "warning"
+		);
 		const showDisconnectedOverlay = computed(() => !!connection.kickReason.value);
 
 		function rewriteUrlToRoomName() {
@@ -935,6 +965,45 @@ export default defineComponent({
 			window.removeEventListener("keydown", onKeyDown);
 		});
 
+		const roomVisibility = computed(() => store.state.room.visibility);
+
+		const roomVisibilityIcon = computed(() => {
+			switch (roomVisibility.value) {
+				case Visibility.Public:
+					return mdiEarth;
+				case Visibility.Unlisted:
+					return mdiEyeOff;
+				case Visibility.Private:
+					return mdiLock;
+				default:
+					return mdiEyeOff;
+			}
+		});
+
+		const roomVisibilityLabel = computed(() => {
+			switch (roomVisibility.value) {
+				case Visibility.Public:
+					return t("room-settings.public");
+				case Visibility.Unlisted:
+					return t("room-settings.unlisted");
+				case Visibility.Private:
+					return t("room-settings.private");
+				default:
+					return "This is a bug";
+			}
+		});
+
+		async function onVisibilityClick() {
+			queueTab.value = 2;
+			await nextTick();
+			if (roomSettingsForm.value) {
+				await roomSettingsForm.value.loadRoomSettings();
+				await nextTick();
+				roomSettingsForm.value.openVisibilityMenu();
+				goTo(roomSettingsForm.value.$el);
+			}
+		}
+
 		// small helper aliases
 		const currentSource = computed(() => store.state.room.currentSource);
 		const production = computed(() => store.state.production);
@@ -970,6 +1039,7 @@ export default defineComponent({
 
 			isConnected,
 			connectionStatus,
+			connectionStatusColor,
 			showDisconnectedOverlay,
 
 			player,
@@ -997,11 +1067,16 @@ export default defineComponent({
 			onClickUnblockPlayback,
 			secondsToTimestamp,
 
+			roomVisibilityIcon,
+			roomVisibilityLabel,
+			onVisibilityClick,
+
 			// MDI Icons
 			mdiPlay,
 			mdiFormatListBulleted,
 			mdiPlus,
 			mdiWrench,
+			mdiCircle,
 		};
 	},
 });
@@ -1336,13 +1411,13 @@ html, body {
 	padding: 0;
 	// Ensure video scales properly
 	overflow: hidden;
-	
+
 	@media (max-width: variables.$xs-max) {
 		// Use CSS Grid for proper space allocation
 		display: grid;
 		grid-template-rows: 1fr auto;
 		height: 100%; // Fill parent container
-		
+
 		// Ensure video area maintains proper aspect ratio and fits available space
 		// Only apply grid positioning to video elements, not overlay elements like mouse-event-swallower
 		.player,
@@ -1352,7 +1427,7 @@ html, body {
 			min-height: 200px; // Reasonable minimum for video visibility
 			overflow: hidden;
 		}
-		
+
 		// Position video controls in separate grid row
 		.video-controls {
 			grid-row: 2;
@@ -1360,7 +1435,7 @@ html, body {
 			bottom: auto;
 			margin-top: 8px; // Spacing between video and controls
 		}
-		
+
 		// Fix video element scaling to properly fit constrained area
 		video, iframe {
 			object-fit: contain;
@@ -1369,7 +1444,7 @@ html, body {
 			max-width: 100% !important;
 			max-height: 100% !important;
 		}
-		
+
 		// Ensure any embedded players scale to fit
 		.omniplayer-container {
 			width: 100% !important;
@@ -1416,18 +1491,26 @@ html, body {
 		width: 100%;
 		height: 100%;
 	}
-	
+
 	// Mobile-specific video control positioning in embed mode
 	.embed-container .video-controls {
 		&.in-video {
 			// Ensure controls are always visible on mobile for better UX
 			opacity: 0.8;
 			backdrop-filter: blur(4px);
-			
+
 			&:not(.hide) {
 				opacity: 1;
 			}
 		}
 	}
+}
+
+.room-status {
+	display: flex;
+	align-items: center;
+	text-transform: uppercase;
+	font-size: 14px;
+	font-weight: 500;
 }
 </style>

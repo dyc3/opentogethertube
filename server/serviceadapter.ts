@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
-import type { VideoServiceCredentials } from "ott-common/models/messages.js";
 import { IncompleteServiceAdapterException } from "./exceptions.js";
 import { getLogger } from "./logger.js";
 import type { BulkVideoResult } from "./infoextractor.js";
@@ -64,11 +63,7 @@ export class ServiceAdapter {
 	/**
 	 * Fetches video metadata from the API.
 	 */
-	async fetchVideoInfo(
-		id: string,
-		properties?: (keyof VideoMetadata)[],
-		credentials?: VideoServiceCredentials
-	): Promise<Video> {
+	async fetchVideoInfo(id: string, properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		throw new IncompleteServiceAdapterException(
 			`Service ${this.serviceId} does not implement method fetchVideoInfo`
 		);
@@ -78,14 +73,11 @@ export class ServiceAdapter {
 	 * Fetches video metadata for a list of IDs.
 	 * @param requests List of objects with id and missingInfo keys
 	 */
-	async fetchManyVideoInfo(
-		requests: VideoRequest[],
-		credentials?: VideoServiceCredentials
-	): Promise<Video[]> {
+	async fetchManyVideoInfo(requests: VideoRequest[]): Promise<Video[]> {
 		const videos: Video[] = [];
 		for (const req of requests) {
 			try {
-				videos.push(await this.fetchVideoInfo(req.id, req.missingInfo, credentials));
+				videos.push(await this.fetchVideoInfo(req.id, req.missingInfo));
 			} catch (error) {
 				log.warn(
 					`fetchManyVideoInfo: failed to fetch ${this.serviceId}:${req.id}: ${error}, skipping`
