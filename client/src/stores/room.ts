@@ -6,6 +6,7 @@ import type { QueueItem } from "ott-common/models/video";
 import dayjs, { type Dayjs } from "dayjs";
 import type { ServerMessageSync } from "ott-common/models/messages";
 import { deserializeMap, deserializeSet } from "ott-common/serialize";
+import { calculateCurrentPosition } from "ott-common/timestamp";
 import type { FullOTTStoreState } from "@/store";
 
 export interface RoomState {
@@ -75,11 +76,23 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 					this.state.room.playbackStartTime = dayjs();
 				}
 			}
-			if (
-				(message.currentSource || message.playbackPosition !== undefined) &&
-				this.state.room.isPlaying
-			) {
-				this.state.room.playbackStartTime = dayjs();
+			if (message.playbackPosition !== undefined && this.state.room.isPlaying) {
+				// Only reset the clock reference when the server's position
+				// differs significantly from what the client is already
+				// calculating. Small deltas are normal network latency and
+				// resetting on every sync message causes micro-jumps that
+				// feed the choppy-playback seek loop.
+				const calculatedPos = this.state.room.playbackStartTime
+					? calculateCurrentPosition(
+							this.state.room.playbackStartTime,
+							dayjs(),
+							this.state.room.playbackPosition,
+							this.state.room.playbackSpeed
+					  )
+					: this.state.room.playbackPosition;
+				if (Math.abs(message.playbackPosition - calculatedPos) > 2) {
+					this.state.room.playbackStartTime = dayjs();
+				}
 			}
 			if ("currentSource" in message) {
 				this.commit("PLAYBACK_BUFFER_RESET");

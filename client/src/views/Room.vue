@@ -276,6 +276,7 @@ import {
 } from "vue";
 import AddPreview from "@/components/AddPreview.vue";
 import { calculateCurrentPosition } from "ott-common/timestamp";
+import { PlayerStatus } from "ott-common/models/types";
 import _ from "lodash";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
@@ -579,6 +580,11 @@ export default defineComponent({
 			if (!player.isPlayerPresent()) {
 				return;
 			}
+			// Never seek while the player is buffering — seeking destroys the
+			// in-progress buffer fetch and creates a choppy stutter loop.
+			if (store.state.playerStatus === PlayerStatus.buffering) {
+				return;
+			}
 			const currentTime = player.getPosition();
 
 			const diff = Math.abs(newPosition - (await currentTime));
@@ -586,7 +592,7 @@ export default defineComponent({
 				console.error("player diff is NaN, this is a bug", newPosition, currentTime);
 				return;
 			}
-			if (diff > 1 && !mediaPlaybackBlocked.value) {
+			if (diff > 2 && !mediaPlaybackBlocked.value) {
 				player.setPosition(newPosition);
 			}
 		});
