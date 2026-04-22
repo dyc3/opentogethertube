@@ -79,11 +79,13 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 				}
 			}
 			if (message.playbackPosition !== undefined && this.state.room.isPlaying) {
-				// Only reset the clock reference when the server's position
-				// differs significantly from what the client is already
-				// calculating. Small deltas are normal network latency and
-				// resetting on every sync message causes micro-jumps that
-				// feed the choppy-playback seek loop.
+				// playbackPosition and playbackStartTime are a coordinate pair.
+				// Only accept a new server position when it differs significantly
+				// from our extrapolated position — small deltas are normal network
+				// jitter. When we reject the server's position we must also drop it
+				// from stateupdate; updating one without the other doubles the
+				// elapsed-time offset and pushes truePosition far ahead, triggering
+				// repeated seeks.
 				const calculatedPos = this.state.room.playbackStartTime
 					? calculateCurrentPosition(
 							this.state.room.playbackStartTime,
@@ -94,6 +96,8 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 					: this.state.room.playbackPosition;
 				if (Math.abs(message.playbackPosition - calculatedPos) > 2) {
 					this.state.room.playbackStartTime = dayjs();
+				} else {
+					delete (stateupdate as Partial<RoomState>).playbackPosition;
 				}
 			}
 			if ("currentSource" in message) {
