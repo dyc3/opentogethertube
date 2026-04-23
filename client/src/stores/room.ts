@@ -6,7 +6,6 @@ import type { QueueItem } from "ott-common/models/video";
 import dayjs, { type Dayjs } from "dayjs";
 import type { ServerMessageSync } from "ott-common/models/messages";
 import { deserializeMap, deserializeSet } from "ott-common/serialize";
-import { calculateCurrentPosition } from "ott-common/timestamp";
 import type { FullOTTStoreState } from "@/store";
 
 export interface RoomState {
@@ -78,36 +77,11 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 					this.state.room.playbackStartTime = dayjs();
 				}
 			}
-			if (message.playbackPosition !== undefined && this.state.room.isPlaying) {
-				// playbackPosition and playbackStartTime are a coordinate pair.
-				// Only accept a new server position when it differs significantly
-				// from our extrapolated position — small deltas are normal network
-				// jitter. When we reject the server's position we must also drop it
-				// from stateupdate; updating one without the other doubles the
-				// elapsed-time offset and pushes truePosition far ahead, triggering
-				// repeated seeks.
-				//
-				// Exception: when transitioning to paused we must always accept the
-				// server's freeze position. If we drop it, truePosition falls back to
-				// the stale playbackPosition anchor and the watcher seeks all clients
-				// back to that stale point the moment isPlaying becomes false.
-				const transitioningToPaused =
-					message.isPlaying === false && this.state.room.isPlaying === true;
-				if (!transitioningToPaused) {
-					const calculatedPos = this.state.room.playbackStartTime
-						? calculateCurrentPosition(
-								this.state.room.playbackStartTime,
-								dayjs(),
-								this.state.room.playbackPosition,
-								this.state.room.playbackSpeed
-						  )
-						: this.state.room.playbackPosition;
-					if (Math.abs(message.playbackPosition - calculatedPos) > 2) {
-						this.state.room.playbackStartTime = dayjs();
-					} else {
-						delete (stateupdate as Partial<RoomState>).playbackPosition;
-					}
-				}
+			if (
+				(message.currentSource || message.playbackPosition !== undefined) &&
+				this.state.room.isPlaying
+			) {
+				this.state.room.playbackStartTime = dayjs();
 			}
 			if ("currentSource" in message) {
 				this.commit("PLAYBACK_BUFFER_RESET");
