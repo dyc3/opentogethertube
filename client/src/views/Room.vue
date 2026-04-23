@@ -1350,6 +1350,7 @@ html, body {
 		// Ensure proper touch scrolling is disabled
 		touch-action: none;
 		-webkit-overflow-scrolling: touch;
+		padding-top: 24px;
 	}
 }
 
