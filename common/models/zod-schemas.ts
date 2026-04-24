@@ -85,6 +85,16 @@ export const OttApiRequestAccountRecoveryVerifySchema = z.object({
 	newPassword: z.string(),
 });
 
+export const OttApiRequestAccountUpdateSchema = z
+	.object({
+		email: z.string().email().min(3).optional(),
+		currentPassword: z.string().optional(),
+		newPassword: z.string().optional(),
+	})
+	.refine(body => body.email !== undefined || body.newPassword !== undefined, {
+		message: "At least one field must be provided",
+	});
+
 const GrantSchema = z.tuple([z.nativeEnum(Role), z.number()]);
 
 export const RoomSettingsSchema = z

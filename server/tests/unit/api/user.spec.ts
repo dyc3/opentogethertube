@@ -183,6 +183,299 @@ describe("User API", () => {
 		});
 	});
 
+	describe("GET /user/account", () => {
+		it("should require login", async () => {
+			const resp = await request(app)
+				.get("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.expect("Content-Type", /json/)
+				.expect(401);
+
+			expect(resp.body.success).toBe(false);
+		});
+
+		it("should return the logged in account", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			const resp = await request(app)
+				.get("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.expect("Content-Type", /json/)
+				.expect(200);
+
+			expect(resp.body).toEqual({
+				success: true,
+				username: "forced test user",
+				email: "forced@localhost",
+				discordLinked: false,
+				hasPassword: true,
+			});
+		});
+	});
+
+	describe("PATCH /user/account", () => {
+		it("should require login", async () => {
+			const resp = await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.send({ email: "new@localhost" })
+				.expect("Content-Type", /json/)
+				.expect(401);
+
+			expect(resp.body.success).toBe(false);
+		});
+
+		it("should add an email to a password-only account", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await forcedUser.update({ email: null });
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ email: "forced-updated@example.com" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			await forcedUser.reload();
+			expect(forcedUser.email).toBe("forced-updated@example.com");
+		});
+
+		it("should change email for an account that already has one", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ email: "forced-changed@example.com" })
+				.expect("Content-Type", /json/)
+				.expect(200);
+
+			await forcedUser.reload();
+			expect(forcedUser.email).toBe("forced-changed@example.com");
+		});
+
+		it("should reject duplicate emails", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await testUser.update({ email: "test@example.com" });
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ email: "test@example.com" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("AlreadyInUse");
+				});
+		});
+
+		it("should reject invalid emails", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ email: "not-an-email" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("ValidationError");
+				});
+		});
+
+		it("should add a password to a social-only account", async () => {
+			await socialUser.update({ email: null, hash: null, salt: null });
+
+			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
+			const socialToken = socialTokenResp.body.token;
+
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.query({ user: "social user" })
+				.set("Authorization", `Bearer ${socialToken}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.set("Cookie", cookies)
+				.send({ newPassword: "Password123" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			await socialUser.reload();
+			expect(socialUser.hash).toBeTruthy();
+			expect(socialUser.salt).toBeTruthy();
+
+			await request(app)
+				.post("/api/user/login")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.send({ user: "social user", password: "Password123" })
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+
+		it("should add email and password to a social-only account and allow username login", async () => {
+			await socialUser.update({ email: null, hash: null, salt: null });
+
+			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
+			const socialToken = socialTokenResp.body.token;
+
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.query({ user: "social user" })
+				.set("Authorization", `Bearer ${socialToken}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await socialUser.update({ username: "social user account" });
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.set("Cookie", cookies)
+				.send({
+					email: "social-added@example.com",
+					newPassword: "Password123",
+				})
+				.expect("Content-Type", /json/)
+				.expect(200);
+
+			await socialUser.reload();
+			expect(socialUser.email).toBe("social-added@example.com");
+			expect(socialUser.hash).toBeTruthy();
+			expect(socialUser.salt).toBeTruthy();
+
+			await request(app)
+				.post("/api/user/login")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.send({ user: "social user account", password: "Password123" })
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+					expect(resp.body.user).toEqual({
+						username: "social user account",
+						email: "social-added@example.com",
+					});
+				});
+		});
+
+		it("should require the current password to change an existing password", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ newPassword: "Password123" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("CurrentPasswordRequired");
+				});
+		});
+
+		it("should reject password change when the current password is wrong", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ newPassword: "Password123", currentPassword: "wrong-password" })
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("InvalidPassword");
+				});
+		});
+
+		it("should change the password and allow logging in with the new one", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.patch("/api/user/account")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.send({ newPassword: "Password123", currentPassword: "test1234" })
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			await request(app)
+				.post("/api/user/login")
+				.set("Authorization", `Bearer ${token}`)
+				.send({ user: "forced test user", password: "test1234" })
+				.expect(401)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+				});
+
+			await request(app)
+				.post("/api/user/login")
+				.set("Authorization", `Bearer ${token}`)
+				.send({ user: "forced test user", password: "Password123" })
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+		});
+	});
+
 	describe("User login and registration", () => {
 		describe("POST /user/login", () => {
 			let onUserLogInSpy;

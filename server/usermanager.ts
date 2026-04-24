@@ -464,29 +464,13 @@ async function authCallback(emailOrUser: string, password: string, done) {
 		done(new Error("An unknown error occurred. This is a bug."));
 		return;
 	}
-
-	// argon2 format: $argon2id$v=<version>$<params>$<salt_base64>$<hash_base64>
-	// Example: $argon2id$v=19$m=65536,t=2,p=1$OTBJYW01Z3B6c255emxSaQ$cBHXbCblzazbQETAc0SWMw
-	// argon2.verify expects a completely valid base64-encoded hash string.
-	// Since our stored hashes are binary data that may contain trailing null bytes added
-	// by "Buffer", we must trim them before verification.
-	const hash = user.hash.toString().replace(/\0+$/, "");
 	try {
-		const result = await argon2.verify(hash, Buffer.concat([user.salt, Buffer.from(password)]));
+		const result = await verifyUserPassword(user, password);
 
 		if (result) {
-			if (argon2.needsRehash(hash)) {
-				log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
-				user.hash = Buffer.from(
-					await argon2.hash(Buffer.concat([user.salt, Buffer.from(password)]))
-				);
-				await user.save();
-			} else {
-				log.debug(`User ${user.username} (${user.id}): Hash is valid`);
-			}
 			done(null, user);
 		} else {
-			if (hash.indexOf("$argon2$") > -1) {
+			if (user.hash.toString().replace(/\0+$/, "").indexOf("$argon2$") > -1) {
 				log.debug(`User ${user.username} (${user.id}): Hash is invalid`);
 				done(new Error("Email or password is incorrect."), false);
 			} else {
@@ -500,6 +484,32 @@ async function authCallback(emailOrUser: string, password: string, done) {
 		log.error(`User ${user.username} (${user.id}): Error verifying hash: ${error.message}`);
 		done(new Error("An unknown error occurred. This is a bug."));
 	}
+}
+
+async function verifyUserPassword(user: User, password: string): Promise<boolean> {
+	if (!user.hash || !user.salt) {
+		return false;
+	}
+
+	// argon2 format: $argon2id$v=<version>$<params>$<salt_base64>$<hash_base64>
+	// Example: $argon2id$v=19$m=65536,t=2,p=1$OTBJYW01Z3B6c255emxSaQ$cBHXbCblzazbQETAc0SWMw
+	// argon2.verify expects a completely valid base64-encoded hash string.
+	// Since our stored hashes are binary data that may contain trailing null bytes added
+	// by "Buffer", we must trim them before verification.
+	const hash = user.hash.toString().replace(/\0+$/, "");
+	const result = await argon2.verify(hash, Buffer.concat([user.salt, Buffer.from(password)]));
+
+	if (result && argon2.needsRehash(hash)) {
+		log.debug(`User ${user.username} (${user.id}): Hash is valid, needs rehash`);
+		user.hash = Buffer.from(
+			await argon2.hash(Buffer.concat([user.salt, Buffer.from(password)]))
+		);
+		await user.save();
+	} else if (result) {
+		log.debug(`User ${user.username} (${user.id}): Hash is valid`);
+	}
+
+	return result;
 }
 
 async function authCallbackDiscord(req, accessToken, refreshToken, profile, done) {
@@ -926,7 +936,7 @@ async function clearAllRateLimiting() {
 
 if (conf.get("env") === "test") {
 	router.get("/test/forceLogin", async (req, res) => {
-		const user = await getUser({ user: "forced@localhost" });
+		const user = await getUser({ user: req.query.user?.toString() ?? "forced@localhost" });
 		req.login(user, async err => {
 			req.ottsession = { isLoggedIn: true, user_id: user.id };
 			await tokens.setSessionInfo(req.token!, req.ottsession);
@@ -952,6 +962,8 @@ export default {
 	registerUser,
 	registerUserSocial,
 	connectSocial,
+	changeUserPassword,
+	verifyUserPassword,
 	getUser,
 	isUsernameTaken,
 	isEmailTaken,
