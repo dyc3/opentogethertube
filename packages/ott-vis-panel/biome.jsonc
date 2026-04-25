@@ -1,0 +1,29 @@
+{
+	"$schema": "../../node_modules/@biomejs/biome/configuration_schema.json",
+	"root": false,
+	"extends": "//",
+	"linter": {
+		"domains": {
+			"react": "recommended"
+		},
+		"rules": {
+			"correctness": {
+				// we have to do some fucked up things to make d3 play nice with react
+				"useExhaustiveDependencies": "off"
+			}
+		}
+	},
+	"javascript": {
+		"globals": [
+			"before",
+			"describe",
+			"expect",
+			"it",
+			"Cypress",
+			"beforeEach",
+			"afterEach",
+			"after",
+			"cy"
+		]
+	}
+}

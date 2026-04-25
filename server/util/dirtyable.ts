@@ -2,6 +2,7 @@ export class Dirtyable {
 	private _dirty = false;
 	private callback: (() => void) | undefined = undefined;
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	constructor() {}
 
 	get dirty() {

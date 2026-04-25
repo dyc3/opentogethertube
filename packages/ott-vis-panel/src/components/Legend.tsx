@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React from "react";
 import "./legend.css";
 

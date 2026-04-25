@@ -1,0 +1,228 @@
+{
+	"$schema": "node_modules/@biomejs/biome/configuration_schema.json",
+	"root": true,
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!!server/tests/unit/fixtures",
+			"!!**/coverage",
+			"!!**/dist",
+			"!!**/ts-out",
+			"!!**/benchmarks/**/*.json",
+			"!!**/*.lock",
+			"!!**/*.log",
+			"!!**/*.env",
+			"!server/generated.ts"
+		]
+	},
+	"formatter": {
+		"enabled": false,
+		"formatWithErrors": false,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineEnding": "lf",
+		"lineWidth": 100,
+		"attributePosition": "auto",
+		"bracketSameLine": false,
+		"bracketSpacing": true,
+		"expand": "auto",
+		"useEditorconfig": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"a11y": { "useMediaCaption": "off", "useValidAriaRole": "off" },
+			"complexity": {
+				"noAdjacentSpacesInRegex": "error",
+				"noExtraBooleanCast": "error",
+				"noUselessCatch": "error",
+				"noUselessEscapeInRegex": "error",
+				"useArrowFunction": "error"
+			},
+			"correctness": {
+				"noConstAssign": "error",
+				"noConstantCondition": "error",
+				"noEmptyCharacterClassInRegex": "error",
+				"noEmptyPattern": "error",
+				"noGlobalObjectCalls": "error",
+				"noInnerDeclarations": "error",
+				"noInvalidConstructorSuper": "error",
+				"noNonoctalDecimalEscape": "error",
+				"noPrecisionLoss": "error",
+				"noSelfAssign": "error",
+				"noSetterReturn": "error",
+				"noSwitchDeclarations": "error",
+				"noUndeclaredVariables": "error",
+				"noUnknownPseudoClass": { "level": "warn", "options": { "ignore": ["export"] } },
+				"noUnreachable": "error",
+				"noUnreachableSuper": "error",
+				"noUnsafeFinally": "error",
+				"noUnsafeOptionalChaining": "error",
+				"noUnusedLabels": "error",
+				"noUnusedVariables": "error",
+				"useIsNan": "error",
+				"useValidForDirection": "error",
+				"useValidTypeof": "error",
+				"useYield": "error"
+			},
+			"nursery": {
+				"noNestedPromises": "warn",
+				"noVueArrowFuncInWatch": "error",
+				"noVueRefAsOperand": "error",
+				"noVueVIfWithVFor": "error",
+				"useScopedStyles": "info",
+				"useVueValidVBind": "error",
+				"useVueValidVElse": "error",
+				"useVueValidVElseIf": "error",
+				"useVueValidVIf": "error"
+			},
+			"security": { "noGlobalEval": "error" },
+			"style": {
+				"noCommonJs": "warn",
+				"noNestedTernary": "off",
+				"useBlockStatements": "error",
+				"useConsistentArrowReturn": "off"
+			},
+			"suspicious": {
+				"noAssignInExpressions": "error",
+				"noAsyncPromiseExecutor": "error",
+				"noCatchAssign": "error",
+				"noClassAssign": "error",
+				"noCompareNegZero": "error",
+				"noControlCharactersInRegex": "error",
+				"noDebugger": "error",
+				"noDoubleEquals": "error",
+				"noDuplicateCase": "error",
+				"noDuplicateClassMembers": "error",
+				"noDuplicateElseIf": "error",
+				"noDuplicateObjectKeys": "error",
+				"noDuplicateParameters": "error",
+				"noEmptyBlockStatements": "error",
+				"noFallthroughSwitchClause": "error",
+				"noFunctionAssign": "error",
+				"noGlobalAssign": "error",
+				"noImportAssign": "error",
+				"noIrregularWhitespace": "error",
+				"noMisleadingCharacterClass": "error",
+				"noPrototypeBuiltins": "error",
+				"noRedeclare": "error",
+				"noShadowRestrictedNames": "error",
+				"noSparseArray": "error",
+				"noUnknownAtRules": { "level": "warn", "options": { "ignore": ["use"] } },
+				"noUnsafeNegation": "error",
+				"noUselessRegexBackrefs": "error",
+				"noVar": "error",
+				"noWith": "error",
+				"useGetterReturn": "error"
+			}
+		},
+		"domains": { "vue": "all" }
+	},
+	"javascript": {
+		"formatter": {
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingCommas": "es5",
+			"semicolons": "always",
+			"arrowParentheses": "asNeeded",
+			"bracketSameLine": false,
+			"quoteStyle": "double",
+			"attributePosition": "auto",
+			"bracketSpacing": true
+		},
+		"globals": ["$t"]
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": { "indentScriptAndStyle": false, "selfCloseVoidElements": "always" }
+	},
+	"overrides": [
+		{
+			"includes": ["*.yaml", "*.yml"],
+			"formatter": { "indentStyle": "space", "indentWidth": 2 }
+		},
+		{
+			"includes": ["server", "common"],
+			"linter": { "rules": { "suspicious": { "noConsole": "error" } } }
+		},
+		{
+			"includes": ["server/migrations/**"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUnusedFunctionParameters": "off" },
+					"style": { "noCommonJs": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["*.js"],
+			"linter": {
+				"rules": {
+					"nursery": { "useExplicitType": "off" },
+					"style": { "noCommonJs": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["*.ts", "*.tsx"],
+			"linter": {
+				"rules": {
+					"nursery": { "useExhaustiveSwitchCases": "error" },
+					"suspicious": { "useAdjacentOverloadSignatures": "error" }
+				}
+			}
+		},
+		{
+			"includes": [
+				"tests/e2e/**",
+				"client/tests/e2e/**",
+				"packages/ott-vis-datasource/cypress/**",
+				"packages/ott-vis-datasource/**/*.spec.ts",
+				"packages/ott-vis-panel/**/*.spec.ts",
+				"packages/ott-vis-panel/**/*.test.ts"
+			],
+			"javascript": {
+				"globals": [
+					"before",
+					"describe",
+					"expect",
+					"it",
+					"Cypress",
+					"beforeEach",
+					"afterEach",
+					"after",
+					"cy"
+				]
+			},
+			"linter": { "rules": { "nursery": { "noNestedPromises": "off" } } }
+		},
+		{
+			"includes": ["**/*.vue"],
+			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
+		},
+		{
+			"includes": ["*.js"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUnusedVariables": "off" },
+					"nursery": { "useExplicitType": "off" },
+					"style": { "noCommonJs": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["*.ts", "*.tsx"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUnusedVariables": "off" },
+					"nursery": { "useExhaustiveSwitchCases": "error" },
+					"suspicious": { "useAdjacentOverloadSignatures": "error" }
+				}
+			}
+		}
+	],
+	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }
+}

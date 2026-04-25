@@ -10,16 +10,23 @@ import "@testing-library/jest-dom";
 // https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(global, "matchMedia", {
 	writable: true,
+	// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 	value: jest.fn().mockImplementation(query => ({
 		matches: false,
 		media: query,
 		onchange: null,
+		// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 		addListener: jest.fn(), // deprecated
+		// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 		removeListener: jest.fn(), // deprecated
+		// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 		addEventListener: jest.fn(),
+		// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 		removeEventListener: jest.fn(),
+		// biome-ignore lint/correctness/noUndeclaredVariables: biome migration
 		dispatchEvent: jest.fn(),
 	})),
 });
 
+// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 HTMLCanvasElement.prototype.getContext = () => {};

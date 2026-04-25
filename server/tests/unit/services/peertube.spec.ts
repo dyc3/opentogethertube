@@ -33,6 +33,7 @@ describe("Peertube", () => {
 
 		apiGetMock = vi.spyOn(adapter.api, "get").mockImplementation(async (url: string) => {
 			const videoid = adapter.getVideoId(url);
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const [host, id] = videoid.split(":");
 			const fixtureText = FIXTURES.get(id);
 			if (!fixtureText) {
@@ -41,6 +42,7 @@ describe("Peertube", () => {
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				data = fixtureText;
 			}

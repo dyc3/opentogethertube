@@ -5,9 +5,12 @@
  * https://grafana.com/developers/plugin-tools/create-a-plugin/extend-a-plugin/extend-configurations#extend-the-jest-config
  */
 
+// biome-ignore lint/style/noCommonJs: biome migration
 const path = require("node:path");
+// biome-ignore lint/style/noCommonJs: biome migration
 const { grafanaESModules, nodeModulesToTransform } = require("./jest/utils");
 
+// biome-ignore lint/style/noCommonJs: biome migration
 module.exports = {
 	moduleNameMapper: {
 		"\\.(css|scss|sass)$": "identity-obj-proxy",

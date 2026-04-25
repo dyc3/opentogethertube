@@ -1,7 +1,6 @@
 import { User as UserAccount } from "./models/user";
 import { AuthToken } from "ott-common/models/types.js";
 import { SessionInfo } from "./auth/tokens";
-// biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import * as core from "express-serve-static-core";
 
 declare global {

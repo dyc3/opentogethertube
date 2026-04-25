@@ -23,6 +23,7 @@ function reasonText() {
 }
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 .disconnected {
 	display: flex;

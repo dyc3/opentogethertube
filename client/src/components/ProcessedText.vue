@@ -62,6 +62,7 @@ function processText() {
 	let match;
 	let index = 0;
 	let loop = 0;
+	// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 	while ((match = urlRegex.exec(text.value.substring(index))) !== null) {
 		// console.log("msg:", this.text, "match", match, "content", this.content);
 		if (match.index > index) {

@@ -35,6 +35,7 @@ describe("Account Recovery", () => {
 		conf.set("mail.enabled", true);
 	});
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	beforeEach(async () => {});
 
 	afterEach(() => {

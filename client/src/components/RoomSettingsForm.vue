@@ -324,6 +324,7 @@ defineExpose({
 });
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 .room-settings .submit {
 	position: -webkit-sticky;

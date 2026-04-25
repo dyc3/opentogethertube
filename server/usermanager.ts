@@ -527,6 +527,7 @@ async function authCallbackDiscord(req, accessToken, refreshToken, profile, done
 		if (user) {
 			return done(null, user);
 		}
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		log.warn("Couldn't find existing user for discord profile, making a new one...");
 		try {
@@ -670,6 +671,7 @@ async function connectSocial(user: User, options: { discordId: string }) {
 	try {
 		socialUser = await getUser(options);
 		log.warn("Detected duplicate accounts for social login!");
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (error) {
 		log.info("No account merging required.");
 	}

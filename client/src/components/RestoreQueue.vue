@@ -64,6 +64,7 @@ function discard() {
 }
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./banner-transitions.scss";
 

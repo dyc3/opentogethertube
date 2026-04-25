@@ -1,4 +1,3 @@
-// biome-ignore lint/correctness/noUnusedImports: migrating to biome
 import React, { type ChangeEvent } from "react";
 import { InlineField, Input, SecretInput } from "@grafana/ui";
 import type { DataSourcePluginOptionsEditorProps } from "@grafana/data";

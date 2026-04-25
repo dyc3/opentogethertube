@@ -107,6 +107,7 @@ export async function main() {
 	};
 	if (
 		conf.get("env") === "production" &&
+		// biome-ignore lint/complexity/noExtraBooleanCast: biome migration
 		!!conf.get("hostname") &&
 		!conf.get("hostname").includes("localhost") &&
 		conf.get("trust_proxy") > 0

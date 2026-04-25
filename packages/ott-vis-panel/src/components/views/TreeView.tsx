@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useImportType: migrating to biome, maybe false positive
 import React, { useCallback, useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { SystemState } from "ott-vis/types";
@@ -272,11 +271,13 @@ const TreeView: React.FC<TreeViewProps> = ({
 				const balancerTree = buildBalancerRegionTree(systemState);
 				const root = d3
 					.hierarchy(balancerTree)
+					// biome-ignore lint/correctness/noUnusedVariables: biome migration
 					.sum(d => 1)
 					.sort((a, b) => d3.ascending(a.data.region, b.data.region));
 				const pack = d3
 					.pack<TreeNode>()
 					.padding(3)
+					// biome-ignore lint/correctness/noUnusedVariables: biome migration
 					.radius(d => balancerNodeRadius);
 				pack(root);
 

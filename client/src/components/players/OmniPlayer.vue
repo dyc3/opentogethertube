@@ -40,7 +40,7 @@
 
 		<Suspense>
 			<YoutubePlayer
-				v-if="!!source && source.service == 'youtube'"
+				v-if="!!source && source.service === 'youtube'"
 				ref="player"
 				:video-id="source.id"
 				class="player"
@@ -53,7 +53,7 @@
 				@buffer-progress="onBufferProgress"
 			/>
 			<VimeoPlayer
-				v-else-if="!!source && source.service == 'vimeo'"
+				v-else-if="!!source && source.service === 'vimeo'"
 				ref="player"
 				:video-id="source.id"
 				class="player"
@@ -86,7 +86,7 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<DashPlayer
-				v-else-if="!!source && source.service == 'dash'"
+				v-else-if="!!source && source.service === 'dash'"
 				ref="player"
 				:video-url="source.dash_url ?? source.id"
 				:thumbnail="source.thumbnail"
@@ -123,7 +123,7 @@
 				@buffer-spans="onBufferSpans"
 			/>
 			<PeertubePlayer
-				v-else-if="!!source && source.service == 'peertube'"
+				v-else-if="!!source && source.service === 'peertube'"
 				ref="player"
 				:video-id="source.id"
 				class="player"

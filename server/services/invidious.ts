@@ -457,6 +457,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					const wRe = /(?:^|\s)width\s*=\s*["'](\d+)["']/i;
 					const hRe = /(?:^|\s)height\s*=\s*["'](\d+)["']/i;
 					let m: RegExpExecArray | null;
+					// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 					while ((m = repTagRe.exec(text)) !== null) {
 						const tag = m[0];
 						const bwMatch = bwRe.exec(tag);

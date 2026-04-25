@@ -237,6 +237,7 @@ async function collectRedisMetrics() {
 	log.silly(`Collected ${countMetricsCollected} redis metrics, skipped ${countMetricsSkipped}`);
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeRedisDbsize = new Gauge({
 	name: "redis_keys_count",
 	help: "The number of keys in the database",

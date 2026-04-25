@@ -143,6 +143,7 @@ onMounted(() => {
 });
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 .theme-app > * {
 	min-height: inherit;

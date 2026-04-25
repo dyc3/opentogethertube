@@ -5,17 +5,17 @@
 	},
 	"rules": {
 		"no-console": "error",
-		"no-debugger": "error",
-		"curly": ["error", "all"],
+		"no-debugger": "off",
+		"curly": "off",
 		"camelcase": ["error", { "properties": "never" }],
-		"no-eval": ["error", {}],
+		"no-eval": "off",
 		"no-multiple-empty-lines": ["error", { "max": 1, "maxBOF": 0 }],
-		"no-var": "error",
+		"no-var": "off",
 		"no-dupe-keys": "error",
 		"no-prototype-builtins": "error",
 		"prefer-arrow-callback": "error",
-		"eol-last": ["error", "always"],
-		"eqeqeq": ["error", "always"],
+		"eol-last": "off",
+		"eqeqeq": "off",
 		"no-unused-vars": "error",
 
 		"@typescript-eslint/no-var-requires": "warn"

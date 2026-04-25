@@ -42,6 +42,7 @@ function setRate(rate: number) {
 const supported = playbackRate.isPlaybackRateSupported;
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./media-controls.scss";
 

@@ -5,6 +5,7 @@ import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("tubi");
 
 interface TubiVideoResponse {

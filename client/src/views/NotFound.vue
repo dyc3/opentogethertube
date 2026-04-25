@@ -14,6 +14,7 @@
 	</v-container>
 </template>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 .not-found-btn {
 	margin: 8px;

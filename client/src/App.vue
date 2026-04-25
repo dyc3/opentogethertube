@@ -251,6 +251,7 @@ const App = defineComponent({
 export default App;
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./variables.scss";
 @use "./fonts.scss";

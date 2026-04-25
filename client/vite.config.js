@@ -10,6 +10,7 @@ function gitCommit() {
 	}
 	try {
 		return childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		// eslint-disable-next-line no-console
 		console.warn("Failed to get git commit hash");
