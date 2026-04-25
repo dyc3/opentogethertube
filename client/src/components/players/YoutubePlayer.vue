@@ -33,6 +33,8 @@ const YT_STATUS_CUED = 5;
  * - Youtube player state: UNSTARTED
  * - At this point, the user must interact with the video manually in order to play the video.
  */
+
+// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 export default {
 	name: "YoutubePlayer",
 	props: {

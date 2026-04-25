@@ -63,11 +63,7 @@
 	</v-container>
 </template>
 
-<script>
-export default {
-	name: "privacypolicy",
-};
-</script>
+<script setup></script>
 
 <style lang="scss" scoped>
 p {

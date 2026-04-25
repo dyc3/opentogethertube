@@ -269,6 +269,7 @@ import { Visibility } from "ott-common/models/types";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
 
+// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 export default defineComponent({
 	name: "room",
 	components: {

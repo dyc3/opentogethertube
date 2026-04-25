@@ -8,6 +8,7 @@ import vimeo from "@vimeo/player";
 import { onBeforeUnmount } from "vue";
 import "./iframe-bg-hack.scss";
 
+// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 const VimeoPlayer = defineComponent({
 	name: "VimeoPlayer",
 	props: {
@@ -143,5 +144,6 @@ const VimeoPlayer = defineComponent({
 	},
 });
 
+// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 export default VimeoPlayer;
 </script>

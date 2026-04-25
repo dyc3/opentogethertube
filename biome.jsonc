@@ -77,7 +77,8 @@
 				"useVueValidVBind": "error",
 				"useVueValidVElse": "error",
 				"useVueValidVElseIf": "error",
-				"useVueValidVIf": "error"
+				"useVueValidVIf": "error",
+				"noVueOptionsApi": "error"
 			},
 			"security": { "noGlobalEval": "error" },
 			"style": {
@@ -178,7 +179,7 @@
 		{
 			"includes": [
 				"tests/e2e/**",
-				"client/tests/e2e/**",
+				"client/tests/**",
 				"packages/ott-vis-datasource/cypress/**",
 				"packages/ott-vis-datasource/**/*.spec.ts",
 				"packages/ott-vis-panel/**/*.spec.ts",
@@ -197,7 +198,14 @@
 					"cy"
 				]
 			},
-			"linter": { "rules": { "nursery": { "noNestedPromises": "off" } } }
+			"linter": {
+  			"rules": {
+  			  "nursery": {
+  			    "noNestedPromises": "off",
+  					"noVueOptionsApi": "off",
+  			  }
+  			}
+  		}
 		},
 		{
 			"includes": ["**/*.vue"],
