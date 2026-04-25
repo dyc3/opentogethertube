@@ -9,9 +9,12 @@ import type {
 import type { QueueMode, Visibility } from "ott-common/models/types.js";
 import { OttApiRequestAccountUpdateSchema } from "ott-common/models/zod-schemas.js";
 import { Room as DbRoomModel } from "../models/index.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
 import usermanager from "../usermanager.js";
 
 const router = express.Router();
+const ACCOUNT_READ_RATE_LIMIT_POINTS = 1;
+const ACCOUNT_WRITE_RATE_LIMIT_POINTS = 10;
 
 type AccountUpdateError = OttApiError & {
 	fields?: string[];
@@ -36,6 +39,9 @@ const getAccount: RequestHandler<never, OttResponseBody<OttApiResponseAccount>> 
 		unauthorized(res);
 		return;
 	}
+	if (!(await consumeRateLimitPoints(res, req.ip, ACCOUNT_READ_RATE_LIMIT_POINTS))) {
+		return;
+	}
 
 	res.json({
 		success: true,
@@ -54,6 +60,9 @@ const patchAccount: RequestHandler<
 > = async (req, res) => {
 	if (!req.user) {
 		unauthorized(res);
+		return;
+	}
+	if (!(await consumeRateLimitPoints(res, req.ip, ACCOUNT_WRITE_RATE_LIMIT_POINTS))) {
 		return;
 	}
 
@@ -142,6 +151,9 @@ const patchAccount: RequestHandler<
 const deleteDiscordLink: RequestHandler<never, OttResponseBody> = async (req, res) => {
 	if (!req.user) {
 		unauthorized(res);
+		return;
+	}
+	if (!(await consumeRateLimitPoints(res, req.ip, ACCOUNT_WRITE_RATE_LIMIT_POINTS))) {
 		return;
 	}
 
