@@ -84,7 +84,7 @@ async function startPasswordReset() {
 				duration: 5000,
 			});
 		}
-	// biome-ignore lint/correctness/noUnusedVariables: biome migration
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		toast.add({
 			style: ToastStyle.Error,

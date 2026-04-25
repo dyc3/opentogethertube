@@ -80,7 +80,7 @@
 			</div>
 			<v-container
 				v-if="
-					videos.length == 0 &&
+					videos.length === 0 &&
 					inputAddPreview.length > 0 &&
 					!hasAddPreviewFailed &&
 					!isAddPreviewInputUrl
@@ -250,7 +250,7 @@ const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
-	// biome-ignore lint/correctness/noUnusedVariables: biome migration
+		// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		return false;
 	}

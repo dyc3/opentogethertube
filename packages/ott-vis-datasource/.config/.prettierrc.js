@@ -4,7 +4,6 @@
  * In order to extend the configuration follow the steps in .config/README.md
  */
 
-
 // biome-ignore lint/style/noCommonJs: biome migration
 module.exports = {
 	endOfLine: "auto",

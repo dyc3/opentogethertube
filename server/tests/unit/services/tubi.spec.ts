@@ -52,7 +52,7 @@ describe("Tubi TV", () => {
 			let data;
 			try {
 				data = JSON.parse(fixtureText);
-			// biome-ignore lint/correctness/noUnusedVariables: biome migration
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				data = fixtureText;
 			}

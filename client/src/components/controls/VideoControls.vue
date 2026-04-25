@@ -3,8 +3,8 @@
 		<div
 			:class="{
 				'video-controls': true,
-				'in-video': mode == 'in-video',
-				'outside-video': mode == 'outside-video',
+				'in-video': mode === 'in-video',
+				'outside-video': mode === 'outside-video',
 				'hide': !controlsVisible,
 			}"
 		>

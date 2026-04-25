@@ -6,5 +6,5 @@ process.env.TZ = "UTC";
 module.exports = {
 	// Jest configuration provided by Grafana scaffolding
 	// biome-ignore lint/style/noCommonJs: biome migration
-		...require("./.config/jest.config"),
+	...require("./.config/jest.config"),
 };

@@ -37,7 +37,6 @@ interface GoogleDriveErrorResponse {
 }
 
 function isGoogleDriveApiError(
-	// biome-ignore lint/suspicious/noExplicitAny: migration
 	response: AxiosResponse<any> | undefined
 ): response is AxiosResponse<GoogleDriveErrorResponse> {
 	return !!response && "error" in response.data;
