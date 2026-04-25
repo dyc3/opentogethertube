@@ -39,9 +39,16 @@
 						<v-card-text>
 							<div class="account-row">
 								<strong>{{ $t("account.discord") }}</strong>
-								<span>{{ account.discordLinked ? $t("account.linked") : $t("account.not-linked") }}</span>
+								<span>{{
+									account.discordLinked
+										? $t("account.linked")
+										: $t("account.not-linked")
+								}}</span>
 							</div>
-							<p v-if="account.discordLinked && !account.hasPassword" class="text-muted social-note">
+							<p
+								v-if="account.discordLinked && !account.hasPassword"
+								class="text-muted social-note"
+							>
 								{{ $t("account.discord-unlink-requires-password") }}
 							</p>
 						</v-card-text>
@@ -163,27 +170,24 @@
 </template>
 
 <script lang="ts" setup>
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { AxiosError } from "axios";
+import type { OttApiResponseAccount, OttResponseBody } from "ott-common/models/rest-api";
+import isEmail from "validator/es/lib/isEmail";
+import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
+import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 import { API } from "@/common-http";
 import { ToastStyle } from "@/models/toast";
 import { useStore } from "@/store";
 import { goLoginDiscord } from "@/util/discord";
-import { useI18n } from "vue-i18n";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import type { OttApiResponseAccount, OttResponseBody } from "ott-common/models/rest-api";
-import isEmail from "validator/es/lib/isEmail";
 import toast from "@/util/toast";
-import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 
 const { t } = useI18n();
 const router = useRouter();
 const store = useStore();
-
-const isLoading = ref(false);
-const isSavingEmail = ref(false);
-const isSavingPassword = ref(false);
-const isSavingDiscord = ref(false);
-const account = ref<OttApiResponseAccount | null>(null);
+const queryClient = useQueryClient();
 
 const email = ref("");
 const currentPassword = ref("");
@@ -226,28 +230,63 @@ const passwordSubmitText = computed(() =>
 	account.value?.hasPassword ? t("account.save-password") : t("account.add-password")
 );
 
-onMounted(async () => {
-	await loadAccount();
+type OttApiErrorPayload = {
+	error?: {
+		message?: string;
+	};
+};
+
+function getErrorMessage(err: unknown) {
+	if (err instanceof AxiosError) {
+		return (err.response?.data as OttApiErrorPayload | undefined)?.error?.message;
+	}
+	return undefined;
+}
+
+const accountQuery = useQuery({
+	queryKey: ["account"],
+	queryFn: async () => {
+		const resp = await API.get<OttResponseBody<OttApiResponseAccount>>("/user/account");
+		if (!resp.data.success) {
+			throw new Error("Failed to load account");
+		}
+		return resp.data;
+	},
+	retry: false,
 });
 
-async function loadAccount() {
-	isLoading.value = true;
-	try {
-		const resp = await API.get<OttResponseBody<OttApiResponseAccount>>("/user/account");
-		if (resp.data.success) {
-			account.value = resp.data;
-			email.value = resp.data.email ?? "";
-			if (store.state.user) {
-				store.commit("LOGIN", {
-					...store.state.user,
-					username: resp.data.username,
-					loggedIn: true,
-					discordLinked: resp.data.discordLinked,
-				});
-			}
+const account = computed(() => accountQuery.data.value ?? null);
+const isLoading = computed(() => accountQuery.isPending.value);
+const isSavingEmail = computed(() => saveEmailMutation.isPending.value);
+const isSavingPassword = computed(() => savePasswordMutation.isPending.value);
+const isSavingDiscord = computed(() => unlinkDiscordMutation.isPending.value);
+
+watch(
+	() => accountQuery.data.value,
+	data => {
+		if (!data) {
+			return;
 		}
-	} catch (err) {
-		if (err.response?.status === 401) {
+		email.value = data.email ?? "";
+		if (store.state.user) {
+			store.commit("LOGIN", {
+				...store.state.user,
+				username: data.username,
+				loggedIn: true,
+				discordLinked: data.discordLinked,
+			});
+		}
+	},
+	{ immediate: true }
+);
+
+watch(
+	() => accountQuery.error.value,
+	err => {
+		if (!err) {
+			return;
+		}
+		if (err instanceof AxiosError && err.response?.status === 401) {
 			router.push("/");
 			return;
 		}
@@ -256,39 +295,98 @@ async function loadAccount() {
 			content: t("account.load-failed"),
 			duration: 4000,
 		});
-	} finally {
-		isLoading.value = false;
 	}
-}
+);
+
+const saveEmailMutation = useMutation({
+	mutationFn: async () => {
+		const resp = await API.patch<OttResponseBody>("/user/account", {
+			email: email.value,
+		});
+		if (!resp.data.success) {
+			throw new Error("Failed to save email");
+		}
+		return resp.data;
+	},
+	onSuccess: async () => {
+		toast.add({
+			style: ToastStyle.Success,
+			content: t("account.email-saved"),
+			duration: 4000,
+		});
+		await queryClient.invalidateQueries({ queryKey: ["account"] });
+	},
+	onError: err => {
+		toast.add({
+			style: ToastStyle.Error,
+			content: getErrorMessage(err) ?? t("account.save-failed"),
+			duration: 4000,
+		});
+	},
+});
+
+const savePasswordMutation = useMutation({
+	mutationFn: async () => {
+		const resp = await API.patch<OttResponseBody>("/user/account", {
+			currentPassword: currentPassword.value || undefined,
+			newPassword: newPassword.value,
+		});
+		if (!resp.data.success) {
+			throw new Error("Failed to save password");
+		}
+		return resp.data;
+	},
+	onSuccess: async () => {
+		toast.add({
+			style: ToastStyle.Success,
+			content: t("account.password-saved"),
+			duration: 4000,
+		});
+		newPassword.value = "";
+		newPasswordConfirm.value = "";
+		currentPassword.value = "";
+		await queryClient.invalidateQueries({ queryKey: ["account"] });
+	},
+	onError: err => {
+		toast.add({
+			style: ToastStyle.Error,
+			content: getErrorMessage(err) ?? t("account.save-failed"),
+			duration: 4000,
+		});
+	},
+});
+
+const unlinkDiscordMutation = useMutation({
+	mutationFn: async () => {
+		const resp = await API.delete<OttResponseBody>("/user/account/discord");
+		if (!resp.data.success) {
+			throw new Error("Failed to unlink Discord");
+		}
+		return resp.data;
+	},
+	onSuccess: async () => {
+		toast.add({
+			style: ToastStyle.Success,
+			content: t("account.discord-unlinked"),
+			duration: 4000,
+		});
+		await queryClient.invalidateQueries({ queryKey: ["account"] });
+	},
+	onError: err => {
+		toast.add({
+			style: ToastStyle.Error,
+			content: getErrorMessage(err) ?? t("account.save-failed"),
+			duration: 4000,
+		});
+	},
+});
 
 async function saveEmail() {
 	emailForm.value?.validate();
 	if (!emailValid.value) {
 		return;
 	}
-
-	isSavingEmail.value = true;
-	try {
-		const resp = await API.patch<OttResponseBody>("/user/account", {
-			email: email.value,
-		});
-		if (resp.data.success) {
-			toast.add({
-				style: ToastStyle.Success,
-				content: t("account.email-saved"),
-				duration: 4000,
-			});
-			await loadAccount();
-		}
-	} catch (err) {
-		toast.add({
-			style: ToastStyle.Error,
-			content: err.response?.data?.error?.message ?? t("account.save-failed"),
-			duration: 4000,
-		});
-	} finally {
-		isSavingEmail.value = false;
-	}
+	await saveEmailMutation.mutateAsync().catch(() => undefined);
 }
 
 async function savePassword() {
@@ -296,56 +394,11 @@ async function savePassword() {
 	if (!passwordValid.value) {
 		return;
 	}
-
-	isSavingPassword.value = true;
-	try {
-		const resp = await API.patch<OttResponseBody>("/user/account", {
-			currentPassword: currentPassword.value || undefined,
-			newPassword: newPassword.value,
-		});
-		if (resp.data.success) {
-			toast.add({
-				style: ToastStyle.Success,
-				content: t("account.password-saved"),
-				duration: 4000,
-			});
-			newPassword.value = "";
-			newPasswordConfirm.value = "";
-			currentPassword.value = "";
-			await loadAccount();
-		}
-	} catch (err) {
-		toast.add({
-			style: ToastStyle.Error,
-			content: err.response?.data?.error?.message ?? t("account.save-failed"),
-			duration: 4000,
-		});
-	} finally {
-		isSavingPassword.value = false;
-	}
+	await savePasswordMutation.mutateAsync().catch(() => undefined);
 }
 
 async function unlinkDiscord() {
-	isSavingDiscord.value = true;
-	try {
-		const resp = await API.delete<OttResponseBody>("/user/account/discord");
-		if (resp.data.success) {
-			toast.add({
-				style: ToastStyle.Success,
-				content: t("account.discord-unlinked"),
-				duration: 4000,
-			});
-			await loadAccount();
-		}
-	} catch (err) {
-		toast.add({
-			style: ToastStyle.Error,
-			content: err.response?.data?.error?.message ?? t("account.save-failed"),
-			duration: 4000,
-		});
-	} finally {
-		isSavingDiscord.value = false;
-	}
+	await unlinkDiscordMutation.mutateAsync().catch(() => undefined);
 }
 </script>
 

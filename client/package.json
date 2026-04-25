@@ -16,6 +16,7 @@
   "dependencies": {
     "@mdi/js": "^7.4.47",
     "@peertube/embed-api": "^0.0.6",
+    "@tanstack/vue-query": "^5.100.2",
     "@vimeo/player": "^2.20.1",
     "@vueuse/core": "^9.6.0",
     "axios": "1.13.5",
