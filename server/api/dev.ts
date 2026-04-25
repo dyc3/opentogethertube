@@ -7,6 +7,7 @@ import usermanager from "../usermanager.js";
 import faker from "faker";
 import tokens from "../auth/tokens.js";
 import { setApiKey } from "../admin.js";
+import { User as UserModel } from "../models/index.js";
 
 const router = express.Router();
 const log = getLogger("api/dev");
@@ -74,6 +75,69 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 
 router.post("/set-admin-api-key", (req, res) => {
 	setApiKey(req.body.newkey);
+	res.json({ success: true });
+});
+
+router.post("/user/create-social", async (req, res) => {
+	const user = await usermanager.registerUserSocial({
+		username: req.body.username,
+		discordId: req.body.discordId ?? faker.random.alphaNumeric(12),
+	});
+	res.json({
+		success: true,
+		user: {
+			id: user.id,
+			username: user.username,
+		},
+	});
+});
+
+router.post("/user/force-login", async (req, res) => {
+	const user = await UserModel.findOne({ where: { username: req.body.username } });
+	if (!user) {
+		res.status(404).json({
+			success: false,
+			error: {
+				name: "UserNotFound",
+				message: "User not found",
+			},
+		});
+		return;
+	}
+
+	req.login(user, async err => {
+		if (err) {
+			res.status(500).json({
+				success: false,
+				error: {
+					name: err.name,
+					message: err.message,
+				},
+			});
+			return;
+		}
+
+		req.ottsession = { isLoggedIn: true, user_id: user.id };
+		await tokens.setSessionInfo(req.token!, req.ottsession);
+		res.json({ success: true });
+	});
+});
+
+router.post("/user/set-discord-link", async (req, res) => {
+	const user = await UserModel.findOne({ where: { username: req.body.username } });
+	if (!user) {
+		res.status(404).json({
+			success: false,
+			error: {
+				name: "UserNotFound",
+				message: "User not found",
+			},
+		});
+		return;
+	}
+
+	user.discordId = req.body.discordId ?? faker.random.alphaNumeric(12);
+	await user.save();
 	res.json({ success: true });
 });
 

@@ -11,6 +11,7 @@ import type {
 	OttApiRequestUpdateQueueItemSchema,
 	OttApiRequestAccountRecoveryStartSchema,
 	OttApiRequestAccountRecoveryVerifySchema,
+	OttApiRequestAccountUpdateSchema,
 	OttApiRequestPatchRoomSchema,
 	ClaimSchema,
 	RoomSettingsSchema,
@@ -96,6 +97,15 @@ export type OttApiRequestAccountRecoveryStart = z.infer<
 export type OttApiRequestAccountRecoveryVerify = z.infer<
 	typeof OttApiRequestAccountRecoveryVerifySchema
 >;
+
+export type OttApiRequestAccountUpdate = z.infer<typeof OttApiRequestAccountUpdateSchema>;
+
+export interface OttApiResponseAccount {
+	username: string;
+	email: string | null;
+	discordLinked: boolean;
+	hasPassword: boolean;
+}
 
 export type OttClaimRequest = z.infer<typeof ClaimSchema>;
 

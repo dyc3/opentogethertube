@@ -11,6 +11,9 @@
 			</v-btn>
 		</template>
 		<v-list two-line max-width="400">
+			<v-list-item to="/account">
+				<v-list-item-title>{{ $t("nav.account") }}</v-list-item-title>
+			</v-list-item>
 			<v-list-item @click="goLoginDiscord" v-if="!store.state.user.discordLinked">
 				<v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
 			</v-list-item>
