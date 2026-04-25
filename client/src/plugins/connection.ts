@@ -274,8 +274,11 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 		this.handleMessage(msg);
 	}
 
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public connect(roomName: string) {}
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public reconnect() {}
+	// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 	public disconnect() {}
 	public send(message: ClientMessage) {
 		this.sent.push(message);

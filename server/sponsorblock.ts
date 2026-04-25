@@ -42,6 +42,7 @@ export async function fetchSegments(videoId: string): Promise<Segment[]> {
 		if (cachedSegments) {
 			try {
 				return JSON.parse(cachedSegments);
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			} catch (e) {
 				log.warn(
 					`Failed to parse cached segments for video ${videoId}, fetching fresh segments`

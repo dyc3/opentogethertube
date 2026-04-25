@@ -82,6 +82,7 @@ export function createRoom(
 						return true;
 					}
 					return false;
+				// biome-ignore lint/correctness/noUnusedVariables: biome migration
 				} catch (e) {
 					console.log(`Failed to parse response body as json: ${r.body}`);
 					return false;

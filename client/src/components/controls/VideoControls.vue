@@ -50,6 +50,7 @@ withDefaults(
 );
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./media-controls.scss";
 

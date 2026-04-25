@@ -82,6 +82,7 @@ export function buildNewStore() {
 			},
 		},
 		actions: {
+			// biome-ignore lint/suspicious/noEmptyBlockStatements: biome migration
 			chat() {},
 			announcement(_context, message) {
 				this.commit("toast/ADD_TOAST", {

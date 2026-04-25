@@ -7,6 +7,7 @@ import type { User } from "../../models/user.js";
 import { main } from "../../app.js";
 
 describe("Usermanager spec", () => {
+	// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	let app;
 
 	// Initialize the application before running tests to set up database connections,

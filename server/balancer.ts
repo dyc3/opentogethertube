@@ -435,6 +435,7 @@ const gossipDebounced = _.debounce(gossip, 1000 * 20, { trailing: true, maxWait:
 
 interface GossipRoom extends RoomListItem {}
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeBalancerConnections = new Gauge({
 	name: "ott_balancer_connections",
 	help: "Number of balancer connections",

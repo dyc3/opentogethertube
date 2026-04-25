@@ -813,6 +813,7 @@ export default defineComponent({
 });
 </script>
 
+<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "../variables.scss";
 

@@ -250,6 +250,7 @@ const highlightedAddPreviewItem = ref<Video | undefined>(undefined);
 const isAddPreviewInputUrl = computed(() => {
 	try {
 		return !!new URL(inputAddPreview.value).host;
+	// biome-ignore lint/correctness/noUnusedVariables: biome migration
 	} catch (e) {
 		return false;
 	}

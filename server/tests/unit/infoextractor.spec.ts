@@ -113,6 +113,7 @@ describe("InfoExtractor", () => {
 
 		it("should cache fresh search results", async () => {
 			const adapter = new TestAdapter();
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const getAdapterSpy = vi
 				.spyOn(InfoExtractor, "getServiceAdapter")
 				.mockReturnValue(adapter);

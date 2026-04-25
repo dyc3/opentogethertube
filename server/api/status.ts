@@ -3,6 +3,7 @@ import express from "express";
 import { register } from "prom-client";
 
 const router = express.Router();
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("api/status");
 
 router.get("/", (req, res) => {

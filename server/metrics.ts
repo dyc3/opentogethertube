@@ -1,6 +1,7 @@
 import { collectDefaultMetrics, Counter, Histogram } from "prom-client";
 import type { Request, Response, NextFunction } from "express";
 import { getLogger } from "./logger.js";
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("metrics");
 
 collectDefaultMetrics();

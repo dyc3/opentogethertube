@@ -533,6 +533,7 @@ const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 				},
 			});
 		} else if (err.name === "FeatureDisabledException") {
+			// biome-ignore lint/correctness/noUnusedVariables: biome migration
 			const e = err as FeatureDisabledException;
 			res.status(403).json({
 				success: false,

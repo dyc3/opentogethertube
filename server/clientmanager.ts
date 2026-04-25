@@ -535,6 +535,7 @@ export interface CmdKick extends CmdBase {
 	clientId: ClientId;
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeWebsocketConnections = new Gauge({
 	name: "ott_websocket_connections",
 	help: "The number of active websocket connections (deprecated)",
@@ -543,6 +544,7 @@ const gaugeWebsocketConnections = new Gauge({
 	},
 });
 
+// biome-ignore lint/correctness/noUnusedVariables: biome migration
 const gaugeClients = new Gauge({
 	name: "ott_clients_connected",
 	help: "The number of clients connected.",

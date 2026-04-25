@@ -1,4 +1,5 @@
 import faker from "faker";
+// biome-ignore lint/style/noCommonJs: biome migration
 const uuid = require("uuid");
 
 describe("promotion and demotion", () => {
