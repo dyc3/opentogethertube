@@ -123,4 +123,22 @@ router.post("/user/force-login", async (req, res) => {
 	});
 });
 
+router.post("/user/set-discord-link", async (req, res) => {
+	const user = await UserModel.findOne({ where: { username: req.body.username } });
+	if (!user) {
+		res.status(404).json({
+			success: false,
+			error: {
+				name: "UserNotFound",
+				message: "User not found",
+			},
+		});
+		return;
+	}
+
+	user.discordId = req.body.discordId ?? faker.random.alphaNumeric(12);
+	await user.save();
+	res.json({ success: true });
+});
+
 export default router;

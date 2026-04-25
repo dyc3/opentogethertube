@@ -30,6 +30,7 @@ declare global {
 			ottLogin(userCreds: any): Chainable<Element>;
 			ottCreateSocialUser(user: any): Chainable<Element>;
 			ottForceLogin(username: string): Chainable<Element>;
+			ottSetDiscordLink(user: any): Chainable<Element>;
 			/**
 			 * Helper function for moving a vue-slider component to a desired percentage.
 			 * @param percent number between 0 and 1

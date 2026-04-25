@@ -85,6 +85,14 @@ Cypress.Commands.add("ottForceLogin", username => {
 	});
 });
 
+Cypress.Commands.add("ottSetDiscordLink", user => {
+	return cy.ottRequest({
+		method: "POST",
+		url: "/api/dev/user/set-discord-link",
+		body: user,
+	});
+});
+
 Cypress.Commands.add("ottSliderMove", { prevSubject: 'element' }, (subject, percent) => {
 	const slider = subject[0];
 	const rect = slider.getBoundingClientRect();

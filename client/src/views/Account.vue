@@ -35,6 +35,45 @@
 			<v-row>
 				<v-col cols="12" md="8" lg="6">
 					<v-card>
+						<v-card-title>{{ $t("account.social") }}</v-card-title>
+						<v-card-text>
+							<div class="account-row">
+								<strong>{{ $t("account.discord") }}</strong>
+								<span>{{ account.discordLinked ? $t("account.linked") : $t("account.not-linked") }}</span>
+							</div>
+							<p v-if="account.discordLinked && !account.hasPassword" class="text-muted social-note">
+								{{ $t("account.discord-unlink-requires-password") }}
+							</p>
+						</v-card-text>
+						<v-card-actions>
+							<v-spacer />
+							<v-btn
+								v-if="!account.discordLinked"
+								color="primary"
+								data-cy="account-link-discord"
+								@click="goLoginDiscord"
+							>
+								{{ $t("account.link-discord") }}
+							</v-btn>
+							<v-btn
+								v-else
+								color="error"
+								variant="flat"
+								data-cy="account-unlink-discord"
+								:disabled="!account.hasPassword"
+								:loading="isSavingDiscord"
+								@click="unlinkDiscord"
+							>
+								{{ $t("account.unlink-discord") }}
+							</v-btn>
+						</v-card-actions>
+					</v-card>
+				</v-col>
+			</v-row>
+
+			<v-row>
+				<v-col cols="12" md="8" lg="6">
+					<v-card>
 						<v-card-title>{{ emailFormTitle }}</v-card-title>
 						<v-form ref="emailForm" v-model="emailValid" @submit.prevent="saveEmail">
 							<v-card-text>
@@ -126,6 +165,8 @@
 <script lang="ts" setup>
 import { API } from "@/common-http";
 import { ToastStyle } from "@/models/toast";
+import { useStore } from "@/store";
+import { goLoginDiscord } from "@/util/discord";
 import { useI18n } from "vue-i18n";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -136,10 +177,12 @@ import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 
 const { t } = useI18n();
 const router = useRouter();
+const store = useStore();
 
 const isLoading = ref(false);
 const isSavingEmail = ref(false);
 const isSavingPassword = ref(false);
+const isSavingDiscord = ref(false);
 const account = ref<OttApiResponseAccount | null>(null);
 
 const email = ref("");
@@ -194,6 +237,14 @@ async function loadAccount() {
 		if (resp.data.success) {
 			account.value = resp.data;
 			email.value = resp.data.email ?? "";
+			if (store.state.user) {
+				store.commit("LOGIN", {
+					...store.state.user,
+					username: resp.data.username,
+					loggedIn: true,
+					discordLinked: resp.data.discordLinked,
+				});
+			}
 		}
 	} catch (err) {
 		if (err.response?.status === 401) {
@@ -273,6 +324,29 @@ async function savePassword() {
 		isSavingPassword.value = false;
 	}
 }
+
+async function unlinkDiscord() {
+	isSavingDiscord.value = true;
+	try {
+		const resp = await API.delete<OttResponseBody>("/user/account/discord");
+		if (resp.data.success) {
+			toast.add({
+				style: ToastStyle.Success,
+				content: t("account.discord-unlinked"),
+				duration: 4000,
+			});
+			await loadAccount();
+		}
+	} catch (err) {
+		toast.add({
+			style: ToastStyle.Error,
+			content: err.response?.data?.error?.message ?? t("account.save-failed"),
+			duration: 4000,
+		});
+	} finally {
+		isSavingDiscord.value = false;
+	}
+}
 </script>
 
 <style lang="scss" scoped>
@@ -281,5 +355,9 @@ async function savePassword() {
 	justify-content: space-between;
 	gap: 16px;
 	padding: 6px 0;
+}
+
+.social-note {
+	margin: 8px 0 0;
 }
 </style>

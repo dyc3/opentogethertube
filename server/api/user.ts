@@ -138,6 +138,43 @@ const patchAccount: RequestHandler<
 	});
 };
 
+// DELETE /api/user/account/discord
+const deleteDiscordLink: RequestHandler<never, OttResponseBody> = async (req, res) => {
+	if (!req.user) {
+		unauthorized(res);
+		return;
+	}
+
+	if (!req.user.discordId) {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "DiscordNotLinked",
+				message: "This account is not linked to Discord.",
+			},
+		});
+		return;
+	}
+
+	if (!req.user.hash || !req.user.salt) {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "PasswordRequired",
+				message: "Add a password before unlinking Discord.",
+			},
+		});
+		return;
+	}
+
+	req.user.discordId = null;
+	await req.user.save();
+
+	res.json({
+		success: true,
+	});
+};
+
 // GET /api/user/owned-rooms
 // Returns all permanent rooms owned by the currently logged-in user.
 // Only rooms from the database are returned. Temporary rooms and live fields are omitted.
@@ -173,6 +210,7 @@ const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[
 
 router.get("/account", getAccount);
 router.patch("/account", patchAccount);
+router.delete("/account/discord", deleteDiscordLink);
 router.get("/owned-rooms", getOwnedRooms);
 
 export default router;

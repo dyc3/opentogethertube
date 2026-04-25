@@ -216,6 +216,32 @@ describe("User API", () => {
 				hasPassword: true,
 			});
 		});
+
+		it("should return social account status", async () => {
+			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
+			const socialToken = socialTokenResp.body.token;
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.query({ user: "social user" })
+				.set("Authorization", `Bearer ${socialToken}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			const resp = await request(app)
+				.get("/api/user/account")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.set("Cookie", cookies)
+				.expect("Content-Type", /json/)
+				.expect(200);
+
+			expect(resp.body).toEqual({
+				success: true,
+				username: "social user",
+				email: null,
+				discordLinked: true,
+				hasPassword: false,
+			});
+		});
 	});
 
 	describe("PATCH /user/account", () => {
@@ -473,6 +499,85 @@ describe("User API", () => {
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
 				});
+		});
+	});
+
+	describe("DELETE /user/account/discord", () => {
+		it("should require login", async () => {
+			const resp = await request(app)
+				.delete("/api/user/account/discord")
+				.set("Authorization", `Bearer ${token}`)
+				.expect("Content-Type", /json/)
+				.expect(401);
+
+			expect(resp.body.success).toBe(false);
+		});
+
+		it("should reject unlinking when discord is not linked", async () => {
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.set("Authorization", `Bearer ${token}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.delete("/api/user/account/discord")
+				.set("Authorization", `Bearer ${token}`)
+				.set("Cookie", cookies)
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("DiscordNotLinked");
+				});
+		});
+
+		it("should reject unlinking discord without a password", async () => {
+			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
+			const socialToken = socialTokenResp.body.token;
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.query({ user: "social user" })
+				.set("Authorization", `Bearer ${socialToken}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.delete("/api/user/account/discord")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.set("Cookie", cookies)
+				.expect("Content-Type", /json/)
+				.expect(400)
+				.then(resp => {
+					expect(resp.body.success).toBe(false);
+					expect(resp.body.error.name).toBe("PasswordRequired");
+				});
+		});
+
+		it("should unlink discord when a password is set", async () => {
+			await usermanager.changeUserPassword(socialUser, "Password123");
+
+			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
+			const socialToken = socialTokenResp.body.token;
+			const loginResp = await request(app)
+				.get("/api/user/test/forceLogin")
+				.query({ user: "social user" })
+				.set("Authorization", `Bearer ${socialToken}`)
+				.expect(200);
+			const cookies = loginResp.header["set-cookie"];
+
+			await request(app)
+				.delete("/api/user/account/discord")
+				.set("Authorization", `Bearer ${socialToken}`)
+				.set("Cookie", cookies)
+				.expect("Content-Type", /json/)
+				.expect(200)
+				.then(resp => {
+					expect(resp.body.success).toBe(true);
+				});
+
+			await socialUser.reload();
+			expect(socialUser.discordId).toBeNull();
 		});
 	});
 

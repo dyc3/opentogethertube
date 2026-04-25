@@ -75,6 +75,25 @@ describe("Account management", () => {
 		});
 	});
 
+	it("should show a link button for accounts without Discord linked", () => {
+		const userCreds = {
+			email: faker.internet.email(),
+			username: faker.internet.userName(),
+			password: faker.internet.password(12),
+		};
+
+		cy.ottCreateUser(userCreds);
+		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
+		visitAccount();
+
+		cy.get('[data-cy="account-link-discord"]').should("be.visible");
+		cy.get('[data-cy="account-unlink-discord"]').should("not.exist");
+		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
+			discordLinked: false,
+			username: userCreds.username,
+		});
+	});
+
 	it("should reject changing an email to one already in use", () => {
 		const existingEmail = faker.internet.email();
 		const firstUser = {
@@ -125,6 +144,7 @@ describe("Account management", () => {
 			email,
 			username,
 			hasPassword: true,
+			discordLinked: true,
 		});
 
 		cy.clearCookies();
@@ -132,6 +152,46 @@ describe("Account management", () => {
 		cy.ottEnsureToken();
 		loginThroughUi(username, password);
 		cy.get('[data-cy="user-logged-in"]').should("contain", username);
+	});
+
+	it("should disable unlinking Discord when no password is set", () => {
+		const username = faker.internet.userName();
+
+		cy.ottCreateSocialUser({ username });
+		cy.ottForceLogin(username);
+		visitAccount();
+
+		cy.get('[data-cy="account-unlink-discord"]').should("be.visible").should("be.disabled");
+		cy.contains("A password is required before you can unlink Discord.").should("be.visible");
+		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
+			username,
+			discordLinked: true,
+			hasPassword: false,
+		});
+	});
+
+	it("should let a password account unlink Discord", () => {
+		const userCreds = {
+			email: faker.internet.email(),
+			username: faker.internet.userName(),
+			password: faker.internet.password(12),
+		};
+
+		cy.ottCreateUser(userCreds);
+		cy.ottSetDiscordLink({ username: userCreds.username });
+		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
+		visitAccount();
+
+		cy.get('[data-cy="account-unlink-discord"]').should("be.visible").click();
+		cy.contains("Discord unlinked.").should("be.visible");
+		cy.get('[data-cy="account-link-discord"]').should("be.visible");
+		cy.get('[data-cy="account-unlink-discord"]').should("not.exist");
+		cy.get('[data-cy="user-logged-in"]').first().click();
+		cy.contains("Link Discord").should("be.visible");
+		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
+			username: userCreds.username,
+			discordLinked: false,
+		});
 	});
 
 	it("should reject the wrong current password before allowing a password change", () => {
