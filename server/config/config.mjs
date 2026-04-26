@@ -28,6 +28,12 @@ const conf = convict({
     default: false,
     env: "HEROKU",
   },
+  docker: {
+    doc: "Whether the server is running in a docker container.",
+    format: Boolean,
+    default: false,
+    env: "DOCKER",
+  },
   db: {
     mode: {
       doc: "The database mode to use.",
@@ -77,6 +83,13 @@ const conf = convict({
     },
   },
 });
+if (conf.get("docker")) {
+  try {
+    conf.loadFile("../env/docker.base.toml");
+  } catch {
+    console.log("No docker base config found");
+  }
+}
 try {
   conf.loadFile("../env/base.toml");
 } catch {

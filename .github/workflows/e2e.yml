@@ -240,3 +240,78 @@ jobs:
         if: steps.check-for-e2e.outputs.has-e2e == 'true'
         working-directory: packages/${{ matrix.package }}
         run: docker compose down
+  e2e-docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.x]
+        browsers: [electron]
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker compose -f docker/docker-compose.yml -f docker/docker-compose.e2e.yml build opentogethertube
+
+      - name: Start services
+        run: docker compose -f docker/docker-compose.yml -f docker/docker-compose.e2e.yml up -d --wait --quiet-pull
+
+      - name: Print container status
+        if: always()
+        run: |
+          echo "=== Container statuses ==="
+          docker ps -a
+          echo "=== App container logs ==="
+          docker logs opentogethertube || true
+          echo "=== App container health ==="
+          docker inspect --format='{{json .State.Health}}' opentogethertube || true
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          check-latest: true
+          cache: "yarn"
+          cache-dependency-path: "./yarn.lock"
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn run cypress install
+
+      - name: "E2E Tests - Docker"
+        uses: cypress-io/github-action@v6.6.1
+        with:
+          install: false
+          wait-on: "http://localhost:8080/api/status"
+          wait-on-timeout: 120
+          browser: ${{ matrix.browsers }}
+          record: true
+          group: "E2E Docker - node-${{ matrix.node-version }} - ${{ matrix.browsers }}"
+        env:
+          CYPRESS_CI: true
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Shutdown services
+        if: always()
+        run: docker compose -f docker/docker-compose.yml -f docker/docker-compose.e2e.yml down

@@ -1,5 +1,6 @@
-# Optimized for layer cache hits to speed up builds
-
+#################################################################################################
+# Dependency installation stage
+#################################################################################################
 FROM node:22-alpine3.22 AS dep-install-stage
 
 WORKDIR /app
@@ -12,6 +13,9 @@ COPY client/package.json client/
 COPY server/package.json server/
 RUN yarn workspaces focus ott-common ott-client ott-server
 
+#################################################################################################
+# Build stage
+#################################################################################################
 FROM node:22-alpine3.22 AS build-stage
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
@@ -27,15 +31,21 @@ COPY --from=dep-install-stage /app /app
 COPY --from=dep-install-stage /root/.yarn /root/.yarn
 RUN yarn workspace ott-common run build && yarn workspace ott-client run build && yarn workspace ott-server run build
 RUN rm -rf packages/ott-vis*
-RUN rm -rf node_modules && yarn workspaces focus ott-server --production
 
+##################################################################################################
+# Immediate stage for production image
+##################################################################################################
 FROM node:22-alpine3.22 AS production-stage
 
 WORKDIR /app
 RUN corepack enable
 COPY --from=build-stage /app /app
+RUN rm -rf node_modules && yarn workspaces focus ott-server --production
 RUN rm -rf client/public client/src client/.browserslistrc .eslintrc.js .gitignore client/vite.config.js client/babel.config.js docker-compose.yml /root/.npm tools crates
 
+#################################################################################################
+# Production Docker image stage
+#################################################################################################
 FROM node:22-alpine3.22 AS docker-stage
 # For use in docker-compose
 
@@ -50,8 +60,25 @@ HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/
 
 CMD ["/bin/sh", "wait_for_db.sh", "--", "yarn", "run", "start"]
 
-FROM node:22-alpine3.22 AS deploy-stage
+##################################################################################################
+# Test Docker image stage for e2e testing
+##################################################################################################
+FROM node:22-alpine3.22 AS docker-test-stage
+
+WORKDIR /app
+ENV FFPROBE_PATH /usr/bin/ffprobe
+RUN apk update -q && apk --no-cache add curl ffmpeg -q
+RUN corepack enable
+COPY docker/scripts/wait_for_db.sh /app/wait_for_db.sh
+COPY --from=build-stage /app /app
+HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/status || exit 1 )
+
+CMD ["/bin/sh", "wait_for_db.sh", "--", "yarn", "run", "start"]
+
+##################################################################################################
 # For deployment on Fly
+##################################################################################################
+FROM node:22-alpine3.22 AS deploy-stage
 ARG DEPLOY_TARGET
 
 WORKDIR /app
