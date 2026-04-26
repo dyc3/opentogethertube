@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20.x]
+        node-version: [22.x, 24.x]
         # run copies of the current job in parallel
         containers: [1]
         browsers: [electron]
@@ -72,7 +72,7 @@ jobs:
           component: true
           record: true
           parallel: false
-          group: "Component - ${{ matrix.browsers }}"
+          group: "Component - node-${{ matrix.node-version }} - ${{ matrix.browsers }}"
           browser: ${{ matrix.browsers }}
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
@@ -87,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20.x]
+        node-version: [22.x, 24.x]
         # run copies of the current job in parallel
         # containers: [1, 2]
         browsers: [electron]
@@ -148,7 +148,7 @@ jobs:
           browser: ${{ matrix.browsers }}
           record: true
           # parallel: true
-          group: "E2E - ${{ matrix.browsers }}"
+          group: "E2E - node-${{ matrix.node-version }} - ${{ matrix.browsers }}"
         env:
           PORT: 8080
           REDIS_HOST: 127.0.0.1
@@ -164,6 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        node-version: [22.x, 24.x]
         package:
           - ott-vis-panel
           - ott-vis-datasource
@@ -172,7 +173,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ matrix.node-version }}
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
 

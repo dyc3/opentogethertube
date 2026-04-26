@@ -5,7 +5,7 @@
 	"author": "Ott",
 	"license": "AGPL-3.0-or-later",
 	"engines": {
-		"node": ">=18"
+		"node": ">=22 <25"
 	},
 	"scripts": {
 		"build": "webpack -c ./.config/webpack/webpack.config.ts --env production",

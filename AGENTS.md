@@ -186,7 +186,7 @@ yarn workspace ott-common <command>
 
 ## Important Notes
 
--   Node.js version: 20-22
+-   Node.js version: 22-24
 -   Package manager: Yarn 4
 -   Rust toolchain required for balancer and crates
 -   Always run `yarn` after pulling changes
