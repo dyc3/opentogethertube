@@ -44,7 +44,7 @@ async function addRoom(room: Room) {
 	bus.emit("load", room.name);
 }
 
-let updaterInterval: NodeJS.Timer | null = null;
+let updaterInterval: ReturnType<typeof setInterval> | null = null;
 export async function start() {
 	log.info("Starting room manager");
 
