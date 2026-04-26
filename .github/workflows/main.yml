@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24.x]
+        node-version: [22.x, 24.x]
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x, 24.x]
       fail-fast: true
     continue-on-error: true
     services:
@@ -120,13 +120,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        node-version: [22.x, 24.x]
         package: [ott-vis-panel, ott-vis-datasource]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ matrix.node-version }}
           cache: "yarn"
           cache-dependency-path: "./yarn.lock"
       - run: corepack enable
