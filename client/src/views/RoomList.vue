@@ -53,44 +53,28 @@
 	</v-container>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { mdiAccountMultiple } from "@mdi/js";
 import { API } from "@/common-http";
-import { defineComponent, ref, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import placeholderUrl from "@/assets/placeholder.svg";
 
-const RoomListView = defineComponent({
-	name: "RoomListView",
-	setup() {
-		const isLoading = ref(false);
-		const rooms = ref([]);
-		const store = useStore();
+const isLoading = ref(false);
+const rooms = ref([]);
+const store = useStore();
 
-		onMounted(async () => {
-			isLoading.value = true;
-			const result = await API.get("/room/list");
-			isLoading.value = false;
-			rooms.value = result.data;
-		});
-
-		async function createRoom() {
-			await createRoomHelper(store);
-		}
-
-		return {
-			isLoading,
-			rooms,
-
-			createRoom,
-			placeholderUrl,
-			mdiAccountMultiple,
-		};
-	},
+onMounted(async () => {
+	isLoading.value = true;
+	const result = await API.get("/room/list");
+	isLoading.value = false;
+	rooms.value = result.data;
 });
 
-export default RoomListView;
+async function createRoom() {
+	await createRoomHelper(store);
+}
 </script>
 
 <style lang="scss" scoped>
