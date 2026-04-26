@@ -1,6 +1,6 @@
 # Optimized for layer cache hits to speed up builds
 
-FROM node:20-bookworm-slim AS dep-install-stage
+FROM node:22-bookworm-slim AS dep-install-stage
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ COPY server/package.json server/
 # Focus only needed workspaces for build (deps only)
 RUN yarn workspaces focus ott-common ott-client ott-server
 
-FROM node:20-bookworm-slim AS build-stage
+FROM node:22-bookworm-slim AS build-stage
 ARG GIT_COMMIT
 ENV GIT_COMMIT=$GIT_COMMIT
 
@@ -60,7 +60,7 @@ RUN rm -rf packages/ott-vis*
 RUN rm -rf node_modules \
     && yarn workspaces focus ott-server --production
 
-FROM node:20-bookworm-slim AS production-stage
+FROM node:22-bookworm-slim AS production-stage
 
 WORKDIR /app
 RUN corepack enable
@@ -82,7 +82,7 @@ RUN rm -rf \
     tools \
     crates
 
-FROM node:20-bookworm-slim AS docker-stage
+FROM node:22-bookworm-slim AS docker-stage
 # For use in docker-compose
 
 WORKDIR /app
@@ -103,7 +103,7 @@ HEALTHCHECK --interval=30s --timeout=3s CMD ( curl -f http://localhost:8080/api/
 
 CMD ["/bin/sh", "wait_for_db.sh", "--", "yarn", "run", "start"]
 
-FROM node:20-bookworm-slim AS deploy-stage
+FROM node:22-bookworm-slim AS deploy-stage
 # For deployment on Fly
 ARG DEPLOY_TARGET
 
