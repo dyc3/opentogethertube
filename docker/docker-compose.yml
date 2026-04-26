@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   opentogethertube:
     image: opentogethertube
@@ -27,8 +26,10 @@ services:
       - redis_db
       - postgres_db
     depends_on:
-      - redis_db
-      - postgres_db
+      redis_db:
+        condition: service_healthy
+      postgres_db:
+        condition: service_healthy
     volumes:
       - "../env:/app/env"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
