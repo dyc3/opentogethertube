@@ -51,7 +51,17 @@ vi.mock("axios", () => {
 });
 
 vi.mock("../../../ott-config.js", () => ({
-	conf: { get: vi.fn().mockReturnValue("test.local") },
+	conf: {
+		get: vi.fn((key: string) => {
+			if (key === "hostname") {
+				return "test.local";
+			}
+			if (key === "env") {
+				return "test";
+			}
+			return undefined;
+		}),
+	},
 }));
 
 import axios from "axios";
