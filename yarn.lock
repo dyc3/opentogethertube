@@ -5739,13 +5739,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.13.0":
-  version: 18.14.1
-  resolution: "@types/node@npm:18.14.1"
-  checksum: 10c0/0646a6888175361a693df828ed0632e53bbe9a72c528dfe3dba4179c9c29d641e0959a7a73eacaf4ee04d50d5e3a2274f7525bd7be41dd03e25c4a6938665107
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^22.0.0":
   version: 22.19.17
   resolution: "@types/node@npm:22.19.17"
@@ -16657,7 +16650,7 @@ __metadata:
   resolution: "ott-common@workspace:common"
   dependencies:
     "@types/lodash": "npm:^4.14.170"
-    "@types/node": "npm:^18.13.0"
+    "@types/node": "npm:^22.0.0"
     dayjs: "npm:^1.10.4"
     eslint: "npm:^8.57.0"
     eslint-plugin-vitest: "npm:0.3.22"
@@ -16684,7 +16677,7 @@ __metadata:
     "@types/express-session": "npm:^1.17.3"
     "@types/lodash": "npm:^4.14.170"
     "@types/m3u8-parser": "npm:^7.2.5"
-    "@types/node": "npm:^18.13.0"
+    "@types/node": "npm:^22.0.0"
     "@types/passport": "npm:1.0.12"
     "@types/passport-http-bearer": "npm:^1.0.36"
     "@types/sequelize": "npm:^4.28.9"
