@@ -61,7 +61,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 	const systemState: SystemState = useMemo(() => {
 		return options.useSampleData
 			? sampleSystemState
-			: stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? [];
+			: (stateSeries.fields.find(f => f.name === "Balancers")?.values[0] ?? []);
 	}, [options.useSampleData, stateSeries]);
 
 	const { assign: assignColor, assignments: colorAssignments } = useColorProvider();

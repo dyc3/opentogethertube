@@ -137,20 +137,20 @@ export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id">
 	grantsFiltered.deleteRole(Role.Owner);
 
 	const db: Omit<RoomAttributes, "id"> = {
-		"name": room.name,
-		"title": room.title,
-		"description": room.description,
-		"visibility": room.visibility,
-		"queueMode": room.queueMode,
-		"autoSkipSegmentCategories": room.autoSkipSegmentCategories,
-		"permissions": grantsFiltered.toJSON(),
-		"ownerId": null,
+		name: room.name,
+		title: room.title,
+		description: room.description,
+		visibility: room.visibility,
+		queueMode: room.queueMode,
+		autoSkipSegmentCategories: room.autoSkipSegmentCategories,
+		permissions: grantsFiltered.toJSON(),
+		ownerId: null,
 		"role-trusted": [],
 		"role-mod": [],
 		"role-admin": [],
-		"prevQueue": room.prevQueue,
-		"restoreQueueBehavior": room.restoreQueueBehavior,
-		"enableVoteSkip": room.enableVoteSkip,
+		prevQueue: room.prevQueue,
+		restoreQueueBehavior: room.restoreQueueBehavior,
+		enableVoteSkip: room.enableVoteSkip,
 	};
 	if (room.owner) {
 		db.ownerId = room.owner.id;

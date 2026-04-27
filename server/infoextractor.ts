@@ -410,7 +410,7 @@ export default {
 						? await this.getVideoInfo(
 								fetchResults.highlighted.service,
 								fetchResults.highlighted.id
-						  )
+							)
 						: undefined,
 				};
 				return new AddPreview(completeResults, cacheDuration);

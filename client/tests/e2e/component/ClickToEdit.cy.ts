@@ -23,8 +23,8 @@ describe("<ClickToEdit />", () => {
 		const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
 		cy.mount(ClickToEdit, {
 			props: {
-				"modelValue": "Hello World",
-				"onChange": changeSpy,
+				modelValue: "Hello World",
+				onChange: changeSpy,
 				"onUpdate:modelValue": updateModelValueSpy,
 			},
 		});
@@ -37,33 +37,31 @@ describe("<ClickToEdit />", () => {
 		cy.get("@updateModelValueSpy").should("have.been.calledWith", "foo");
 	});
 
-	it(
-		"should not edit the value when escape is pressed or focus is lost",
-		{ browser: "!firefox" },
-		() => {
-			// This test is skipped on firefox because it always fails in run mode, but passes in open mode.
-			const changeSpy = cy.spy().as("changeSpy");
-			const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
-			cy.mount(ClickToEdit, {
-				props: {
-					"modelValue": "Hello World",
-					"onChange": changeSpy,
-					"onUpdate:modelValue": updateModelValueSpy,
-				},
-			});
+	it("should not edit the value when escape is pressed or focus is lost", {
+		browser: "!firefox",
+	}, () => {
+		// This test is skipped on firefox because it always fails in run mode, but passes in open mode.
+		const changeSpy = cy.spy().as("changeSpy");
+		const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
+		cy.mount(ClickToEdit, {
+			props: {
+				modelValue: "Hello World",
+				onChange: changeSpy,
+				"onUpdate:modelValue": updateModelValueSpy,
+			},
+		});
 
-			cy.get(".editable").click();
+		cy.get(".editable").click();
 
-			cy.focused().clear().type("foo{esc}");
+		cy.focused().clear().type("foo{esc}");
 
-			cy.get(".editable").click();
+		cy.get(".editable").click();
 
-			cy.focused().clear().type("foo").blur();
+		cy.focused().clear().type("foo").blur();
 
-			cy.get("@changeSpy").should("not.have.been.called");
-			cy.get("@updateModelValueSpy").should("not.have.been.called");
-		}
-	);
+		cy.get("@changeSpy").should("not.have.been.called");
+		cy.get("@updateModelValueSpy").should("not.have.been.called");
+	});
 
 	it("renders a number", () => {
 		cy.mount(ClickToEdit, {
@@ -81,8 +79,8 @@ describe("<ClickToEdit />", () => {
 		const updateModelValueSpy = cy.spy().as("updateModelValueSpy");
 		cy.mount(ClickToEdit, {
 			props: {
-				"modelValue": 420,
-				"onChange": changeSpy,
+				modelValue: 420,
+				onChange: changeSpy,
 				"onUpdate:modelValue": updateModelValueSpy,
 			},
 		});

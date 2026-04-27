@@ -99,12 +99,11 @@ describe("Pluto TV", () => {
 	});
 
 	describe("parseUrl", () => {
-		it.each(singleVideoLinks.concat(seriesLinks))(
-			"should be able to parse %s",
-			(link, data) => {
-				expect(adapter.parseUrl(link)).toEqual(data);
-			}
-		);
+		it.each(
+			singleVideoLinks.concat(seriesLinks)
+		)("should be able to parse %s", (link, data) => {
+			expect(adapter.parseUrl(link)).toEqual(data);
+		});
 	});
 
 	describe("resolveUrl", () => {
@@ -123,14 +122,13 @@ describe("Pluto TV", () => {
 			apiGetSpy.mockRestore();
 		});
 
-		it.each(singleVideoLinks.map(x => x[0]))(
-			`should handle single video %s`,
-			async (url: string) => {
-				const results = await adapter.resolveURL(url);
+		it.each(
+			singleVideoLinks.map(x => x[0])
+		)(`should handle single video %s`, async (url: string) => {
+			const results = await adapter.resolveURL(url);
 
-				expect(results).toHaveLength(1);
-			}
-		);
+			expect(results).toHaveLength(1);
+		});
 
 		it.each(seriesLinks)(`should handle whole series %s`, async (url: string) => {
 			const results = await adapter.resolveURL(url);

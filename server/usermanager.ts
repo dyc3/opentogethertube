@@ -47,10 +47,10 @@ export type UserManagerEvents = "userModified" | "login" | "logout";
 export type UserManagerEventHandlers<E> = E extends "userModified"
 	? (token: AuthToken) => void
 	: E extends "login"
-	? (user: User, token: AuthToken) => void
-	: E extends "logout"
-	? (user: User, token: AuthToken) => void
-	: never;
+		? (user: User, token: AuthToken) => void
+		: E extends "logout"
+			? (user: User, token: AuthToken) => void
+			: never;
 const bus = new EventEmitter();
 
 let maxWrongAttemptsByIPperDay;
@@ -92,7 +92,7 @@ export function setup() {
 				: new MailjetMailer(
 						conf.get("mail.mailjet_api_key"),
 						conf.get("mail.mailjet_api_secret")
-				  );
+					);
 	}
 }
 

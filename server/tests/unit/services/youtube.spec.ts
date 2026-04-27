@@ -308,50 +308,47 @@ describe("Youtube", () => {
 			["https://youtube.com/watch?v=%s&list=%p", "https://youtu.be/%s?list=%p"].map(x =>
 				x.replace("%s", "BTZ5KVRUy1Q").replace("%p", "PLABqEYq6H3vpCmsmyUnHnfMOeAnjBdSNm")
 			)
-		)(
-			"Resolves single video URL with playlist, with video NOT in the playlist: %s",
-			async link => {
-				const fetchSpy = vi.spyOn(adapter, "fetchVideoWithPlaylist");
-				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
-				const fetchPlaylist = vi.spyOn(adapter, "fetchPlaylistVideos");
+		)("Resolves single video URL with playlist, with video NOT in the playlist: %s", async link => {
+			const fetchSpy = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
+			const fetchPlaylist = vi.spyOn(adapter, "fetchPlaylistVideos");
 
-				const videos = await adapter.resolveURL(link);
-				expect(fetchSpy).toHaveBeenCalledTimes(1);
-				expect(fetchPlaylist).toHaveBeenCalledTimes(1);
-				expect(fetchVideo).toHaveBeenCalledTimes(1);
-				expect(videos.highlighted).toEqual({
+			const videos = await adapter.resolveURL(link);
+			expect(fetchSpy).toHaveBeenCalledTimes(1);
+			expect(fetchPlaylist).toHaveBeenCalledTimes(1);
+			expect(fetchVideo).toHaveBeenCalledTimes(1);
+			expect(videos.highlighted).toEqual({
+				service: "youtube",
+				id: "BTZ5KVRUy1Q",
+				title: "tmpIwT4T4",
+				description: "tmpIwT4T4",
+				thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+				length: 10,
+			});
+			expect(videos.videos).toEqual([
+				{
 					service: "youtube",
-					id: "BTZ5KVRUy1Q",
-					title: "tmpIwT4T4",
-					description: "tmpIwT4T4",
-					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
-					length: 10,
-				});
-				expect(videos.videos).toEqual([
-					{
-						service: "youtube",
-						id: "zgxj_0xPleg",
-						title: "Chris Chan: A Comprehensive History - Part 1",
-						description: "(1982-2000)",
-						thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
-						// length expected to be undefined because the youtube api doesn't return video length in playlist items
-						// feature requested here: https://issuetracker.google.com/issues/173420445
-					},
-					{
-						service: "youtube",
-						id: "_3QMqssyBwQ",
-						title: "Chris Chan: A Comprehensive History - Part 2",
-						description: "(2000-2004)",
-						thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
-					},
-				]);
-				expect(apiGet).toHaveBeenCalledTimes(2);
+					id: "zgxj_0xPleg",
+					title: "Chris Chan: A Comprehensive History - Part 1",
+					description: "(1982-2000)",
+					thumbnail: "https://i.ytimg.com/vi/zgxj_0xPleg/mqdefault.jpg",
+					// length expected to be undefined because the youtube api doesn't return video length in playlist items
+					// feature requested here: https://issuetracker.google.com/issues/173420445
+				},
+				{
+					service: "youtube",
+					id: "_3QMqssyBwQ",
+					title: "Chris Chan: A Comprehensive History - Part 2",
+					description: "(2000-2004)",
+					thumbnail: "https://i.ytimg.com/vi/_3QMqssyBwQ/default.jpg",
+				},
+			]);
+			expect(apiGet).toHaveBeenCalledTimes(2);
 
-				fetchSpy.mockRestore();
-				fetchVideo.mockRestore();
-				fetchPlaylist.mockRestore();
-			}
-		);
+			fetchSpy.mockRestore();
+			fetchVideo.mockRestore();
+			fetchPlaylist.mockRestore();
+		});
 
 		it("Recovers after not being able to fetch playlist information for a video", async () => {
 			const link = "https://youtube.com/watch?v=BTZ5KVRUy1Q&list=fakelistid";
@@ -367,28 +364,27 @@ describe("Youtube", () => {
 			});
 		});
 
-		it.each(["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`))(
-			"Ignores the WL and LL private playlists",
-			async link => {
-				const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
-				const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
-				const videos = await adapter.resolveURL(link);
-				expect(videos.videos).toHaveLength(1);
-				expect(videos.videos[0]).toEqual({
-					service: "youtube",
-					id: "BTZ5KVRUy1Q",
-					title: "tmpIwT4T4",
-					description: "tmpIwT4T4",
-					thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
-					length: 10,
-				});
-				expect(fetchVideo).toBeCalledTimes(1);
-				expect(fetchVideoWithPlaylist).not.toBeCalled();
+		it.each(
+			["LL", "WL"].map(p => `https://youtube.com/watch?v=BTZ5KVRUy1Q&list=${p}`)
+		)("Ignores the WL and LL private playlists", async link => {
+			const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");
+			const fetchVideo = vi.spyOn(adapter, "fetchVideoInfo");
+			const videos = await adapter.resolveURL(link);
+			expect(videos.videos).toHaveLength(1);
+			expect(videos.videos[0]).toEqual({
+				service: "youtube",
+				id: "BTZ5KVRUy1Q",
+				title: "tmpIwT4T4",
+				description: "tmpIwT4T4",
+				thumbnail: "https://i.ytimg.com/vi/BTZ5KVRUy1Q/mqdefault.jpg",
+				length: 10,
+			});
+			expect(fetchVideo).toBeCalledTimes(1);
+			expect(fetchVideoWithPlaylist).not.toBeCalled();
 
-				fetchVideoWithPlaylist.mockRestore();
-				fetchVideo.mockRestore();
-			}
-		);
+			fetchVideoWithPlaylist.mockRestore();
+			fetchVideo.mockRestore();
+		});
 
 		it("Resolves playlist", async () => {
 			const fetchVideoWithPlaylist = vi.spyOn(adapter, "fetchVideoWithPlaylist");

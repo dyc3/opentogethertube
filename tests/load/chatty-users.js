@@ -59,9 +59,12 @@ export default function ({ tokens }) {
 				"got chat message": b => b,
 			});
 		});
-		socket.setTimeout(() => {
-			socket.close(1000);
-		}, 60000 * 1 + Math.random() * 30000);
+		socket.setTimeout(
+			() => {
+				socket.close(1000);
+			},
+			60000 * 1 + Math.random() * 30000
+		);
 		socket.setInterval(() => {
 			socket.send(
 				JSON.stringify({

@@ -21,12 +21,9 @@ describe("voteskip", () => {
 		[14, 7],
 		[15, 8],
 		[16, 8],
-	])(
-		"should give a reasonable threshold for %s users",
-		(users: number, expectedThresh: number) => {
-			expect(voteSkipThreshold(users)).toBe(expectedThresh);
-		}
-	);
+	])("should give a reasonable threshold for %s users", (users: number, expectedThresh: number) => {
+		expect(voteSkipThreshold(users)).toBe(expectedThresh);
+	});
 
 	it("should count eligible voters", () => {
 		const users: RoomUserInfo[] = [

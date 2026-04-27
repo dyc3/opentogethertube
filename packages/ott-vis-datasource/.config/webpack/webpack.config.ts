@@ -193,7 +193,7 @@ const config = async (env): Promise<Configuration> => {
 							extensions: [".ts", ".tsx"],
 							lintDirtyModulesOnly: Boolean(env.development), // don't lint on start, only lint changed files
 						}),
-				  ]
+					]
 				: []),
 		],
 

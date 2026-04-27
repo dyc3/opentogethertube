@@ -21,10 +21,10 @@ export type ClientEvents = "auth" | "message" | "disconnect";
 export type ClientEventHandlers<E> = E extends "auth"
 	? (client: Client, token: AuthToken, session: SessionInfo) => void
 	: E extends "message"
-	? (client: Client, msg: ClientMessage) => void
-	: E extends "disconnect"
-	? (client: Client) => void
-	: never;
+		? (client: Client, msg: ClientMessage) => void
+		: E extends "disconnect"
+			? (client: Client) => void
+			: never;
 
 export enum ClientJoinStatus {
 	WaitingForAuth,

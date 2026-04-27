@@ -72,7 +72,7 @@ describe("DashVideoAdapter", () => {
 			const manifest = {
 				MPD: {
 					"@mediaPresentationDuration": "PT3S",
-					"ProgramInformation": { Title: "foo" },
+					ProgramInformation: { Title: "foo" },
 				},
 			};
 			const url = URL.parse("http://example.com/video.mpd");
@@ -86,7 +86,7 @@ describe("DashVideoAdapter", () => {
 			const manifest = {
 				MPD: {
 					"@mediaPresentationDuration": "PT3S",
-					"Period": [{ AdaptationSet: [{ Representation: [{ Title: "foo" }] }] }],
+					Period: [{ AdaptationSet: [{ Representation: [{ Title: "foo" }] }] }],
 				},
 			};
 			const url = URL.parse("http://example.com/video.mpd");

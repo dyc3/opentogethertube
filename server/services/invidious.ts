@@ -291,7 +291,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 					? dashProbe.topKbps >= hlsProbe.topKbps
 						? dashProbe
 						: hlsProbe
-					: dashProbe ?? hlsProbe;
+					: (dashProbe ?? hlsProbe);
 			if (pick) {
 				log.debug("Picked streaming manifest", {
 					kind: pick.kind,
@@ -351,8 +351,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				(chosen.container === "webm"
 					? "video/webm"
 					: chosen.container === "mp4"
-					? "video/mp4"
-					: undefined);
+						? "video/mp4"
+						: undefined);
 			// Always proxy via the instance (avoids CORS/signature churn) and carry itag if known.
 			const proxied = this.proxiedProgressive(host, id, chosen.itag);
 

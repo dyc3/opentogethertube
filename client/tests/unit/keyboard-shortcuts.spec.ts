@@ -66,32 +66,32 @@ describe("KeyboardShortcuts", () => {
 		expect(actionGood).toHaveBeenCalledTimes(1);
 	});
 
-	it.each(["input", "textarea"])(
-		"should not match any bindings when an element of type %s is focused",
-		(nodeName: string) => {
-			const shortcuts = new KeyboardShortcuts();
-			const binding = { code: "KeyA" };
-			const action = vi.fn();
-			const onkeydownInvoke = vi.fn();
+	it.each([
+		"input",
+		"textarea",
+	])("should not match any bindings when an element of type %s is focused", (nodeName: string) => {
+		const shortcuts = new KeyboardShortcuts();
+		const binding = { code: "KeyA" };
+		const action = vi.fn();
+		const onkeydownInvoke = vi.fn();
 
-			function doOnKeyDown() {
-				onkeydownInvoke();
-				shortcuts.handleKeyDown(event);
-			}
-			document.onkeydown = doOnKeyDown;
-			const element = document.createElement(nodeName);
-			element.onkeydown = doOnKeyDown;
-			document.body.appendChild(element);
-			shortcuts.bind(binding, action);
-			const event = new KeyboardEvent("keydown", {
-				code: "KeyA",
-			});
-			document.dispatchEvent(event);
-			element.dispatchEvent(event);
-			expect(action).toHaveBeenCalledTimes(1);
-			expect(onkeydownInvoke).toHaveBeenCalledTimes(2);
+		function doOnKeyDown() {
+			onkeydownInvoke();
+			shortcuts.handleKeyDown(event);
 		}
-	);
+		document.onkeydown = doOnKeyDown;
+		const element = document.createElement(nodeName);
+		element.onkeydown = doOnKeyDown;
+		document.body.appendChild(element);
+		shortcuts.bind(binding, action);
+		const event = new KeyboardEvent("keydown", {
+			code: "KeyA",
+		});
+		document.dispatchEvent(event);
+		element.dispatchEvent(event);
+		expect(action).toHaveBeenCalledTimes(1);
+		expect(onkeydownInvoke).toHaveBeenCalledTimes(2);
+	});
 
 	it("should automatically unbind keys when the calling component is unmounted", () => {
 		const shortcuts = new KeyboardShortcuts();
