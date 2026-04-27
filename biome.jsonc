@@ -14,7 +14,8 @@
 			"!!**/*.lock",
 			"!!**/*.log",
 			"!!**/*.env",
-			"!server/generated.ts"
+			"!server/generated.ts",
+			"!packages/ott-vis/generated.ts"
 		]
 	},
 	"formatter": {
