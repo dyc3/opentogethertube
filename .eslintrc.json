@@ -33,6 +33,12 @@
 	},
 	"overrides": [
 		{
+			"files": ["*.js", "*.ts", "*.jsx", "*.tsx"],
+			"rules": {
+				"prettier/prettier": "off"
+			}
+		},
+		{
 			"files": ["*.js"],
 			"rules": {
 				"@typescript-eslint/explicit-module-boundary-types": "off",
