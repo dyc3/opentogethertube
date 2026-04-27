@@ -40,7 +40,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{
+            hashFiles('yarn.lock') }}
           restore-keys: |
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: corepack enable
@@ -53,7 +54,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: typeshare-cli
-          version: "1.7.0"
+          version: "1.11.0"
       - name: Ensure generated code is up to date
         run: ./scripts/codegen.sh && git diff --exit-code
 
@@ -75,10 +76,8 @@ jobs:
       redis:
         image: redis
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout
+          5s --health-retries 5
         ports:
           - 6379:6379
 
@@ -94,7 +93,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
+          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{
+            hashFiles('yarn.lock') }}
           restore-keys: |
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: corepack enable
@@ -136,7 +136,9 @@ jobs:
       - name: Build plugin
         run: yarn workspace ${{ matrix.package }} build
       - name: Compatibility check
-        run: npx @grafana/levitate@latest is-compatible --path packages/${{ matrix.package }}/src/module.ts --target @grafana/data,@grafana/ui,@grafana/runtime
+        run: npx @grafana/levitate@latest is-compatible --path packages/${{
+          matrix.package }}/src/module.ts --target
+          @grafana/data,@grafana/ui,@grafana/runtime
 
   deploy-docker:
     runs-on: ubuntu-latest
