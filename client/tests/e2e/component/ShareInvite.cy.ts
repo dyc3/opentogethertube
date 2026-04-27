@@ -46,37 +46,35 @@ describe("<ShareInvite />", () => {
 		);
 	});
 
-	it(
-		"copies the link to the clipboard when the copy button is clicked",
-		{ browser: "!firefox" },
-		() => {
-			// This test is a bit flakey because you must have the actual page in cypress test runner focused,
-			// otherwise reading the clipboard will fail with "Document not focused".
-			// See: https://github.com/cypress-io/cypress/issues/18198#issuecomment-1003756021
-			// also important to note that this can't test the fallback copy method because all browsers cypress supports also support navigator.clipboard
+	it("copies the link to the clipboard when the copy button is clicked", {
+		browser: "!firefox",
+	}, () => {
+		// This test is a bit flakey because you must have the actual page in cypress test runner focused,
+		// otherwise reading the clipboard will fail with "Document not focused".
+		// See: https://github.com/cypress-io/cypress/issues/18198#issuecomment-1003756021
+		// also important to note that this can't test the fallback copy method because all browsers cypress supports also support navigator.clipboard
 
-			const page = defineComponent({
-				setup() {
-					const store = useStore();
-					store.state.room.name = "foobar";
-					store.state.shortUrl = "ottr.cc";
-					return {};
-				},
-				render() {
-					return h(ShareInvite);
-				},
-			});
-			cy.mount(page);
+		const page = defineComponent({
+			setup() {
+				const store = useStore();
+				store.state.room.name = "foobar";
+				store.state.shortUrl = "ottr.cc";
+				return {};
+			},
+			render() {
+				return h(ShareInvite);
+			},
+		});
+		cy.mount(page);
 
-			cy.get('[data-cy="share-invite-link"] input').should(
-				"have.value",
-				"https://ottr.cc/foobar"
-			);
+		cy.get('[data-cy="share-invite-link"] input').should(
+			"have.value",
+			"https://ottr.cc/foobar"
+		);
 
-			cy.get('[data-cy="share-invite-link"] [role="button"]').click();
-			assertValueInClipboard("https://ottr.cc/foobar");
-		}
-	);
+		cy.get('[data-cy="share-invite-link"] [role="button"]').click();
+		assertValueInClipboard("https://ottr.cc/foobar");
+	});
 
 	it("becomes success color when you click copy", () => {
 		cy.clock();

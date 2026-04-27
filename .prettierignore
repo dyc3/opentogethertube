@@ -8,3 +8,7 @@
 *.env
 **/tests/unit/fixtures/**
 server/generated.ts
+**/*.ts
+**/*.js
+**/*.jsx
+**/*.tsx

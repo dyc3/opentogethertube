@@ -474,18 +474,18 @@ describe("Room", () => {
 			]);
 		});
 
-		it.each([QueueMode.Manual, QueueMode.Vote])(
-			"should consume the current item when mode is %s",
-			async mode => {
-				room.queueMode = mode;
-				await room.dequeueNext();
-				expect(room.currentSource).toEqual({
-					service: "direct",
-					id: "video2",
-				});
-				expect(room.queue).toHaveLength(0);
-			}
-		);
+		it.each([
+			QueueMode.Manual,
+			QueueMode.Vote,
+		])("should consume the current item when mode is %s", async mode => {
+			room.queueMode = mode;
+			await room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "direct",
+				id: "video2",
+			});
+			expect(room.queue).toHaveLength(0);
+		});
 
 		it.each([QueueMode.Loop])("should requeue the current item when mode is %s", async mode => {
 			room.queueMode = mode;
@@ -530,45 +530,41 @@ describe("Room", () => {
 				expectedQueueItem: { service: "direct", id: "video2" },
 				expectedPlaybackPosition: 0,
 			},
-		])(
-			"should clear trim metadata when mode is $mode",
-			async ({
-				mode,
-				expectedCurrentSource,
-				expectedQueueItem,
-				expectedPlaybackPosition,
-			}) => {
-				room.queueMode = mode;
-				room.currentSource = {
-					service: "direct",
-					id: "video",
-					startAt: 10,
-					endAt: 20,
-				};
-				room.playbackPosition = 10;
-				await room.dequeueNext();
+		])("should clear trim metadata when mode is $mode", async ({
+			mode,
+			expectedCurrentSource,
+			expectedQueueItem,
+			expectedPlaybackPosition,
+		}) => {
+			room.queueMode = mode;
+			room.currentSource = {
+				service: "direct",
+				id: "video",
+				startAt: 10,
+				endAt: 20,
+			};
+			room.playbackPosition = 10;
+			await room.dequeueNext();
 
-				expect(room.currentSource).toEqual(expectedCurrentSource);
-				expect(room.playbackPosition).toEqual(expectedPlaybackPosition);
-				expect(room.queue).toHaveLength(1);
-				expect(room.queue.items[0]).toEqual(expectedQueueItem);
-			}
-		);
+			expect(room.currentSource).toEqual(expectedCurrentSource);
+			expect(room.playbackPosition).toEqual(expectedPlaybackPosition);
+			expect(room.queue).toHaveLength(1);
+			expect(room.queue.items[0]).toEqual(expectedQueueItem);
+		});
 
-		it.each([QueueMode.Loop])(
-			"should requeue the current item when mode is %s, with empty queue",
-			async mode => {
-				room.queueMode = mode;
-				room.queue = new VideoQueue();
-				expect(room.queue).toHaveLength(0);
-				await room.dequeueNext();
-				expect(room.currentSource).toEqual({
-					service: "direct",
-					id: "video",
-				});
-				expect(room.queue).toHaveLength(0);
-			}
-		);
+		it.each([
+			QueueMode.Loop,
+		])("should requeue the current item when mode is %s, with empty queue", async mode => {
+			room.queueMode = mode;
+			room.queue = new VideoQueue();
+			expect(room.queue).toHaveLength(0);
+			await room.dequeueNext();
+			expect(room.currentSource).toEqual({
+				service: "direct",
+				id: "video",
+			});
+			expect(room.queue).toHaveLength(0);
+		});
 	});
 
 	it("should be able to get role in unowned room", async () => {

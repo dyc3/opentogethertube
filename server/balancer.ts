@@ -204,23 +204,23 @@ export type BalancerManagerEvemts = BalancerConnectionEvents;
 export type BalancerManagerEventHandlers<E> = E extends "connect"
 	? (conn: BalancerConnection) => void
 	: E extends "disconnect"
-	? (conn: BalancerConnection) => void
-	: E extends "message"
-	? (conn: BalancerConnection, message: MsgB2M) => void
-	: E extends "error"
-	? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
-	: never;
+		? (conn: BalancerConnection) => void
+		: E extends "message"
+			? (conn: BalancerConnection, message: MsgB2M) => void
+			: E extends "error"
+				? (conn: BalancerConnection, error: WebSocket.ErrorEvent) => void
+				: never;
 
 export type BalancerConnectionEvents = "connect" | "disconnect" | "message" | "error";
 export type BalancerConnectionEventHandlers<E> = E extends "connect"
 	? () => void
 	: E extends "disconnect"
-	? (code: number, reason: string) => void
-	: E extends "message"
-	? (message: MsgB2M) => void
-	: E extends "error"
-	? (error: WebSocket.ErrorEvent) => void
-	: never;
+		? (code: number, reason: string) => void
+		: E extends "message"
+			? (message: MsgB2M) => void
+			: E extends "error"
+				? (error: WebSocket.ErrorEvent) => void
+				: never;
 
 export abstract class BalancerConnection {
 	/** A local identifier for the balancer. Other monoliths will have different IDs for the same balancer. */

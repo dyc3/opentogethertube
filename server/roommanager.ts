@@ -25,12 +25,12 @@ export type RoomManagerEvents = "publish" | "load" | "unload" | "command";
 export type RoomManagerEventHandlers<E> = E extends "publish"
 	? (roomName: string, message: ServerMessage) => void
 	: E extends "load"
-	? (roomName: string) => void
-	: E extends "unload"
-	? (roomName: string, reason: UnloadReason) => void
-	: E extends "command"
-	? (roomName: string, command: ClientManagerCommand) => void
-	: never;
+		? (roomName: string) => void
+		: E extends "unload"
+			? (roomName: string, reason: UnloadReason) => void
+			: E extends "command"
+				? (roomName: string, command: ClientManagerCommand) => void
+				: never;
 const bus = new EventEmitter();
 
 async function addRoom(room: Room) {

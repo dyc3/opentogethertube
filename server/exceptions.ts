@@ -82,7 +82,7 @@ export class UpstreamInvidiousException extends Error {
 			? "The video provider is rate limiting requests right now. Please try again later or choose another instance."
 			: `The video provider returned an error${
 					opts.status ? ` (HTTP ${opts.status})` : ""
-			  }. Please try again later.`;
+				}. Please try again later.`;
 
 		super(userMessage);
 		this.name = "UpstreamInvidiousException";

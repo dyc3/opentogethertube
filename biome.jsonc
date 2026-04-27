@@ -14,7 +14,8 @@
 			"!!**/*.lock",
 			"!!**/*.log",
 			"!!**/*.env",
-			"!server/generated.ts"
+			"!server/generated.ts",
+			"!packages/ott-vis/generated.ts"
 		]
 	},
 	"formatter": {
@@ -124,6 +125,7 @@
 	},
 	"javascript": {
 		"formatter": {
+		  "enabled":true,
 			"jsxQuoteStyle": "double",
 			"quoteProperties": "asNeeded",
 			"trailingCommas": "es5",
@@ -209,6 +211,7 @@
 		},
 		{
 			"includes": ["**/*.vue"],
+			"javascript": { "formatter": { "enabled":false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
 		},
 		{

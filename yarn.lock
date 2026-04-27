@@ -16771,7 +16771,6 @@ __metadata:
     jest: "npm:^29.5.0"
     jest-environment-jsdom: "npm:^29.5.0"
     ott-vis: "npm:*"
-    prettier: "npm:^2.8.7"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
@@ -16830,7 +16829,6 @@ __metadata:
     jest: "npm:^29.5.0"
     jest-environment-jsdom: "npm:^29.5.0"
     ott-vis: "npm:*"
-    prettier: "npm:^2.8.7"
     react: "npm:18.2.0"
     react-dom: "npm:18.2.0"
     replace-in-file-webpack-plugin: "npm:^1.0.6"
@@ -16857,7 +16855,6 @@ __metadata:
     "@typescript-eslint/parser": "npm:6.14.0"
     concurrently: "npm:7.6.0"
     eslint: "npm:^8.57.0"
-    prettier: "npm:^2.5.1"
     typescript: "npm:5.4.5"
     vitest: "npm:^1.2.2"
   languageName: unknown
@@ -17568,15 +17565,6 @@ __metadata:
   bin:
     prettier: bin-prettier.js
   checksum: 10c0/d272cbd842d466fbd10e7efc22fd99ebdbfb78c06c0fe8ffdaa86d50883e7b3d3fba822a86fd8a1c851ca91ec5dfc867e612071c9c54d0e29954f20954262dcb
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^2.8.7":
-  version: 2.8.8
-  resolution: "prettier@npm:2.8.8"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 10c0/463ea8f9a0946cd5b828d8cf27bd8b567345cf02f56562d5ecde198b91f47a76b7ac9eae0facd247ace70e927143af6135e8cf411986b8cb8478784a4d6d724a
   languageName: node
   linkType: hard
 

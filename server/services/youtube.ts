@@ -606,7 +606,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 					length,
 					// HACK: we can guess what the thumbnail url is, but this could possibly change without warning
 					thumbnail: `https://i.ytimg.com/vi/${id}/default.jpg`,
-				} as Video)
+				}) as Video
 		);
 		try {
 			await storage.updateManyVideoInfo(videos);

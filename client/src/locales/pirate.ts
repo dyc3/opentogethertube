@@ -1,5 +1,5 @@
 export default {
-	"landing": {
+	landing: {
 		hero: {
 			title: "Sail the seas together.",
 			description:

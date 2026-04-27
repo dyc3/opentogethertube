@@ -28,23 +28,6 @@ Edit the `.eslintrc` file in the project root in order to extend the ESLint conf
 
 ---
 
-### Extending the Prettier config
-
-Edit the `.prettierrc.js` file in the project root in order to extend the Prettier configuration.
-
-**Example:**
-
-```javascript
-module.exports = {
-	// Prettier configuration provided by Grafana scaffolding
-	...require("./.config/.prettierrc.js"),
-
-	semi: false,
-};
-```
-
----
-
 ### Extending the Jest config
 
 There are two configuration in the project root that belong to Jest: `jest-setup.js` and `jest.config.js`.

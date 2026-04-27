@@ -256,12 +256,12 @@ hi.m3u8
 							kind: "dash",
 							url: "https://inv.nadeko.net/api/manifest/dash/id/abc?local=1&source=youtube",
 							topKbps: 5000,
-					  }
+						}
 					: {
 							kind: "hls",
 							url: "https://inv.nadeko.net/api/manifest/hls/id/abc?local=1&source=youtube",
 							topKbps: 3000,
-					  };
+						};
 			});
 
 			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc");
@@ -279,12 +279,12 @@ hi.m3u8
 							kind: "dash",
 							url: "https://inv.nadeko.net/api/manifest/dash/id/abc?local=1&source=youtube",
 							topKbps: 2000,
-					  }
+						}
 					: {
 							kind: "hls",
 							url: "https://inv.nadeko.net/api/manifest/hls/id/abc?local=1&source=youtube",
 							topKbps: 4000,
-					  };
+						};
 			});
 
 			const v = await adapter.fetchVideoInfo("inv.nadeko.net:abc");

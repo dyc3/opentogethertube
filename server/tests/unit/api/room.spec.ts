@@ -126,32 +126,32 @@ describe("Room API", () => {
 			}
 		});
 
-		it.each([Visibility.Public, Visibility.Unlisted])(
-			"should get %s room metadata",
-			async (visibility: Visibility) => {
-				await roommanager.createRoom({
-					name: "test1",
-					isTemporary: true,
-					visibility: visibility,
-				});
+		it.each([
+			Visibility.Public,
+			Visibility.Unlisted,
+		])("should get %s room metadata", async (visibility: Visibility) => {
+			await roommanager.createRoom({
+				name: "test1",
+				isTemporary: true,
+				visibility: visibility,
+			});
 
-				const resp = await request(app)
-					.get("/api/room/test1")
-					.auth(token, { type: "bearer" })
-					.set({ Authorization: "Bearer foobar" })
-					.expect("Content-Type", /json/)
-					.expect(200);
+			const resp = await request(app)
+				.get("/api/room/test1")
+				.auth(token, { type: "bearer" })
+				.set({ Authorization: "Bearer foobar" })
+				.expect("Content-Type", /json/)
+				.expect(200);
 
-				// TODO: This is currently not type-checked. Ideally, we would be able to type-check the response using a definition from `common`.
-				expect(resp.body).toMatchObject({
-					name: "test1",
-					title: "",
-					description: "",
-					queueMode: QueueMode.Manual,
-					visibility: visibility,
-				});
-			}
-		);
+			// TODO: This is currently not type-checked. Ideally, we would be able to type-check the response using a definition from `common`.
+			expect(resp.body).toMatchObject({
+				name: "test1",
+				title: "",
+				description: "",
+				queueMode: QueueMode.Manual,
+				visibility: visibility,
+			});
+		});
 
 		it("should fail if the room does not exist", async () => {
 			const resp = await request(app)
@@ -195,23 +195,23 @@ describe("Room API", () => {
 			}
 		});
 
-		it.each([Visibility.Public, Visibility.Unlisted])(
-			"should create %s room",
-			async (visibility: Visibility) => {
-				const resp = await request(app)
-					.post("/api/room/create")
-					.auth(token, { type: "bearer" })
-					.send({ name: "test1", isTemporary: true, visibility: visibility })
-					.expect("Content-Type", /json/)
-					.expect(201);
-				expect(resp.body.success).toBe(true);
-				expect(roommanager.rooms[0]).toMatchObject({
-					name: "test1",
-					isTemporary: true,
-					visibility: visibility,
-				});
-			}
-		);
+		it.each([
+			Visibility.Public,
+			Visibility.Unlisted,
+		])("should create %s room", async (visibility: Visibility) => {
+			const resp = await request(app)
+				.post("/api/room/create")
+				.auth(token, { type: "bearer" })
+				.send({ name: "test1", isTemporary: true, visibility: visibility })
+				.expect("Content-Type", /json/)
+				.expect(201);
+			expect(resp.body.success).toBe(true);
+			expect(roommanager.rooms[0]).toMatchObject({
+				name: "test1",
+				isTemporary: true,
+				visibility: visibility,
+			});
+		});
 
 		it.each([
 			[{ isTemporary: true }],
@@ -398,24 +398,21 @@ describe("Room API", () => {
 				],
 			],
 			[[], []],
-		])(
-			"should update autoSkipSegmentCategories with only unique valid auto-skip segment categories",
-			async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
-				const resp = await request(app)
-					.patch("/api/room/foo")
-					.auth(token, { type: "bearer" })
-					.send({
-						autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
-					})
-					.expect("Content-Type", /json/)
-					.expect(200);
-				expect(resp.body.success).toEqual(true);
-				const roomResult = await roommanager.getRoom("foo");
-				expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
-					autoSkipSegmentCategories: savedAutoSkipSegmentCategories,
-				});
-			}
-		);
+		])("should update autoSkipSegmentCategories with only unique valid auto-skip segment categories", async (requestAutoSkipSegmentCategories, savedAutoSkipSegmentCategories) => {
+			const resp = await request(app)
+				.patch("/api/room/foo")
+				.auth(token, { type: "bearer" })
+				.send({
+					autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
+				})
+				.expect("Content-Type", /json/)
+				.expect(200);
+			expect(resp.body.success).toEqual(true);
+			const roomResult = await roommanager.getRoom("foo");
+			expect(_.pick(roomResult.value, "autoSkipSegmentCategories")).toMatchObject({
+				autoSkipSegmentCategories: savedAutoSkipSegmentCategories,
+			});
+		});
 	});
 
 	describe("PATCH /api/room/:name/queue", () => {

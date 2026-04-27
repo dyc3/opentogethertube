@@ -100,18 +100,17 @@ describe("Tubi TV", () => {
 			apiGetMock.mockClear();
 		});
 
-		it.each(singleVideoLinks)(
-			"should resolve single video url: %s",
-			async (url: string, id: string) => {
-				const videos = await adapter.resolveURL(url);
-				expect(apiGetMock).toBeCalledTimes(1);
-				expect(videos).toHaveLength(1);
-				expect(videos[0]).toMatchObject({
-					service: adapter.serviceId,
-					id: id,
-				});
-			}
-		);
+		it.each(
+			singleVideoLinks
+		)("should resolve single video url: %s", async (url: string, id: string) => {
+			const videos = await adapter.resolveURL(url);
+			expect(apiGetMock).toBeCalledTimes(1);
+			expect(videos).toHaveLength(1);
+			expect(videos[0]).toMatchObject({
+				service: adapter.serviceId,
+				id: id,
+			});
+		});
 
 		it.each(seriesLinks)("should resolve series url: %s", async (url: string) => {
 			const videos = await adapter.resolveURL(url);
