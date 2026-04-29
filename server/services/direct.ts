@@ -19,6 +19,8 @@ import { conf } from "../ott-config.js";
 import { CustomMediaManifestSchema } from "ott-common/models/zod-schemas.js";
 
 const log = getLogger("direct");
+const DIRECT_MEDIA_URL_REGEX =
+	/\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg|json)$/;
 
 export default class DirectVideoAdapter extends ServiceAdapter {
 	ffprobe: FfprobeStrategy;
@@ -60,9 +62,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg|json)$/.test(
-			(url.path ?? "/").split("?")[0]
-		);
+		return DIRECT_MEDIA_URL_REGEX.test((url.path ?? "/").split("?")[0]);
 	}
 
 	getDuration(fileInfo): number {

@@ -68,6 +68,10 @@ import axios from "axios";
 import OdyseeAdapter from "../../../services/odysee.js";
 import { OdyseeUnavailableVideo } from "../../../exceptions.js";
 
+const ODYSEE_STREAM_URL_REGEX = /\/v6\/streams\/CLAIMID\/SDHASH\/master\.m3u8$/;
+const ODYSEE_BLOCKED_MESSAGE_REGEX = /this content cannot be accessed at the moment/i;
+const ODYSEE_UNAVAILABLE_MESSAGE_REGEX = /not available/i;
+
 type AxiosWithHelpers = typeof axios & {
 	__rpcSet: (m: string, fn: (p: any) => any) => void;
 	__rpcClear: () => void;
@@ -130,7 +134,7 @@ describe("OdyseeAdapter", () => {
 
 		const out = await adapter.fetchVideoInfo("lbry://@c#1/slug#2");
 		expect(out.mime).toBe("application/x-mpegURL");
-		expect(out.hls_url).toMatch(/\/v6\/streams\/CLAIMID\/SDHASH\/master\.m3u8$/);
+		expect(out.hls_url).toMatch(ODYSEE_STREAM_URL_REGEX);
 		expect(out.title).toBe("Foo");
 		expect(out.length).toBe(123);
 	});
@@ -264,7 +268,7 @@ describe("OdyseeAdapter", () => {
 		const msg = (err as any).userMessage ?? (err as any).message ?? "";
 		expect(typeof msg).toBe("string");
 		expect(
-			/this content cannot be accessed at the moment/i.test(msg) || /not available/i.test(msg)
+			ODYSEE_BLOCKED_MESSAGE_REGEX.test(msg) || ODYSEE_UNAVAILABLE_MESSAGE_REGEX.test(msg)
 		).toBe(true);
 	});
 });

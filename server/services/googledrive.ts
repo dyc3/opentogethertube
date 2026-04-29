@@ -10,6 +10,8 @@ import type { Video, VideoService } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
 
 const log = getLogger("googledrive");
+const GOOGLE_DRIVE_FOLDER_PATH_REGEX = /^\/drive\/u\/\d\/folders\//;
+const GOOGLE_DRIVE_VIDEO_ID_REGEX = /^[A-Za-z0-9_-]+$/;
 
 interface GoogleDriveFile {
 	kind: "drive#file";
@@ -77,7 +79,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 	}
 
 	getFolderId(url: URL): string {
-		if (/^\/drive\/u\/\d\/folders\//.exec(url.pathname)) {
+		if (GOOGLE_DRIVE_FOLDER_PATH_REGEX.exec(url.pathname)) {
 			return url.pathname.split("/")[5].split("?")[0].trim();
 		} else if (url.pathname.startsWith("/drive/folders")) {
 			return url.pathname.split("/")[3].split("?")[0].trim();
@@ -95,7 +97,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string): Promise<Video> {
-		if (!/^[A-Za-z0-9_-]+$/.exec(videoId)) {
+		if (!GOOGLE_DRIVE_VIDEO_ID_REGEX.exec(videoId)) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}
 

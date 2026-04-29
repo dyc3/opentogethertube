@@ -9,6 +9,11 @@ import { conf } from "../ott-config.js";
 import { ServiceAdapter, type VideoRequest } from "../serviceadapter.js";
 
 const log = getLogger("pluto");
+const PLUTO_URL_REGEX =
+	/https?:\/\/(www\.)?pluto\.tv\/[a-z]{2}\/on-demand\/(movies|series)\/(.*)\/?$/;
+const PLUTO_SERIES_PATH_REGEX = /\/(movies|series)\/([a-z0-9]+)/;
+const PLUTO_EPISODE_PATH_REGEX = /episode\/([a-z0-9]+)/;
+const PLUTO_SEASON_PATH_REGEX = /season\/(\d+)/;
 
 export interface PlutoParsedIds {
 	type: "series" | "movies";
@@ -35,9 +40,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(link: string): boolean {
-		return /https?:\/\/(www\.)?pluto\.tv\/[a-z]{2}\/on-demand\/(movies|series)\/(.*)\/?$/.test(
-			link
-		);
+		return PLUTO_URL_REGEX.test(link);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -46,7 +49,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	parseUrl(url: string): PlutoParsedIds {
 		const parsed = new URL(url);
-		const seriesMatch = parsed.pathname.match(/\/(movies|series)\/([a-z0-9]+)/);
+		const seriesMatch = parsed.pathname.match(PLUTO_SERIES_PATH_REGEX);
 		const videoType: "series" | "movies" | undefined = seriesMatch
 			? (seriesMatch[1] as "series" | "movies")
 			: undefined;
@@ -55,13 +58,13 @@ export default class PlutoAdapter extends ServiceAdapter {
 			throw new Error(`Unable to parse series from ${url}`);
 		}
 		let episode: string | undefined;
-		const episodeMatch = parsed.pathname.match(/episode\/([a-z0-9]+)/);
+		const episodeMatch = parsed.pathname.match(PLUTO_EPISODE_PATH_REGEX);
 		if (episodeMatch) {
 			episode = episodeMatch[1];
 		}
 		let season: number | undefined;
 		if (!episodeMatch) {
-			const seasonMatch = parsed.pathname.match(/season\/(\d+)/);
+			const seasonMatch = parsed.pathname.match(PLUTO_SEASON_PATH_REGEX);
 			if (seasonMatch) {
 				season = parseInt(seasonMatch[1], 10);
 			}

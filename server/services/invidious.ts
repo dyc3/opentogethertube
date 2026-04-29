@@ -40,6 +40,10 @@ interface InvidiousApiVideo {
 // Prefer higher resolution much more than bitrate when scoring progressive formats.
 // Keeping as a constant makes intent clear and avoids magic numbers in the hot path.
 const SCORE_RES_WEIGHT = 1_000_000;
+const QUALITY_LABEL_NUMBER_REGEX = /(\d+)/;
+const REPRESENTATION_BANDWIDTH_REGEX = /(?:^|\s)bandwidth\s*=\s*["'](\d+)["']/i;
+const REPRESENTATION_WIDTH_REGEX = /(?:^|\s)width\s*=\s*["'](\d+)["']/i;
+const REPRESENTATION_HEIGHT_REGEX = /(?:^|\s)height\s*=\s*["'](\d+)["']/i;
 
 // Keep HTTP calls from hanging forever in CI/Docker; safe, conservative default.
 // set to 15 seconds
@@ -328,7 +332,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		// Direct YouTube progressive URLs are short-lived and CORS-restricted; proxying via Invidious stabilizes access for browsers. – YouTube+CORS
 		// Helper to extract numeric quality from labels like "720p", "480p", etc.
 		const q = (label?: string) => {
-			const m = (label || "").match(/(\d+)/);
+			const m = (label || "").match(QUALITY_LABEL_NUMBER_REGEX);
 			return m ? parseInt(m[1], 10) : 0;
 		};
 
@@ -453,14 +457,11 @@ export default class InvidiousAdapter extends ServiceAdapter {
 				if (topBw === 0) {
 					// Find <Representation .../> tags and extract bandwidth/width/height via fixed regexes.
 					const repTagRe = /<Representation\b[^>]*\/?>/gi;
-					const bwRe = /(?:^|\s)bandwidth\s*=\s*["'](\d+)["']/i;
-					const wRe = /(?:^|\s)width\s*=\s*["'](\d+)["']/i;
-					const hRe = /(?:^|\s)height\s*=\s*["'](\d+)["']/i;
 					let m: RegExpExecArray | null;
 					// biome-ignore lint/suspicious/noAssignInExpressions: biome migration
 					while ((m = repTagRe.exec(text)) !== null) {
 						const tag = m[0];
-						const bwMatch = bwRe.exec(tag);
+						const bwMatch = REPRESENTATION_BANDWIDTH_REGEX.exec(tag);
 						if (!bwMatch) {
 							continue;
 						}
@@ -470,8 +471,8 @@ export default class InvidiousAdapter extends ServiceAdapter {
 						}
 						topBw = bw;
 						// Resolution is optional; capture if present.
-						const wMatch = wRe.exec(tag);
-						const hMatch = hRe.exec(tag);
+						const wMatch = REPRESENTATION_WIDTH_REGEX.exec(tag);
+						const hMatch = REPRESENTATION_HEIGHT_REGEX.exec(tag);
 						const w = wMatch ? Number(wMatch[1]) : NaN;
 						const h = hMatch ? Number(hMatch[1]) : NaN;
 						if (Number.isFinite(w) && Number.isFinite(h)) {

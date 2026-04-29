@@ -13,6 +13,7 @@ import axios from "axios";
 import { parseIso8601Duration } from "./parsing/iso8601.js";
 
 const log = getLogger("dash");
+const DASH_URL_REGEX = /\/*\.(mpd)$/;
 
 export default class DashVideoAdapter extends ServiceAdapter {
 	get serviceId(): "dash" {
@@ -33,7 +34,7 @@ export default class DashVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(mpd)$/.test((url.path ?? "/").split("?")[0]);
+		return DASH_URL_REGEX.test((url.path ?? "/").split("?")[0]);
 	}
 
 	async fetchVideoInfo(link: string): Promise<Video> {

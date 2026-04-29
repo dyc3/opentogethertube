@@ -7,6 +7,8 @@ import { InvalidVideoIdException } from "../exceptions.js";
 import { conf } from "../ott-config.js";
 
 const log = getLogger("reddit");
+const REDDIT_SUBREDDIT_PATH_REGEX = /^\/r\/.+$/;
+const REDDIT_COMMENTS_PATH_REGEX = /\/comments\/.+/;
 
 export interface RedditListing<T> {
 	kind: "Listing";
@@ -91,7 +93,8 @@ export default class RedditAdapter extends ServiceAdapter {
 		const url = new URL(link);
 		return (
 			url.host.endsWith("reddit.com") &&
-			(/^\/r\/.+$/.test(url.pathname) || /\/comments\/.+/.test(url.pathname))
+			(REDDIT_SUBREDDIT_PATH_REGEX.test(url.pathname) ||
+				REDDIT_COMMENTS_PATH_REGEX.test(url.pathname))
 		);
 	}
 

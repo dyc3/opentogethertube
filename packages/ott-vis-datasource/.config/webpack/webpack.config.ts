@@ -17,6 +17,14 @@ import { getPackageJson, getPluginJson, hasReadme, getEntries, isWSL } from "./u
 import { SOURCE_DIR, DIST_DIR } from "./constants";
 
 const pluginJson = getPluginJson();
+const NODE_MODULES_REGEX = /(node_modules)/;
+const TS_JS_SOURCE_REGEX = /\.[tj]sx?$/;
+const CSS_REGEX = /\.css$/;
+const SCSS_REGEX = /\.s[ac]ss$/;
+const IMAGE_REGEX = /\.(png|jpe?g|gif|svg)$/;
+const FONT_REGEX = /\.(woff|woff2|eot|ttf|otf)(\?v=\d+\.\d+\.\d+)?$/;
+const WEBPACK_CLEAN_KEEP_REGEX = /(.*?_(amd64|arm(64)?)(.exe)?|go_plugin_build_manifest)/;
+const WATCH_IGNORED_REGEX = /node_modules/;
 
 const config = async (env): Promise<Configuration> => {
 	const baseConfig: Configuration = {
@@ -76,8 +84,8 @@ const config = async (env): Promise<Configuration> => {
 		module: {
 			rules: [
 				{
-					exclude: /(node_modules)/,
-					test: /\.[tj]sx?$/,
+					exclude: NODE_MODULES_REGEX,
+					test: TS_JS_SOURCE_REGEX,
 					use: {
 						loader: "swc-loader",
 						options: {
@@ -96,15 +104,15 @@ const config = async (env): Promise<Configuration> => {
 					},
 				},
 				{
-					test: /\.css$/,
+					test: CSS_REGEX,
 					use: ["style-loader", "css-loader"],
 				},
 				{
-					test: /\.s[ac]ss$/,
+					test: SCSS_REGEX,
 					use: ["style-loader", "css-loader", "sass-loader"],
 				},
 				{
-					test: /\.(png|jpe?g|gif|svg)$/,
+					test: IMAGE_REGEX,
 					type: "asset/resource",
 					generator: {
 						// Keep publicPath relative for host.com/grafana/ deployments
@@ -114,7 +122,7 @@ const config = async (env): Promise<Configuration> => {
 					},
 				},
 				{
-					test: /\.(woff|woff2|eot|ttf|otf)(\?v=\d+\.\d+\.\d+)?$/,
+					test: FONT_REGEX,
 					type: "asset/resource",
 					generator: {
 						// Keep publicPath relative for host.com/grafana/ deployments
@@ -128,7 +136,7 @@ const config = async (env): Promise<Configuration> => {
 
 		output: {
 			clean: {
-				keep: /(.*?_(amd64|arm(64)?)(.exe)?|go_plugin_build_manifest)/,
+				keep: WEBPACK_CLEAN_KEEP_REGEX,
 			},
 			filename: "[name].js",
 			library: {
@@ -208,7 +216,7 @@ const config = async (env): Promise<Configuration> => {
 	if (isWSL()) {
 		baseConfig.watchOptions = {
 			poll: 3000,
-			ignored: /node_modules/,
+			ignored: WATCH_IGNORED_REGEX,
 		};
 	}
 

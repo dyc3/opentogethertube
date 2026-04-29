@@ -22,6 +22,8 @@ import { conf } from "../../../../server/ott-config.js";
 import type { User } from "../../../models/user.js";
 import { UnloadReason } from "../../../generated.js";
 
+const JSON_CONTENT_TYPE_REGEX = /json/;
+
 expect.extend({
 	toBeRoomNotFound(error) {
 		if (typeof error === "string") {
@@ -140,7 +142,7 @@ describe("Room API", () => {
 				.get("/api/room/test1")
 				.auth(token, { type: "bearer" })
 				.set({ Authorization: "Bearer foobar" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			// TODO: This is currently not type-checked. Ideally, we would be able to type-check the response using a definition from `common`.
@@ -157,7 +159,7 @@ describe("Room API", () => {
 			const resp = await request(app)
 				.get("/api/room/test1")
 				.auth(token, { type: "bearer" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(404);
 			expect(resp.body.success).toEqual(false);
 			expect(resp.body.error).toBeRoomNotFound();
@@ -203,7 +205,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send({ name: "test1", isTemporary: true, visibility: visibility })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(201);
 			expect(resp.body.success).toBe(true);
 			expect(roommanager.rooms[0]).toMatchObject({
@@ -243,7 +245,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send(body)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 			expect(resp.body.success).toEqual(false);
 			expect(resp.body.error).toMatchObject({
@@ -256,7 +258,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send({ name: "testnoowner", isTemporary: false })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(201);
 			expect(resp.body.success).toEqual(true);
 			expect(roommanager.rooms[0]).toMatchObject({
@@ -276,7 +278,7 @@ describe("Room API", () => {
 				.post("/api/room/create")
 				.auth(token, { type: "bearer" })
 				.send({ name: "testowner" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(201);
 			expect(resp.body.success).toEqual(true);
 			expect(_.pick(roommanager.rooms[0], "name", "owner.id", "owner.email")).toMatchObject({
@@ -307,7 +309,7 @@ describe("Room API", () => {
 					.post(path)
 					.auth(token, { type: "bearer" })
 					.send(body)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.expect(403);
 				expect(resp.body.success).toEqual(false);
 				expect(resp.body.error).toMatchObject({
@@ -363,7 +365,7 @@ describe("Room API", () => {
 				.patch("/api/room/foo")
 				.auth(token, { type: "bearer" })
 				.send(body)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 			expect(resp.body.success).toEqual(false);
 			expect(resp.body.error).toMatchObject({
@@ -405,7 +407,7 @@ describe("Room API", () => {
 				.send({
 					autoSkipSegmentCategories: requestAutoSkipSegmentCategories,
 				})
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 			expect(resp.body.success).toEqual(true);
 			const roomResult = await roommanager.getRoom("foo");
@@ -459,7 +461,7 @@ describe("Room API", () => {
 					id: "foo",
 					subtitleUrl: "https://example.com/subtitles.vtt",
 				})
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			expect(resp.body.success).toEqual(true);
@@ -493,7 +495,7 @@ describe("Room API", () => {
 					id: "foo",
 					subtitleUrl: "https://example.com/subtitles.srt",
 				})
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 
 			expect(resp.body.success).toEqual(false);
@@ -513,7 +515,7 @@ describe("Room API", () => {
 				.auth(token, { type: "bearer" })
 				.set({ Authorization: "Bearer foobar" })
 				.send({ service: "direct", id: "foo", subtitleUrl: 123 })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 
 			expect(resp.body.success).toEqual(false);

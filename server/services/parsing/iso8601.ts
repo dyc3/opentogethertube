@@ -2,13 +2,15 @@
  * Parse ISO 8601 duration format into seconds.
  * Examples: PT40M25S
  */
+const ISO_8601_DURATION_REGEX = /P(\d+D)?(?:T(\d+H)?(\d+M)?([\d.]+S)?)?/;
+const NON_NUMERIC_DURATION_CHARS_REGEX = /[^\d.]/;
+
 export function parseIso8601Duration(duration: string): number {
-	const match = /P(\d+D)?(?:T(\d+H)?(\d+M)?([\d.]+S)?)?/
-		.exec(duration)
+	const match = ISO_8601_DURATION_REGEX.exec(duration)
 		?.slice(1)
 		.map(x => {
 			if (x !== null && x !== undefined) {
-				return x.replace(/[^\d.]/, "");
+				return x.replace(NON_NUMERIC_DURATION_CHARS_REGEX, "");
 			}
 		});
 

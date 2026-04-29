@@ -6,6 +6,8 @@ import type { Video } from "ott-common/models/video.js";
 import { getLogger } from "../logger.js";
 
 const log = getLogger("vimeo");
+const VIMEO_VIDEO_PATH_REGEX = /^\/\d+$/;
+const VIMEO_NUMERIC_ID_REGEX = /^\d+$/;
 
 interface VimeoApiVideo {
 	title: string;
@@ -29,7 +31,7 @@ export default class VimeoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
-		return url.host.endsWith("vimeo.com") && /^\/\d+$/.test(url.pathname);
+		return url.host.endsWith("vimeo.com") && VIMEO_VIDEO_PATH_REGEX.test(url.pathname);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -42,7 +44,7 @@ export default class VimeoAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(videoId: string): Promise<Video> {
-		if (!/^\d+$/.test(videoId)) {
+		if (!VIMEO_NUMERIC_ID_REGEX.test(videoId)) {
 			throw new InvalidVideoIdException(this.serviceId, videoId);
 		}
 

@@ -3,6 +3,8 @@ import { PermissionDeniedException } from "../../exceptions.js";
 import { Role } from "../../index.js";
 import permissions, { Grants } from "../../permissions.js";
 
+const SERIALIZED_GRANTS_REGEX = /^\[.*\]$/;
+
 describe("Permission System", () => {
 	it("should parse exact permissions list into correct grant mask", () => {
 		const grantMask = permissions.parseIntoGrantMask([
@@ -124,7 +126,7 @@ describe("Permission System", () => {
 		it("should stringify Grants", () => {
 			const grants = new permissions.Grants();
 			const str = JSON.stringify(grants);
-			expect(str).toMatch(/^\[.*\]$/);
+			expect(str).toMatch(SERIALIZED_GRANTS_REGEX);
 			expect(str.length).toBeGreaterThan(2);
 			expect(str).not.toContain("mask");
 		});
