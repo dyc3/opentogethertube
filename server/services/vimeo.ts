@@ -31,7 +31,8 @@ export default class VimeoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
-		return url.host.endsWith("vimeo.com") && VIMEO_VIDEO_PATH_REGEX.test(url.pathname);
+		const isVimeoHost = url.hostname === "vimeo.com" || url.hostname.endsWith(".vimeo.com");
+		return isVimeoHost && VIMEO_VIDEO_PATH_REGEX.test(url.pathname);
 	}
 
 	isCollectionURL(link: string): boolean {
