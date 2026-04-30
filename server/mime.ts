@@ -1,5 +1,9 @@
 /* eslint-disable array-bracket-newline */
 
+const SUPPORTED_VIDEO_MIME_REGEX =
+	/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/;
+const SUPPORTED_AUDIO_MIME_REGEX = /^audio\/(?!x-aiff)(?!x-wav)(?!aac)(?!flac)[a-z0-9-]+$/;
+
 const mimeTypes = {
 	"video/mp4": ["mp4", "mp4v", "mpg4"],
 	"video/x-matroska": ["mkv", "mk3d", "mks"],
@@ -32,10 +36,10 @@ export function isSupportedMimeType(mimeType: string): boolean {
 	if (mimeType === "application/x-mpegURL" || mimeType === "application/dash+xml") {
 		return true;
 	}
-	if (/^video\/(?!x-flv)(?!x-matroska)(?!x-ms-wmv)(?!x-msvideo)[a-z0-9-]+$/.exec(mimeType)) {
+	if (SUPPORTED_VIDEO_MIME_REGEX.exec(mimeType)) {
 		return true;
 	}
-	if (/^audio\/(?!x-aiff)(?!x-wav)(?!aac)(?!flac)[a-z0-9-]+$/.exec(mimeType)) {
+	if (SUPPORTED_AUDIO_MIME_REGEX.exec(mimeType)) {
 		return true;
 	}
 	return false;

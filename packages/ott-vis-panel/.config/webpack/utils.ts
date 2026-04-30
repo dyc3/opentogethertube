@@ -5,6 +5,8 @@ import path from "node:path";
 import { glob } from "glob";
 import { SOURCE_DIR } from "./constants";
 
+const SOURCE_DIR_PREFIX_REGEX = /src\/?/i;
+
 export function isWSL() {
 	if (process.platform !== "linux") {
 		return false;
@@ -50,7 +52,9 @@ export async function getEntries(): Promise<Record<string, string>> {
 	return plugins.reduce((result, modules) => {
 		return modules.reduce((result, module) => {
 			const pluginPath = path.dirname(module);
-			const pluginName = path.relative(process.cwd(), pluginPath).replace(/src\/?/i, "");
+			const pluginName = path
+				.relative(process.cwd(), pluginPath)
+				.replace(SOURCE_DIR_PREFIX_REGEX, "");
 			const entryName = pluginName === "" ? "module" : `${pluginName}/module`;
 
 			result[entryName] = module;

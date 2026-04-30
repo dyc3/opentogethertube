@@ -9,6 +9,7 @@ import { getMimeType, isSupportedMimeType } from "../mime.js";
 import { ServiceAdapter } from "../serviceadapter.js";
 
 const log = getLogger("hls");
+const HLS_URL_REGEX = /\/*\.(m3u8?)$/;
 
 export default class HlsVideoAdapter extends ServiceAdapter {
 	get serviceId(): "hls" {
@@ -29,7 +30,7 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = URL.parse(link);
-		return /\/*\.(m3u8?)$/.test((url.path ?? "/").split("?")[0]);
+		return HLS_URL_REGEX.test((url.path ?? "/").split("?")[0]);
 	}
 
 	async fetchVideoInfo(link: string): Promise<Video> {

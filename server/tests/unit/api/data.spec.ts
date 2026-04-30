@@ -4,6 +4,8 @@ import { main } from "../../../app.js";
 import InfoExtract, { AddPreview } from "../../../infoextractor.js";
 import tokens from "../../../auth/tokens.js";
 
+const JSON_CONTENT_TYPE_REGEX = /json/;
+
 describe("Data API", () => {
 	let app;
 	let getSessionInfoSpy;
@@ -33,7 +35,7 @@ describe("Data API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect(200)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body.success).toBe(true);
 				expect(resp.body.result).toHaveLength(0);
@@ -50,7 +52,7 @@ describe("Data API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -68,7 +70,7 @@ describe("Data API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -85,7 +87,7 @@ describe("Data API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "test search query" })
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toBeDefined();
@@ -105,7 +107,7 @@ describe("Data API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.query({ input: "https://example.com/video", adapter: "direct" })
 			.expect(200)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body.success).toBe(true);
 				expect(resolveQuerySpy).toHaveBeenCalledWith(

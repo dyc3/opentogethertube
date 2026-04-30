@@ -42,6 +42,12 @@ import { fromZodError } from "zod-validation-error";
 
 const log = getLogger("usermanager");
 export const router = express.Router();
+const PASSWORD_HAS_LOWERCASE_REGEX = /^(?=.*[a-z])/;
+const PASSWORD_HAS_UPPERCASE_REGEX = /^(?=.*[A-Z])/;
+const PASSWORD_HAS_NUMBER_REGEX = /^(?=.*[0-9])/;
+const PASSWORD_HAS_SYMBOL_REGEX = /^(?=.*[!@#$%^&*])/;
+const PASSWORD_MIN_LENGTH_REGEX = /^(?=.{8,})/;
+const TRAILING_NULL_BYTES_REGEX = /\0+$/;
 
 export type UserManagerEvents = "userModified" | "login" | "logout";
 export type UserManagerEventHandlers<E> = E extends "userModified"
@@ -435,12 +441,15 @@ export function isPasswordValid(password: string): boolean {
 		return true;
 	}
 	const conditions = [
-		Number(!!/^(?=.*[a-z])/.exec(password)),
-		Number(!!/^(?=.*[A-Z])/.exec(password)),
-		Number(!!/^(?=.*[0-9])/.exec(password)),
-		Number(!!/^(?=.*[!@#$%^&*])/.exec(password)),
+		Number(!!PASSWORD_HAS_LOWERCASE_REGEX.exec(password)),
+		Number(!!PASSWORD_HAS_UPPERCASE_REGEX.exec(password)),
+		Number(!!PASSWORD_HAS_NUMBER_REGEX.exec(password)),
+		Number(!!PASSWORD_HAS_SYMBOL_REGEX.exec(password)),
 	];
-	return conditions.reduce((acc, curr) => acc + curr) >= 2 && !!/^(?=.{8,})/.exec(password);
+	return (
+		conditions.reduce((acc, curr) => acc + curr) >= 2 &&
+		!!PASSWORD_MIN_LENGTH_REGEX.exec(password)
+	);
 }
 
 /**
@@ -470,7 +479,9 @@ async function authCallback(emailOrUser: string, password: string, done) {
 		if (result) {
 			done(null, user);
 		} else {
-			if (user.hash.toString().replace(/\0+$/, "").indexOf("$argon2$") > -1) {
+			if (
+				user.hash.toString().replace(TRAILING_NULL_BYTES_REGEX, "").indexOf("$argon2$") > -1
+			) {
 				log.debug(`User ${user.username} (${user.id}): Hash is invalid`);
 				done(new Error("Email or password is incorrect."), false);
 			} else {
@@ -496,7 +507,7 @@ async function verifyUserPassword(user: User, password: string): Promise<boolean
 	// argon2.verify expects a completely valid base64-encoded hash string.
 	// Since our stored hashes are binary data that may contain trailing null bytes added
 	// by "Buffer", we must trim them before verification.
-	const hash = user.hash.toString().replace(/\0+$/, "");
+	const hash = user.hash.toString().replace(TRAILING_NULL_BYTES_REGEX, "");
 	const result = await argon2.verify(hash, Buffer.concat([user.salt, Buffer.from(password)]));
 
 	if (result && argon2.needsRehash(hash)) {

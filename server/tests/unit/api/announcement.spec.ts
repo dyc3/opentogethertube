@@ -18,6 +18,7 @@ import tokens, { type SessionInfo } from "../../../auth/tokens.js";
 import type { AuthToken } from "ott-common/models/types.js";
 
 const TEST_API_KEY = "TESTAPIKEY";
+const JSON_CONTENT_TYPE_REGEX = /json/;
 
 describe("Announcements API", () => {
 	let app;
@@ -56,7 +57,7 @@ describe("Announcements API", () => {
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect(200)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: true,
@@ -74,7 +75,7 @@ describe("Announcements API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.send({ text: "test announcement" })
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
@@ -93,7 +94,7 @@ describe("Announcements API", () => {
 			.set("apikey", "wrong key")
 			.send({ text: "test announcement" })
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,
@@ -112,7 +113,7 @@ describe("Announcements API", () => {
 			.set({ Authorization: "Bearer foobar" })
 			.set("apikey", TEST_API_KEY)
 			.expect(400)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body).toMatchObject({
 					success: false,
@@ -137,7 +138,7 @@ describe("Announcements API", () => {
 			.set("apikey", TEST_API_KEY)
 			.send({ text: "test announcement" })
 			.expect(500)
-			.expect("Content-Type", /json/)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 			.then(resp => {
 				expect(resp.body).toEqual({
 					success: false,

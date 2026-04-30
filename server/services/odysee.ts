@@ -38,6 +38,7 @@ const httpc = axios.create({
 });
 
 let guestAuthToken: string | undefined;
+const TRAILING_DOT_REGEX = /\.$/;
 
 async function fetchGuestAuthToken(): Promise<string | undefined> {
 	try {
@@ -613,7 +614,7 @@ async function verifyStream(
 }
 
 function isHostUnderDomain(host: string, domain: string): boolean {
-	const h = host.toLowerCase().replace(/\.$/, ""); // tolerate a trailing dot
+	const h = host.toLowerCase().replace(TRAILING_DOT_REGEX, ""); // tolerate a trailing dot
 	const d = domain.toLowerCase();
 	return h === d || h.endsWith(`.${d}`);
 }

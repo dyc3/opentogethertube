@@ -4,6 +4,8 @@ import { conf } from "../ott-config.js";
 import type { Video, VideoMetadata, VideoService } from "ott-common/models/video.js";
 import { InvalidVideoIdException } from "../exceptions.js";
 
+const PEERTUBE_WATCH_PATH_REGEX = /^\/w\/\w+/;
+
 interface PeertubeApiVideo {
 	uuid: string;
 	shortUUID: string;
@@ -47,7 +49,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 
 	canHandleURL(link: string): boolean {
 		const url = new URL(link);
-		return this.allowedHosts.includes(url.host) && /^\/w\/\w+/.test(url.pathname);
+		return this.allowedHosts.includes(url.host) && PEERTUBE_WATCH_PATH_REGEX.test(url.pathname);
 	}
 
 	isCollectionURL(link: string): boolean {

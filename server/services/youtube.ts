@@ -24,6 +24,13 @@ const knownPrivateLists = ["LL", "WL"];
 
 const ADD_PREVIEW_PLAYLIST_RESULTS_COUNT = conf.get("add_preview.playlist_results_count");
 const ADD_PREVIEW_SEARCH_RESULTS_COUNT = conf.get("add_preview.search.results_count");
+const YOUTUBE_VIDEO_ID_REGEX = /^[A-Za-z0-9_-]+$/;
+const YOUTUBE_LENGTH_FALLBACK_REGEXES = [
+	/length_seconds":"\d+/,
+	/lengthSeconds\\":\\"\d+/,
+	/lengthSeconds":"\d+/,
+];
+const YOUTUBE_EXTERNAL_ID_REGEX = /externalId":"UC[A-Za-z0-9_-]{22}/;
 
 interface YoutubeChannelData {
 	channel?: string;
@@ -453,7 +460,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		}
 
 		for (const id of ids) {
-			if (!/^[A-Za-z0-9_-]+$/.exec(id)) {
+			if (!YOUTUBE_VIDEO_ID_REGEX.exec(id)) {
 				throw new InvalidVideoIdException(this.serviceId, id);
 			}
 		}
@@ -649,7 +656,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 	async getVideoLengthFallback(id: string): Promise<number | undefined> {
 		const url = `https://youtube.com/watch?v=${id}`;
 		const res = await this.fallbackApi.get(url);
-		const regexs = [/length_seconds":"\d+/, /lengthSeconds\\":\\"\d+/, /lengthSeconds":"\d+/];
+		const regexs = YOUTUBE_LENGTH_FALLBACK_REGEXES;
 		for (let r = 0; r < regexs.length; r++) {
 			const matches = res.data.match(regexs[r]);
 			if (matches === null) {
@@ -730,8 +737,7 @@ export default class YouTubeAdapter extends ServiceAdapter {
 		} else {
 			return undefined;
 		}
-		const regex = /externalId":"UC[A-Za-z0-9_-]{22}/;
-		const matches = res.data.match(regex);
+		const matches = res.data.match(YOUTUBE_EXTERNAL_ID_REGEX);
 		if (matches === null) {
 			return undefined;
 		}

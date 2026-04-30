@@ -16,6 +16,8 @@ import { conf } from "../../../ott-config.js";
 import type { User } from "../../../models/user.js";
 import type { AuthToken } from "ott-common/models/types.js";
 
+const JSON_CONTENT_TYPE_REGEX = /json/;
+
 describe("User API", () => {
 	let token;
 	let app;
@@ -60,7 +62,7 @@ describe("User API", () => {
 			const resp = await request(app)
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 			expect(resp.body.username).toBeDefined();
 			expect(resp.body.loggedIn).toBe(false);
@@ -77,7 +79,7 @@ describe("User API", () => {
 				.get("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.username).toBeDefined();
@@ -113,7 +115,7 @@ describe("User API", () => {
 				.post("/api/user")
 				.set("Authorization", `Bearer ${token}`)
 				.send({ username: "new username" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			expect(resp.body.success).toBe(true);
@@ -142,7 +144,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ username: "new username" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				// .expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
@@ -172,7 +174,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ username: "test user" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -188,7 +190,7 @@ describe("User API", () => {
 			const resp = await request(app)
 				.get("/api/user/account")
 				.set("Authorization", `Bearer ${token}`)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(401);
 
 			expect(resp.body.success).toBe(false);
@@ -205,7 +207,7 @@ describe("User API", () => {
 				.get("/api/user/account")
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			expect(resp.body).toEqual({
@@ -231,7 +233,7 @@ describe("User API", () => {
 				.get("/api/user/account")
 				.set("Authorization", `Bearer ${socialToken}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			expect(resp.body).toEqual({
@@ -250,7 +252,7 @@ describe("User API", () => {
 				.patch("/api/user/account")
 				.set("Authorization", `Bearer ${token}`)
 				.send({ email: "new@localhost" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(401);
 
 			expect(resp.body.success).toBe(false);
@@ -270,7 +272,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ email: "forced-updated@example.com" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
@@ -292,7 +294,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ email: "forced-changed@example.com" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			await forcedUser.reload();
@@ -313,7 +315,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ email: "test@example.com" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -333,7 +335,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ email: "not-an-email" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -359,7 +361,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${socialToken}`)
 				.set("Cookie", cookies)
 				.send({ newPassword: "Password123" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
@@ -402,7 +404,7 @@ describe("User API", () => {
 					email: "social-added@example.com",
 					newPassword: "Password123",
 				})
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
 
 			await socialUser.reload();
@@ -436,7 +438,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ newPassword: "Password123" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -456,7 +458,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ newPassword: "Password123", currentPassword: "wrong-password" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -476,7 +478,7 @@ describe("User API", () => {
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
 				.send({ newPassword: "Password123", currentPassword: "test1234" })
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
@@ -507,7 +509,7 @@ describe("User API", () => {
 			const resp = await request(app)
 				.delete("/api/user/account/discord")
 				.set("Authorization", `Bearer ${token}`)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(401);
 
 			expect(resp.body.success).toBe(false);
@@ -524,7 +526,7 @@ describe("User API", () => {
 				.delete("/api/user/account/discord")
 				.set("Authorization", `Bearer ${token}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -546,7 +548,7 @@ describe("User API", () => {
 				.delete("/api/user/account/discord")
 				.set("Authorization", `Bearer ${socialToken}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400)
 				.then(resp => {
 					expect(resp.body.success).toBe(false);
@@ -570,7 +572,7 @@ describe("User API", () => {
 				.delete("/api/user/account/discord")
 				.set("Authorization", `Bearer ${socialToken}`)
 				.set("Cookie", cookies)
-				.expect("Content-Type", /json/)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200)
 				.then(resp => {
 					expect(resp.body.success).toBe(true);
@@ -673,7 +675,7 @@ describe("User API", () => {
 				const resp = await request(app)
 					.post("/api/user/logout")
 					.set("Authorization", `Bearer ${token}`)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.expect(200);
 
 				expect(resp.body.success).toBe(true);
@@ -683,7 +685,8 @@ describe("User API", () => {
 				await request(app)
 					.post("/api/user/logout")
 					.set("Authorization", `Bearer ${token}`)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+
 					.expect(400)
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
@@ -728,7 +731,7 @@ describe("User API", () => {
 						password: "test1234",
 					})
 					.expect(201)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.then(resp => {
 						expect(resp.body).toEqual({
 							success: true,
@@ -747,7 +750,7 @@ describe("User API", () => {
 					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "", username: "registered", password: "test1234" })
 					.expect(201)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.then(resp => {
 						expect(resp.body.success).toBe(true);
 					});
@@ -757,7 +760,7 @@ describe("User API", () => {
 					.set("Authorization", `Bearer ${token}`)
 					.send({ email: "", username: "registered2", password: "test1234" })
 					.expect(201)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.then(resp => {
 						expect(resp.body.success).toBe(true);
 					});
@@ -806,7 +809,7 @@ describe("User API", () => {
 					.set("Authorization", `Bearer ${token}`)
 					.send(body)
 					.expect(respCode)
-					.expect("Content-Type", /json/);
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX);
 				expect(resp.body.success).toBe(false);
 				expect(resp.body.error).toMatchObject(error);
 				expect(onUserLogInSpy).not.toBeCalled();
@@ -824,7 +827,7 @@ describe("User API", () => {
 						password: "test1234",
 					})
 					.expect(403)
-					.expect("Content-Type", /json/)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.then(resp => {
 						expect(resp.body.success).toBe(false);
 						expect(resp.body.error).toMatchObject({

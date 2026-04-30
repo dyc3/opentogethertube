@@ -7,6 +7,10 @@ import { ServiceAdapter } from "../serviceadapter.js";
 
 // biome-ignore lint/correctness/noUnusedVariables: biome migration
 const log = getLogger("tubi");
+const TUBI_URL_REGEX =
+	/https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/;
+const NUMERIC_ID_REGEX = /^\d+$/;
+const TUBI_SERIES_DATA_REGEX = /window\.__data\s*=\s*({.+?});\s*<\/script>/;
 
 interface TubiVideoResponse {
 	id: string;
@@ -60,9 +64,7 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	canHandleURL(link: string): boolean {
-		return /https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/.test(
-			link
-		);
+		return TUBI_URL_REGEX.test(link);
 	}
 
 	isCollectionURL(link: string): boolean {
@@ -94,7 +96,7 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		if (!/^\d+$/.test(id)) {
+		if (!NUMERIC_ID_REGEX.test(id)) {
 			throw new Error(`Invalid Tubi video id: ${id}`);
 		}
 		const resp = await this.api.get(`https://tubitv.com/oz/videos/${id}/content`);
@@ -103,11 +105,11 @@ export default class TubiAdapter extends ServiceAdapter {
 	}
 
 	async fetchSeriesInfo(id: string): Promise<Video[]> {
-		if (!/^\d+$/.test(id)) {
+		if (!NUMERIC_ID_REGEX.test(id)) {
 			throw new Error(`Invalid Tubi series id: ${id}`);
 		}
 		const resp = await this.api.get(`https://tubitv.com/series/${id}`);
-		const match = /window\.__data\s*=\s*({.+?});\s*<\/script>/.exec(resp.data)?.[1];
+		const match = TUBI_SERIES_DATA_REGEX.exec(resp.data)?.[1];
 		if (!match) {
 			throw new Error(`Unable to get series info from ${id}`);
 		}

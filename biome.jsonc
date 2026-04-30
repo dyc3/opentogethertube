@@ -81,6 +81,7 @@
 				"useVueValidVIf": "error",
 				"noVueOptionsApi": "error"
 			},
+			"performance": { "useTopLevelRegex": "error" },
 			"security": { "noGlobalEval": "error" },
 			"style": {
 				"noCommonJs": "warn",
