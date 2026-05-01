@@ -16,10 +16,7 @@
 			@error="onError"
 		>
 			<track
-				v-for="
-				// biome-ignore lint/correctness/noUnsafeOptionalChaining: biome migration
-				track in manifest?.textTracks ?? []
-				"
+				v-for="track in manifest?.textTracks ?? []"
 				:key="track.url"
 				kind="subtitles"
 				:src="track.url"

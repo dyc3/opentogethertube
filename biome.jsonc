@@ -74,7 +74,8 @@
 				"useVueValidVElse": "error",
 				"useVueValidVElseIf": "error",
 				"useVueValidVIf": "error",
-				"noVueOptionsApi": "error"
+				"noVueOptionsApi": "error",
+				"useExhaustiveSwitchCases": "error"
 			},
 			"performance": { "useTopLevelRegex": "error" },
 			"security": { "noGlobalEval": "error" },
@@ -114,7 +115,8 @@
 				"noUselessRegexBackrefs": "error",
 				"noVar": "error",
 				"noWith": "error",
-				"useGetterReturn": "error"
+				"useGetterReturn": "error",
+				"useAdjacentOverloadSignatures": "error"
 			}
 		},
 		"domains": { "vue": "all" }
@@ -162,15 +164,6 @@
 			}
 		},
 		{
-			"includes": ["*.ts", "*.tsx"],
-			"linter": {
-				"rules": {
-					"nursery": { "useExhaustiveSwitchCases": "error" },
-					"suspicious": { "useAdjacentOverloadSignatures": "error" }
-				}
-			}
-		},
-		{
 			"includes": [
 				"tests/e2e/**",
 				"client/tests/**",
@@ -206,26 +199,6 @@
 			"javascript": { "formatter": { "enabled":false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
 		},
-		{
-			"includes": ["*.js"],
-			"linter": {
-				"rules": {
-					"correctness": { "noUnusedVariables": "off" },
-					"nursery": { "useExplicitType": "off" },
-					"style": { "noCommonJs": "off" }
-				}
-			}
-		},
-		{
-			"includes": ["*.ts", "*.tsx"],
-			"linter": {
-				"rules": {
-					"correctness": { "noUnusedVariables": "off" },
-					"nursery": { "useExhaustiveSwitchCases": "error" },
-					"suspicious": { "useAdjacentOverloadSignatures": "error" }
-				}
-			}
-		}
 	],
 	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }
 }
