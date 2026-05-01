@@ -32,12 +32,12 @@ const addPreview: RequestHandler<
 		const result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
 			conf.get("add_preview.search.provider"),
-			req.query.adapter
+			req.query.adapter,
 		);
 
 		res.setHeader(
 			"Cache-Control",
-			`public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
+			`public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`,
 		);
 
 		res.json({

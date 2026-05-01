@@ -30,7 +30,7 @@ export default defineConfig({
 			styles: {
 				configFile: path.resolve(
 					searchForWorkspaceRoot(process.cwd()),
-					"client/src/vuetify-settings.scss"
+					"client/src/vuetify-settings.scss",
 				),
 			},
 		}),

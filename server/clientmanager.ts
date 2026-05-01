@@ -138,7 +138,7 @@ async function onClientAuth(client: Client, token: AuthToken, session: SessionIn
 	// full sync
 	const syncMsg = Object.assign(
 		{ action: "sync" },
-		room.syncableState()
+		room.syncableState(),
 	) as unknown as ServerMessageSync;
 	client.send(syncMsg);
 
@@ -208,7 +208,7 @@ async function onClientMessage(client: Client, msg: ClientMessage) {
 		}
 	} catch (err) {
 		log.error(
-			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}): ${err}`
+			`Failed to process client (id=${client.id}, room=${client.room}) message (action=${msg.action}): ${err}`,
 		);
 		if (err instanceof OttException) {
 			if (err instanceof MissingToken) {
@@ -249,7 +249,7 @@ async function onClientDisconnect(client: Client) {
 	const result = await roommanager.getRoom(client.room, { mustAlreadyBeLoaded: true });
 	if (!result.ok) {
 		log.error(
-			`Failed to get room ${client.room} when processing disconnect: ${result.value.name}: ${result.value.message}`
+			`Failed to get room ${client.room} when processing disconnect: ${result.value.name}: ${result.value.message}`,
 		);
 		return;
 	}
@@ -260,7 +260,7 @@ async function onClientDisconnect(client: Client) {
 			{
 				type: RoomRequestType.LeaveRequest,
 			},
-			client.id
+			client.id,
 		);
 	} catch (err) {
 		log.error(`Failed to process leave request for client ${client.id}: ${err}`);
@@ -308,7 +308,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 	 */
 	type EnumHandler<T extends { type: string; payload: T["payload"] }> = {
 		[P in T["type"]]: (
-			instruction: Extract<T, { type: P; payload: T["payload"] }>
+			instruction: Extract<T, { type: P; payload: T["payload"] }>,
 		) => Promise<void>;
 	};
 
@@ -340,7 +340,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				client.leave();
 			} else {
 				log.error(
-					`Balancer tried to make client leave that does not exist or is not a balancer client`
+					`Balancer tried to make client leave that does not exist or is not a balancer client`,
 				);
 			}
 		},
@@ -351,7 +351,7 @@ async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 				client.receiveMessage(msg.payload as ClientMessage);
 			} else {
 				log.error(
-					`Balancer sent message for client that does not exist or is not a balancer client`
+					`Balancer sent message for client that does not exist or is not a balancer client`,
 				);
 			}
 		},

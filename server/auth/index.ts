@@ -25,7 +25,7 @@ function createSession(): SessionInfo {
 export async function authTokenMiddleware(
 	req: express.Request,
 	res: express.Response,
-	next: express.NextFunction
+	next: express.NextFunction,
 ): Promise<void> {
 	const apikey = req.get("apikey");
 	if (apikey) {
@@ -137,7 +137,7 @@ router.get(
 		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
 		next();
 	},
-	passport.authenticate("discord", { keepSessionInfo: true })
+	passport.authenticate("discord", { keepSessionInfo: true }),
 );
 router.get(
 	"/discord/callback",
@@ -176,7 +176,7 @@ router.get(
 		log.debug(`redirecting to ${redirect}`);
 		res.redirect(redirect); // Successful auth
 		delete (req.session as MySession).postLoginRedirect;
-	}
+	},
 );
 
 export default {

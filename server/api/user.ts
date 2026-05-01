@@ -33,7 +33,7 @@ function unauthorized(res: express.Response) {
 // GET /api/user/account
 const getAccount: RequestHandler<never, OttResponseBody<OttApiResponseAccount>> = async (
 	req,
-	res
+	res,
 ) => {
 	if (!req.user) {
 		unauthorized(res);
@@ -112,7 +112,7 @@ const patchAccount: RequestHandler<
 
 			const isCurrentPasswordValid = await usermanager.verifyUserPassword(
 				req.user,
-				currentPassword
+				currentPassword,
 			);
 			if (!isCurrentPasswordValid) {
 				res.status(400).json({
@@ -192,7 +192,7 @@ const deleteDiscordLink: RequestHandler<never, OttResponseBody> = async (req, re
 // Only rooms from the database are returned. Temporary rooms and live fields are omitted.
 const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[] }>> = async (
 	req,
-	res
+	res,
 ) => {
 	if (!req.user) {
 		unauthorized(res);

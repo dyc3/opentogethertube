@@ -64,7 +64,7 @@ export default function (data) {
 			() => {
 				socket.close(1000);
 			},
-			30000 * Math.random() + 50000
+			30000 * Math.random() + 50000,
 		);
 
 		/** Perform a random action. That would make sense for the current room state. */

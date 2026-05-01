@@ -73,12 +73,12 @@ export const createModel = (sequelize: Sequelize) => {
 				ensureCredentials() {
 					if ((!this.username || !this.hash || !this.salt) && !this.discordId) {
 						throw new Error(
-							"Incomplete login credentials. Requires social login or username/password."
+							"Incomplete login credentials. Requires social login or username/password.",
 						);
 					}
 				},
 			},
-		}
+		},
 	);
 	// // eslint-disable-next-line no-unused-vars
 	// User.associate = function(models) {

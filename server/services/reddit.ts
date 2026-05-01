@@ -114,7 +114,7 @@ export default class RedditAdapter extends ServiceAdapter {
 	}
 
 	async fetchRedditUrl(
-		link: string
+		link: string,
 	): Promise<RedditListing<RedditListableThing>[] | RedditListing<RedditListableThing>> {
 		const resp = await this.api.get(link);
 		if (Array.isArray(resp.data)) {

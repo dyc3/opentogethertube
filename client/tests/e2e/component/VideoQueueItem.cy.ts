@@ -238,7 +238,7 @@ describe("<VideoQueueItem />", () => {
 
 		cy.wait("@addToQueueWithSubtitle").then(interception => {
 			expect(interception.request.body).to.deep.equal(
-				_.pick(video, ["service", "id", "subtitleUrl"])
+				_.pick(video, ["service", "id", "subtitleUrl"]),
 			);
 		});
 	});

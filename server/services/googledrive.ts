@@ -39,7 +39,7 @@ interface GoogleDriveErrorResponse {
 }
 
 function isGoogleDriveApiError(
-	response: AxiosResponse<any> | undefined
+	response: AxiosResponse<any> | undefined,
 ): response is AxiosResponse<GoogleDriveErrorResponse> {
 	return !!response && "error" in response.data;
 }
@@ -116,7 +116,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 				log.error(
 					`Failed to get video metadata: ${
 						err.response.data.error.message
-					} ${JSON.stringify(err.response.data.error.errors)}`
+					} ${JSON.stringify(err.response.data.error.errors)}`,
 				);
 			} else if (err instanceof Error) {
 				log.error(`Failed to get video metadata: ${err.message} ${err.stack}`);
@@ -146,7 +146,7 @@ export default class GoogleDriveAdapter extends ServiceAdapter {
 					log.error(
 						`Failed to get google drive folder: ${
 							err.response.data.error.message
-						} ${JSON.stringify(err.response.data.error.errors)}`
+						} ${JSON.stringify(err.response.data.error.errors)}`,
 					);
 				}
 			} else if (err instanceof Error) {

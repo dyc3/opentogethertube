@@ -9,7 +9,7 @@ function clampAudioBoost(boost: number): number {
 
 export function useAudioContext(
 	mediaElement: Ref<HTMLMediaElement | undefined>,
-	createContext: () => AudioContext = () => new AudioContext()
+	createContext: () => AudioContext = () => new AudioContext(),
 ) {
 	const context = shallowRef<AudioContext>();
 	const source = shallowRef<MediaElementAudioSourceNode>();
@@ -106,11 +106,11 @@ export function useGain(context: ShallowRef<AudioContext | undefined>) {
 
 export function useMediaAudioBoost(
 	mediaElement: Ref<HTMLMediaElement | undefined>,
-	createContext?: () => AudioContext
+	createContext?: () => AudioContext,
 ) {
 	const { context, source, connectSource, resetFailedSetup } = useAudioContext(
 		mediaElement,
-		createContext
+		createContext,
 	);
 	const { gain, ensureGain } = useGain(context);
 	const isConnected = ref(false);

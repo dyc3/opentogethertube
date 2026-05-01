@@ -43,7 +43,7 @@ describe("<PermissionsEditor />", () => {
 
 		cy.getPermissionCheckbox("playback.play-pause", Role.UnregisteredUser).click();
 		cy.getPermissionCheckbox("playback.play-pause", Role.UnregisteredUser).should(
-			"not.be.checked"
+			"not.be.checked",
 		);
 		cy.getPermissionCheckbox("playback.play-pause", Role.RegisteredUser).should("be.checked");
 

@@ -19,7 +19,7 @@ export function useD3Zoom(svgRef: React.MutableRefObject<SVGSVGElement | null>) 
 
 export function useD3AutoZoom(
 	svgRef: React.MutableRefObject<SVGSVGElement | null>,
-	initialTransform = d3.zoomIdentity
+	initialTransform = d3.zoomIdentity,
 ) {
 	const [enableAutoZoom, setEnableAutoZoom] = useState(true);
 	const [transform, setTransform] = useState<d3.ZoomTransform>(initialTransform);
@@ -70,7 +70,7 @@ export function useD3AutoZoom(
 export function calcZoomTransform(
 	bbox: BoundingBox,
 	width: number,
-	height: number
+	height: number,
 ): d3.ZoomTransform {
 	const center = bboxCenter(bbox);
 	const size = bboxSize(bbox);
@@ -83,7 +83,7 @@ export function calcZoomTransform(
 
 export function useActivityAnimations(
 	svgRef: React.MutableRefObject<SVGSVGElement | null>,
-	getRadius: (group: string) => number
+	getRadius: (group: string) => number,
 ) {
 	const eventBus = useEventBus();
 	useEffect(() => {
@@ -98,7 +98,7 @@ export function useActivityAnimations(
 
 		function animateNode(
 			node: d3.Selection<any, d3.HierarchyNode<TreeNode>, any, any>,
-			color: string
+			color: string,
 		) {
 			if (node.empty()) {
 				return;
@@ -119,13 +119,13 @@ export function useActivityAnimations(
 				.attrTween("stroke-width", () => t => d3.interpolateNumber(4, 1.5)(t).toString())
 				.attrTween(
 					"r",
-					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString()
+					() => t => d3.interpolateNumber(newRadius, endRadius)(t).toString(),
 				);
 		}
 
 		function animateLinks(
 			links: d3.Selection<any, d3.HierarchyLink<TreeNode>, any, any>,
-			color: string
+			color: string,
 		) {
 			links
 				.transition("highlight")
@@ -133,12 +133,12 @@ export function useActivityAnimations(
 				.ease(d3.easeCubicOut)
 				.attrTween("stroke", function () {
 					const link = d3.select<d3.BaseType, d3.HierarchyLink<TreeNode>>(
-						this
+						this,
 					) as d3.Selection<any, d3.HierarchyLink<TreeNode>, any, unknown>;
 					const colorCurrent = d3.color(link.attr("stroke"));
 					const newColor = d3.interpolateRgb(
 						colorCurrent?.formatRgb() ?? "#fff",
-						color
+						color,
 					)(0.5);
 
 					return d3.interpolateRgb(newColor, "#fff");
@@ -166,7 +166,7 @@ export function useActivityAnimations(
 			}
 
 			const links = svg.selectAll<SVGSVGElement, d3.HierarchyLink<TreeNode>>(
-				`[data-nodeid-target="${event.node_id}"]`
+				`[data-nodeid-target="${event.node_id}"]`,
 			);
 			animateLinks(links, color);
 
@@ -175,7 +175,7 @@ export function useActivityAnimations(
 				animateNode(room, color);
 
 				const roomLinks = svg.selectAll<SVGSVGElement, d3.HierarchyLink<TreeNode>>(
-					`[data-nodeid-target="${event.room}"]`
+					`[data-nodeid-target="${event.room}"]`,
 				);
 				animateLinks(roomLinks, color);
 			}

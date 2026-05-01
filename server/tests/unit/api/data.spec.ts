@@ -113,7 +113,7 @@ describe("Data API", () => {
 				expect(resolveQuerySpy).toHaveBeenCalledWith(
 					"https://example.com/video",
 					expect.any(String),
-					"direct"
+					"direct",
 				);
 			});
 

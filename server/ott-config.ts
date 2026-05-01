@@ -545,7 +545,7 @@ export function validateConfig(): Result<void, Error> {
 
 	if (conf.get("session_secret").length < 80) {
 		log.error(
-			"session_secret must be at least 80 characters long. Use a password generator to generate a secure alphanumeric secret."
+			"session_secret must be at least 80 characters long. Use a password generator to generate a secure alphanumeric secret.",
 		);
 		log.error("This can also be set with the SESSION_SECRET environment variable.");
 		return err(new Error("Invalid configuration."));

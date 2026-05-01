@@ -216,7 +216,7 @@ describe("OdyseeAdapter", () => {
 		ax.__rpcSet("resolve", () => ({}));
 
 		await expect(adapter.fetchVideoInfo("lbry://@c#1/net#1")).rejects.toBeInstanceOf(
-			OdyseeUnavailableVideo
+			OdyseeUnavailableVideo,
 		);
 	});
 
@@ -268,7 +268,7 @@ describe("OdyseeAdapter", () => {
 		const msg = (err as any).userMessage ?? (err as any).message ?? "";
 		expect(typeof msg).toBe("string");
 		expect(
-			ODYSEE_BLOCKED_MESSAGE_REGEX.test(msg) || ODYSEE_UNAVAILABLE_MESSAGE_REGEX.test(msg)
+			ODYSEE_BLOCKED_MESSAGE_REGEX.test(msg) || ODYSEE_UNAVAILABLE_MESSAGE_REGEX.test(msg),
 		).toBe(true);
 	});
 });

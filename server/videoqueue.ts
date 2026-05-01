@@ -116,7 +116,7 @@ export class VideoQueue extends Dirtyable {
 	findIndex(video: VideoId): number {
 		const matchIdx = _.findIndex(
 			this._items,
-			item => item.service === video.service && item.id === video.id
+			item => item.service === video.service && item.id === video.id,
 		);
 		return matchIdx;
 	}
@@ -155,7 +155,7 @@ export class VideoQueue extends Dirtyable {
 	/** Reorder the queue based on the given criteria. Takes the same arguments as lodash `_.orderBy()`. */
 	async orderBy(
 		iteratees: _.Many<_.ListIterator<QueueItem, _.NotVoid>>,
-		orders: string | boolean | readonly (boolean | "asc" | "desc")[] | string[]
+		orders: string | boolean | readonly (boolean | "asc" | "desc")[] | string[],
 	) {
 		await this.lock.protect(() => {
 			const _oldOrder = _.clone(this._items);

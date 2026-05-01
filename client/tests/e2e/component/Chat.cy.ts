@@ -168,7 +168,7 @@ describe("<Chat />", () => {
 								width: "300px",
 							},
 						},
-						[h(Chat)]
+						[h(Chat)],
 					);
 				},
 			});

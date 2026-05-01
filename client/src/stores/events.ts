@@ -29,7 +29,7 @@ export const eventsModule: Module<unknown, unknown> = {
 				duration = 20000;
 			} else if (message.request.type === RoomRequestType.SeekRequest) {
 				text = `${message.user.name} seeked to ${secondsToTimestamp(
-					message.request.value
+					message.request.value,
 				)}`;
 				duration = 20000;
 			} else if (message.request.type === RoomRequestType.JoinRequest) {

@@ -37,7 +37,7 @@ const ENABLE_SEARCH = conf.get("add_preview.search.enabled");
 function mergeVideo(a: Video, b: Video): Video {
 	return Object.assign(
 		a,
-		_.pickBy(b, x => !!x)
+		_.pickBy(b, x => !!x),
 	);
 }
 
@@ -113,7 +113,7 @@ export default {
 	 */
 	async getCachedVideo(
 		service: VideoService,
-		videoId: string
+		videoId: string,
 	): Promise<[Video, (keyof VideoMetadata)[]]> {
 		try {
 			const result = await storage.getVideoInfo(service, videoId);
@@ -161,7 +161,7 @@ export default {
 		await redisClient.setEx(
 			`search:${service}:${query}`,
 			60 * 60 * 24,
-			JSON.stringify(results)
+			JSON.stringify(results),
 		);
 	},
 
@@ -203,7 +203,7 @@ export default {
 			log.warn(
 				`MISSING INFO for ${cachedVideo.service}:${
 					cachedVideo.id
-				}: ${missingInfo.toString()}`
+				}: ${missingInfo.toString()}`,
 			);
 
 			try {
@@ -230,7 +230,7 @@ export default {
 						missingInfo.length < storage.getVideoInfoFields(cachedVideo.service).length
 					) {
 						log.warn(
-							`Returning incomplete cached result for ${cachedVideo.service}:${cachedVideo.id}`
+							`Returning incomplete cached result for ${cachedVideo.service}:${cachedVideo.id}`,
 						);
 						return cachedVideo;
 					} else {
@@ -239,11 +239,11 @@ export default {
 				} else {
 					if (e instanceof Error) {
 						log.error(
-							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}: ${e.message} ${e.stack}`
+							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}: ${e.message} ${e.stack}`,
 						);
 					} else {
 						log.error(
-							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}`
+							`Failed to get video info for ${cachedVideo.service}:${cachedVideo.id}`,
 						);
 					}
 					throw e;
@@ -286,7 +286,7 @@ export default {
 					}
 				});
 				return finalResults;
-			})
+			}),
 		);
 
 		const flattened = results.flat();
@@ -298,7 +298,7 @@ export default {
 			result.filter(video => {
 				const adapter = this.getServiceAdapter(video.service);
 				return adapter.isCacheSafe;
-			})
+			}),
 		);
 		return result;
 	},
@@ -315,7 +315,7 @@ export default {
 	async resolveVideoQuery(
 		query: string,
 		searchService: string,
-		forceAdapter?: string
+		forceAdapter?: string,
 	): Promise<AddPreview> {
 		counterAddPreviewsRequested.inc();
 		counterMethodsInvoked.labels({ method: "resolveVideoQuery" }).inc();
@@ -334,7 +334,7 @@ export default {
 	async resolveVideoQueryImpl(
 		query: string,
 		searchService: string,
-		forceAdapter?: string
+		forceAdapter?: string,
 	): Promise<AddPreview> {
 		let results: Video[] = [];
 		let cacheDuration = 60 * 60;
@@ -409,7 +409,7 @@ export default {
 					highlighted: fetchResults.highlighted
 						? await this.getVideoInfo(
 								fetchResults.highlighted.service,
-								fetchResults.highlighted.id
+								fetchResults.highlighted.id,
 							)
 						: undefined,
 				};

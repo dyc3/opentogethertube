@@ -27,12 +27,12 @@ describe("KeyboardShortcuts", () => {
 		shortcuts.handleKeyDown(
 			new KeyboardEvent("keydown", {
 				code: "KeyA",
-			})
+			}),
 		);
 		shortcuts.handleKeyDown(
 			new KeyboardEvent("keydown", {
 				code: "KeyB",
-			})
+			}),
 		);
 		expect(action).toHaveBeenCalledTimes(2);
 	});
@@ -60,7 +60,7 @@ describe("KeyboardShortcuts", () => {
 			new KeyboardEvent("keydown", {
 				code: "KeyA",
 				ctrlKey: true,
-			})
+			}),
 		);
 		expect(actionBad).toHaveBeenCalledTimes(0);
 		expect(actionGood).toHaveBeenCalledTimes(1);

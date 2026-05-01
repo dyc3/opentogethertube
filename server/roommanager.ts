@@ -58,7 +58,7 @@ export async function shutdown() {
 		updaterInterval = null;
 	}
 	await Promise.all(
-		rooms.map(room => unloadRoom(room.name, UnloadReason.Shutdown, { preserveRedis: true }))
+		rooms.map(room => unloadRoom(room.name, UnloadReason.Shutdown, { preserveRedis: true })),
 	);
 }
 
@@ -128,7 +128,7 @@ export async function createRoom(options: Partial<RoomOptions> & { name: string 
  */
 export async function getRoom(
 	roomName: string,
-	options: { mustAlreadyBeLoaded?: boolean } = {}
+	options: { mustAlreadyBeLoaded?: boolean } = {},
 ): Promise<Result<Room, RoomNotFoundException | RoomAlreadyLoadedException>> {
 	_.defaults(options, {
 		mustAlreadyBeLoaded: false,
@@ -167,7 +167,7 @@ export async function getRoom(
 export async function unloadRoom(
 	room: string | Room,
 	reason: UnloadReason,
-	options: Partial<{ preserveRedis: boolean }> = {}
+	options: Partial<{ preserveRedis: boolean }> = {},
 ): Promise<void> {
 	const opts = _.defaults(options, {
 		preserveRedis: false,

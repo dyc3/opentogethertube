@@ -37,7 +37,7 @@ describe("Tubi TV", () => {
 		for (const file of fs.readdirSync(FIXTURE_DIRECTORY)) {
 			FIXTURES.set(
 				file.split(".")[0],
-				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8")
+				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8"),
 			);
 		}
 
@@ -101,7 +101,7 @@ describe("Tubi TV", () => {
 		});
 
 		it.each(
-			singleVideoLinks
+			singleVideoLinks,
 		)("should resolve single video url: %s", async (url: string, id: string) => {
 			const videos = await adapter.resolveURL(url);
 			expect(apiGetMock).toBeCalledTimes(1);

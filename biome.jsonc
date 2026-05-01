@@ -21,13 +21,8 @@
 	"formatter": {
 		"enabled": false,
 		"formatWithErrors": false,
-		"indentStyle": "tab",
 		"indentWidth": 4,
-		"lineEnding": "lf",
 		"lineWidth": 100,
-		"attributePosition": "auto",
-		"bracketSameLine": false,
-		"bracketSpacing": true,
 		"expand": "auto",
 		"useEditorconfig": true
 	},
@@ -127,15 +122,11 @@
 	"javascript": {
 		"formatter": {
 		  "enabled":true,
-			"jsxQuoteStyle": "double",
 			"quoteProperties": "asNeeded",
-			"trailingCommas": "es5",
+			"trailingCommas": "all",
 			"semicolons": "always",
 			"arrowParentheses": "asNeeded",
 			"bracketSameLine": false,
-			"quoteStyle": "double",
-			"attributePosition": "auto",
-			"bracketSpacing": true
 		},
 		"globals": ["$t"]
 	},
