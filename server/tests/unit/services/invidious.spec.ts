@@ -52,18 +52,18 @@ describe("InvidiousAdapter (unit)", () => {
 			it("accepts allowed hostname even when URL includes a port", () => {
 				// The implementation accepts either exact host or hostname (without port).
 				expect(adapter.canHandleURL(mk("https://inv.nadeko.net:8443/watch?v=abc123"))).toBe(
-					true
+					true,
 				);
 			});
 			it("accepts /watch?v=VIDEOID on allowed host", () => {
 				expect(adapter.canHandleURL(mk("https://inv.nadeko.net/watch?v=abc123"))).toBe(
-					true
+					true,
 				);
 			});
 
 			it("accepts /watch?v=VIDEOID with extra params", () => {
 				expect(
-					adapter.canHandleURL(mk("https://inv.nadeko.net/watch?v=abc123&t=42s&foo=bar"))
+					adapter.canHandleURL(mk("https://inv.nadeko.net/watch?v=abc123&t=42s&foo=bar")),
 				).toBe(true);
 			});
 
@@ -73,7 +73,9 @@ describe("InvidiousAdapter (unit)", () => {
 
 			it("accepts /w/ with >11 length ID", () => {
 				expect(
-					adapter.canHandleURL(mk("https://inv.nadeko.net/w/abcdefghijklmnop_qwerty-XYZ"))
+					adapter.canHandleURL(
+						mk("https://inv.nadeko.net/w/abcdefghijklmnop_qwerty-XYZ"),
+					),
 				).toBe(true);
 			});
 
@@ -109,10 +111,10 @@ describe("InvidiousAdapter (unit)", () => {
 
 			it("throws on missing id", () => {
 				expect(() => adapter.getVideoId(mk("https://inv.nadeko.net/watch"))).toThrow(
-					InvalidVideoIdException
+					InvalidVideoIdException,
 				);
 				expect(() => adapter.getVideoId(mk("https://inv.nadeko.net/w/"))).toThrow(
-					InvalidVideoIdException
+					InvalidVideoIdException,
 				);
 			});
 		});
@@ -222,7 +224,7 @@ hi.m3u8
 
 			await adapter.fetchVideoInfo("inv.nadeko.net:8443:abc");
 			expect(getMock.mock.calls[0][0]).toContain(
-				"https://inv.nadeko.net:8443/api/v1/videos/abc"
+				"https://inv.nadeko.net:8443/api/v1/videos/abc",
 			);
 			expect(parseSpy).toHaveBeenCalled();
 		});
@@ -441,7 +443,7 @@ hi.m3u8
 
 			// Act/Assert
 			await expect(adapter.fetchVideoInfo("inv.nadeko.net:abc")).rejects.toBeInstanceOf(
-				UpstreamInvidiousException
+				UpstreamInvidiousException,
 			);
 		});
 
@@ -465,7 +467,7 @@ hi.m3u8
 
 			// Act/Assert
 			await expect(adapter.fetchVideoInfo("inv.nadeko.net:abc")).rejects.toBeInstanceOf(
-				UpstreamInvidiousException
+				UpstreamInvidiousException,
 			);
 		});
 	});

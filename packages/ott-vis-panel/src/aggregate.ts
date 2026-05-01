@@ -79,7 +79,7 @@ function reduceMonolith(mA: Monolith, mB: Monolith): Monolith {
 export function dedupeItems<T>(
 	items: T[],
 	getKey: (item: T) => string,
-	reduce: (a: T, b: T) => T
+	reduce: (a: T, b: T) => T,
 ): T[] {
 	const itemMap = new Map<string, T>();
 	for (const item of items) {

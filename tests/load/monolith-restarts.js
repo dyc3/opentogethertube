@@ -58,7 +58,7 @@ function doConnection(room, token) {
 			() => {
 				socket.close(1000);
 			},
-			1000 * 60 * 60 * 2
+			1000 * 60 * 60 * 2,
 		);
 		socket.on("close", code => {
 			if (code >= 4000) {

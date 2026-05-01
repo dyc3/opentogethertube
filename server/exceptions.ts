@@ -100,7 +100,7 @@ export class InvalidAddPreviewInputException extends OttException {
 
 	constructor(minLength: number) {
 		super(
-			`Your search query must at least ${minLength} characters, or supply a Youtube video, playlist, or channel link.`
+			`Your search query must at least ${minLength} characters, or supply a Youtube video, playlist, or channel link.`,
 		);
 	}
 }
@@ -124,7 +124,7 @@ export class OutOfQuotaException extends OttException {
 	constructor(service: string) {
 		if (service === "youtube") {
 			super(
-				`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`
+				`We don't have enough Youtube API quota to complete the request. We currently have a limit of 50,000 quota per day.`,
 			);
 		} else if (service === "googledrive") {
 			super(`We don't have enough Google Drive API quota to complete the request.`);
@@ -175,7 +175,7 @@ export class LocalFileException extends OttException {
 
 	constructor() {
 		super(
-			`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`
+			`The video URL provided references a local file. It is not possible to play videos on your computer, nor files located on the server. Videos must be hosted somewhere all users in the room can access.`,
 		);
 	}
 }
@@ -186,7 +186,7 @@ export class MissingMetadataException extends OttException {
 	constructor(message?: string) {
 		super(
 			message ??
-				`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`
+				`The video provided is missing metadata required to let playback work correctly (probably length). For best results, reencode the video as an mp4.`,
 		);
 	}
 }
@@ -274,7 +274,7 @@ export class ClientNotFoundInRoomException extends OttException {
 
 	constructor(roomName: string) {
 		super(
-			`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`
+			`The server was unable to find a client in the room "${roomName}" associated with the session. This might mean that your browser isn't saving cookies, try refreshing. If you aren't connected to the room, reconnect to the room and try again. This could also mean that the room does not exist at all.`,
 		);
 	}
 }

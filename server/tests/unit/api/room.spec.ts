@@ -300,7 +300,7 @@ describe("Room API", () => {
 
 		for (const [path, body] of requests) {
 			it(`should fail to create room if feature is disabled: Endpoint ${path} body ${JSON.stringify(
-				body
+				body,
 			)}`, async () => {
 				conf.set("room.enable_create_temporary", false);
 				conf.set("room.enable_create_permanent", false);
@@ -474,7 +474,7 @@ describe("Room API", () => {
 						id: "foo",
 						subtitleUrl: "https://example.com/subtitles.vtt",
 					}),
-				])
+				]),
 			);
 		});
 

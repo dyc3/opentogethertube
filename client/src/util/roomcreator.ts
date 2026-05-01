@@ -12,7 +12,7 @@ import type { FullOTTStoreState } from "@/store";
 
 /** Generate a temporary room. */
 export async function generateRoom(
-	options: OttApiRequestRoomGenerate
+	options: OttApiRequestRoomGenerate,
 ): Promise<OttApiResponseRoomGenerate> {
 	const resp = await API.post("/room/generate", options, {
 		validateStatus: status => status >= 200 && status < 400,
@@ -28,7 +28,7 @@ export async function generateRoom(
 
 /** Create a room using the given options. */
 export async function createRoom(
-	options: OttApiRequestRoomCreate
+	options: OttApiRequestRoomCreate,
 ): Promise<OttApiResponseRoomCreate> {
 	const resp = await API.post("/room/create", options, {
 		validateStatus: status => status >= 200 && status < 400,
@@ -45,7 +45,7 @@ export async function createRoom(
 /** Helper function to generate a temporary room, and then trigger a page navigation. */
 export async function createRoomHelper(
 	store: Store<FullOTTStoreState>,
-	options?: OttApiRequestRoomCreate
+	options?: OttApiRequestRoomCreate,
 ) {
 	store.commit("misc/CREATING_ROOM");
 	try {

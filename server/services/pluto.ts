@@ -206,14 +206,14 @@ export default class PlutoAdapter extends ServiceAdapter {
 			const ep = this.findEpisodeInVod(plutoIds.subid, vodOrEpisode);
 			if (!ep) {
 				throw new Error(
-					`Unable to find episode ${plutoIds.subid} in VOD ${vodOrEpisode.id}`
+					`Unable to find episode ${plutoIds.subid} in VOD ${vodOrEpisode.id}`,
 				);
 			}
 			vodOrEpisode = ep;
 		}
 
 		const hlsUrl = new URL(
-			resp.servers.stitcher + this.parseStitchedIntoHlsPath(vodOrEpisode.stitched)
+			resp.servers.stitcher + this.parseStitchedIntoHlsPath(vodOrEpisode.stitched),
 		);
 		hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 		const proxy = conf.get("cors_proxy");
@@ -235,7 +235,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 
 	private parseBootResponseIntoSeries(
 		plutoIds: PlutoParsedIds,
-		resp: PlutoBootResponse
+		resp: PlutoBootResponse,
 	): Video[] {
 		if (!resp.servers.stitcher) {
 			throw new Error("No stitcher server found in boot response");
@@ -247,7 +247,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 			throw new Error(`Unable to find VOD ${plutoIds.id} in boot response`);
 		}
 		const seasons = (vod.seasons ?? []).filter(
-			s => !plutoIds.season || s.number === plutoIds.season
+			s => !plutoIds.season || s.number === plutoIds.season,
 		);
 
 		const videos: Video[] = [];
@@ -255,7 +255,7 @@ export default class PlutoAdapter extends ServiceAdapter {
 			let episodeNumber = 1;
 			for (const episode of season.episodes) {
 				const hlsUrl = new URL(
-					resp.servers.stitcher + this.parseStitchedIntoHlsPath(episode.stitched)
+					resp.servers.stitcher + this.parseStitchedIntoHlsPath(episode.stitched),
 				);
 				hlsUrl.search = this.buildHlsQueryParams(resp).toString();
 				const proxy = conf.get("cors_proxy");

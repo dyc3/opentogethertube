@@ -46,7 +46,7 @@ describe(
 					description: "This is an example room.",
 					visibility: Visibility.Public,
 					queueMode: QueueMode.Vote,
-				})
+				}),
 			);
 
 			await new Promise(resolve => setTimeout(resolve, 200));
@@ -64,7 +64,7 @@ describe(
 					visibility: Visibility.Public,
 					queueMode: QueueMode.Vote,
 					owner: null,
-				})
+				}),
 			);
 		});
 
@@ -75,7 +75,7 @@ describe(
 					title: "Example Room",
 					description: "This is an example room.",
 					visibility: Visibility.Public,
-				})
+				}),
 			);
 
 			const room = await storage.getRoomByName("capitalizedexampleroom");
@@ -107,8 +107,8 @@ describe(
 						title: "Example Room",
 						description: "This is an example room.",
 						visibility: Visibility.Public,
-					})
-				)
+					}),
+				),
 			).toBe(true);
 
 			await new Promise(resolve => setTimeout(resolve, 200));
@@ -126,13 +126,13 @@ describe(
 
 		it("should not create room if name matches existing room, case insensitive", async () => {
 			await storage.saveRoom(
-				new Room({ name: "CapitalizedExampleRoom", visibility: Visibility.Public })
+				new Room({ name: "CapitalizedExampleRoom", visibility: Visibility.Public }),
 			);
 
 			expect(
 				await storage.saveRoom(
-					new Room({ name: "capitalizedexampleroom", visibility: Visibility.Public })
-				)
+					new Room({ name: "capitalizedexampleroom", visibility: Visibility.Public }),
+				),
 			).toBe(false);
 		});
 
@@ -146,7 +146,7 @@ describe(
 					title: "Example Room",
 					description: "This is an example room.",
 					visibility: Visibility.Unlisted,
-				})
+				}),
 			).toBe(true);
 
 			// HACK: wait for the database to update. This test is flaky without this.
@@ -169,7 +169,7 @@ describe(
 					title: "Example Room",
 					description: "This is an example room.",
 					visibility: Visibility.Unlisted,
-				})
+				}),
 			).rejects.toThrow();
 		});
 
@@ -235,7 +235,7 @@ describe(
 			expect(room?.userRoles).toEqual(userRoles);
 		});
 	},
-	{ retry: 3 }
+	{ retry: 3 },
 );
 
 describe("Storage: CachedVideos Spec", () => {
@@ -361,7 +361,7 @@ describe("Storage: CachedVideos Spec", () => {
 					..._.omit(video, "id"),
 				};
 				return videoStorable;
-			})
+			}),
 		);
 		expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
 	});
@@ -401,7 +401,7 @@ describe("Storage: CachedVideos Spec", () => {
 						..._.omit(video, "id"),
 					};
 					return videoStorable;
-				})
+				}),
 		);
 		expect(await storage.getManyVideoInfo(videos)).toEqual(videos);
 	});

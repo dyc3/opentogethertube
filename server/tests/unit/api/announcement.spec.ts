@@ -65,7 +65,7 @@ describe("Announcements API", () => {
 			});
 		expect(publishSpy).toHaveBeenCalledWith(
 			ANNOUNCEMENT_CHANNEL,
-			'{"action":"announcement","text":"test announcement"}'
+			'{"action":"announcement","text":"test announcement"}',
 		);
 	});
 
@@ -150,7 +150,7 @@ describe("Announcements API", () => {
 			});
 		expect(publishSpy).toHaveBeenCalledWith(
 			ANNOUNCEMENT_CHANNEL,
-			'{"action":"announcement","text":"test announcement"}'
+			'{"action":"announcement","text":"test announcement"}',
 		);
 	});
 });

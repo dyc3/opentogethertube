@@ -22,7 +22,7 @@ describe("Permission System", () => {
 
 	it("should evaluate permission grants accurately", () => {
 		const grants: Grants = new Grants(
-			new Map([[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)]])
+			new Map([[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)]]),
 		);
 		expect(grants.granted(Role.UnregisteredUser, "playback.play-pause")).toEqual(true);
 		expect(grants.granted(Role.UnregisteredUser, "chat")).toEqual(false);
@@ -30,13 +30,13 @@ describe("Permission System", () => {
 
 	it("should evaluate invalid permission as false", () => {
 		const grants: Grants = new Grants(
-			new Map([[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)]])
+			new Map([[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)]]),
 		);
 		expect(grants.granted(Role.UnregisteredUser, null as unknown as PermissionName)).toEqual(
-			false
+			false,
 		); // invalid because null
 		expect(
-			grants.granted(Role.UnregisteredUser, undefined as unknown as PermissionName)
+			grants.granted(Role.UnregisteredUser, undefined as unknown as PermissionName),
 		).toEqual(false); // invalid because undefined
 	});
 
@@ -46,7 +46,7 @@ describe("Permission System", () => {
 				[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2)],
 				[Role.RegisteredUser, (1 << 3) | (1 << 4) | (1 << 7)],
 				[Role.TrustedUser, 1 << 8],
-			])
+			]),
 		);
 		expect(grants.granted(Role.UnregisteredUser, "playback.play-pause")).toEqual(true);
 		expect(grants.granted(Role.UnregisteredUser, "manage-queue.add")).toEqual(false);
@@ -67,7 +67,7 @@ describe("Permission System", () => {
 				[Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 2) | (1 << 23)],
 				[Role.RegisteredUser, (1 << 3) | (1 << 4) | (1 << 7)],
 				[Role.TrustedUser, 1 << 8],
-			])
+			]),
 		);
 		expect(grants.granted(Role.UnregisteredUser, "playback")).toEqual(true);
 		expect(grants.granted(Role.UnregisteredUser, "manage-queue")).toEqual(false);
@@ -77,7 +77,7 @@ describe("Permission System", () => {
 		expect(permissions.getValidationMask(0) & 0b111111111111).toEqual(0b111111111111);
 		expect(permissions.getValidationMask(0) & (1 << 22)).toEqual(1 << 22);
 		expect(permissions.getValidationMask(3) & ((1 << 13) | (1 << 14) | (1 << 15))).toEqual(
-			(1 << 13) | (1 << 14) | (1 << 15)
+			(1 << 13) | (1 << 14) | (1 << 15),
 		);
 	});
 
@@ -144,11 +144,11 @@ describe("Permission System", () => {
 			grants.setRoleGrants(Role.UnregisteredUser, (1 << 0) | (1 << 1) | (1 << 7));
 			grants.setRoleGrants(
 				Role.RegisteredUser,
-				(1 << 0) | (1 << 1) | (1 << 3) | (1 << 4) | (1 << 7)
+				(1 << 0) | (1 << 1) | (1 << 3) | (1 << 4) | (1 << 7),
 			);
 			grants.setRoleGrants(
 				Role.TrustedUser,
-				(1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 7)
+				(1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 7),
 			);
 			const ser = grants.serialize();
 			const deser = new Grants();

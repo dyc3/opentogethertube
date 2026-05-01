@@ -124,7 +124,7 @@ export const createModel = (sequelize: Sequelize) => {
 		{
 			sequelize,
 			modelName: "Room",
-		}
+		},
 	);
 
 	return Room;

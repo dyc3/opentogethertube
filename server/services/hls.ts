@@ -70,7 +70,7 @@ export default class HlsVideoAdapter extends ServiceAdapter {
 						return acc;
 					}
 				},
-				{ attributes: { BANDWIDTH: Infinity } } as PlaylistItem
+				{ attributes: { BANDWIDTH: Infinity } } as PlaylistItem,
 			);
 			const playlistUrl = URL.resolve(url.href, lowestBitratePlaylist.uri);
 			log.silly(`new playlist path ${playlistUrl}`);

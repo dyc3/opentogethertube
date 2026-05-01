@@ -13,7 +13,7 @@ const log = getLogger("api/announce");
 const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = async (
 	req,
 	res,
-	next
+	next,
 ) => {
 	if (req.get("apikey")) {
 		if (req.get("apikey") !== conf.get("api_key")) {
@@ -46,7 +46,7 @@ const announce: RequestHandler<unknown, OttResponseBody, { text: string }> = asy
 			JSON.stringify({
 				action: "announcement",
 				text: req.body.text,
-			})
+			}),
 		);
 	} catch (error) {
 		log.error(`An unknown error occurred while sending an announcement: ${error}`);

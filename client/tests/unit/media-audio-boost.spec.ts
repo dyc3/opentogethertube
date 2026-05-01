@@ -53,7 +53,7 @@ describe("useMediaAudioBoost", () => {
 					return { mediaElement };
 				},
 				template: '<video ref="mediaElement"></video>',
-			})
+			}),
 		);
 
 		if (!api) {

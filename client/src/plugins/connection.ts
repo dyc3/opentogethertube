@@ -19,7 +19,7 @@ export interface OttRoomConnection {
 	addMessageHandler(action: ServerMessageActionType, handler: (msg: ServerMessage) => void): void;
 	removeMessageHandler(
 		action: ServerMessageActionType,
-		handler: (msg: ServerMessage) => void
+		handler: (msg: ServerMessage) => void,
 	): void;
 	clearAllMessageHandlers(): void;
 }
@@ -58,7 +58,7 @@ function getReconnectDelayMs(
 	reconnectAttempts: number,
 	reconnectDelay: number,
 	reconnectDelayIncrease: number,
-	randomValue = Math.random()
+	randomValue = Math.random(),
 ) {
 	const baseDelay = reconnectDelay + reconnectDelayIncrease * reconnectAttempts;
 	return Math.round(baseDelay * (0.5 + randomValue));
@@ -178,7 +178,7 @@ class OttRoomConnectionReal implements OttRoomConnection {
 		return getReconnectDelayMs(
 			this.reconnectAttempts.value,
 			this.reconnectDelay,
-			this.reconnectDelayIncrease
+			this.reconnectDelayIncrease,
 		);
 	}
 
@@ -286,7 +286,7 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 
 	public addMessageHandler(
 		action: ServerMessageActionType,
-		handler: (msg: ServerMessage) => void
+		handler: (msg: ServerMessage) => void,
 	) {
 		const handlers = this.messageHandlers.get(action) ?? [];
 		handlers.push(handler);
@@ -295,7 +295,7 @@ export class OttRoomConnectionMock implements OttRoomConnection {
 
 	public removeMessageHandler(
 		action: ServerMessageActionType,
-		handler: (msg: ServerMessage) => void
+		handler: (msg: ServerMessage) => void,
 	) {
 		const handlers = this.messageHandlers.get(action) ?? [];
 		const index = handlers.indexOf(handler);

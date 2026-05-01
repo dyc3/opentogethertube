@@ -291,8 +291,8 @@ export class Room implements RoomState {
 				"prevQueue",
 				"restoreQueueBehavior",
 				"enableVoteSkip",
-				"votesToSkip"
-			)
+				"votesToSkip",
+			),
 		);
 		if (this.restoreQueueBehavior === BehaviorOption.Never) {
 			this.prevQueue = null;
@@ -585,7 +585,7 @@ export class Room implements RoomState {
 	async publishRoomEvent(
 		request: RoomRequest,
 		context: RoomRequestContext,
-		additional?: RoomEventContext
+		additional?: RoomEventContext,
 	): Promise<void> {
 		if (context.clientId === undefined) {
 			this.log.warn("context.clientId was undefined, not publishing event");
@@ -676,7 +676,7 @@ export class Room implements RoomState {
 	}
 
 	async getUserInfoFromToken(
-		token: AuthToken
+		token: AuthToken,
 	): Promise<Pick<RoomUserInfo, "name" | "isLoggedIn">> {
 		if (!token) {
 			throw new Error("token is a required parameter.");
@@ -774,7 +774,7 @@ export class Room implements RoomState {
 						return votes ? votes.size : 0;
 					},
 				],
-				["desc"]
+				["desc"],
 			);
 		}
 
@@ -791,7 +791,7 @@ export class Room implements RoomState {
 							this.log.debug("No sponsorblock segments available for this video.");
 						} else {
 							this.log.error(
-								`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`
+								`Failed to grab sponsorblock segments: ${e.name} ${e.status} ${e.message}`,
 							);
 						}
 					} else {
@@ -870,7 +870,7 @@ export class Room implements RoomState {
 
 		const state: RoomStateSyncable = this.syncableState();
 		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
-			storableProps.includes(prop as any)
+			storableProps.includes(prop as any),
 		);
 
 		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
@@ -893,7 +893,7 @@ export class Room implements RoomState {
 			"grants",
 			"userRoles",
 			"owner",
-			"prevQueue"
+			"prevQueue",
 		);
 		if (!_.isEmpty(settings)) {
 			await storage.updateRoom({
@@ -964,7 +964,7 @@ export class Room implements RoomState {
 			return;
 		}
 		this.log.info(
-			`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`
+			`fetching sponsorblock segments for ${this.currentSource.service}:${this.currentSource.id}`,
 		);
 		this.videoSegments = await fetchSegments(this.currentSource.id);
 	}
@@ -987,7 +987,7 @@ export class Room implements RoomState {
 	}
 
 	public async deriveRequestContext(
-		authorization: RoomRequestAuthorization
+		authorization: RoomRequestAuthorization,
 	): Promise<RoomRequestContext> {
 		if (authorization.clientId) {
 			const user = this.getUser(authorization.clientId);
@@ -1026,7 +1026,7 @@ export class Room implements RoomState {
 
 	public async processUnauthorizedRequest(
 		request: RoomRequest,
-		authorization: RoomRequestAuthorization
+		authorization: RoomRequestAuthorization,
 	): Promise<void> {
 		if (!authorization.clientId) {
 			const id = this.getClientIdFromToken(authorization.token);
@@ -1070,7 +1070,7 @@ export class Room implements RoomState {
 		}
 
 		this.log.debug(
-			`processing request: ${request.type} for ${context.username} (client: ${context.clientId})`
+			`processing request: ${request.type} for ${context.username} (client: ${context.clientId})`,
 		);
 
 		type RoomRequestHandlers = Omit<
@@ -1175,7 +1175,7 @@ export class Room implements RoomState {
 
 			const eligibleUsers = countEligibleVoters(
 				this.realusers.map(u => this.getUserInfo(u.id)),
-				this.grants
+				this.grants,
 			);
 			if (this.votesToSkip.size >= voteSkipThreshold(eligibleUsers)) {
 				this.log.debug("vote threshold met, skipping video");
@@ -1245,7 +1245,7 @@ export class Room implements RoomState {
 
 			const video: Video = await InfoExtract.getVideoInfo(
 				request.video.service,
-				request.video.id
+				request.video.id,
 			);
 			if (video === undefined) {
 				this.log.error("video was undefined, which is bad");
@@ -1294,7 +1294,7 @@ export class Room implements RoomState {
 
 	public async updateQueueItem(
 		request: UpdateQueueItemRequest,
-		context: RoomRequestContext
+		context: RoomRequestContext,
 	): Promise<void> {
 		if (
 			request.update.subtitleUrl !== undefined &&
@@ -1309,7 +1309,7 @@ export class Room implements RoomState {
 
 	public async removeFromQueue(
 		request: RemoveRequest,
-		context: RoomRequestContext
+		context: RoomRequestContext,
 	): Promise<void> {
 		if (!this.queue.contains(request.video)) {
 			throw new VideoNotFoundException();
@@ -1402,7 +1402,7 @@ export class Room implements RoomState {
 							type: request.event.request.type,
 							value: request.event.additional.prevPosition,
 						},
-						context
+						context,
 					);
 				}
 				break;
@@ -1433,7 +1433,7 @@ export class Room implements RoomState {
 				) {
 					this.queue.insert(
 						request.event.additional.video,
-						request.event.additional.queueIdx
+						request.event.additional.queueIdx,
 					);
 				}
 				break;
@@ -1473,7 +1473,7 @@ export class Room implements RoomState {
 			throw new OttException("Client not found.");
 		}
 		this.log.info(
-			`${context.username} is attempting to promote ${targetUser.username} to role ${request.role}`
+			`${context.username} is attempting to promote ${targetUser.username} to role ${request.role}`,
 		);
 
 		let perm: string | undefined;
@@ -1540,7 +1540,7 @@ export class Room implements RoomState {
 				} else {
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					this.log.error(
-						`Failed to update room, and the error thrown was not Error: ${err}`
+						`Failed to update room, and the error thrown was not Error: ${err}`,
 					);
 				}
 			}
@@ -1549,7 +1549,7 @@ export class Room implements RoomState {
 
 	public async applySettings(
 		request: ApplySettingsRequest,
-		context: RoomRequestContext
+		context: RoomRequestContext,
 	): Promise<void> {
 		const propsToPerms: Record<keyof Omit<RoomSettings, "grants">, string> = {
 			title: "configure-room.set-title",
@@ -1582,13 +1582,13 @@ export class Room implements RoomState {
 				if (Object.hasOwn(roleToPerms, role)) {
 					if (request.settings.grants.getMask(role) === this.grants.getMask(role)) {
 						this.log.silly(
-							`deleting permissions for role ${role} from request because it did not change`
+							`deleting permissions for role ${role} from request because it did not change`,
 						);
 						request.settings.grants.deleteRole(role);
 					}
 				} else {
 					this.log.silly(
-						`deleting permissions for role ${role} from request because that role's permissions can't change`
+						`deleting permissions for role ${role} from request because that role's permissions can't change`,
 					);
 					request.settings.grants.deleteRole(role);
 				}
@@ -1618,13 +1618,13 @@ export class Room implements RoomState {
 		let autoSkipSegmentCategoriesChanged = false;
 		if (request.settings.autoSkipSegmentCategories) {
 			const autoSkipSegmentCategoriesSet = new Set(
-				request.settings.autoSkipSegmentCategories
+				request.settings.autoSkipSegmentCategories,
 			);
 			if (
 				!_.isEqual(autoSkipSegmentCategoriesSet, new Set(this._autoSkipSegmentCategories))
 			) {
 				request.settings.autoSkipSegmentCategories = ALL_SKIP_CATEGORIES.filter(category =>
-					autoSkipSegmentCategoriesSet.has(category)
+					autoSkipSegmentCategoriesSet.has(category),
 				);
 				autoSkipSegmentCategoriesChanged = true;
 			}
@@ -1716,7 +1716,7 @@ export class Room implements RoomState {
 
 	public async setPlaybackSpeed(
 		request: PlaybackSpeedRequest,
-		context: RoomRequestContext
+		context: RoomRequestContext,
 	): Promise<void> {
 		this.flushPlaybackPosition();
 		this.playbackSpeed = request.speed;
@@ -1724,7 +1724,7 @@ export class Room implements RoomState {
 
 	public async restoreQueue(
 		request: RestoreQueueRequest,
-		_context: RoomRequestContext
+		_context: RoomRequestContext,
 	): Promise<void> {
 		if (this.prevQueue === null) {
 			throw new Error("No previous queue to restore");
@@ -1750,7 +1750,7 @@ export class Room implements RoomState {
 			this.command({ type: "kick", clientId: request.clientId });
 		} else {
 			this.log.warn(
-				`${context.username} tried to kick ${user.username} but failed the role check`
+				`${context.username} tried to kick ${user.username} but failed the role check`,
 			);
 		}
 	}

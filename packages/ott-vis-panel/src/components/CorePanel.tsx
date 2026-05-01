@@ -147,7 +147,7 @@ const CoreData: React.FC<Props> = ({ options, data, width, height }) => {
 				css`
 					width: ${width}px;
 					height: ${height}px;
-				`
+				`,
 			)}
 		>
 			{data.state === LoadingState.Loading ? <Loading /> : null}

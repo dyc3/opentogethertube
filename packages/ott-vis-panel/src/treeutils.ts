@@ -85,7 +85,7 @@ export type BoundingBox = [number, number, number, number];
  * @returns [left, top, right, bottom]
  */
 export function treeBoundingBox<Datum>(
-	tree: d3.HierarchyNode<Datum>
+	tree: d3.HierarchyNode<Datum>,
 ): [number, number, number, number] {
 	let left = Infinity;
 	let top = Infinity;
@@ -116,7 +116,7 @@ export function sizeOfTree<Datum>(tree: d3.HierarchyNode<Datum>): [number, numbe
 export function calcGoodTreeRadius(
 	tree: d3.HierarchyNode<TreeNode>,
 	nodeRadius: number,
-	padding = 5
+	padding = 5,
 ): number {
 	// absolute minimum radius should probably be 100
 	// minimum radius to fit all the nodes on the second level
@@ -206,7 +206,7 @@ function traverseGroups(tree: d3.HierarchyNode<TreeNode>): string[] {
 export function pruneTrees(
 	roots: d3.HierarchyNode<TreeNode> | d3.HierarchyNode<TreeNode>[],
 	fromGroup: string,
-	toGroup: string
+	toGroup: string,
 ): d3.HierarchyNode<TreeNode>[] {
 	if (Array.isArray(roots)) {
 		const trees: d3.HierarchyNode<TreeNode>[] = [];
@@ -243,7 +243,7 @@ export function pruneTrees(
  */
 export function filterTreeGroups(
 	roots: d3.HierarchyNode<TreeNode> | d3.HierarchyNode<TreeNode>[],
-	groups: string[]
+	groups: string[],
 ): d3.HierarchyNode<TreeNode>[] {
 	if (Array.isArray(roots)) {
 		const trees: d3.HierarchyNode<TreeNode>[] = [];
@@ -314,7 +314,7 @@ export function mergeTrees(trees: d3.HierarchyNode<TreeNode>[]): d3.HierarchyNod
 			(a, b) => {
 				a.children?.push(...(b.children ?? []));
 				return a;
-			}
+			},
 		);
 		for (const child of tree.children) {
 			child.parent = tree;

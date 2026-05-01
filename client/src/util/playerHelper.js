@@ -19,7 +19,7 @@ export function getSdk(
 	sdkGlobal,
 	sdkReady = null,
 	isLoaded = () => true,
-	fetchScript = loadScript
+	fetchScript = loadScript,
 ) {
 	console.log(`grabbing iframe SDK: ${sdkGlobal}`);
 	if (window[sdkGlobal] && isLoaded(window[sdkGlobal])) {
