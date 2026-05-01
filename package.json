@@ -45,7 +45,7 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "^2.4.14",
     "@types/lodash": "^4.14.170",
     "@types/node": "^22.0.0",
     "@types/uuid": "^3.4.0",
