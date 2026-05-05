@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
         # run copies of the current job in parallel
         containers: [1]
         browsers: [electron]
@@ -44,8 +44,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
 
       - uses: actions/cache@v4
         with:
@@ -59,6 +57,7 @@ jobs:
             ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
+      - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn --immutable
       - run: yarn run cypress install
@@ -87,7 +86,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
         # run copies of the current job in parallel
         # containers: [1, 2]
         browsers: [electron]
@@ -114,8 +113,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
 
       - uses: actions/cache@v4
         with:
@@ -129,6 +126,7 @@ jobs:
             ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
 
+      - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn install --immutable
 
@@ -164,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.x, 24.x]
+        node-version: [22.x, 24.x, 26.x]
         package:
           - ott-vis-panel
           - ott-vis-datasource
@@ -174,8 +172,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-          cache-dependency-path: "./yarn.lock"
 
       - uses: actions/cache@v4
         with:
@@ -183,6 +179,9 @@ jobs:
           key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+
+      - run: command -v corepack || npm install --global corepack@latest
+      - run: corepack enable
 
       - name: Install dependencies
         run: yarn install --immutable
