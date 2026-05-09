@@ -37,11 +37,11 @@ jobs:
           check-latest: true
       - uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{
+          path: .yarn/cache
+          key: yarn-cache-${{ runner.os }}-node-${{ matrix.node-version }}-${{
             hashFiles('yarn.lock') }}
           restore-keys: |
-            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+            yarn-cache-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn install --immutable
@@ -89,11 +89,11 @@ jobs:
           check-latest: true
       - uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{
+          path: .yarn/cache
+          key: yarn-cache-${{ runner.os }}-node-${{ matrix.node-version }}-${{
             hashFiles('yarn.lock') }}
           restore-keys: |
-            node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
+            yarn-cache-${{ runner.os }}-node-${{ matrix.node-version }}-
       - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn install --immutable
