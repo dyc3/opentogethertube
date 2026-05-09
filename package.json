@@ -7,7 +7,12 @@
 		"node": ">=22 <27",
 		"yarn": "4"
 	},
-	"workspaces": ["common", "server", "client", "packages/*"],
+	"workspaces": [
+		"common",
+		"server",
+		"client",
+		"packages/*"
+	],
 	"type": "module",
 	"scripts": {
 		"postinstall": "patch-package",

@@ -147,6 +147,10 @@
 	},
 	"overrides": [
 		{
+			"includes": ["**/package.json"],
+			"formatter": { "expand": "always" }
+		},
+		{
 			"includes": ["*.yaml", "*.yml"],
 			"formatter": { "indentStyle": "space", "indentWidth": 2 }
 		},

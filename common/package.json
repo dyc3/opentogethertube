@@ -4,7 +4,9 @@
 	"license": "AGPL-3.0-or-later",
 	"type": "module",
 	"module": "index.ts",
-	"files": ["*"],
+	"files": [
+		"*"
+	],
 	"exports": {
 		".": {
 			"lean": "./ts-out/index.js",
