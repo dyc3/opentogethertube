@@ -19,7 +19,7 @@
 		]
 	},
 	"formatter": {
-		"enabled": false,
+		"enabled": true,
 		"formatWithErrors": false,
 		"indentWidth": 4,
 		"lineWidth": 100,
@@ -81,7 +81,7 @@
 				"useVueNextTickPromise": "error",
 				"noVueVOnNumberValues": "error",
 				"noIdenticalTestTitle": "error",
-				"useConsistentTestIt": "error",
+				"useConsistentTestIt": "error"
 			},
 			"performance": { "useTopLevelRegex": "error" },
 			"security": { "noGlobalEval": "error" },
@@ -128,12 +128,12 @@
 	},
 	"javascript": {
 		"formatter": {
-		  "enabled":true,
+			"enabled": true,
 			"quoteProperties": "asNeeded",
-			"trailingCommas": "all",
+			"trailingCommas": "es5",
 			"semicolons": "always",
 			"arrowParentheses": "asNeeded",
-			"bracketSameLine": false,
+			"bracketSameLine": false
 		},
 		"globals": ["$t"]
 	},
@@ -191,19 +191,19 @@
 				]
 			},
 			"linter": {
-  			"rules": {
-  			  "nursery": {
-  			    "noNestedPromises": "off",
-  					"noVueOptionsApi": "off",
-  			  }
-  			}
-  		}
+				"rules": {
+					"nursery": {
+						"noNestedPromises": "off",
+						"noVueOptionsApi": "off"
+					}
+				}
+			}
 		},
 		{
 			"includes": ["**/*.vue"],
-			"javascript": { "formatter": { "enabled":false } },
+			"javascript": { "formatter": { "enabled": false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
-		},
+		}
 	],
 	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }
 }

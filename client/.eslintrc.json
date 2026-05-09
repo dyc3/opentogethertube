@@ -5,8 +5,8 @@
 		"es6": true,
 		"browser": true
 	},
-	"plugins": ["prettier", "vitest"],
-	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
+	"plugins": ["vitest"],
+	"extends": ["eslint:recommended"],
 	"rules": {
 		"no-console": "error",
 		"no-debugger": "off",
@@ -46,12 +46,6 @@
 		"sourceType": "module"
 	},
 	"overrides": [
-		{
-			"files": ["*.js", "*.ts", "*.jsx", "*.tsx"],
-			"rules": {
-				"prettier/prettier": "off"
-			}
-		},
 		{
 			"files": ["*.js"],
 			"rules": {
