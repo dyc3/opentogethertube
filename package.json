@@ -14,8 +14,8 @@
 		"start": "yarn workspace ott-server start",
 		"serve": "yarn workspace ott-client serve",
 		"build": "yarn workspaces foreach --all run build",
-		"lint": "biome check --write && yarn workspaces foreach --all run lint",
-		"lint-ci": "biome check && yarn workspaces foreach --all run lint-ci",
+		"lint": "biome check --write && prettier --write \"**/*.vue\" && yarn workspaces foreach --all run lint",
+		"lint-ci": "biome check && prettier --check \"**/*.vue\" && yarn workspaces foreach --all run lint-ci",
 		"test": "yarn workspaces foreach --all run test",
 		"cy:run": "cypress run --headless",
 		"cy:run:component": "yarn workspace ott-client run cy:run",
@@ -55,6 +55,7 @@
 		"eslint-plugin-cypress": "^2.12.1",
 		"eslint-plugin-promise": "^6.1.1",
 		"faker": "^5.5.3",
+		"prettier": "^2.5.1",
 		"supertest": "6.3.3",
 		"ts-node": "^10.9.1"
 	},

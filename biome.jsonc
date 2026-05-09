@@ -139,7 +139,11 @@
 	},
 	"html": {
 		"experimentalFullSupportEnabled": true,
-		"formatter": { "indentScriptAndStyle": false, "selfCloseVoidElements": "always" }
+		"formatter": {
+			"enabled": false,
+			"indentScriptAndStyle": false,
+			"selfCloseVoidElements": "always"
+		}
 	},
 	"overrides": [
 		{
@@ -201,6 +205,7 @@
 		},
 		{
 			"includes": ["**/*.vue"],
+			"formatter": { "enabled": false },
 			"javascript": { "formatter": { "enabled": false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
 		}

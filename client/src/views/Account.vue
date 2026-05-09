@@ -218,16 +218,16 @@ const passwordConfirmRules = [
 ];
 
 const emailFormTitle = computed(() =>
-	account.value?.email ? t("account.change-email") : t("account.add-email")
+	account.value?.email ? t("account.change-email") : t("account.add-email"),
 );
 const emailSubmitText = computed(() =>
-	account.value?.email ? t("account.save-email") : t("account.add-email")
+	account.value?.email ? t("account.save-email") : t("account.add-email"),
 );
 const passwordFormTitle = computed(() =>
-	account.value?.hasPassword ? t("account.change-password") : t("account.add-password")
+	account.value?.hasPassword ? t("account.change-password") : t("account.add-password"),
 );
 const passwordSubmitText = computed(() =>
-	account.value?.hasPassword ? t("account.save-password") : t("account.add-password")
+	account.value?.hasPassword ? t("account.save-password") : t("account.add-password"),
 );
 
 type OttApiErrorPayload = {
@@ -277,7 +277,7 @@ watch(
 			});
 		}
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 watch(
@@ -295,7 +295,7 @@ watch(
 			content: t("account.load-failed"),
 			duration: 4000,
 		});
-	}
+	},
 );
 
 const saveEmailMutation = useMutation({

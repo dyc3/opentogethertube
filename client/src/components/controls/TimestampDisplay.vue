@@ -27,7 +27,7 @@ withDefaults(
 	}>(),
 	{
 		currentPosition: 0,
-	}
+	},
 );
 
 const store = useStore();

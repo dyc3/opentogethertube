@@ -239,7 +239,7 @@ watch(inputAddPreview, () => {
 					const index = group.findIndex(v => v[1] === inputAddPreview.value);
 					return index !== -1 ? `${groupName}-${index}` : undefined;
 				},
-				undefined
+				undefined,
 			);
 		}
 	}
@@ -308,9 +308,9 @@ async function requestAddPreview() {
 				) {
 					window.open(
 						`https://www.youtube.com/results?search_query=${encodeURIComponent(
-							inputAddPreview.value
+							inputAddPreview.value,
 						)}`,
-						"_blank"
+						"_blank",
 					);
 				}
 			} else if (err.response.status === 429) {

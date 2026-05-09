@@ -46,7 +46,7 @@ withDefaults(
 	{
 		controlsVisible: false,
 		mode: "in-video",
-	}
+	},
 );
 </script>
 

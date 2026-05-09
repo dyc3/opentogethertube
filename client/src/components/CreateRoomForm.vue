@@ -122,7 +122,7 @@ const rules = {
 		(v: string) =>
 			(v &&
 				[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj].includes(
-					v as QueueMode
+					v as QueueMode,
 				)) ||
 			t("create-room-form.rules.invalid-queue"),
 	],

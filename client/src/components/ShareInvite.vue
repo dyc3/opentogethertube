@@ -32,7 +32,7 @@ import { useCopyFromTextbox } from "./composables";
 function buildInviteLink(
 	currentLocation: string,
 	roomName: string,
-	shortUrl: string | undefined
+	shortUrl: string | undefined,
 ): string {
 	if (shortUrl !== undefined) {
 		return `https://${shortUrl}/${roomName}`;

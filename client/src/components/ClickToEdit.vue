@@ -34,7 +34,7 @@ const props = withDefaults(
 	{
 		valueFormatter: (value: number): string => value.toString(),
 		valueParser: (value: string): number => parseInt(value, 10),
-	}
+	},
 );
 
 const model = defineModel<T>();

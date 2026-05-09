@@ -3,6 +3,9 @@
 		"es6": true
 	},
 	"rules": {
-		"no-console": "off"
+		"no-console": "off",
+		"no-mixed-spaces-and-tabs": "off",
+		"vitest/no-identical-title": "off",
+		"vitest/consistent-test-it": "off"
 	}
 }

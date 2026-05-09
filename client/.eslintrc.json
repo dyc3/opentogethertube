@@ -23,6 +23,7 @@
 		"no-unused-vars": "off",
 		"no-regex-spaces": "off",
 		"no-redeclare": "off",
+		"no-mixed-spaces-and-tabs": "off",
 
 		// Covered by Biome's Vue domain/rules.
 		"vue/no-arrow-functions-in-watch": "off",

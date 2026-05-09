@@ -415,7 +415,7 @@ function moveToTop() {
 function moveToBottom() {
 	roomapi.queueMove(
 		index.value ?? store.state.room.queue.length - 1,
-		store.state.room.queue.length - 1
+		store.state.room.queue.length - 1,
 	);
 }
 

@@ -16496,6 +16496,7 @@ __metadata:
     lodash: "npm:^4.18.1"
     patch-package: "npm:^7.0.1"
     postinstall-postinstall: "npm:^2.1.0"
+    prettier: "npm:^2.5.1"
     supertest: "npm:6.3.3"
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
@@ -17511,6 +17512,15 @@ __metadata:
   version: 1.1.2
   resolution: "prelude-ls@npm:1.1.2"
   checksum: 10c0/7284270064f74e0bb7f04eb9bff7be677e4146417e599ccc9c1200f0f640f8b11e592d94eb1b18f7aa9518031913bb42bea9c86af07ba69902864e61005d6f18
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^2.5.1":
+  version: 2.8.8
+  resolution: "prettier@npm:2.8.8"
+  bin:
+    prettier: bin-prettier.js
+  checksum: 10c0/463ea8f9a0946cd5b828d8cf27bd8b567345cf02f56562d5ecde198b91f47a76b7ac9eae0facd247ace70e927143af6135e8cf411986b8cb8478784a4d6d724a
   languageName: node
   linkType: hard
 

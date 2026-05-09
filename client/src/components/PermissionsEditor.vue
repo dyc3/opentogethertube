@@ -62,7 +62,7 @@ const props = withDefaults(
 	}>(),
 	{
 		currentRole: 4,
-	}
+	},
 );
 const { currentRole } = toRefs(props);
 

@@ -317,7 +317,7 @@ async function register() {
 		} else {
 			console.log("Registration failed");
 			registerFailureMessage.value = t(
-				"login-form.errors.something-weird-happened"
+				"login-form.errors.something-weird-happened",
 			) as string;
 		}
 	} catch (err) {
@@ -334,7 +334,7 @@ async function register() {
 				registerFailureMessage.value = err.response.data.error.message;
 			} else {
 				registerFailureMessage.value = t(
-					"login-form.errors.register-failed-noserver"
+					"login-form.errors.register-failed-noserver",
 				) as string;
 			}
 		} else {
