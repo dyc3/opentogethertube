@@ -44,7 +44,7 @@ withDefaults(
 	}>(),
 	{
 		currentPosition: 0,
-	}
+	},
 );
 
 const store = useStore();
@@ -152,7 +152,7 @@ function updateSeekPreview(e) {
 	const sliderY = sliderRect.top;
 	seekPreviewPercent.value = sliderPos / sliderRect.width;
 	seekPreviewTimestamp.value = secondsToTimestamp(
-		seekPreviewPercent.value * (store.state.room.currentSource?.length ?? 0)
+		seekPreviewPercent.value * (store.state.room.currentSource?.length ?? 0),
 	);
 	const seekPreview = document.getElementById("seek-preview");
 	if (!seekPreview) {

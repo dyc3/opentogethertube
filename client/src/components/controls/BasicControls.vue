@@ -78,7 +78,7 @@ const props = withDefaults(
 	}>(),
 	{
 		currentPosition: 0,
-	}
+	},
 );
 
 const emit = defineEmits(["seek", "play", "pause", "skip"]);
@@ -131,7 +131,7 @@ function togglePlayback() {
 
 function seekDelta(delta: number) {
 	roomapi.seek(
-		_.clamp(props.currentPosition + delta, 0, store.state.room.currentSource?.length ?? 0)
+		_.clamp(props.currentPosition + delta, 0, store.state.room.currentSource?.length ?? 0),
 	);
 	emit("seek");
 }

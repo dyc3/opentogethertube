@@ -3,6 +3,10 @@
 		"node": true,
 		"es6": true
 	},
+	"globals": {
+		"fetch": "readonly",
+		"performance": "readonly"
+	},
 	"rules": {
 		"no-console": "off",
 		"no-debugger": "off",
@@ -17,6 +21,11 @@
 		"eol-last": "off",
 		"eqeqeq": "off",
 		"no-unused-vars": "off",
+		"no-regex-spaces": "off",
+		"no-redeclare": "off",
+		"vitest/no-identical-title": "off",
+		"vitest/consistent-test-it": "off",
+		"no-mixed-spaces-and-tabs": "off",
 
 		"@typescript-eslint/no-var-requires": "warn"
 	},

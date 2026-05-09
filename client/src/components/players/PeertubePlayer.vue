@@ -28,7 +28,7 @@ const PeertubePlayer = defineComponent({
 		const peertubeHost = computed(() => videoId.value[0]);
 		const peertubeId = computed(() => videoId.value[1]);
 		const peertubeUrl = computed(
-			() => `https://${peertubeHost.value}/videos/embed/${peertubeId.value}?controls=0&api=1`
+			() => `https://${peertubeHost.value}/videos/embed/${peertubeId.value}?controls=0&api=1`,
 		);
 
 		onMounted(async () => {

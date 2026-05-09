@@ -95,7 +95,7 @@ const exportedQueue = computed(() => {
 const exportTextBox = ref();
 const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbox(
 	exportedQueue,
-	exportTextBox
+	exportTextBox,
 );
 </script>
 

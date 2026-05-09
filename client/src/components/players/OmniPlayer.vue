@@ -242,7 +242,7 @@ watch(
 		if (player.value && implementsAudioBoost(player.value)) {
 			player.value.setAudioBoost(v);
 		}
-	}
+	},
 );
 watch(volume.volume, v => {
 	if (player.value) {
@@ -301,7 +301,7 @@ watch(
 				currentPlaybackError.value = null;
 			}
 		}
-	}
+	},
 );
 // player events re-emitted or data stored
 async function onApiReady() {
@@ -392,7 +392,7 @@ async function onBufferSpans(spans: TimeRanges) {
 				store.state.room.playbackStartTime,
 				new Date(),
 				store.state.room.playbackPosition,
-				store.state.room.playbackSpeed
+				store.state.room.playbackSpeed,
 		  )
 		: store.state.room.playbackPosition;
 	const isInSpans = isInTimeRanges(spans, position);

@@ -4,8 +4,8 @@
 		"module": "esnext",
 		"moduleResolution": "node",
 		// TODO: transition to new module resolution:
-    // "module": "nodenext",
-    // "moduleResolution": "nodenext",
+		// "module": "nodenext",
+		// "moduleResolution": "nodenext",
 		"allowSyntheticDefaultImports": true,
 		"preserveConstEnums": true,
 		"allowJs": true,

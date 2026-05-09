@@ -19,7 +19,7 @@
 		]
 	},
 	"formatter": {
-		"enabled": false,
+		"enabled": true,
 		"formatWithErrors": false,
 		"indentWidth": 4,
 		"lineWidth": 100,
@@ -28,6 +28,7 @@
 	},
 	"linter": {
 		"enabled": true,
+		"domains": { "vue": "all" },
 		"rules": {
 			"recommended": false,
 			"a11y": { "useMediaCaption": "off", "useValidAriaRole": "off" },
@@ -74,8 +75,13 @@
 				"useVueValidVElse": "error",
 				"useVueValidVElseIf": "error",
 				"useVueValidVIf": "error",
+				"useVueValidVFor": "error",
 				"noVueOptionsApi": "error",
-				"useExhaustiveSwitchCases": "error"
+				"useExhaustiveSwitchCases": "error",
+				"useVueNextTickPromise": "error",
+				"noVueVOnNumberValues": "error",
+				"noIdenticalTestTitle": "error",
+				"useConsistentTestIt": "error"
 			},
 			"performance": { "useTopLevelRegex": "error" },
 			"security": { "noGlobalEval": "error" },
@@ -118,25 +124,32 @@
 				"useGetterReturn": "error",
 				"useAdjacentOverloadSignatures": "error"
 			}
-		},
-		"domains": { "vue": "all" }
+		}
 	},
 	"javascript": {
 		"formatter": {
-		  "enabled":true,
+			"enabled": true,
 			"quoteProperties": "asNeeded",
-			"trailingCommas": "all",
+			"trailingCommas": "es5",
 			"semicolons": "always",
 			"arrowParentheses": "asNeeded",
-			"bracketSameLine": false,
+			"bracketSameLine": false
 		},
 		"globals": ["$t"]
 	},
 	"html": {
 		"experimentalFullSupportEnabled": true,
-		"formatter": { "indentScriptAndStyle": false, "selfCloseVoidElements": "always" }
+		"formatter": {
+			"enabled": false,
+			"indentScriptAndStyle": false,
+			"selfCloseVoidElements": "always"
+		}
 	},
 	"overrides": [
+		{
+			"includes": ["**/package.json"],
+			"formatter": { "expand": "always" }
+		},
 		{
 			"includes": ["*.yaml", "*.yml"],
 			"formatter": { "indentStyle": "space", "indentWidth": 2 }
@@ -186,19 +199,20 @@
 				]
 			},
 			"linter": {
-  			"rules": {
-  			  "nursery": {
-  			    "noNestedPromises": "off",
-  					"noVueOptionsApi": "off",
-  			  }
-  			}
-  		}
+				"rules": {
+					"nursery": {
+						"noNestedPromises": "off",
+						"noVueOptionsApi": "off"
+					}
+				}
+			}
 		},
 		{
 			"includes": ["**/*.vue"],
-			"javascript": { "formatter": { "enabled":false } },
+			"formatter": { "enabled": false },
+			"javascript": { "formatter": { "enabled": false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
-		},
+		}
 	],
 	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }
 }

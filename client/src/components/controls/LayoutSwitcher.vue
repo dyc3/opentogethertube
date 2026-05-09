@@ -18,7 +18,7 @@
 				$t(
 					store.state.settings.roomLayout === "theater"
 						? "room.default-layout"
-						: "room.theater-mode"
+						: "room.theater-mode",
 				)
 			}}</span>
 		</v-tooltip>

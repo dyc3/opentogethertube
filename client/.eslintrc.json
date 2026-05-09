@@ -5,22 +5,40 @@
 		"es6": true,
 		"browser": true
 	},
-	"plugins": ["prettier", "vitest"],
-	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
+	"plugins": ["vitest"],
+	"extends": ["eslint:recommended"],
 	"rules": {
 		"no-console": "error",
 		"no-debugger": "off",
 		"curly": "off",
 		"camelcase": "error",
 		"no-eval": "off",
-		"no-multiple-empty-lines": ["error", { "max": 1, "maxBOF": 0 }],
+		"no-multiple-empty-lines": "off",
 		"no-var": "off",
 		"no-dupe-keys": "off",
 		"no-prototype-builtins": "off",
 		"prefer-arrow-callback": "off",
-		"eol-last": ["error", "always"],
+		"eol-last": "off",
 		"eqeqeq": "off",
 		"no-unused-vars": "off",
+		"no-regex-spaces": "off",
+		"no-redeclare": "off",
+		"no-mixed-spaces-and-tabs": "off",
+
+		// Covered by Biome's Vue domain/rules.
+		"vue/no-arrow-functions-in-watch": "off",
+		"vue/no-ref-as-operand": "off",
+		"vue/no-use-v-if-with-v-for": "off",
+		"vue/valid-v-bind": "off",
+		"vue/valid-v-else": "off",
+		"vue/valid-v-else-if": "off",
+		"vue/valid-v-for": "off",
+		"vue/valid-v-if": "off",
+		"vue/next-tick-style": "off",
+		"vue/valid-v-on": "off",
+		"vue/mustache-interpolation-spacing": "off",
+		"vitest/no-identical-title": "off",
+		"vitest/consistent-test-it": "off",
 
 		"@typescript-eslint/no-var-requires": "warn"
 	},
@@ -29,12 +47,6 @@
 		"sourceType": "module"
 	},
 	"overrides": [
-		{
-			"files": ["*.js", "*.ts", "*.jsx", "*.tsx"],
-			"rules": {
-				"prettier/prettier": "off"
-			}
-		},
 		{
 			"files": ["*.js"],
 			"rules": {
@@ -60,7 +72,20 @@
 					{
 						"invalid-first-character-of-tag-name": false
 					}
-				]
+				],
+
+				// Covered by Biome's Vue domain/rules.
+				"vue/no-arrow-functions-in-watch": "off",
+				"vue/no-ref-as-operand": "off",
+				"vue/no-use-v-if-with-v-for": "off",
+				"vue/valid-v-bind": "off",
+				"vue/valid-v-else": "off",
+				"vue/valid-v-else-if": "off",
+				"vue/valid-v-for": "off",
+				"vue/valid-v-if": "off",
+				"vue/next-tick-style": "off",
+				"vue/valid-v-on": "off",
+				"vue/mustache-interpolation-spacing": "off"
 			}
 		},
 		{

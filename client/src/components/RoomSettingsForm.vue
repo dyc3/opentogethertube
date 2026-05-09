@@ -212,7 +212,7 @@ watchDebounced(
 		}
 		await submitRoomSettings();
 	},
-	{ debounce: 1000 }
+	{ debounce: 1000 },
 );
 
 onMounted(async () => {
@@ -231,7 +231,7 @@ async function loadRoomSettings() {
 	isLoadingRoomSettings.value = true;
 	try {
 		const res = await API.get<OttApiResponseGetRoom>(
-			`/room/${route.params.roomId ?? store.state.room.name}`
+			`/room/${route.params.roomId ?? store.state.room.name}`,
 		);
 		Object.assign(inputRoomSettings, intoSettings(res.data));
 		setTimeout(() => {
@@ -276,7 +276,7 @@ async function submitRoomSettings() {
 	try {
 		await API.patch(
 			`/room/${route.params.roomId ?? store.state.room.name}`,
-			getRoomSettingsSubmit()
+			getRoomSettingsSubmit(),
 		);
 		toast.add({
 			style: ToastStyle.Success,

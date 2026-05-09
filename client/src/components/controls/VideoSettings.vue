@@ -151,11 +151,11 @@ const qualities = useQualities();
 const captions = useCaptions();
 
 const isQualitySupported = computed(
-	() => qualities.isQualitySupported.value && qualities.videoTracks.value.length > 0
+	() => qualities.isQualitySupported.value && qualities.videoTracks.value.length > 0,
 );
 
 const isCaptionsSupported = computed(
-	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0
+	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0,
 );
 
 const currentSubtitleDisplay = computed(() => {
@@ -171,7 +171,7 @@ function formatCaption(track: CaptionTrack): string {
 	const localiedLabel =
 		track.srclang &&
 		new Intl.DisplayNames([track.srclang], { type: "language", fallback: "none" }).of(
-			track.srclang
+			track.srclang,
 		);
 	const label = track.label ?? localiedLabel ?? track.srclang ?? "unknown";
 	return label;

@@ -120,7 +120,7 @@ const sfx = useSfx();
 
 const showRoomSettings = ref(false);
 const autoSkipCategories = ref(
-	settings.value.defaultRoomSettings?.autoSkipSegmentCategories ?? ALL_SKIP_CATEGORIES
+	settings.value.defaultRoomSettings?.autoSkipSegmentCategories ?? ALL_SKIP_CATEGORIES,
 );
 
 watch(autoSkipCategories, categories => {

@@ -4,12 +4,9 @@
 		"node": true,
 		"es6": true
 	},
-	"plugins": ["prettier", "promise"],
-	"extends": ["eslint:recommended", "plugin:prettier/recommended", "plugin:promise/recommended"],
+	"plugins": ["promise"],
+	"extends": ["eslint:recommended", "plugin:promise/recommended"],
 	"rules": {
-		// for prettier compat
-		"implicit-arrow-linebreak": "off",
-
 		"no-console": "error",
 		"no-debugger": "off",
 		"curly": "off",
@@ -32,12 +29,6 @@
 		"sourceType": "module"
 	},
 	"overrides": [
-		{
-			"files": ["*.js", "*.ts", "*.jsx", "*.tsx"],
-			"rules": {
-				"prettier/prettier": "off"
-			}
-		},
 		{
 			"files": ["*.js"],
 			"rules": {

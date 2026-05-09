@@ -36,7 +36,7 @@ const props = withDefaults(
 	}>(),
 	{
 		showAddQueueTooltip: true,
-	}
+	},
 );
 
 const emit = defineEmits<{
@@ -91,7 +91,7 @@ watch(
 	() => text,
 	() => {
 		processText();
-	}
+	},
 );
 </script>
 

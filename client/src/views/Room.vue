@@ -143,15 +143,15 @@
 								{{
 									Array.from(
 										{ length: store.state.playerBufferSpans.length },
-										(v, k) => k++
+										(v, k) => k++,
 									)
 										.map(
 											i =>
 												`${i}: [${secondsToTimestamp(
-													store.state.playerBufferSpans?.start(i) ?? 0
+													store.state.playerBufferSpans?.start(i) ?? 0,
 												)} => ${secondsToTimestamp(
-													store.state.playerBufferSpans?.end(i) ?? 0
-												)}]`
+													store.state.playerBufferSpans?.end(i) ?? 0,
+												)}]`,
 										)
 										.join(" ")
 								}}
@@ -338,7 +338,7 @@ export default defineComponent({
 		});
 
 		const controlsMode = computed(() =>
-			currentSource.value?.service === "youtube" ? "outside-video" : "in-video"
+			currentSource.value?.service === "youtube" ? "outside-video" : "in-video",
 		);
 
 		// actively calculate the current position of the video
@@ -357,13 +357,13 @@ export default defineComponent({
 						store.state.room.playbackStartTime,
 						new Date(),
 						store.state.room.playbackPosition,
-						store.state.room.playbackSpeed
+						store.state.room.playbackSpeed,
 				  )
 				: store.state.room.playbackPosition;
 			sliderPosition.value = _.clamp(
 				truePosition.value,
 				0,
-				store.state.room.currentSource?.length ?? 0
+				store.state.room.currentSource?.length ?? 0,
 			);
 		}
 
@@ -401,7 +401,7 @@ export default defineComponent({
 				: t("room.con-status.connecting");
 		});
 		const connectionStatusColor = computed(() =>
-			connection.connected.value ? "success" : "warning"
+			connection.connected.value ? "success" : "warning",
 		);
 		const showDisconnectedOverlay = computed(() => !!connection.kickReason.value);
 
@@ -411,7 +411,7 @@ export default defineComponent({
 			}
 			if (route.params.roomId !== store.state.room.name) {
 				console.debug(
-					`room name does not match URL, rewriting to "${store.state.room.name}"`
+					`room name does not match URL, rewriting to "${store.state.room.name}"`,
 				);
 				router.replace({
 					name: "room",
@@ -518,7 +518,7 @@ export default defineComponent({
 
 		function seekDelta(delta: number) {
 			roomapi.seek(
-				_.clamp(truePosition.value + delta, 0, store.state.room.currentSource?.length ?? 0)
+				_.clamp(truePosition.value + delta, 0, store.state.room.currentSource?.length ?? 0),
 			);
 		}
 
@@ -591,7 +591,7 @@ export default defineComponent({
 
 		// misc UI stuff
 		const isMobile = computed(
-			() => window.matchMedia("only screen and (max-width: 760px)").matches
+			() => window.matchMedia("only screen and (max-width: 760px)").matches,
 		);
 		const orientation = useScreenOrientation();
 		const queueTab = ref(0);
@@ -667,7 +667,7 @@ export default defineComponent({
 
 					seekDelta(seekIncrement);
 				}
-			}
+			},
 		);
 		shortcuts.bind({ code: "Home" }, () => {
 			if (granted("playback.seek")) {
@@ -683,7 +683,7 @@ export default defineComponent({
 			volume.volume.value = _.clamp(
 				volume.volume.value + 5 * (e.code === "ArrowDown" ? -1 : 1),
 				0,
-				100
+				100,
 			);
 		});
 		shortcuts.bind({ code: "F12", ctrlKey: true, shiftKey: true }, () => {
