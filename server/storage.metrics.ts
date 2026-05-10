@@ -42,7 +42,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 					POSTGRES_SQL_COLLECT_ALL_TABLE_ROWS_FAST_ESTIMATE,
 					{
 						type: QueryTypes.SELECT,
-					}
+					},
 				);
 				log.debug(`result from query: ${JSON.stringify(result)}`);
 				for (const row of result) {
@@ -89,7 +89,7 @@ export function setupPostgresMetricsCollection(sequelize: Sequelize) {
 					`SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del FROM pg_stat_user_tables`,
 					{
 						type: QueryTypes.SELECT,
-					}
+					},
 				);
 				log.debug(`result from query: ${JSON.stringify(result)}`);
 				for (const row of result) {

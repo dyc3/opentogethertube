@@ -94,7 +94,7 @@ describe("treeutils", () => {
 		],
 	];
 	it.each(
-		flipBoundingBoxHTestCases
+		flipBoundingBoxHTestCases,
 	)("should flip bounding box", (input: BoundingBox, expected: BoundingBox) => {
 		const got = flipBoundingBoxH(input);
 		expect(got).toEqual(expected);

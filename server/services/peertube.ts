@@ -69,7 +69,7 @@ export default class PeertubeAdapter extends ServiceAdapter {
 		const [host, id] = videoId.split(":");
 
 		const result: AxiosResponse<PeertubeApiVideo> = await this.api.get(
-			`https://${host}/api/v1/videos/${id}`
+			`https://${host}/api/v1/videos/${id}`,
 		);
 
 		if (conf.get("info_extractor.peertube.emit_as_direct")) {

@@ -42,7 +42,7 @@ describe("<ShareInvite />", () => {
 
 		cy.get('[data-cy="share-invite-link"] input').should(
 			"have.value",
-			"https://ottr.cc/foobar"
+			"https://ottr.cc/foobar",
 		);
 	});
 
@@ -69,7 +69,7 @@ describe("<ShareInvite />", () => {
 
 		cy.get('[data-cy="share-invite-link"] input').should(
 			"have.value",
-			"https://ottr.cc/foobar"
+			"https://ottr.cc/foobar",
 		);
 
 		cy.get('[data-cy="share-invite-link"] [role="button"]').click();

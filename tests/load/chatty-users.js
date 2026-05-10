@@ -63,7 +63,7 @@ export default function ({ tokens }) {
 			() => {
 				socket.close(1000);
 			},
-			60000 * 1 + Math.random() * 30000
+			60000 * 1 + Math.random() * 30000,
 		);
 		socket.setInterval(() => {
 			socket.send(
@@ -73,7 +73,7 @@ export default function ({ tokens }) {
 						type: 11,
 						text: "foo",
 					},
-				})
+				}),
 			);
 		}, 50);
 	});

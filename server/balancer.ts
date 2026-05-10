@@ -44,8 +44,8 @@ export function initBalancerConnections() {
 	wss.on("listening", () => {
 		log.info(
 			`Load balancing is enabled. Listening for balancers on port ${conf.get(
-				"balancing.port"
-			)}`
+				"balancing.port",
+			)}`,
 		);
 	});
 }
@@ -299,7 +299,7 @@ export class BalancerConnectionReal extends BalancerConnection {
 		if (result.ok) {
 			if (!validateB2M(result.value)) {
 				log.error(
-					`Error validating incoming balancer message: ${JSON.stringify(result.value)}`
+					`Error validating incoming balancer message: ${JSON.stringify(result.value)}`,
 				);
 				return;
 			}
@@ -367,7 +367,7 @@ async function onRoomLoad(roomName: string) {
 	const result = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
 	if (!result.ok) {
 		log.error(
-			`Failed to grab room that should have been loaded. Can't inform balancers. room=${roomName}: ${result.value}`
+			`Failed to grab room that should have been loaded. Can't inform balancers. room=${roomName}: ${result.value}`,
 		);
 		return;
 	}

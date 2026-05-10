@@ -48,7 +48,7 @@ describe("Room manager", () => {
 				expect(room?.["role-trusted"]).toBeInstanceOf(Array);
 				await room?.destroy();
 			},
-			{ retry: 2 }
+			{ retry: 2 },
 		);
 
 		it(
@@ -74,7 +74,7 @@ describe("Room manager", () => {
 				});
 				await room?.destroy();
 			},
-			{ retry: 2 }
+			{ retry: 2 },
 		);
 	});
 

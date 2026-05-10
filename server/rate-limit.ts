@@ -34,7 +34,7 @@ export async function consumeRateLimitPoints(
 	res,
 	key: string,
 	points: number,
-	limiter: RateLimiterAbstract = rateLimiter
+	limiter: RateLimiterAbstract = rateLimiter,
 ): Promise<boolean> {
 	if (!conf.get("rate_limit.enabled")) {
 		return true;

@@ -51,7 +51,7 @@ export class OttSfx {
 				err => {
 					console.error("Failed to decode audio data", err);
 					reject(err);
-				}
+				},
 			);
 		});
 		this.assets.set(name, await buffer);

@@ -102,7 +102,7 @@ describe("Video playback", () => {
 	}, () => {
 		cy.contains("button", "Add a video").scrollIntoView().click();
 		cy.get('[data-cy="add-preview-input"]').type(
-			"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8"
+			"https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
 		);
 		cy.get(".video button").eq(1).click();
 		cy.get("video").should("exist").scrollIntoView();
@@ -190,7 +190,7 @@ describe("Video playback", () => {
 		// });
 		cy.get("video").should(element => {
 			const esTrack = Array.from(element[0].textTracks).find(
-				t => t.language === "es" && t.kind === "captions"
+				t => t.language === "es" && t.kind === "captions",
 			);
 			expect(esTrack, "Spanish caption track").to.exist;
 			expect(esTrack!.mode).to.equal("showing");

@@ -19,9 +19,9 @@
 			</v-app-bar-title>
 			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
 				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
-				<v-btn v-if="store.state.user" variant="text" to="/my-rooms">{{
-					$t("nav.my-rooms")
-				}}</v-btn>
+				<v-btn v-if="store.state.user" variant="text" to="/my-rooms">
+					{{ $t("nav.my-rooms") }}
+				</v-btn>
 				<v-btn
 					variant="text"
 					href="https://github.com/dyc3/opentogethertube/discussions/830"

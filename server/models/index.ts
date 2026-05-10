@@ -87,7 +87,7 @@ function buildConnection(config: Sequelize.Options): Sequelize.Sequelize {
 				config.database,
 				config.username,
 				config.password,
-				config
+				config,
 			);
 		}
 	}

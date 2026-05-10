@@ -2,7 +2,7 @@ import { type Ref, ref, type ComputedRef } from "vue";
 
 export function useCopyFromTextbox(
 	text: Ref<string> | ComputedRef<string>,
-	textboxComponent: Ref<any>
+	textboxComponent: Ref<any>,
 ) {
 	let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	const copySuccess = ref(false);

@@ -138,7 +138,7 @@ describe("InfoExtractor", () => {
 			expect(getManyVideoInfoSpy).toBeCalledTimes(1);
 			expect(searchSpy).toBeCalledTimes(1);
 			expect(
-				(await redisClient.get(`search:${adapter.serviceId}:asdf`))!.length
+				(await redisClient.get(`search:${adapter.serviceId}:asdf`))!.length,
 			).toBeGreaterThan(0);
 
 			getManyVideoInfoSpy.mockRestore();
@@ -240,7 +240,7 @@ describe("InfoExtractor", () => {
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException("fake"));
 			expect(await InfoExtractor.getVideoInfo("youtube", "asdf")).toEqual(
-				_.pick(vid, "service", "id", "length")
+				_.pick(vid, "service", "id", "length"),
 			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
@@ -253,7 +253,7 @@ describe("InfoExtractor", () => {
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new OutOfQuotaException("fake"));
 			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrowError(
-				OutOfQuotaException
+				OutOfQuotaException,
 			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
@@ -266,7 +266,7 @@ describe("InfoExtractor", () => {
 			]);
 			adapterFetchVideoInfo.mockRejectedValue(new Error("fake"));
 			await expect(InfoExtractor.getVideoInfo("youtube", "asdf")).rejects.toThrow(
-				new Error("fake")
+				new Error("fake"),
 			);
 			expect(adapterFetchVideoInfo).toBeCalledTimes(1);
 		});
@@ -336,19 +336,19 @@ describe("InfoExtractor", () => {
 		it("should get videos from cache without fetching from adapter", async () => {
 			storageGetManyVideoInfo.mockResolvedValue(vids);
 			expect(
-				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
 			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).not.toBeCalled();
 		});
 
 		it("should get videos fetching from adapter", async () => {
 			storageGetManyVideoInfo.mockResolvedValue(
-				vids.map(vid => _.pick(vid, "service", "id"))
+				vids.map(vid => _.pick(vid, "service", "id")),
 			);
 			adapterFetchManyVideoInfo.mockResolvedValue(vids);
 			updateCache.mockResolvedValue();
 			expect(
-				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
 			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
 			expect(updateCache).toBeCalledTimes(1);
@@ -359,7 +359,7 @@ describe("InfoExtractor", () => {
 			adapterFetchManyVideoInfo.mockResolvedValue(vids);
 			updateCache.mockResolvedValue();
 			expect(
-				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id")))
+				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
 			).toEqual(vids);
 			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
 			expect(updateCache).toBeCalledTimes(1);
@@ -392,7 +392,7 @@ describe("InfoExtractor: Cache", () => {
 				title: "asdf.mp4",
 			});
 			expect(
-				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")
+				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4"),
 			).toEqual([
 				{
 					service: "direct",
@@ -411,7 +411,7 @@ describe("InfoExtractor: Cache", () => {
 				mime: "video/mp4",
 			});
 			expect(
-				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4")
+				await InfoExtractor.getCachedVideo("direct", "https://example.com/asdf.mp4"),
 			).toEqual([
 				{
 					service: "direct",
@@ -431,7 +431,7 @@ describe("InfoExtractor: Cache", () => {
 				mime: "invalid",
 			});
 			expect(
-				InfoExtractor.getCachedVideo("direct", "https://example.com/asdf")
+				InfoExtractor.getCachedVideo("direct", "https://example.com/asdf"),
 			).rejects.toThrow(UnsupportedMimeTypeException);
 			expect(storage.getVideoInfo).toBeCalledTimes(1);
 			getVideoInfoSpy.mockReset();

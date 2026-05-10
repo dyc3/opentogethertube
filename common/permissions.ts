@@ -242,7 +242,7 @@ export class Grants {
 	 * @param {Object|undefined} grants Optional object that maps roles to grant masks.
 	 */
 	constructor(
-		grants: Grants | RoleGrants | OldRoleGrants | [Role, GrantMask][] | undefined = undefined
+		grants: Grants | RoleGrants | OldRoleGrants | [Role, GrantMask][] | undefined = undefined,
 	) {
 		if (!grants) {
 			grants = defaultPermissions();

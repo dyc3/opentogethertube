@@ -43,7 +43,7 @@ describe("Usermanager spec", () => {
 			usermanager.registerUserSocial({
 				username: "foo",
 				discordId: "123456789",
-			})
+			}),
 		).rejects.toThrow(FeatureDisabledException);
 	});
 
@@ -57,12 +57,12 @@ describe("Usermanager spec", () => {
 		const password = "3DdDjg@Dz^#y";
 		const salt = Buffer.from(
 			"e62afa7b4cc00183c70e2b519278a670133f64e4804bd0e50c380628a775ad7dc3ec5c0e0c26f7d0feca20e3c2438eaebe6a7459359f9b0770a873aa85eccfab660d27aa98df6c39db2b91eac45d479a6e22c1750c4b050b312ff000bdcaf414fa97d0b3f971f7a91489b68f9cc0b16d51f45efe43db34788b3ef6ff2ffde5b3",
-			"hex"
+			"hex",
 		);
 		// This hash decodes to: $argon2id$v=19$m=65536,t=2,p=1$gfg2I3YsUxGUZ7eSsVFv2g$E+mZmqlRi44Y6B33d4ao0MgIDQEHccvpJOWO7kKpOvs
 		const hash = Buffer.from(
 			"246172676f6e32696424763d3139246d3d36353533362c743d322c703d31246766673249335973557847555a37655373564676326724452b6d5a6d716c5269343459364233336434616f304d674944514548636376704a4f574f376b4b704f767300000000000000000000000000000000000000000000000000000000000000",
-			"hex"
+			"hex",
 		);
 		// Create a test user with a hardcoded hash from the old secure-password library
 		const testUser = await UserModel.create({

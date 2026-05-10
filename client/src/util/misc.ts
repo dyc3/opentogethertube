@@ -23,7 +23,7 @@ function gcd(a: number, b: number): number {
  */
 function getAspectRatio(
 	width: number,
-	height: number
+	height: number,
 ): { ratio: string; float: number; type: string } {
 	if (width <= 0 || height <= 0) {
 		throw new Error("Width and height must be positive numbers");
