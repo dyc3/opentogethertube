@@ -13,7 +13,7 @@ module.exports = {
 				await queryInterface.changeColumn("Rooms", column, DataTypes.JSONB);
 			} else if (dialect === "postgres") {
 				await queryInterface.sequelize.query(
-					`ALTER TABLE "Rooms" ALTER "${column}" TYPE JSONB USING "${column}"::JSONB`
+					`ALTER TABLE "Rooms" ALTER "${column}" TYPE JSONB USING "${column}"::JSONB`,
 				);
 			} else {
 				throw new Error(`Unsupported dialect: ${dialect}`);
@@ -28,7 +28,7 @@ module.exports = {
 				await queryInterface.changeColumn("Rooms", column, DataTypes.TEXT);
 			} else if (dialect === "postgres") {
 				await queryInterface.sequelize.query(
-					`ALTER TABLE "Rooms" ALTER "${column}" TYPE TEXT USING "${column}"::TEXT`
+					`ALTER TABLE "Rooms" ALTER "${column}" TYPE TEXT USING "${column}"::TEXT`,
 				);
 			} else {
 				throw new Error(`Unsupported dialect: ${dialect}`);

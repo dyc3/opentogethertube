@@ -13,8 +13,8 @@ function buildFindRoomWhere(roomName: string) {
 	return Sequelize.and(
 		Sequelize.where(
 			Sequelize.fn("lower", Sequelize.col("name")),
-			Sequelize.fn("lower", roomName)
-		)
+			Sequelize.fn("lower", roomName),
+		),
 	);
 }
 
@@ -158,7 +158,7 @@ export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id">
 	if (room.userRoles) {
 		for (let i = Role.TrustedUser; i <= 4; i++) {
 			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(
-				room.userRoles.get(i)?.values() ?? []
+				room.userRoles.get(i)?.values() ?? [],
 			);
 		}
 	}
@@ -169,7 +169,7 @@ export function roomToDb(room: RoomStatePersistable): Omit<RoomAttributes, "id">
  * Converts a room into an object that can be stored in the database
  */
 export function roomToDbPartial(
-	room: Partial<RoomStatePersistable>
+	room: Partial<RoomStatePersistable>,
 ): Partial<Omit<RoomAttributes, "id" | "name">> {
 	const db: Partial<Omit<RoomAttributes, "id" | "name">> = _.pickBy(
 		{
@@ -181,7 +181,7 @@ export function roomToDbPartial(
 			restoreQueueBehavior: room.restoreQueueBehavior,
 			enableVoteSkip: room.enableVoteSkip,
 		},
-		v => !!v
+		v => !!v,
 	);
 	// room.prevQueue will become null if its length is 0, so we need to explicitly check for null here
 	if (room.prevQueue || room.prevQueue === null) {
@@ -200,7 +200,7 @@ export function roomToDbPartial(
 	if (room.userRoles) {
 		for (let i = Role.TrustedUser; i <= 4; i++) {
 			db[`role-${permissions.ROLE_NAMES[i]}`] = Array.from(
-				room.userRoles.get(i)?.values() ?? []
+				room.userRoles.get(i)?.values() ?? [],
 			);
 		}
 	}

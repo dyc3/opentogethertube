@@ -114,7 +114,7 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 			if (!response.ok) {
 				log.error(`Failed to fetch manifest at ${link}: ${response.status}`);
 				throw new MissingMetadataException(
-					`Failed to fetch the media manifest (HTTP ${response.status}). Please check that the URL is accessible.`
+					`Failed to fetch the media manifest (HTTP ${response.status}). Please check that the URL is accessible.`,
 				);
 			}
 			json = await response.json();
@@ -169,10 +169,10 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 		// Final fallback: check if we have video/audio streams and use a generic supported MIME type
 		if (!mime || !isSupportedMimeType(mime)) {
 			const hasVideo = fileInfo.streams?.some(
-				(s: { codec_type: string }) => s.codec_type === "video"
+				(s: { codec_type: string }) => s.codec_type === "video",
 			);
 			const hasAudio = fileInfo.streams?.some(
-				(s: { codec_type: string }) => s.codec_type === "audio"
+				(s: { codec_type: string }) => s.codec_type === "audio",
 			);
 			// Use generic MIME types that are known to be supported
 			if (hasVideo) {

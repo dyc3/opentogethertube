@@ -5,7 +5,7 @@ export function calculateCurrentPosition(
 	start_time: dayjs.ConfigType,
 	now_time: dayjs.ConfigType,
 	offset: number,
-	playbackSpeed: number = 1
+	playbackSpeed: number = 1,
 ): number {
 	const deltaRaw = dayjs(now_time).diff(start_time, "milliseconds") / 1000;
 	return offset + deltaRaw * playbackSpeed;

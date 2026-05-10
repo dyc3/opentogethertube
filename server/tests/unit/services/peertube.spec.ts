@@ -27,7 +27,7 @@ describe("Peertube", () => {
 		for (const file of fs.readdirSync(FIXTURE_DIRECTORY)) {
 			FIXTURES.set(
 				file.split(".")[0],
-				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8")
+				fs.readFileSync(`${FIXTURE_DIRECTORY}/${file}`, "utf8"),
 			);
 		}
 

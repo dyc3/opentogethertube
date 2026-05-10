@@ -70,7 +70,7 @@ export const RegionView: React.FC<Props> = ({ systemState, assignColor, width, h
 			.select(".texts")
 			.selectAll("text")
 			.data(
-				tree.descendants().filter(d => d.data.group !== "root" && d.data.group !== "room")
+				tree.descendants().filter(d => d.data.group !== "root" && d.data.group !== "room"),
 			)
 			.join("text")
 			.attr("class", "text")

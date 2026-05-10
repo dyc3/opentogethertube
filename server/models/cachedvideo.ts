@@ -59,7 +59,7 @@ export const createModel = (sequelize: Sequelize) => {
 		{
 			sequelize,
 			modelName: "CachedVideo",
-		}
+		},
 	);
 
 	return CachedVideo;

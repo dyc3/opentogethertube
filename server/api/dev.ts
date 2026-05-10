@@ -59,7 +59,7 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 					user_id: user ? user.id : undefined,
 				},
 			},
-			{ token: token }
+			{ token: token },
 		);
 		res.json({ success: true });
 	} catch (e) {

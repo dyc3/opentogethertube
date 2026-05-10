@@ -29,7 +29,7 @@ function registerFfprobeChild(child: childProcess.ChildProcess): void {
 		child.once("close", () => {
 			FFPROBE_CHILDREN.delete(child);
 			log.debug(
-				`unregistered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`
+				`unregistered ffprobe child pid=${child.pid}, total now=${FFPROBE_CHILDREN.size}`,
 			);
 		});
 	} catch (e) {
@@ -44,7 +44,7 @@ function killAllFfprobeChildren(reason: string): void {
 		return;
 	}
 	log.warn(
-		`killAllFfprobeChildren: cleaning up ${FFPROBE_CHILDREN.size} children (reason=${reason})`
+		`killAllFfprobeChildren: cleaning up ${FFPROBE_CHILDREN.size} children (reason=${reason})`,
 	);
 	for (const c of FFPROBE_CHILDREN) {
 		try {
@@ -71,7 +71,7 @@ process.once("SIGTERM", () => killAllFfprobeChildren("sigterm"));
 function streamDataIntoFfprobe(
 	ffprobePath: string,
 	stream: Stream,
-	controller: AbortController
+	controller: AbortController,
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
 		let settled = false;
@@ -100,7 +100,7 @@ function streamDataIntoFfprobe(
 		let timedOut = false;
 		let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
 			log.warn(
-				`ffprobe pid=${child.pid} exceeded hard timeout ${FFPROBE_TIMEOUT_MS}ms — killing`
+				`ffprobe pid=${child.pid} exceeded hard timeout ${FFPROBE_TIMEOUT_MS}ms — killing`,
 			);
 			try {
 				timedOut = true;
@@ -213,7 +213,7 @@ export class RunFfprobe extends FfprobeStrategy {
 			// if, by some weird off chance, the uri SOMEHOW contains a quote, don't execute the command
 			// because it'll break, and probably lead to an exploit.
 			log.error(
-				"Failed to grab file info: uri contains unescaped double quote, which is a banned character"
+				"Failed to grab file info: uri contains unescaped double quote, which is a banned character",
 			);
 			throw new Error("Unescaped double quote found in uri");
 		}
@@ -270,7 +270,7 @@ export class RunFfprobe extends FfprobeStrategy {
 					return resolve();
 				}
 				reject(
-					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`)
+					new Error(`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`),
 				);
 			});
 		});
@@ -342,7 +342,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 
 			let hardKiller: NodeJS.Timeout | null = setTimeout(() => {
 				log.warn(
-					`ffprobe (ondisk) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`
+					`ffprobe (ondisk) pid=${child.pid} exceeded ${FFPROBE_TIMEOUT_MS}ms — killing`,
 				);
 				try {
 					timedOut = true;
@@ -375,8 +375,8 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 					}
 					reject(
 						new Error(
-							`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`
-						)
+							`ffprobe exit code ${code} signal ${signal ?? "none"} stderr=${err}`,
+						),
 					);
 				});
 			});

@@ -130,7 +130,7 @@
 		"formatter": {
 			"enabled": true,
 			"quoteProperties": "asNeeded",
-			"trailingCommas": "es5",
+			"trailingCommas": "all",
 			"semicolons": "always",
 			"arrowParentheses": "asNeeded",
 			"bracketSameLine": false

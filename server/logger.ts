@@ -51,7 +51,7 @@ const logger = createLogger({
 		format.timestamp({
 			format: "YYYY-MM-DD HH:mm:ss",
 		}),
-		myFormat
+		myFormat,
 	),
 });
 
@@ -64,13 +64,13 @@ if (conf.get("env") !== "production") {
 		new transports.Console({
 			format: format.combine(customColorizer(), myFormat),
 			silent: conf.get("env") === "test",
-		})
+		}),
 	);
 } else {
 	logger.add(
 		new transports.Console({
 			format: format.combine(customColorizer(), myFormat),
-		})
+		}),
 	);
 }
 

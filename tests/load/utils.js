@@ -55,7 +55,7 @@ export function createRoom(name, token, roomOptions = {}, options = { doCheck: t
 		{
 			name: name,
 		},
-		roomOptions
+		roomOptions,
 	);
 	const url = `http://${HOSTNAME}/api/room/create`;
 	const resp = http.post(url, JSON.stringify(body), {

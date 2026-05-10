@@ -39,7 +39,7 @@ declare global {
 			mount: typeof mount;
 			vue(): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
 			setProps(
-				props: Record<string, unknown>
+				props: Record<string, unknown>,
 			): Chainable<{ wrapper: VueWrapper<any>; component: unknown }>;
 			emitted(event: string): Chainable<unknown[]>;
 			store(): Chainable<Store<FullOTTStoreState>>;

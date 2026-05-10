@@ -257,7 +257,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	}
 
 	private pickBestThumbnail(
-		thumbnails?: { url: string; width?: number; height?: number }[]
+		thumbnails?: { url: string; width?: number; height?: number }[],
 	): string | undefined {
 		// Prefer the thumbnail with the largest pixel area.
 		if (!thumbnails?.length) {
@@ -339,7 +339,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 		const list = (inv.formatStreams || []).filter(f => !!f.url);
 		if (list.length) {
 			const mp4 = list.filter(
-				f => f.container === "mp4" || (f.type || "").toLowerCase().includes("mp4")
+				f => f.container === "mp4" || (f.type || "").toLowerCase().includes("mp4"),
 			);
 
 			// Use the constant (no magic number) and avoid non-null assertion by falling back to list[0].
@@ -397,7 +397,7 @@ export default class InvidiousAdapter extends ServiceAdapter {
 	private async probeManifest(
 		host: string,
 		id: string,
-		kind: "dash" | "hls"
+		kind: "dash" | "hls",
 	): Promise<{ kind: "dash" | "hls"; url: string; topKbps: number; topRes?: string } | null> {
 		const url = this.manifestUrl(host, id, kind);
 		try {

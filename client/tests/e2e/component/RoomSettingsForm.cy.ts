@@ -78,7 +78,7 @@ describe("<RoomSettingsForm />", () => {
 				store.state.room.grants = new Grants();
 				store.state.room.grants.setRoleGrants(
 					Role.UnregisteredUser,
-					parseIntoGrantMask(["*"]) ^ parseIntoGrantMask(["configure-room"])
+					parseIntoGrantMask(["*"]) ^ parseIntoGrantMask(["configure-room"]),
 				);
 				store.state.users.users = new Map([
 					[

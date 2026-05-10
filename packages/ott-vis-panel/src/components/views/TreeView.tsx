@@ -130,7 +130,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 }) => {
 	const svgRef = useRef<SVGSVGElement | null>(null);
 	const monolithTrees = buildMonolithTrees(
-		dedupeMonoliths(systemState.flatMap(b => b.monoliths))
+		dedupeMonoliths(systemState.flatMap(b => b.monoliths)),
 	).sort((a, b) => d3.ascending(a.region, b.region) || d3.ascending(a.id, b.id));
 
 	const getRadius = useCallback(
@@ -143,12 +143,12 @@ const TreeView: React.FC<TreeViewProps> = ({
 				return baseNodeRadius;
 			}
 		},
-		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
+		[baseNodeRadius, balancerNodeRadius, clientNodeRadius],
 	);
 
 	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(
 		svgRef,
-		d3.zoomIdentity.translate(width / 2, height / 2)
+		d3.zoomIdentity.translate(width / 2, height / 2),
 	);
 
 	useEffect(() => {
@@ -242,7 +242,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 								.attr("stroke", "white")
 								.attr("stroke-width", 2),
 						update => update,
-						exit => exit.transition(tr).attr("r", 0).remove()
+						exit => exit.transition(tr).attr("r", 0).remove(),
 					)
 					.attr("fill", d => assignColor(d.group))
 					.attr("data-nodeid", d => d.id)
@@ -260,7 +260,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 								.attr("y", d => d.y)
 								.attr("class", "balancer-text"),
 						update => update,
-						exit => exit.transition(tr).attr("font-size", 0).remove()
+						exit => exit.transition(tr).attr("font-size", 0).remove(),
 					)
 					.text(d => `${d.region.substring(0, 3)} ${d.id}`.substring(0, 10))
 					.transition(tr)
@@ -306,13 +306,13 @@ const TreeView: React.FC<TreeViewProps> = ({
 								.attr("stroke", "white")
 								.attr("stroke-width", 2),
 						update => update,
-						exit => exit.transition(tr).attr("r", 0).remove()
+						exit => exit.transition(tr).attr("r", 0).remove(),
 					)
 					// @ts-expect-error this is valid and it works
 					.attr("fill", d =>
 						d.data.group === "balancer"
 							? assignColor(d.data.group)
-							: balColor(d.data.group)
+							: balColor(d.data.group),
 					)
 					.attr("data-nodeid", d => d.data.id)
 					.transition(tr)
@@ -330,7 +330,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 								.attr("y", (d: any) => d.y)
 								.attr("class", "balancer-text"),
 						update => update,
-						exit => exit.transition(tr).attr("font-size", 0).remove()
+						exit => exit.transition(tr).attr("font-size", 0).remove(),
 					)
 					.text(d => `${d.data.id}`.substring(0, 8))
 					.transition(tr)
@@ -369,7 +369,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 						return group;
 					},
 					update => update,
-					exit => exit.remove()
+					exit => exit.remove(),
 				)
 				.transition(tr)
 				.attr("transform", d => `translate(${d.x}, ${d.y})`)
@@ -387,7 +387,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 						.join(
 							create => create.append("path").attr("class", "treelink"),
 							update => update,
-							exit => exit.transition(tr).attr("stroke-width", 0).remove()
+							exit => exit.transition(tr).attr("stroke-width", 0).remove(),
 						)
 						.attr("fill", "none")
 						.attr("stroke", "white")
@@ -417,7 +417,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("r", 0)
 									.attr("cx", (d: any) => (d.parent ? d.parent.x : d.x))
 									.attr("cy", (d: any) => (d.parent ? d.parent.y : d.y))
-									.remove()
+									.remove(),
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.attr("fill", d => assignColor(d.data.group))
@@ -446,7 +446,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 									.attr("font-size", 0)
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
-									.remove()
+									.remove(),
 						)
 						.text(d => `${d.data.id}`.substring(0, 6))
 						.transition(tr)
@@ -462,7 +462,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 			}
 			const diagonal = d3
 				.link<B2MLink, BalancerNode | MonolithNode>(
-					b2mLinkStyle === "step" ? d3.curveStep : d3.curveBumpX
+					b2mLinkStyle === "step" ? d3.curveStep : d3.curveBumpX,
 				)
 				.x(d => d.x)
 				.y(d => d.y);
@@ -489,7 +489,7 @@ const TreeView: React.FC<TreeViewProps> = ({
 							.attr("fill", "none")
 							.attr("stroke", "white"),
 					update => update,
-					exit => exit.transition(tr).attr("stroke-width", 0).remove()
+					exit => exit.transition(tr).attr("stroke-width", 0).remove(),
 				)
 				.attr("data-nodeid-source", d => d.source.id)
 				.attr("data-nodeid-target", d => d.target.id)
@@ -508,10 +508,10 @@ const TreeView: React.FC<TreeViewProps> = ({
 								b.y - balancerNodeRadius,
 								b.x + balancerNodeRadius,
 								b.y + balancerNodeRadius,
-							])
-						)
+							]),
+						),
 				),
-				50
+				50,
 			);
 			const transformNew = calcZoomTransform(superBBox, width, height);
 

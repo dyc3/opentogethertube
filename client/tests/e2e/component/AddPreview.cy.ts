@@ -30,7 +30,7 @@ describe("<AddPreview />", () => {
 						length: 100,
 					},
 				],
-			}
+			},
 		).as("previewAdd");
 		cy.mount(page);
 

@@ -26,7 +26,7 @@ export const toastModule: Module<ToastState, unknown> = {
 					) {
 						const removed = state.notifications.splice(
 							state.notifications.length - 1,
-							1
+							1,
 						);
 						notification.event.additional.prevPosition =
 							removed[0].event?.additional.prevPosition;

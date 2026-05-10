@@ -81,7 +81,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 	const monolithTrees = dedupeItems(
 		pruneTrees(fullTree, "monolith", "room"),
 		tree => tree.data.id,
-		(a, b) => a
+		(a, b) => a,
 	);
 	const balancerTrees = filterTreeGroups(fullTree, ["balancer", "client"]);
 
@@ -95,12 +95,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				return baseNodeRadius;
 			}
 		},
-		[baseNodeRadius, balancerNodeRadius, clientNodeRadius]
+		[baseNodeRadius, balancerNodeRadius, clientNodeRadius],
 	);
 
 	const { resetZoom, enableAutoZoom, transform, setTransform } = useD3AutoZoom(
 		svgRef,
-		d3.zoomIdentity.translate(width / 2, height / 2)
+		d3.zoomIdentity.translate(width / 2, height / 2),
 	);
 
 	useEffect(() => {
@@ -141,7 +141,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			.radius((d: any) => Math.sqrt(d.x * d.x + d.y * d.y));
 		function renderTrees(
 			trees: Subtree[],
-			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
+			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>,
 		) {
 			base.selectAll(".tree")
 				.data(trees)
@@ -157,7 +157,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						return group;
 					},
 					update => update,
-					exit => exit.remove()
+					exit => exit.remove(),
 				)
 				.transition(tr)
 				.attr("transform", d => `translate(${d.x}, ${d.y})`)
@@ -171,7 +171,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						.join(
 							create => create.append("path").attr("class", "link"),
 							update => update,
-							exit => exit.transition(tr).attr("stroke-width", 0).remove()
+							exit => exit.transition(tr).attr("stroke-width", 0).remove(),
 						)
 						.attr("class", "link")
 						.attr("data-nodeid-source", d => d.source.data.id)
@@ -199,7 +199,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 									.attr("r", 0)
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
-									.remove()
+									.remove(),
 						)
 						.attr("data-nodeid", d => d.data.id)
 						.transition(tr)
@@ -228,7 +228,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 									.attr("font-size", 0)
 									.attr("x", (d: any) => (d.parent ? d.parent.x : d.x))
 									.attr("y", (d: any) => (d.parent ? d.parent.y : d.y))
-									.remove()
+									.remove(),
 						)
 						.filter(d => d.data.group !== "room" && d.data.group !== "client")
 						.text(d => d.data.id.substring(0, 6))
@@ -243,7 +243,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			trees: d3.HierarchyNode<TreeNode>[],
 			nodeRadius: number,
 			nodePadding: number,
-			onRight: boolean
+			onRight: boolean,
 		): Subtree[] {
 			const subtrees: Subtree[] = [];
 			for (const tree of trees) {
@@ -281,7 +281,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 			}
 			const subtreeYs = stackBoxes(
 				subtrees.map(t => t.bbox),
-				subtreePadding
+				subtreePadding,
 			);
 			for (const [i, subtree] of subtrees.entries()) {
 				subtree.y = subtreeYs[i];
@@ -294,13 +294,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				region.monolithTrees,
 				baseNodeRadius,
 				5,
-				true
+				true,
 			);
 			const balancerSubtrees: Subtree[] = buildSubtrees(
 				region.balancerTrees,
 				clientNodeRadius,
 				0,
-				false
+				false,
 			);
 
 			const built: Region = {
@@ -312,7 +312,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 						...balancerSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
 						...monolithSubtrees.map(t => offsetBBox(t.bbox, t.x, t.y)),
 					]),
-					regionBoxPadding
+					regionBoxPadding,
 				),
 				x: 0,
 				y: 0,
@@ -322,7 +322,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
 		function renderRegion(
 			region: Region,
-			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>
+			base: d3.Selection<d3.BaseType | SVGElement, any, null, any>,
 		) {
 			const monolithSubtrees = region.monolithSubtrees;
 			const balancerSubtrees = region.balancerSubtrees;
@@ -366,7 +366,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 				.join(
 					create => create.append("path").attr("class", "link"),
 					update => update,
-					exit => exit.transition(tr).attr("stroke-width", 0).remove()
+					exit => exit.transition(tr).attr("stroke-width", 0).remove(),
 				)
 				.attr("data-nodeid-source", d => d.source.tree.data.id)
 				.attr("data-nodeid-target", d => d.target.tree.data.id)
@@ -382,7 +382,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		}
 		const regionYs = stackBoxes(
 			monolithBuiltRegions.map(r => r.bbox),
-			baseNodeRadius * 2 + 10
+			baseNodeRadius * 2 + 10,
 		);
 		for (const [i, region] of monolithBuiltRegions.entries()) {
 			region.y = regionYs[i];
@@ -402,7 +402,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 					return group;
 				},
 				update => update,
-				exit => exit.transition(tr).attr("opacity", 0).remove()
+				exit => exit.transition(tr).attr("opacity", 0).remove(),
 			)
 			.attr("data-nodeid", d => d.name)
 			.transition(tr)
@@ -434,9 +434,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 		// zoom to fit the whole tree
 		const superBBox = expandBBox(
 			superBoundingBox(
-				Array.from(monolithBuiltRegions.values()).map(r => offsetBBox(r.bbox, r.x, r.y))
+				Array.from(monolithBuiltRegions.values()).map(r => offsetBBox(r.bbox, r.x, r.y)),
 			),
-			50
+			50,
 		);
 		const transformNew = calcZoomTransform(superBBox, width, height);
 

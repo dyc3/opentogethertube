@@ -161,10 +161,10 @@ export async function updateManyVideoInfo(videos: Video[]): Promise<boolean> {
 		});
 
 		const [toUpdate, toCreate] = _.partition(videos, video =>
-			_.find(foundVideos, { service: video.service, serviceId: video.id })
+			_.find(foundVideos, { service: video.service, serviceId: video.id }),
 		);
 		log.debug(
-			`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`
+			`bulk cache: should update ${toUpdate.length} rows, create ${toCreate.length} rows`,
 		);
 		const promises: Promise<unknown>[] = toUpdate.map(video => updateVideoInfo(video, false));
 		if (toCreate.length) {

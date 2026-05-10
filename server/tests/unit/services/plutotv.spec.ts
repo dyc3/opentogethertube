@@ -68,7 +68,7 @@ const seriesLinks: [string, PlutoParsedIds][] = [
 ];
 
 const validLinks = [...seriesLinks.map(([link, _]) => link)].concat(
-	singleVideoLinks.map(([link, _]) => link)
+	singleVideoLinks.map(([link, _]) => link),
 );
 
 describe("Pluto TV", () => {
@@ -93,14 +93,14 @@ describe("Pluto TV", () => {
 	describe("getVideoId", () => {
 		it.each(singleVideoLinks)("should be able to get the video id from %s", (link, data) => {
 			expect(adapter.getVideoId(link)).toEqual(
-				`${data.type}/${data.id}${data.subid ? `/${data.subid}` : ""}`
+				`${data.type}/${data.id}${data.subid ? `/${data.subid}` : ""}`,
 			);
 		});
 	});
 
 	describe("parseUrl", () => {
 		it.each(
-			singleVideoLinks.concat(seriesLinks)
+			singleVideoLinks.concat(seriesLinks),
 		)("should be able to parse %s", (link, data) => {
 			expect(adapter.parseUrl(link)).toEqual(data);
 		});
@@ -123,7 +123,7 @@ describe("Pluto TV", () => {
 		});
 
 		it.each(
-			singleVideoLinks.map(x => x[0])
+			singleVideoLinks.map(x => x[0]),
 		)(`should handle single video %s`, async (url: string) => {
 			const results = await adapter.resolveURL(url);
 
@@ -139,7 +139,7 @@ describe("Pluto TV", () => {
 
 		it(`should only contain episodes from season 1`, async () => {
 			const results = await adapter.resolveURL(
-				"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1"
+				"https://pluto.tv/en/on-demand/series/603db25de7c979001a88f77a/details/season/1",
 			);
 
 			for (const result of results) {
