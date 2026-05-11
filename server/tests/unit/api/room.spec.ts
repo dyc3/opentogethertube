@@ -239,6 +239,20 @@ describe("Room API", () => {
 					isTemporary: true,
 				},
 			],
+			[
+				{
+					name: "test2",
+					title: "Title with\nnewline",
+					isTemporary: true,
+				},
+			],
+			[
+				{
+					name: "test3",
+					title: "Title with\r\ncarriage return",
+					isTemporary: true,
+				},
+			],
 			[{ name: "test1", isTemporary: true, visibility: "invalid" }],
 		])("should fail to create room for validation errors: %s", async body => {
 			const resp = await request(app)
@@ -353,6 +367,16 @@ describe("Room API", () => {
 			[
 				{
 					title: "abababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+				},
+			],
+			[
+				{
+					title: "Title with\nnewline",
+				},
+			],
+			[
+				{
+					title: "Title with\r\ncarriage return newline",
 				},
 			],
 			[
