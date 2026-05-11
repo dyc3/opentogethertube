@@ -11,6 +11,7 @@ import { OttApiRequestAccountUpdateSchema } from "ott-common/models/zod-schemas.
 import { Room as DbRoomModel } from "../models/index.js";
 import { consumeRateLimitPoints } from "../rate-limit.js";
 import usermanager from "../usermanager.js";
+import { conf } from "../ott-config.js";
 
 const router = express.Router();
 const ACCOUNT_READ_RATE_LIMIT_POINTS = 1;
@@ -43,11 +44,20 @@ const getAccount: RequestHandler<never, OttResponseBody<OttApiResponseAccount>> 
 		return;
 	}
 
+	const discordClientId = conf.get("discord.client_id");
+	const discordClientSecret = conf.get("discord.client_secret");
+	const discordLoginEnabled =
+		!!discordClientId &&
+		!!discordClientSecret &&
+		discordClientId !== "NONE" &&
+		discordClientSecret !== "NONE";
+
 	res.json({
 		success: true,
 		username: req.user.username,
 		email: req.user.email,
 		discordLinked: !!req.user.discordId,
+		discordLoginEnabled,
 		hasPassword: !!(req.user.hash && req.user.salt),
 	});
 };

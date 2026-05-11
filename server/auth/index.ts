@@ -130,8 +130,35 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
+function requireDiscordConfigured(
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction,
+) {
+	const discordClientId = conf.get("discord.client_id");
+	const discordClientSecret = conf.get("discord.client_secret");
+	const isConfigured =
+		!!discordClientId &&
+		!!discordClientSecret &&
+		discordClientId !== "NONE" &&
+		discordClientSecret !== "NONE";
+
+	if (!isConfigured) {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "FeatureDisabled",
+				message: "Discord login is not configured on this server.",
+			},
+		});
+		return;
+	}
+	next();
+}
+
 router.get(
 	"/discord",
+	requireDiscordConfigured,
 	async (req, res, next) => {
 		// @ts-expect-error ts really doesn't like express's query type
 		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
@@ -141,6 +168,7 @@ router.get(
 );
 router.get(
 	"/discord/callback",
+	requireDiscordConfigured,
 	passport.authenticate("discord", {
 		failureRedirect: "/",
 		keepSessionInfo: true,

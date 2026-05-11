@@ -32,7 +32,7 @@
 				</v-col>
 			</v-row>
 
-			<v-row>
+			<v-row v-if="account.discordLoginEnabled">
 				<v-col cols="12" md="8" lg="6">
 					<v-card>
 						<v-card-title>{{ $t("account.social") }}</v-card-title>
