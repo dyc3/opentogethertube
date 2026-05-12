@@ -8,6 +8,7 @@ import nocache from "nocache";
 import usermanager from "../usermanager.js";
 import { requireApiKey } from "../admin.js";
 import { conf } from "../ott-config.js";
+import { isDiscordLoginEnabled } from "./discord-utils.js";
 
 export type { SessionInfo } from "./tokens.js";
 
@@ -135,15 +136,7 @@ function requireDiscordConfigured(
 	res: express.Response,
 	next: express.NextFunction,
 ) {
-	const discordClientId = conf.get("discord.client_id");
-	const discordClientSecret = conf.get("discord.client_secret");
-	const isConfigured =
-		!!discordClientId &&
-		!!discordClientSecret &&
-		discordClientId !== "NONE" &&
-		discordClientSecret !== "NONE";
-
-	if (!isConfigured) {
+	if (!isDiscordLoginEnabled()) {
 		res.status(400).json({
 			success: false,
 			error: {
