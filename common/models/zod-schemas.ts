@@ -6,6 +6,8 @@ import { z } from "zod";
 // These strings are not allowed to be used as room names.
 const RESERVED_ROOM_NAMES = ["list", "create", "generate"];
 
+const NEWLINE_REGEX = /[\r\n]/;
+
 const CategorySchema = z.enum([
 	"sponsor",
 	"intro",
@@ -33,7 +35,7 @@ export const OttApiRequestRoomCreateSchema = z
 		title: z
 			.string()
 			.max(255, "too long, must be at most 255 characters")
-			.refine(title => !/[\r\n]/.test(title), {
+			.refine(title => !NEWLINE_REGEX.test(title), {
 				message: "title must not contain newlines",
 			})
 			.optional(),
@@ -108,7 +110,7 @@ export const RoomSettingsSchema = z
 		title: z
 			.string()
 			.max(254)
-			.refine(title => !/[\r\n]/.test(title), {
+			.refine(title => !NEWLINE_REGEX.test(title), {
 				message: "title must not contain newlines",
 			})
 			.optional(),
