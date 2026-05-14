@@ -34,6 +34,7 @@ interface BaseStoreState {
 	fullscreen: boolean;
 	production: boolean;
 	shortUrl?: string;
+	discordLoginEnabled: boolean;
 }
 
 export function buildNewStore() {
@@ -53,6 +54,7 @@ export function buildNewStore() {
 				keepAliveInterval: null,
 
 				shortUrl: import.meta.env.OTT_SHORT_URL_HOSTNAME,
+				discordLoginEnabled: false,
 			};
 		},
 		mutations: {
@@ -79,6 +81,9 @@ export function buildNewStore() {
 			},
 			SET_FULLSCREEN(state, fullscreen) {
 				state.fullscreen = fullscreen;
+			},
+			SET_DISCORD_LOGIN_ENABLED(state, enabled: boolean) {
+				state.discordLoginEnabled = !!enabled;
 			},
 		},
 		actions: {
