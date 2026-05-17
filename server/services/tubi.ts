@@ -12,12 +12,10 @@ const TUBI_URL_REGEX =
 const NUMERIC_ID_REGEX = /^\d+$/;
 // Matches window.__data = {...}; in HTML pages for movie/series data
 const TUBI_PAGE_DATA_REGEX = /window\.__data\s*=\s*(\{.*?\});\s*<\/script>/s;
-// Matches window.__data = {...} for the legacy series endpoint
-const TUBI_SERIES_DATA_REGEX = /window\.__data\s*=\s*(\{.+?\});\s*<\/script>/;
 
 interface TubiVideoResponse {
 	id: string;
-	type: "k";
+	type: "v";
 	title: string;
 	description: string;
 	thumbnails: string[];
@@ -53,15 +51,11 @@ interface TubiSeriesInfo {
 	};
 }
 
-// React Query wrapped response for movie pages
-interface TubiReactQueryVideo {
-	_1k1j2: TubiVideoResponse;
-}
-
+// Live Tubi page data structure (video.byId direct format, not React Query wrapper)
 interface TubiPageVideoData {
 	video?: {
-		content?: {
-			[id: string]: TubiReactQueryVideo;
+		byId?: {
+			[id: string]: TubiVideoResponse;
 		};
 	};
 }
@@ -123,7 +117,7 @@ export default class TubiAdapter extends ServiceAdapter {
 		if (!match) {
 			throw new Error(`Unable to extract page data from ${url}`);
 		}
-		return match[1];
+		return match[1].replace(/:undefined/g, ":null");
 	}
 
 	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
@@ -131,9 +125,9 @@ export default class TubiAdapter extends ServiceAdapter {
 			throw new Error(`Invalid Tubi video id: ${id}`);
 		}
 		// Tubi's /oz/videos/ endpoint now returns 401; use the HTML page instead
-		const pageDataRaw = await this.fetchPageData(`https://tubitv.com/movies/${id}/dummy`);
+		const pageDataRaw = await this.fetchPageData(`https://tubitv.com/movies/${id}/the-mask`);
 		const pageData = JSON.parse(pageDataRaw) as TubiPageVideoData;
-		const videoEntry = pageData.video?.content?.[id]?._1k1j2;
+		const videoEntry = pageData.video?.byId?.[id];
 		if (!videoEntry) {
 			throw new Error(`Video data not found for id ${id}`);
 		}
@@ -145,12 +139,12 @@ export default class TubiAdapter extends ServiceAdapter {
 			throw new Error(`Invalid Tubi series id: ${id}`);
 		}
 		const resp = await this.api.get(`https://tubitv.com/series/${id}`);
-		const match = TUBI_SERIES_DATA_REGEX.exec(resp.data as string)?.[1];
+		const match = TUBI_PAGE_DATA_REGEX.exec(resp.data as string)?.[1];
 		if (!match) {
 			throw new Error(`Unable to get series info from ${id}`);
 		}
 
-		const corrected = match.split(":undefined").join(":null"); // because replaceAll isn't available here?
+		const corrected = match.replace(/:undefined/g, ":null");
 		const data = JSON.parse(corrected) as TubiSeriesInfo;
 
 		const videos: Video[] = [];
