@@ -111,7 +111,10 @@ function off<E extends UserManagerEvents>(event: E, listener: UserManagerEventHa
 	bus.off(event, listener);
 }
 
-router.get("/", nocache(), (req, res) => {
+router.get("/", nocache(), async (req, res) => {
+	if (!(await consumeRateLimitPoints(res, req.ip, 1))) {
+		return;
+	}
 	if (req.user) {
 		const user = {
 			username: req.user.username,

@@ -8,6 +8,7 @@ import nocache from "nocache";
 import usermanager from "../usermanager.js";
 import { requireApiKey } from "../admin.js";
 import { conf } from "../ott-config.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
 import { isDiscordLoginEnabled } from "./discord-utils.js";
 
 export type { SessionInfo } from "./tokens.js";
@@ -149,8 +150,20 @@ function requireDiscordConfigured(
 	next();
 }
 
+async function rateLimitDiscord(
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction,
+) {
+	if (!(await consumeRateLimitPoints(res, req.ip, 10))) {
+		return;
+	}
+	next();
+}
+
 router.get(
 	"/discord",
+	rateLimitDiscord,
 	requireDiscordConfigured,
 	async (req, res, next) => {
 		// @ts-expect-error ts really doesn't like express's query type
@@ -161,6 +174,7 @@ router.get(
 );
 router.get(
 	"/discord/callback",
+	rateLimitDiscord,
 	requireDiscordConfigured,
 	passport.authenticate("discord", {
 		failureRedirect: "/",

@@ -200,6 +200,9 @@ const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[
 		unauthorized(res);
 		return;
 	}
+	if (!(await consumeRateLimitPoints(res, req.ip, ACCOUNT_READ_RATE_LIMIT_POINTS))) {
+		return;
+	}
 
 	const dbRooms = await DbRoomModel.findAll({
 		where: { ownerId: req.user.id },
