@@ -88,8 +88,37 @@ describe("User API", () => {
 						username: "forced test user",
 						loggedIn: true,
 						discordLinked: false,
+						discordLoginEnabled: false,
 					});
 				});
+		});
+
+		it("should expose discordLoginEnabled to unauthenticated callers", async () => {
+			const resp = await request(app)
+				.get("/api/user")
+				.set("Authorization", `Bearer ${token}`)
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(200);
+			expect(resp.body.loggedIn).toBe(false);
+			expect(resp.body.discordLoginEnabled).toBe(false);
+		});
+
+		it("should report discordLoginEnabled=true when discord credentials are configured", async () => {
+			const prevId = conf.get("discord.client_id");
+			const prevSecret = conf.get("discord.client_secret");
+			conf.set("discord.client_id", "test-id" as never);
+			conf.set("discord.client_secret", "test-secret" as never);
+			try {
+				const resp = await request(app)
+					.get("/api/user")
+					.set("Authorization", `Bearer ${token}`)
+					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+					.expect(200);
+				expect(resp.body.discordLoginEnabled).toBe(true);
+			} finally {
+				conf.set("discord.client_id", prevId);
+				conf.set("discord.client_secret", prevSecret);
+			}
 		});
 	});
 
@@ -215,6 +244,7 @@ describe("User API", () => {
 				username: "forced test user",
 				email: "forced@localhost",
 				discordLinked: false,
+				discordLoginEnabled: false,
 				hasPassword: true,
 			});
 		});
@@ -241,6 +271,7 @@ describe("User API", () => {
 				username: "social user",
 				email: null,
 				discordLinked: true,
+				discordLoginEnabled: false,
 				hasPassword: false,
 			});
 		});

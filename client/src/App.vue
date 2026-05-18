@@ -222,9 +222,11 @@ const App = defineComponent({
 
 			// ask the server if we are logged in or not, and update the client to reflect that status.
 			const resp = await API.get("/user");
+			store.commit("SET_DISCORD_LOGIN_ENABLED", !!resp.data.discordLoginEnabled);
 			if (resp.data.loggedIn) {
 				const user = resp.data;
 				delete user.loggedIn;
+				delete user.discordLoginEnabled;
 				store.commit("LOGIN", user);
 			}
 		});

@@ -104,6 +104,7 @@ export interface OttApiResponseAccount {
 	username: string;
 	email: string | null;
 	discordLinked: boolean;
+	discordLoginEnabled: boolean;
 	hasPassword: boolean;
 }
 

@@ -10,6 +10,7 @@ import { delPattern, redisClient } from "./redisclient.js";
 import { type RateLimiterAbstract, RateLimiterMemory } from "rate-limiter-flexible";
 import { RateLimiterRedisv4, consumeRateLimitPoints, rateLimiter } from "./rate-limit.js";
 import tokens from "./auth/tokens.js";
+import { isDiscordLoginEnabled } from "./auth/discord-utils.js";
 import nocache from "nocache";
 import { uniqueNamesGenerator } from "unique-names-generator";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants.js";
@@ -116,12 +117,14 @@ router.get("/", nocache(), (req, res) => {
 			username: req.user.username,
 			loggedIn: true,
 			discordLinked: !!req.user.discordId,
+			discordLoginEnabled: isDiscordLoginEnabled(),
 		};
 		res.json(user);
 	} else if (!req.ottsession?.isLoggedIn) {
 		const user = {
 			loggedIn: false,
 			username: req.ottsession?.username,
+			discordLoginEnabled: isDiscordLoginEnabled(),
 		};
 		res.json(user);
 	}
