@@ -8,6 +8,8 @@ import nocache from "nocache";
 import usermanager from "../usermanager.js";
 import { requireApiKey } from "../admin.js";
 import { conf } from "../ott-config.js";
+import { consumeRateLimitPoints } from "../rate-limit.js";
+import { isDiscordLoginEnabled } from "./discord-utils.js";
 
 export type { SessionInfo } from "./tokens.js";
 
@@ -130,8 +132,39 @@ router.get("/grant", async (req, res) => {
 	});
 });
 
+function requireDiscordConfigured(
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction,
+) {
+	if (!isDiscordLoginEnabled()) {
+		res.status(400).json({
+			success: false,
+			error: {
+				name: "FeatureDisabled",
+				message: "Discord login is not configured on this server.",
+			},
+		});
+		return;
+	}
+	next();
+}
+
+async function rateLimitDiscord(
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction,
+) {
+	if (!(await consumeRateLimitPoints(res, req.ip, 10))) {
+		return;
+	}
+	next();
+}
+
 router.get(
 	"/discord",
+	rateLimitDiscord,
+	requireDiscordConfigured,
 	async (req, res, next) => {
 		// @ts-expect-error ts really doesn't like express's query type
 		(req.session as MySession).postLoginRedirect = req.query.redirect ?? "/";
@@ -141,6 +174,8 @@ router.get(
 );
 router.get(
 	"/discord/callback",
+	rateLimitDiscord,
+	requireDiscordConfigured,
 	passport.authenticate("discord", {
 		failureRedirect: "/",
 		keepSessionInfo: true,

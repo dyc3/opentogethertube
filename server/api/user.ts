@@ -11,6 +11,7 @@ import { OttApiRequestAccountUpdateSchema } from "ott-common/models/zod-schemas.
 import { Room as DbRoomModel } from "../models/index.js";
 import { consumeRateLimitPoints } from "../rate-limit.js";
 import usermanager from "../usermanager.js";
+import { isDiscordLoginEnabled } from "../auth/discord-utils.js";
 
 const router = express.Router();
 const ACCOUNT_READ_RATE_LIMIT_POINTS = 1;
@@ -48,6 +49,7 @@ const getAccount: RequestHandler<never, OttResponseBody<OttApiResponseAccount>> 
 		username: req.user.username,
 		email: req.user.email,
 		discordLinked: !!req.user.discordId,
+		discordLoginEnabled: isDiscordLoginEnabled(),
 		hasPassword: !!(req.user.hash && req.user.salt),
 	});
 };
@@ -196,6 +198,9 @@ const getOwnedRooms: RequestHandler<never, OttResponseBody<{ data: RoomListItem[
 ) => {
 	if (!req.user) {
 		unauthorized(res);
+		return;
+	}
+	if (!(await consumeRateLimitPoints(res, req.ip, ACCOUNT_READ_RATE_LIMIT_POINTS))) {
 		return;
 	}
 

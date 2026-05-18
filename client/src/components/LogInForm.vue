@@ -18,7 +18,7 @@
 						</v-card-title>
 						<v-card-text>
 							<v-row>
-								<v-col cols="12" md="6">
+								<v-col cols="12" md="6" v-if="discordLoginEnabled">
 									<v-container>
 										<v-btn
 											size="x-large"
@@ -30,8 +30,12 @@
 										</v-btn>
 									</v-container>
 								</v-col>
-								<v-divider vertical />
-								<v-col cols="12" md="6" style="margin-left: -1px">
+								<v-divider vertical v-if="discordLoginEnabled" />
+								<v-col
+									cols="12"
+									:md="discordLoginEnabled ? 6 : 12"
+									style="margin-left: -1px"
+								>
 									<v-container>
 										<v-row>
 											<v-col>
@@ -174,7 +178,7 @@
 import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
@@ -185,6 +189,8 @@ const emit = defineEmits(["shouldClose"]);
 
 const store = useStore();
 const { t } = useI18n();
+
+const discordLoginEnabled = computed(() => store.state.discordLoginEnabled);
 
 const email = ref("");
 const username = ref("");
