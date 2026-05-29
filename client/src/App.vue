@@ -1,144 +1,192 @@
 <template>
-	<v-app id="app">
-		<v-app-bar
-			app
-			:density="$vuetify.display.mdAndUp ? 'default' : 'compact'"
-			:scroll-behavior="fullscreen ? 'inverted hide' : ' '"
+	<TooltipProvider :delay-duration="200">
+		<div
+			id="app"
+			class="ott-grain ott-scanlines relative flex min-h-screen flex-col bg-background text-foreground"
 		>
-			<!-- TODO: replace the ' ' here with '' when this bug is fixed: https://github.com/vuetifyjs/vuetify/issues/17554 -->
-			<v-app-bar-nav-icon @click="drawer = true" role="menu" aria-label="nav menu" />
-			<v-img
-				:src="logoUrl"
-				max-width="32"
-				max-height="32"
-				contain
-				style="margin-right: 8px"
-			/>
-			<v-app-bar-title class="app-bar-title">
-				<router-link class="link-invis" to="/">OpenTogetherTube</router-link>
-			</v-app-bar-title>
-			<v-toolbar-items v-if="$vuetify.display.lgAndUp">
-				<v-btn variant="text" to="/rooms">{{ $t("nav.browse") }}</v-btn>
-				<v-btn v-if="store.state.user" variant="text" to="/my-rooms">
-					{{ $t("nav.my-rooms") }}
-				</v-btn>
-				<v-btn
-					variant="text"
-					href="https://github.com/dyc3/opentogethertube/discussions/830"
-					target="_blank"
+		<!-- ░░ MARQUEE HEADER ░░ -->
+		<header
+			v-show="!fullscreen"
+			class="sticky top-0 z-40 border-b border-line-strong bg-background/85 backdrop-blur-md"
+		>
+			<div class="flex h-16 items-center gap-3 px-4 md:px-6">
+				<!-- mobile menu -->
+				<Button
+					variant="ghost"
+					size="icon"
+					class="lg:hidden"
+					aria-label="nav menu"
+					@click="drawer = true"
 				>
-					{{ $t("nav.faq") }}
-				</v-btn>
-				<v-btn
-					variant="text"
-					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
-					target="_blank"
-				>
-					<v-icon class="side-pad" :icon="mdiBug" />
-					{{ $t("nav.bug") }}
-				</v-btn>
-				<v-btn variant="text" href="https://github.com/sponsors/dyc3" target="_blank">
-					<v-icon class="side-pad" :icon="mdiHeart" />
-					{{ $t("nav.support") }}
-				</v-btn>
-			</v-toolbar-items>
-			<v-spacer />
-			<v-toolbar-items v-if="$vuetify.display.mdAndUp">
-				<v-menu offset-y>
-					<template v-slot:activator="{ props }">
-						<v-btn variant="text" v-bind="props">
-							<v-icon class="side-pad" :icon="mdiPlusBox" />
-							{{ $t("nav.create.title") }}
-						</v-btn>
-					</template>
-					<v-list two-line max-width="400">
-						<NavCreateRoom
-							@createtemp="createTempRoom"
-							@createperm="showCreateRoomForm = true"
-						/>
-					</v-list>
-				</v-menu>
-				<NavUser @login="showLogin = true" @logout="logout" />
-				<LocaleSelector style="margin-top: 5px; width: 100px" />
-			</v-toolbar-items>
-		</v-app-bar>
-		<v-navigation-drawer v-model="drawer" temporary>
-			<v-list nav dense>
-				<v-list-item to="/">
-					{{ $t("nav.home") }}
-				</v-list-item>
-				<v-list-item to="/rooms">
-					{{ $t("nav.browse") }}
-				</v-list-item>
-				<v-list-item v-if="store.state.user" to="/my-rooms">
-					{{ $t("nav.my-rooms") }}
-				</v-list-item>
-				<v-list-item
-					href="https://github.com/dyc3/opentogethertube/discussions/830"
-					target="_blank"
-				>
-					{{ $t("nav.faq") }}
-				</v-list-item>
-				<v-list-item
-					href="https://github.com/dyc3/opentogethertube/issues/new/choose"
-					target="_blank"
-				>
-					<template #prepend>
-						<v-icon :icon="mdiBug" />
-					</template>
-					{{ $t("nav.bug") }}
-				</v-list-item>
-				<v-list-item href="https://github.com/sponsors/dyc3" target="_blank">
-					<template #prepend>
-						<v-icon :icon="mdiHeart" />
-					</template>
-					{{ $t("nav.support") }}
-				</v-list-item>
-				<NavCreateRoom
-					@createtemp="createTempRoom"
-					@createperm="showCreateRoomForm = true"
-				/>
-				<LocaleSelector />
-			</v-list>
-			<template v-slot:append>
-				<div style="padding: 8px">
+					<Icon :icon="mdiMenu" class="size-6" />
+				</Button>
+
+				<router-link to="/" class="group flex items-center gap-3">
+					<img :src="logoUrl" alt="" class="size-8 drop-shadow-[0_0_8px_var(--primary)]" />
+					<span
+						class="font-display text-2xl leading-none tracking-wide text-primary text-glow-primary marquee-flicker md:text-3xl"
+					>
+						OpenTogetherTube
+					</span>
+				</router-link>
+
+				<nav v-if="display.lgAndUp.value" class="ml-6 flex items-center gap-1">
+					<Button variant="ghost" size="sm" as-child>
+						<router-link to="/rooms">{{ $t("nav.browse") }}</router-link>
+					</Button>
+					<Button v-if="store.state.user" variant="ghost" size="sm" as-child>
+						<router-link to="/my-rooms">{{ $t("nav.my-rooms") }}</router-link>
+					</Button>
+					<Button variant="ghost" size="sm" as-child>
+						<a
+							href="https://github.com/dyc3/opentogethertube/discussions/830"
+							target="_blank"
+							>{{ $t("nav.faq") }}</a
+						>
+					</Button>
+					<Button variant="ghost" size="sm" as-child>
+						<a
+							href="https://github.com/dyc3/opentogethertube/issues/new/choose"
+							target="_blank"
+						>
+							<Icon :icon="mdiBug" />
+							{{ $t("nav.bug") }}
+						</a>
+					</Button>
+					<Button variant="ghost" size="sm" as-child>
+						<a href="https://github.com/sponsors/dyc3" target="_blank">
+							<Icon :icon="mdiHeart" class="text-primary" />
+							{{ $t("nav.support") }}
+						</a>
+					</Button>
+				</nav>
+
+				<div class="flex-1" />
+
+				<div v-if="display.mdAndUp.value" class="flex items-center gap-2">
+					<DropdownMenu>
+						<DropdownMenuTrigger as-child>
+							<Button variant="marquee" size="sm">
+								<Icon :icon="mdiPlusBox" />
+								{{ $t("nav.create.title") }}
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" class="w-72">
+							<NavCreateRoom
+								@createtemp="createTempRoom"
+								@createperm="showCreateRoomForm = true"
+							/>
+						</DropdownMenuContent>
+					</DropdownMenu>
 					<NavUser @login="showLogin = true" @logout="logout" />
+					<LocaleSelector />
 				</div>
-			</template>
-		</v-navigation-drawer>
-		<v-main>
+			</div>
+		</header>
+
+		<!-- ░░ MOBILE DRAWER ░░ -->
+		<Sheet v-model:open="drawer">
+			<SheetContent side="left" class="w-72 border-line-strong bg-background">
+				<SheetHeader>
+					<SheetTitle class="font-display text-2xl text-primary text-glow-primary">
+						Menu
+					</SheetTitle>
+				</SheetHeader>
+				<nav class="flex flex-col gap-1 px-2">
+					<router-link class="ott-drawer-link" to="/" @click="drawer = false">
+						{{ $t("nav.home") }}
+					</router-link>
+					<router-link class="ott-drawer-link" to="/rooms" @click="drawer = false">
+						{{ $t("nav.browse") }}
+					</router-link>
+					<router-link
+						v-if="store.state.user"
+						class="ott-drawer-link"
+						to="/my-rooms"
+						@click="drawer = false"
+					>
+						{{ $t("nav.my-rooms") }}
+					</router-link>
+					<a
+						class="ott-drawer-link"
+						href="https://github.com/dyc3/opentogethertube/discussions/830"
+						target="_blank"
+						>{{ $t("nav.faq") }}</a
+					>
+					<a
+						class="ott-drawer-link"
+						href="https://github.com/dyc3/opentogethertube/issues/new/choose"
+						target="_blank"
+					>
+						<Icon :icon="mdiBug" class="size-4" /> {{ $t("nav.bug") }}
+					</a>
+					<a class="ott-drawer-link" href="https://github.com/sponsors/dyc3" target="_blank">
+						<Icon :icon="mdiHeart" class="size-4 text-primary" /> {{ $t("nav.support") }}
+					</a>
+					<Separator class="my-2" />
+					<NavCreateRoom
+						@createtemp="
+							drawer = false;
+							createTempRoom();
+						"
+						@createperm="
+							drawer = false;
+							showCreateRoomForm = true;
+						"
+					/>
+				</nav>
+				<SheetFooter class="mt-auto flex-row items-center gap-2">
+					<NavUser @login="showLogin = true" @logout="logout" />
+					<LocaleSelector />
+				</SheetFooter>
+			</SheetContent>
+		</Sheet>
+
+		<!-- ░░ MAIN ░░ -->
+		<main class="relative flex-1">
 			<router-view />
-		</v-main>
-		<v-container>
-			<v-dialog v-model="showCreateRoomForm" persistent max-width="600">
+		</main>
+
+		<!-- create room dialog -->
+		<Dialog v-model:open="showCreateRoomForm">
+			<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
+				<DialogTitle class="sr-only">{{ $t("create-room-form.card-title") }}</DialogTitle>
 				<CreateRoomForm
 					@roomCreated="showCreateRoomForm = false"
 					@cancel="showCreateRoomForm = false"
 				/>
-			</v-dialog>
-		</v-container>
-		<v-container>
-			<v-dialog v-model="showLogin" max-width="600">
+			</DialogContent>
+		</Dialog>
+
+		<!-- login dialog -->
+		<Dialog v-model:open="showLogin">
+			<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
+				<DialogTitle class="sr-only">{{ $t("login-form.login") }}</DialogTitle>
 				<LogInForm @shouldClose="showLogin = false" />
-			</v-dialog>
-		</v-container>
-		<v-overlay
-			class="overlay-loading-create-room"
-			:model-value="store.state.misc.isLoadingCreateRoom"
-		>
-			<v-container class="overlay-loading-create-room">
-				<v-progress-circular indeterminate />
-				<v-btn elevation="12" size="x-large" @click="cancelRoom" style="margin-top: 24px">
+			</DialogContent>
+		</Dialog>
+
+		<!-- room creation loading overlay -->
+		<Transition name="ott-overlay">
+			<div
+				v-if="store.state.misc.isLoadingCreateRoom"
+				class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-sm"
+			>
+				<Spinner class="size-12 text-primary" />
+				<p class="label-mono text-muted">{{ $t("nav.create.title") }}…</p>
+				<Button variant="outline" size="lg" @click="cancelRoom">
 					{{ $t("common.cancel") }}
-				</v-btn>
-			</v-container>
-		</v-overlay>
-		<Notifier />
-	</v-app>
+				</Button>
+			</div>
+		</Transition>
+
+			<Notifier />
+		</div>
+	</TooltipProvider>
 </template>
 
 <script lang="ts">
-import { mdiBug, mdiHeart, mdiPlusBox } from "@mdi/js";
+import { mdiBug, mdiHeart, mdiPlusBox, mdiMenu } from "@mdi/js";
 import { defineComponent, onMounted, ref, computed } from "vue";
 import { API } from "@/common-http";
 import CreateRoomForm from "@/components/CreateRoomForm.vue";
@@ -152,6 +200,7 @@ import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
 import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
+import { useDisplay } from "@/components/ui/useDisplay";
 
 // biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 const App = defineComponent({
@@ -166,6 +215,7 @@ const App = defineComponent({
 	},
 	setup() {
 		const store = useStore();
+		const display = useDisplay();
 
 		const showCreateRoomForm = ref(false);
 		const showLogin = ref(false);
@@ -236,6 +286,7 @@ const App = defineComponent({
 			showLogin,
 			drawer,
 			fullscreen,
+			display,
 			logout,
 			setLocale,
 			cancelRoom,
@@ -245,6 +296,7 @@ const App = defineComponent({
 			mdiBug,
 			mdiHeart,
 			mdiPlusBox,
+			mdiMenu,
 		};
 	},
 });
@@ -253,54 +305,46 @@ const App = defineComponent({
 export default App;
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./variables.scss";
-@use "./fonts.scss";
-@use "./common.scss";
+<style>
+.ott-drawer-link {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	border-radius: var(--radius);
+	padding: 0.55rem 0.65rem;
+	font-family: var(--font-mono);
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--muted-foreground);
+	transition: all 0.15s ease;
+}
+.ott-drawer-link:hover {
+	background: var(--surface-2);
+	color: var(--primary);
+}
+.ott-drawer-link.router-link-exact-active {
+	color: var(--primary);
+}
+
+.ott-overlay-enter-active,
+.ott-overlay-leave-active {
+	transition: opacity 0.25s ease;
+}
+.ott-overlay-enter-from,
+.ott-overlay-leave-to {
+	opacity: 0;
+}
 
 .link {
 	text-decoration: underline;
 	cursor: pointer;
 }
-
 .link-invis {
 	text-decoration: none;
-	color: inherit !important;
+	color: inherit;
 }
-
-.side-pad {
-	margin: 0 4px;
-}
-
 .text-muted {
-	opacity: 0.7;
-}
-
-.app-bar-title {
-	margin-right: 10px;
-
-	// HACK: vuetify 3 was forcing the other buttons to center themselves.
-	flex-grow: 0;
-	flex-shrink: 0;
-	flex-basis: auto;
-}
-
-.scrollbarBeGone {
-	-ms-overflow-style: none; // I think this is an old way to do this? Probably not ideal
-	scrollbar-width: none;
-
-	&::-webkit-scrollbar {
-		display: none;
-	}
-}
-
-.overlay-loading-create-room {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 100%;
+	color: var(--muted-foreground);
 }
 </style>

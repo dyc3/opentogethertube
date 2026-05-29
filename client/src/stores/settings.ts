@@ -1,6 +1,5 @@
 import type { RoomSettings } from "ott-common";
 import type { Module } from "vuex/types";
-import vuetify from "@/plugins/vuetify";
 
 export interface SettingsState {
 	volume: number;
@@ -53,14 +52,13 @@ export const settingsModule: Module<SettingsState, unknown> = {
 
 			// apply some global settings
 			if (settings.theme !== undefined) {
-				if (ALL_THEMES.includes(settings.theme)) {
-					vuetify.theme.global.name.value = settings.theme;
-				} else {
+				const theme = ALL_THEMES.includes(settings.theme) ? settings.theme : Theme.dark;
+				if (theme !== settings.theme) {
 					console.warn(
 						`Can't apply invalid theme: ${settings.theme}, defaulting to dark theme`,
 					);
-					vuetify.theme.global.name.value = Theme.dark;
 				}
+				document.documentElement.dataset.theme = theme;
 			}
 		},
 	},

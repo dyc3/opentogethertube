@@ -1,61 +1,69 @@
 <template>
 	<div>
-		<v-container>
-			<h1>Themes</h1>
-		</v-container>
-		<div v-for="theme in Theme" :key="theme">
-			<v-theme-provider :theme="theme">
-				<v-app class="theme-app" style="height: fit-content">
-					<v-container>
-						<h3>{{ theme }}</h3>
+		<div class="mx-auto max-w-6xl px-6 py-8">
+			<span class="label-mono text-signal">Dev</span>
+			<h1 class="font-display text-4xl tracking-wide">Themes</h1>
+		</div>
+		<div
+			v-for="theme in themes"
+			:key="theme"
+			:data-theme="theme"
+			class="theme-app bg-background text-foreground"
+		>
+			<div class="mx-auto max-w-6xl px-6 py-8">
+				<h3 class="font-display text-2xl tracking-wide text-primary">{{ theme }}</h3>
 
-						<span>Video Controls (outside video)</span>
-						<VideoControls
-							mode="outside-video"
-							:controls-visible="true"
-							:slider-position="5"
-							:true-position="5"
-							:player="null"
-						/>
+				<span class="label-mono mt-4 block text-muted-foreground">
+					Video Controls (outside video)
+				</span>
+				<VideoControls
+					mode="outside-video"
+					:controls-visible="true"
+					:slider-position="5"
+					:true-position="5"
+					:player="null"
+				/>
 
-						<span>Video Controls (in video)</span>
+				<span class="label-mono mt-4 block text-muted-foreground">
+					Video Controls (in video)
+				</span>
 
-						<div class="dummy-video"></div>
-						<VideoControls
-							mode="in-video"
-							:controls-visible="true"
-							:slider-position="5"
-							:true-position="5"
-							:player="null"
-						/>
+				<div class="dummy-video"></div>
+				<VideoControls
+					mode="in-video"
+					:controls-visible="true"
+					:slider-position="5"
+					:true-position="5"
+					:player="null"
+				/>
 
-						<v-card>
-							<v-card-title>Card</v-card-title>
-							<v-card-actions>
-								<v-btn color="primary">Primary</v-btn>
-								<v-btn>Default</v-btn>
-							</v-card-actions>
-						</v-card>
+				<Card class="mt-6 border-line">
+					<CardHeader>
+						<CardTitle>Card</CardTitle>
+					</CardHeader>
+					<CardFooter class="gap-2">
+						<Button variant="default">Primary</Button>
+						<Button variant="outline">Default</Button>
+					</CardFooter>
+				</Card>
 
-						<span>Buttons</span>
-						<div>
-							<v-btn color="primary">Primary</v-btn>
-							<v-btn color="secondary">Secondary</v-btn>
-							<v-btn color="warning">Warning</v-btn>
-							<v-btn>Default</v-btn>
-						</div>
+				<span class="label-mono mt-6 block text-muted-foreground">Buttons</span>
+				<div class="mt-2 flex flex-wrap gap-2">
+					<Button variant="default">Primary</Button>
+					<Button variant="secondary">Secondary</Button>
+					<Button variant="signal">Warning</Button>
+					<Button variant="outline">Default</Button>
+				</div>
 
-						<span>Toasts</span>
-						<div>
-							<ToastNotification
-								v-for="toast in dummyToasts"
-								:key="toast.content"
-								:toast="toast"
-							/>
-						</div>
-					</v-container>
-				</v-app>
-			</v-theme-provider>
+				<span class="label-mono mt-6 block text-muted-foreground">Toasts</span>
+				<div class="mt-2 flex flex-col gap-2">
+					<ToastNotification
+						v-for="toast in dummyToasts"
+						:key="toast.content"
+						:toast="toast"
+					/>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -70,6 +78,7 @@ import { type Toast, ToastStyle } from "@/models/toast";
 import { enumKeys } from "@/util/misc";
 
 const store = useStore();
+const themes = Object.values(Theme);
 // TODO: set type to ServerMessageSync
 const dummyRoomSync = {
 	action: "sync",
@@ -143,10 +152,10 @@ onMounted(() => {
 });
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-.theme-app > * {
-	min-height: inherit;
+<style scoped>
+.theme-app {
+	min-height: fit-content;
+	border-bottom: 1px solid var(--line-strong);
 }
 
 .dummy-video {

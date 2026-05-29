@@ -1,8 +1,8 @@
 import childProcess from "node:child_process";
 import path from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
-import vuetify from "vite-plugin-vuetify";
 
 function gitCommit() {
 	if (process.env.GIT_COMMIT) {
@@ -23,18 +23,7 @@ export default defineConfig({
 		__COMMIT_HASH__: JSON.stringify(gitCommit()),
 	},
 	base: process.env.OTT_BASE_URL || "/",
-	plugins: [
-		vue(),
-		vuetify({
-			autoImport: true,
-			styles: {
-				configFile: path.resolve(
-					searchForWorkspaceRoot(process.cwd()),
-					"client/src/vuetify-settings.scss",
-				),
-			},
-		}),
-	],
+	plugins: [vue(), tailwindcss()],
 	// css: {
 	// 	preprocessorOptions: {
 	// 		scss: {
@@ -72,10 +61,5 @@ export default defineConfig({
 	// },
 	test: {
 		environment: "jsdom",
-		server: {
-			deps: {
-				inline: ["vuetify"],
-			},
-		},
 	},
 });

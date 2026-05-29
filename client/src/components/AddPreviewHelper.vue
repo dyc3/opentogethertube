@@ -1,7 +1,9 @@
 <template>
 	<div class="add-video-helper">
-		<h1>{{ $t("add-preview.title") }}</h1>
-		<h3>{{ $t("add-preview.single-videos") }}</h3>
+		<h1 class="font-display text-3xl tracking-wide text-primary text-glow-primary">
+			{{ $t("add-preview.title") }}
+		</h1>
+		<h3 class="label-mono mt-4 text-signal">{{ $t("add-preview.single-videos") }}</h3>
 		<ul>
 			<li>
 				<ProcessedText
@@ -34,7 +36,7 @@
 				/>
 			</li>
 		</ul>
-		<h3>{{ $t("add-preview.playlists") }}</h3>
+		<h3 class="label-mono mt-4 text-signal">{{ $t("add-preview.playlists") }}</h3>
 		<ul>
 			<li>
 				<ProcessedText
@@ -57,7 +59,7 @@
 				/>
 			</li>
 		</ul>
-		<span>{{ $t("add-preview.text") }}</span>
+		<span class="text-sm text-muted-foreground">{{ $t("add-preview.text") }}</span>
 	</div>
 </template>
 
@@ -74,13 +76,10 @@ function setAddPreviewText(url: string) {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "../variables.scss";
-
+<style lang="scss" scoped>
 .add-video-helper {
 	width: 400px;
-	@media (max-width: variables.$sm-max) {
+	@media (max-width: 600px) {
 		width: 80%;
 	}
 
@@ -89,11 +88,27 @@ function setAddPreviewText(url: string) {
 		text-align: center;
 	}
 
+	ul {
+		margin: 8px 0 4px;
+		padding-left: 1.1rem;
+		list-style: none;
+	}
+
 	li {
+		position: relative;
+		padding: 3px 0;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		-webkit-line-clamp: 1;
+		color: var(--muted-foreground);
+
+		&::before {
+			content: "›";
+			position: absolute;
+			left: -1rem;
+			color: var(--primary);
+		}
 	}
 }
 </style>

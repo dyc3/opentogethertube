@@ -1,8 +1,7 @@
 <template>
 	<div>
 		<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
-		<v-container
-			fluid
+		<div
 			:class="{
 				'room': true,
 				'fullscreen': store.state.fullscreen,
@@ -24,22 +23,29 @@
 				<ClientSettingsDialog />
 				<div class="grow"><!-- Spacer --></div>
 				<div class="room-status">
-					<v-btn
-						class="room-visibility-badge"
-						data-cy="room-visibility"
-						variant="plain"
-						size="default"
-						slim
-						:prepend-icon="roomVisibilityIcon"
-						@click="onVisibilityClick"
-					>
-						{{ roomVisibilityLabel }}
-						<v-tooltip activator="parent" location="top">
+					<Tooltip>
+						<TooltipTrigger as-child>
+							<Button
+								class="room-visibility-badge"
+								data-cy="room-visibility"
+								variant="ghost"
+								size="sm"
+								@click="onVisibilityClick"
+							>
+								<Icon :icon="roomVisibilityIcon" class="size-4" />
+								{{ roomVisibilityLabel }}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="top">
 							{{ $t("room.visibility-badge-label") }}
-						</v-tooltip>
-					</v-btn>
-					<v-icon :icon="mdiCircle" :color="connectionStatusColor" size="small" start />
-					<span id="connectStatus">{{ connectionStatus }}</span>
+						</TooltipContent>
+					</Tooltip>
+					<Icon
+						:icon="mdiCircle"
+						class="ml-2 size-3"
+						:class="connectionStatusColor === 'success' ? 'text-success' : 'text-warning'"
+					/>
+					<span id="connectStatus" class="ml-1 label-mono">{{ connectionStatus }}</span>
 				</div>
 			</div>
 			<div class="video-container">
@@ -57,14 +63,10 @@
 							<Chat ref="chat" @link-click="setAddPreviewText" />
 						</div>
 						<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
-							<v-btn
-								:prepend-icon="mdiPlay"
-								size="x-large"
-								color="warning"
-								@click="onClickUnblockPlayback"
-							>
+							<Button size="xl" variant="default" @click="onClickUnblockPlayback">
+								<Icon :icon="mdiPlay" class="size-5" />
 								{{ $t("common.play") }}
-							</v-btn>
+							</Button>
 						</div>
 					</div>
 					<VideoControls
@@ -88,121 +90,110 @@
 			</div>
 			<div class="under-video-grid">
 				<div class="under-video-tabs">
-					<v-tabs fixed-tabs v-model="queueTab" color="primary">
-						<v-tab>
-							<v-icon :icon="mdiFormatListBulleted" />
-							<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
-							<v-chip size="x-small">
-								{{
-									store.state.room.queue.length <= 99
-										? $n(store.state.room.queue.length)
-										: "99+"
-								}}
-							</v-chip>
-						</v-tab>
-						<v-tab>
-							<v-icon :icon="mdiPlus" />
-							<span class="tab-text">{{ $t("common.add") }}</span>
-						</v-tab>
-						<v-tab>
-							<v-icon :icon="mdiWrench" />
-							<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
-						</v-tab>
-					</v-tabs>
-					<v-window v-model="queueTab" class="queue-tab-content">
-						<v-window-item>
-							<VideoQueue @switchtab="queueTab = 1" />
-						</v-window-item>
-						<v-window-item>
+					<Tabs v-model="queueTab" class="queue-tab-content">
+						<TabsList class="w-full">
+							<TabsTrigger value="queue" class="flex-1 gap-2">
+								<Icon :icon="mdiFormatListBulleted" class="size-4" />
+								<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
+								<Badge variant="secondary" class="ml-1">
+									{{
+										store.state.room.queue.length <= 99
+											? $n(store.state.room.queue.length)
+											: "99+"
+									}}
+								</Badge>
+							</TabsTrigger>
+							<TabsTrigger value="add" class="flex-1 gap-2">
+								<Icon :icon="mdiPlus" class="size-4" />
+								<span class="tab-text">{{ $t("common.add") }}</span>
+							</TabsTrigger>
+							<TabsTrigger value="settings" class="flex-1 gap-2">
+								<Icon :icon="mdiWrench" class="size-4" />
+								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
+							</TabsTrigger>
+						</TabsList>
+						<TabsContent value="queue" class="pt-4">
+							<VideoQueue @switchtab="queueTab = 'add'" />
+						</TabsContent>
+						<TabsContent value="add" class="pt-4">
 							<AddPreview ref="addpreview" />
-						</v-window-item>
-						<v-window-item>
+						</TabsContent>
+						<TabsContent value="settings" class="pt-4">
 							<RoomSettingsForm ref="settings" />
-						</v-window-item>
-					</v-window>
+						</TabsContent>
+					</Tabs>
 				</div>
 				<div class="user-invite-container">
 					<div v-if="debugMode" class="debug-container">
-						<v-card>
-							<v-card-title> Debug (prod: {{ production }}) </v-card-title>
-							<v-list-item>
-								Player status: {{ store.state.playerStatus }}
-							</v-list-item>
-							<v-list-item v-if="store.state.playerBufferPercent">
-								Buffered:
-								{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
-							</v-list-item>
-							<v-list-item
-								v-if="
-									store.state.playerBufferSpans &&
-									store.state.playerBufferSpans.length > 0
-								"
-							>
-								Buffered spans:
-								{{ store.state.playerBufferSpans.length }}
-								{{
-									Array.from(
-										{ length: store.state.playerBufferSpans.length },
-										(v, k) => k++,
-									)
-										.map(
-											i =>
-												`${i}: [${secondsToTimestamp(
-													store.state.playerBufferSpans?.start(i) ?? 0,
-												)} => ${secondsToTimestamp(
-													store.state.playerBufferSpans?.end(i) ?? 0,
-												)}]`,
+						<Card class="p-4">
+							<div class="mb-2 font-display text-xl">Debug (prod: {{ production }})</div>
+							<div class="flex flex-col gap-1 font-mono text-xs text-muted-foreground">
+								<div>Player status: {{ store.state.playerStatus }}</div>
+								<div v-if="store.state.playerBufferPercent">
+									Buffered:
+									{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
+								</div>
+								<div
+									v-if="
+										store.state.playerBufferSpans &&
+										store.state.playerBufferSpans.length > 0
+									"
+								>
+									Buffered spans:
+									{{ store.state.playerBufferSpans.length }}
+									{{
+										Array.from(
+											{ length: store.state.playerBufferSpans.length },
+											(v, k) => k++,
 										)
-										.join(" ")
-								}}
-							</v-list-item>
-							<v-list-item>
-								<span>Is Mobile: {{ isMobile }}</span>
-							</v-list-item>
-							<v-list-item>
-								<span>Device Orientation: {{ orientation }}</span>
-							</v-list-item>
-							<v-list-item>
-								<span>
+											.map(
+												i =>
+													`${i}: [${secondsToTimestamp(
+														store.state.playerBufferSpans?.start(i) ?? 0,
+													)} => ${secondsToTimestamp(
+														store.state.playerBufferSpans?.end(i) ?? 0,
+													)}]`,
+											)
+											.join(" ")
+									}}
+								</div>
+								<div>Is Mobile: {{ isMobile }}</div>
+								<div>Device Orientation: {{ orientation }}</div>
+								<div>
 									Video controls: timeoutId:
 									{{ videoControlsHideTimeout }} visible:
 									{{ controlsVisible }}
-								</span>
-							</v-list-item>
-							<v-list-item>
-								<v-btn @click="roomapi.kickMe()" :disabled="!isConnected">
-									{{ $t("room.kick-me") }}
-								</v-btn>
-								<v-btn @click="roomapi.kickMe(1000)" :disabled="!isConnected">
-									Disconnect Me
-								</v-btn>
-							</v-list-item>
-						</v-card>
+								</div>
+								<div class="mt-2 flex gap-2">
+									<Button size="sm" variant="outline" @click="roomapi.kickMe()" :disabled="!isConnected">
+										{{ $t("room.kick-me") }}
+									</Button>
+									<Button size="sm" variant="outline" @click="roomapi.kickMe(1000)" :disabled="!isConnected">
+										Disconnect Me
+									</Button>
+								</div>
+							</div>
+						</Card>
 					</div>
 					<UserList :users="Array.from(store.state.users.users.values())" />
 					<ShareInvite />
 				</div>
 			</div>
-		</v-container>
-		<v-footer>
-			<v-container>
-				<v-row class="center-shit">
-					<router-link to="/privacypolicy" v-if="isOfficialSite()">
-						{{ $t("footer.privacy-policy") }}
-					</router-link>
-				</v-row>
-				<v-row class="center-shit">
-					{{ gitCommit }}
-				</v-row>
-			</v-container>
-		</v-footer>
-		<v-overlay
-			class="overlay-disconnected"
-			:model-value="showDisconnectedOverlay"
-			content-class="content"
-		>
-			<RoomDisconnected />
-		</v-overlay>
+		</div>
+		<footer class="border-t border-line px-4 py-6 text-center" v-if="!store.state.fullscreen">
+			<p class="label-mono text-muted-foreground" v-if="isOfficialSite()">
+				<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
+			</p>
+			<p class="mt-2 font-mono text-xs text-dim">{{ gitCommit }}</p>
+		</footer>
+		<Transition name="ott-overlay">
+			<div
+				v-if="showDisconnectedOverlay"
+				class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm"
+			>
+				<RoomDisconnected />
+			</div>
+		</Transition>
 		<ServerMessageHandler />
 		<WorkaroundPlaybackStatusUpdater />
 		<WorkaroundUserStateNotifier />
@@ -240,7 +231,6 @@ import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import VideoQueue from "@/components/VideoQueue.vue";
-import { useGoTo } from "vuetify";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
@@ -594,10 +584,9 @@ export default defineComponent({
 			() => window.matchMedia("only screen and (max-width: 760px)").matches,
 		);
 		const orientation = useScreenOrientation();
-		const queueTab = ref(0);
+		const queueTab = ref("queue");
 		const roomSettingsForm = ref<typeof RoomSettingsForm | null>(null);
 
-		const goTo = useGoTo();
 		onMounted(() => {
 			if (!orientation.isSupported.value) {
 				return;
@@ -611,10 +600,7 @@ export default defineComponent({
 					if (newOrientation.startsWith("landscape")) {
 						// this promise is rejected if the fullscreen request is denied
 						await document.documentElement.requestFullscreen();
-						goTo(0, {
-							duration: 250,
-							easing: "easeInOutCubic",
-						});
+						window.scrollTo({ top: 0, behavior: "smooth" });
 					} else {
 						document.exitFullscreen();
 					}
@@ -623,7 +609,7 @@ export default defineComponent({
 		});
 
 		watch(queueTab, async newTab => {
-			if (roomSettingsForm.value && newTab === 2) {
+			if (roomSettingsForm.value && newTab === "settings") {
 				await roomSettingsForm.value.loadRoomSettings();
 			}
 		});
@@ -632,7 +618,7 @@ export default defineComponent({
 
 		const addpreview = ref<typeof AddPreview | null>(null);
 		async function setAddPreviewText(text: string) {
-			queueTab.value = 1;
+			queueTab.value = "add";
 			await nextTick();
 			if (!addpreview.value) {
 				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
@@ -731,13 +717,13 @@ export default defineComponent({
 		});
 
 		async function onVisibilityClick() {
-			queueTab.value = 2;
+			queueTab.value = "settings";
 			await nextTick();
 			if (roomSettingsForm.value) {
 				await roomSettingsForm.value.loadRoomSettings();
 				await nextTick();
 				roomSettingsForm.value.openVisibilityMenu();
-				goTo(roomSettingsForm.value.$el);
+				roomSettingsForm.value.$el?.scrollIntoView({ behavior: "smooth" });
 			}
 		}
 
@@ -816,8 +802,9 @@ export default defineComponent({
 
 <!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
-@use "../variables.scss";
-
+$sm-max: 960px;
+$md-max: 1264px;
+$video-controls-height: 80px;
 $video-player-max-height: 75vh;
 $video-player-max-height-theater: 90vh;
 $in-video-chat-width: 400px;
@@ -835,6 +822,9 @@ $in-video-chat-width-small: 250px;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+	/* lift the player above the scanline/grain atmosphere (z-index 30) so the
+	   video itself stays crisp; the header (z-40) still paints above it */
+	z-index: 31;
 }
 
 .player-container {
@@ -847,7 +837,7 @@ $in-video-chat-width-small: 250px;
 		width: 80%;
 		justify-self: center;
 
-		@media (max-width: variables.$md-max) {
+		@media (max-width: $md-max) {
 			width: 100%;
 		}
 	}
@@ -892,12 +882,12 @@ $in-video-chat-width-small: 250px;
 	padding: 5px 10px;
 
 	position: absolute;
-	bottom: variables.$video-controls-height;
+	bottom: $video-controls-height;
 	right: 0;
 	width: $in-video-chat-width;
 	height: 70%;
 	min-height: 70px;
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: $sm-max) {
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
@@ -909,7 +899,7 @@ $in-video-chat-width-small: 250px;
 	width: $in-video-chat-width;
 	height: 300px;
 	min-height: 100px;
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: $sm-max) {
 		width: $in-video-chat-width-small;
 	}
 	pointer-events: none;
@@ -943,7 +933,7 @@ $in-video-chat-width-small: 250px;
 .tab-text {
 	margin: 0 8px;
 
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: $sm-max) {
 		display: none;
 	}
 }
@@ -968,7 +958,9 @@ $in-video-chat-width-small: 250px;
 }
 
 .room {
-	@media (max-width: variables.$md-max) {
+	padding: 16px;
+
+	@media (max-width: $md-max) {
 		padding: 0;
 	}
 }
@@ -977,10 +969,18 @@ $in-video-chat-width-small: 250px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	margin: 0 10px;
+	gap: 8px;
+	margin: 8px 10px 16px;
 	> * {
 		align-self: flex-end;
 	}
+}
+
+.room-title {
+	font-family: var(--font-display);
+	font-size: 32px;
+	letter-spacing: 0.01em;
+	color: var(--foreground);
 }
 
 .overlay-disconnected {
@@ -1014,7 +1014,7 @@ $in-video-chat-width-small: 250px;
 	display: flex;
 	width: 100%;
 
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: $sm-max) {
 		flex-direction: column;
 	}
 }
@@ -1023,7 +1023,7 @@ $in-video-chat-width-small: 250px;
 	flex-grow: 1;
 	width: 60%;
 
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: $sm-max) {
 		width: 100%;
 	}
 }

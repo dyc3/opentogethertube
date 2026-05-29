@@ -1,38 +1,34 @@
 <template>
 	<div>
 		<Transition name="banner">
-			<v-banner
-				class="restore"
-				color="primary"
-				:text="$t('video-queue.restore')"
-				:stacked="false"
-				lines="one"
-				sticky
+			<div
 				v-if="(store.state.room.prevQueue?.length ?? 0) > 0"
+				class="restore flex flex-col gap-3 rounded-lg border border-line bg-card p-4 sm:flex-row sm:items-center"
 			>
-				<template v-slot:actions>
-					<v-btn color="primary" @click="showDialog">{{ $t("common.show") }}</v-btn>
-					<v-btn color="default" @click="discard">{{ $t("common.discard") }}</v-btn>
-				</template>
-			</v-banner>
+				<span class="flex-1 text-foreground">{{ $t("video-queue.restore") }}</span>
+				<div class="flex gap-2">
+					<Button variant="default" @click="showDialog">{{ $t("common.show") }}</Button>
+					<Button variant="ghost" @click="discard">{{ $t("common.discard") }}</Button>
+				</div>
+			</div>
 		</Transition>
-		<v-dialog v-model="showRestorePreview" transition="dialog-bottom-transition" width="auto">
-			<v-card>
-				<v-card-title>
-					{{ $t("video-queue.restore-queue") }}
-				</v-card-title>
-				<v-card-text>
-					<div>{{ $t("video-queue.restore-queue-hint") }}</div>
+		<Dialog v-model:open="showRestorePreview">
+			<DialogContent class="max-w-xl sm:max-w-xl">
+				<DialogHeader>
+					<DialogTitle>{{ $t("video-queue.restore-queue") }}</DialogTitle>
+				</DialogHeader>
+				<div class="flex flex-col gap-2">
+					<div class="text-muted-foreground">{{ $t("video-queue.restore-queue-hint") }}</div>
 					<div v-for="video in store.state.room.prevQueue" :key="video.id">
 						<VideoQueueItem :item="video" :hide-all-buttons="true" />
 					</div>
-				</v-card-text>
-				<v-card-actions>
-					<v-btn color="primary" @click="restore">{{ $t("common.restore") }}</v-btn>
-					<v-btn @click="discard">{{ $t("common.discard") }}</v-btn>
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
+				</div>
+				<DialogFooter>
+					<Button variant="ghost" @click="discard">{{ $t("common.discard") }}</Button>
+					<Button variant="default" @click="restore">{{ $t("common.restore") }}</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	</div>
 </template>
 

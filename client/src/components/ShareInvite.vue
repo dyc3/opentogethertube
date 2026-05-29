@@ -1,25 +1,40 @@
 <template>
 	<div class="share-invite">
-		<v-card>
-			<v-card-title>
-				{{ $t("share-invite.title") }}
-			</v-card-title>
-			<v-card-text>
-				{{ $t("share-invite.text") }}
-				<v-text-field
-					readonly
-					variant="outlined"
-					:class="copySuccess ? 'text-success' : ''"
-					ref="inviteLinkText"
-					:value="inviteLink"
-					:append-icon="mdiClipboardOutline"
-					:messages="copySuccess ? $t('share-invite.copied') : ''"
-					@focus="onFocusHighlightText"
-					@click:append="copyInviteLink"
-					data-cy="share-invite-link"
-				/>
-			</v-card-text>
-		</v-card>
+		<Card class="border-line-strong">
+			<CardHeader>
+				<CardTitle class="text-2xl tracking-wide">
+					{{ $t("share-invite.title") }}
+				</CardTitle>
+			</CardHeader>
+			<CardContent class="flex flex-col gap-3">
+				<p class="text-sm text-muted-foreground">{{ $t("share-invite.text") }}</p>
+				<Field>
+					<div class="flex items-center gap-2">
+						<Input
+							ref="inviteLinkText"
+							readonly
+							:model-value="inviteLink"
+							:class="copySuccess ? 'text-success' : ''"
+							class="font-mono"
+							data-cy="share-invite-link"
+							@focus="onFocusHighlightText"
+						/>
+						<Button
+							variant="signal"
+							size="icon"
+							type="button"
+							:aria-label="$t('share-invite.title')"
+							@click="copyInviteLink"
+						>
+							<Icon :icon="mdiClipboardOutline" class="size-5" />
+						</Button>
+					</div>
+					<FieldDescription v-if="copySuccess" class="text-success">
+						{{ $t("share-invite.copied") }}
+					</FieldDescription>
+				</Field>
+			</CardContent>
+		</Card>
 	</div>
 </template>
 
@@ -55,6 +70,3 @@ function onFocusHighlightText(e) {
 
 const { copy: copyInviteLink, copySuccess } = useCopyFromTextbox(inviteLink, inviteLinkText);
 </script>
-
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss"></style>

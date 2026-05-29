@@ -1,100 +1,129 @@
 <template>
-	<v-dialog v-model="show" width="600">
-		<template v-slot:activator="{ props }">
-			<v-btn v-bind="props" style="margin: 0 20px">
+	<Dialog v-model:open="show">
+		<DialogTrigger as-child>
+			<Button variant="ghost" class="mx-5">
 				{{ $t("client-settings.activator") }}
-			</v-btn>
-		</template>
-		<v-card>
-			<v-card-title>
-				{{ $t("client-settings.title") }}
-			</v-card-title>
-			<v-card-text>
-				{{ $t("client-settings.description") }}
-			</v-card-text>
+			</Button>
+		</DialogTrigger>
+		<DialogContent class="max-w-xl sm:max-w-xl">
+			<DialogHeader>
+				<DialogTitle class="font-display text-2xl tracking-wide">
+					{{ $t("client-settings.title") }}
+				</DialogTitle>
+				<DialogDescription>
+					{{ $t("client-settings.description") }}
+				</DialogDescription>
+			</DialogHeader>
 
-			<v-divider />
+			<Separator />
 
-			<v-card-text>
-				<v-select
-					:label="$t('client-settings.room-layout')"
-					:items="layouts"
-					v-model="settings.roomLayout"
-				/>
-				<v-select
-					:label="$t('client-settings.theme')"
-					:items="themes"
-					v-model="settings.theme"
+			<div class="flex max-h-[60vh] flex-col gap-5 overflow-y-auto px-1 py-2">
+				<Field>
+					<FieldLabel>{{ $t("client-settings.room-layout") }}</FieldLabel>
+					<Select v-model="settings.roomLayout">
+						<SelectTrigger class="w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem v-for="layout in layouts" :key="layout" :value="layout">
+								{{ layout }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+				</Field>
+
+				<Field>
+					<FieldLabel>{{ $t("client-settings.theme") }}</FieldLabel>
+					<Select v-model="settings.theme">
+						<SelectTrigger class="w-full">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem v-for="theme in themes" :key="theme" :value="theme">
+								{{ theme }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+				</Field>
+
+				<div class="flex items-center gap-2">
+					<Checkbox id="cs-sfx-enable" v-model="settings.sfxEnabled" />
+					<Label for="cs-sfx-enable" class="cursor-pointer">
+						{{ $t("client-settings.sfx-enable") }}
+					</Label>
+				</div>
+
+				<Field>
+					<div class="flex items-center justify-between">
+						<FieldLabel>{{ $t("client-settings.audio-boost") }}</FieldLabel>
+						<span class="audio-boost-value font-mono text-sm">{{ settings.audioBoost }}%</span>
+					</div>
+					<Slider
+						:model-value="[settings.audioBoost]"
+						:min="100"
+						:max="300"
+						:step="1"
+						:disabled="isAudioBoostUnsupported"
+						@update:model-value="v => v && (settings.audioBoost = v[0])"
+					/>
+					<FieldDescription>{{ audioBoostHint }}</FieldDescription>
+				</Field>
+
+				<Field v-if="settings.sfxEnabled">
+					<FieldLabel>{{ $t("client-settings.sfx-volume") }}</FieldLabel>
+					<Slider
+						:model-value="[settings.sfxVolume]"
+						:min="0"
+						:max="1"
+						:step="0.01"
+						@update:model-value="v => v && (settings.sfxVolume = v[0])"
+					/>
+				</Field>
+
+				<button
+					type="button"
+					class="flex w-full items-center justify-between rounded-md border border-line bg-surface-2/40 px-3 py-2 font-mono text-sm uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+					:aria-expanded="showRoomSettings"
+					@click="showRoomSettings = !showRoomSettings"
 				>
-					<template #item="{ item, props }">
-						<v-theme-provider :theme="item.value" with-background>
-							<v-list-item v-bind="props" />
-						</v-theme-provider>
-					</template>
-				</v-select>
-				<v-checkbox
-					:label="$t('client-settings.sfx-enable')"
-					v-model="settings.sfxEnabled"
-				/>
-				<v-slider
-					:label="$t('client-settings.audio-boost')"
-					:hint="audioBoostHint"
-					:disabled="isAudioBoostUnsupported"
-					persistent-hint
-					v-model="settings.audioBoost"
-					min="100"
-					max="300"
-					step="1"
-				>
-					<template #append>
-						<span class="audio-boost-value">{{ settings.audioBoost }}%</span>
-					</template>
-				</v-slider>
-				<v-slider
-					:label="$t('client-settings.sfx-volume')"
-					v-model="settings.sfxVolume"
-					v-if="settings.sfxEnabled"
-					min="0"
-					max="1"
-					step="0.01"
-				/>
+					<span>{{ $t("client-settings.room-settings") }}</span>
+					<Icon
+						:icon="mdiChevronDown"
+						class="size-4 transition-transform duration-200"
+						:class="{ 'rotate-180': showRoomSettings }"
+					/>
+				</button>
 
-				<v-checkbox
-					:label="$t('client-settings.room-settings')"
-					v-model="showRoomSettings"
-					:false-icon="mdiChevronUp"
-					:true-icon="mdiChevronDown"
-				/>
-
-				<v-expand-transition>
-					<div v-if="showRoomSettings">
+				<Transition name="ott-expand">
+					<div v-if="showRoomSettings" class="overflow-hidden">
 						<AutoSkipSegmentSettings v-model="autoSkipCategories" />
 					</div>
-				</v-expand-transition>
+				</Transition>
 
-				<v-checkbox
-					:label="$t('client-settings.enable-adapter-selector')"
-					v-model="settings.enableAdapterSelector"
-				/>
-			</v-card-text>
+				<div class="flex items-center gap-2">
+					<Checkbox id="cs-adapter-selector" v-model="settings.enableAdapterSelector" />
+					<Label for="cs-adapter-selector" class="cursor-pointer">
+						{{ $t("client-settings.enable-adapter-selector") }}
+					</Label>
+				</div>
+			</div>
 
-			<v-divider />
+			<Separator />
 
-			<v-card-actions>
-				<v-spacer />
-				<v-btn color="primary" @click="applySettings">
-					{{ $t("common.save") }}
-				</v-btn>
-				<v-btn @click="cancelSettings">
+			<DialogFooter>
+				<Button variant="ghost" type="button" @click="cancelSettings">
 					{{ $t("common.cancel") }}
-				</v-btn>
-			</v-card-actions>
-		</v-card>
-	</v-dialog>
+				</Button>
+				<Button type="button" @click="applySettings">
+					{{ $t("common.save") }}
+				</Button>
+			</DialogFooter>
+		</DialogContent>
+	</Dialog>
 </template>
 
 <script lang="ts" setup>
-import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
+import { mdiChevronDown } from "@mdi/js";
 import _ from "lodash";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
 import { computed, type Ref, ref, watch } from "vue";
@@ -182,5 +211,15 @@ const audioBoostHint = computed(() => {
 .audio-boost-value {
 	min-width: 3.5rem;
 	text-align: right;
+}
+.ott-expand-enter-active,
+.ott-expand-leave-active {
+	transition: all 0.25s ease;
+	max-height: 600px;
+}
+.ott-expand-enter-from,
+.ott-expand-leave-to {
+	max-height: 0;
+	opacity: 0;
 }
 </style>

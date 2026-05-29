@@ -1,8 +1,12 @@
 <template>
 	<div class="disconnected">
-		<h1>{{ $t("connect-overlay.title") }}</h1>
-		<span class="dc-reason">{{ reasonText() }}</span>
-		<v-btn to="/rooms">{{ $t("connect-overlay.find-another") }}</v-btn>
+		<h1 class="font-display text-4xl text-primary text-glow-primary">
+			{{ $t("connect-overlay.title") }}
+		</h1>
+		<span class="dc-reason label-mono text-muted-foreground">{{ reasonText() }}</span>
+		<Button variant="marquee" as-child>
+			<router-link to="/rooms">{{ $t("connect-overlay.find-another") }}</router-link>
+		</Button>
 	</div>
 </template>
 
@@ -23,8 +27,7 @@ function reasonText() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
+<style scoped>
 .disconnected {
 	display: flex;
 	flex-direction: column;
@@ -32,14 +35,6 @@ function reasonText() {
 	justify-content: center;
 	height: 100%;
 	width: 100%;
-
-	h1 {
-		font-size: 2rem;
-		margin-bottom: 1rem;
-	}
-
-	.dc-reason {
-		margin-bottom: 1rem;
-	}
+	gap: 1rem;
 }
 </style>

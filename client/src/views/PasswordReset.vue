@@ -1,37 +1,54 @@
 <template>
-	<v-container>
-		<v-form @submit="submitPasswordReset">
-			<h1>{{ $t("login-form.change-password.title") }}</h1>
-			<v-text-field
-				v-model="password"
-				:label="$t('login-form.password')"
-				type="password"
-				required
-				:rules="passwordRules"
-				:loading="isLoading"
-			/>
-			<v-text-field
-				v-model="passwordConfirm"
-				:label="$t('login-form.retype-password')"
-				type="password"
-				required
-				:rules="passwordConfirmRules"
-				:loading="isLoading"
-			/>
-			<v-btn
-				type="submit"
-				color="primary"
-				@click.prevent="submitPasswordReset"
-				:loading="isLoading"
-			>
-				{{ $t("common.save") }}
-			</v-btn>
-		</v-form>
-	</v-container>
+	<div class="mx-auto max-w-md px-6 py-16">
+		<Card class="border-line-strong">
+			<form @submit.prevent="submitPasswordReset">
+				<CardHeader>
+					<span class="label-mono text-signal">Reset</span>
+					<CardTitle class="text-2xl tracking-wide">
+						{{ $t("login-form.change-password.title") }}
+					</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<FieldGroup>
+						<Field :data-invalid="showPasswordError || undefined">
+							<FieldLabel for="pwr-password">{{ $t("login-form.password") }}</FieldLabel>
+							<Input
+								id="pwr-password"
+								v-model="password"
+								type="password"
+								:aria-invalid="showPasswordError || undefined"
+								@blur="touched.password = true"
+							/>
+							<FieldError v-if="showPasswordError">{{ errors.password }}</FieldError>
+						</Field>
+						<Field :data-invalid="showConfirmError || undefined">
+							<FieldLabel for="pwr-confirm">
+								{{ $t("login-form.retype-password") }}
+							</FieldLabel>
+							<Input
+								id="pwr-confirm"
+								v-model="passwordConfirm"
+								type="password"
+								:aria-invalid="showConfirmError || undefined"
+								@blur="touched.confirm = true"
+							/>
+							<FieldError v-if="showConfirmError">{{ errors.confirm }}</FieldError>
+						</Field>
+					</FieldGroup>
+				</CardContent>
+				<CardFooter>
+					<Button type="submit" class="w-full" :disabled="isLoading">
+						<Spinner v-if="isLoading" class="size-4" />
+						{{ $t("common.save") }}
+					</Button>
+				</CardFooter>
+			</form>
+		</Card>
+	</div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { API } from "@/common-http";
 import { useRoute, useRouter } from "vue-router";
 import type { OttResponseBody } from "ott-common/models/rest-api";
@@ -48,13 +65,24 @@ const store = useStore();
 const verifyKey = ref(route.query.verifyKey);
 const password = ref("");
 const passwordConfirm = ref("");
+const touched = reactive({ password: false, confirm: false });
 
-const passwordRules = [v => !!v || i18n.t("login-form.rules.password-required")];
+const errors = computed(() => {
+	let pw = "";
+	if (!password.value) {
+		pw = i18n.t("login-form.rules.password-required");
+	}
+	let confirm = "";
+	if (!passwordConfirm.value) {
+		confirm = i18n.t("login-form.rules.password-required");
+	} else if (passwordConfirm.value !== password.value) {
+		confirm = i18n.t("login-form.rules.passwords-match");
+	}
+	return { password: pw, confirm };
+});
 
-const passwordConfirmRules = [
-	v => !!v || i18n.t("login-form.rules.password-required"),
-	v => (v && v === password.value) || i18n.t("login-form.rules.passwords-match"),
-];
+const showPasswordError = computed(() => touched.password && !!errors.value.password);
+const showConfirmError = computed(() => touched.confirm && !!errors.value.confirm);
 
 onMounted(async () => {
 	if (!verifyKey.value) {

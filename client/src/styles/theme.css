@@ -1,0 +1,532 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ *  OpenTogetherTube — "MIDNIGHT DRIVE-IN"
+ *  A retro-cinema / CRT-marquee aesthetic. Warm near-black, neon amber marquee
+ *  light, electric cyan signal glow, faint scanlines + film grain.
+ *
+ *  The drive-in palette DRIVES shadcn-vue's semantic tokens (--background,
+ *  --primary, --card, ...) so every shadcn component is skinned automatically.
+ *  Extra drive-in-only tokens (--signal, --ink, glows) live alongside them.
+ * ───────────────────────────────────────────────────────────────────────────
+ */
+
+/* dark: variant applies inside any of our dark themes */
+@custom-variant dark (&:is([data-theme="dark"] *, [data-theme="deepred"] *, [data-theme="deepblue"] *, [data-theme="greenslate"] *, [data-theme="dark"], [data-theme="deepred"], [data-theme="deepblue"], [data-theme="greenslate"]));
+
+/*
+ * Reka UI state variants used by the shadcn-vue "nova" components.
+ * (Normally provided by the "shadcn-vue/tailwind.css" import, which this CLI
+ * version doesn't ship — so we define them here.) Cover both the bare attribute
+ * and the data-state value form.
+ */
+@custom-variant data-open (&:is([data-state="open"], [data-open]));
+@custom-variant data-closed (&:is([data-state="closed"], [data-closed]));
+@custom-variant data-active (&:is([data-state="active"], [data-active]));
+@custom-variant data-checked (&:is([data-state="checked"], [data-state="on"], [data-checked]));
+@custom-variant data-unchecked (&:is([data-state="unchecked"], [data-state="off"], [data-unchecked]));
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
+@custom-variant data-disabled (&:is([data-disabled], [data-state="disabled"]));
+@custom-variant data-inset (&[data-inset]);
+@custom-variant data-placeholder (&[data-placeholder]);
+
+/* ===========================================================================
+ *  THEME TOKENS  (live CSS vars — swappable at runtime via data-theme)
+ * ======================================================================== */
+:root,
+[data-theme="dark"] {
+	color-scheme: dark;
+	/* drive-in extras */
+	--ink: #0c0a08;
+	--primary-bright: #ffd271;
+	--primary-deep: #e89a1c;
+	--signal: #4fe6df;
+	--signal-deep: #1fb9b3;
+	--surface-2: #211a14;
+	--surface-3: #2c231b;
+	--success: #8ad96b;
+	--warning: #ffb13d;
+	--glow-primary: 0 0 0 1px rgb(255 190 61 / 0.35), 0 0 24px -4px rgb(255 190 61 / 0.55);
+	--glow-signal: 0 0 0 1px rgb(79 230 223 / 0.35), 0 0 22px -4px rgb(79 230 223 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 230 190 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	/* shadcn semantic */
+	--background: #100d0a;
+	--foreground: #f6ecd9;
+	--card: #181310;
+	--card-foreground: #f6ecd9;
+	--popover: #1b1511;
+	--popover-foreground: #f6ecd9;
+	--primary: #ffbe3d;
+	--primary-foreground: #1a1206;
+	--secondary: #221b14;
+	--secondary-foreground: #f6ecd9;
+	--muted: #211a14;
+	--muted-foreground: #c4b49a;
+	--accent: #2c231b;
+	--accent-foreground: #ffd271;
+	--destructive: #ff5a4d;
+	--destructive-foreground: #1a0605;
+	--border: rgb(255 220 160 / 0.12);
+	--input: rgb(255 220 160 / 0.16);
+	--ring: #ffbe3d;
+	--radius: 0.35rem;
+}
+
+/* warm theater-lobby light */
+[data-theme="light"] {
+	color-scheme: light;
+	--ink: #efe6d4;
+	--primary-bright: #f0920f;
+	--primary-deep: #a85906;
+	--signal: #0e8f93;
+	--signal-deep: #0a6d70;
+	--surface-2: #fff9ee;
+	--surface-3: #f1e6cf;
+	--success: #2f8f3e;
+	--warning: #c2740a;
+	--glow-primary: 0 0 0 1px rgb(217 119 6 / 0.3), 0 6px 22px -8px rgb(217 119 6 / 0.45);
+	--glow-signal: 0 0 0 1px rgb(14 143 147 / 0.3), 0 6px 22px -8px rgb(14 143 147 / 0.4);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.6) inset, 0 18px 44px -26px rgb(80 50 10 / 0.4);
+
+	--background: #f4ecdb;
+	--foreground: #2a1d0e;
+	--card: #fbf4e6;
+	--card-foreground: #2a1d0e;
+	--popover: #fff9ee;
+	--popover-foreground: #2a1d0e;
+	--primary: #d97706;
+	--primary-foreground: #fff8ec;
+	--secondary: #efe2c9;
+	--secondary-foreground: #2a1d0e;
+	--muted: #ece0c8;
+	--muted-foreground: #6a553a;
+	--accent: #f1e6cf;
+	--accent-foreground: #a85906;
+	--destructive: #c8362a;
+	--destructive-foreground: #fff;
+	--border: rgb(60 40 10 / 0.16);
+	--input: rgb(60 40 10 / 0.22);
+	--ring: #d97706;
+	--radius: 0.35rem;
+}
+
+/* drive-in at the edge of sunset — deep red */
+[data-theme="deepred"] {
+	color-scheme: dark;
+	--ink: #1a0408;
+	--primary-bright: #ff6f86;
+	--primary-deep: #d11036;
+	--signal: #ffae54;
+	--signal-deep: #e1842d;
+	--surface-2: #421023;
+	--surface-3: #54162e;
+	--success: #44c98a;
+	--warning: #ffae54;
+	--glow-primary: 0 0 0 1px rgb(255 59 92 / 0.4), 0 0 26px -4px rgb(255 59 92 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(255 174 84 / 0.35), 0 0 22px -4px rgb(255 174 84 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 200 210 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #220610;
+	--foreground: #ffe7ec;
+	--card: #310a18;
+	--card-foreground: #ffe7ec;
+	--popover: #3a0d1d;
+	--popover-foreground: #ffe7ec;
+	--primary: #ff3b5c;
+	--primary-foreground: #2a0309;
+	--secondary: #421023;
+	--secondary-foreground: #ffe7ec;
+	--muted: #421023;
+	--muted-foreground: #d99fae;
+	--accent: #54162e;
+	--accent-foreground: #ff6f86;
+	--destructive: #ff5470;
+	--destructive-foreground: #2a0309;
+	--border: rgb(255 150 170 / 0.14);
+	--input: rgb(255 150 170 / 0.2);
+	--ring: #ff3b5c;
+	--radius: 0.35rem;
+}
+
+/* midnight broadcast — deep blue */
+[data-theme="deepblue"] {
+	color-scheme: dark;
+	--ink: #03101f;
+	--primary-bright: #87d0ff;
+	--primary-deep: #1c8fe6;
+	--signal: #5ef0d8;
+	--signal-deep: #1fc0a8;
+	--surface-2: #0c2c47;
+	--surface-3: #11385a;
+	--success: #4fe0b0;
+	--warning: #ffc04f;
+	--glow-primary: 0 0 0 1px rgb(79 182 255 / 0.4), 0 0 26px -4px rgb(79 182 255 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(94 240 216 / 0.35), 0 0 22px -4px rgb(94 240 216 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(190 220 255 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #051628;
+	--foreground: #e2f3ff;
+	--card: #082035;
+	--card-foreground: #e2f3ff;
+	--popover: #0a2740;
+	--popover-foreground: #e2f3ff;
+	--primary: #4fb6ff;
+	--primary-foreground: #04121f;
+	--secondary: #0c2c47;
+	--secondary-foreground: #e2f3ff;
+	--muted: #0c2c47;
+	--muted-foreground: #9cc2dc;
+	--accent: #11385a;
+	--accent-foreground: #87d0ff;
+	--destructive: #ff6b6b;
+	--destructive-foreground: #04121f;
+	--border: rgb(150 200 255 / 0.14);
+	--input: rgb(150 200 255 / 0.2);
+	--ring: #4fb6ff;
+	--radius: 0.35rem;
+}
+
+/* projector-room green phosphor */
+[data-theme="greenslate"] {
+	color-scheme: dark;
+	--ink: #0a0f0a;
+	--primary-bright: #8dff9f;
+	--primary-deep: #2fc257;
+	--signal: #e4d36a;
+	--signal-deep: #c2af3f;
+	--surface-2: #1d2b1d;
+	--surface-3: #263626;
+	--success: #5cf07f;
+	--warning: #efeb68;
+	--glow-primary: 0 0 0 1px rgb(92 240 127 / 0.4), 0 0 26px -4px rgb(92 240 127 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(228 211 106 / 0.35), 0 0 22px -4px rgb(228 211 106 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(200 255 200 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #0e150e;
+	--foreground: #e7f6e2;
+	--card: #151f15;
+	--card-foreground: #e7f6e2;
+	--popover: #182418;
+	--popover-foreground: #e7f6e2;
+	--primary: #5cf07f;
+	--primary-foreground: #061206;
+	--secondary: #1d2b1d;
+	--secondary-foreground: #e7f6e2;
+	--muted: #1d2b1d;
+	--muted-foreground: #a9c4a3;
+	--accent: #263626;
+	--accent-foreground: #8dff9f;
+	--destructive: #ff7a6a;
+	--destructive-foreground: #061206;
+	--border: rgb(170 230 170 / 0.13);
+	--input: rgb(170 230 170 / 0.2);
+	--ring: #5cf07f;
+	--radius: 0.35rem;
+}
+
+/* candy concession-stand light */
+[data-theme="strawberry"] {
+	color-scheme: light;
+	--ink: #ffe3ec;
+	--primary-bright: #ff4d8d;
+	--primary-deep: #b80049;
+	--signal: #4a9d5e;
+	--signal-deep: #357a47;
+	--surface-2: #ffdfe9;
+	--surface-3: #ffd0de;
+	--success: #4a9d5e;
+	--warning: #e0801f;
+	--glow-primary: 0 0 0 1px rgb(232 3 95 / 0.3), 0 6px 22px -8px rgb(232 3 95 / 0.5);
+	--glow-signal: 0 0 0 1px rgb(74 157 94 / 0.3), 0 6px 22px -8px rgb(74 157 94 / 0.4);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.7) inset, 0 18px 44px -26px rgb(120 10 50 / 0.35);
+
+	--background: #ffe9f0;
+	--foreground: #4a0b25;
+	--card: #fff2f6;
+	--card-foreground: #4a0b25;
+	--popover: #fff2f6;
+	--popover-foreground: #4a0b25;
+	--primary: #e8035f;
+	--primary-foreground: #fff;
+	--secondary: #ffd9e6;
+	--secondary-foreground: #4a0b25;
+	--muted: #ffd9e6;
+	--muted-foreground: #8f3a59;
+	--accent: #ffd0de;
+	--accent-foreground: #b80049;
+	--destructive: #c8123f;
+	--destructive-foreground: #fff;
+	--border: rgb(120 10 50 / 0.14);
+	--input: rgb(120 10 50 / 0.2);
+	--ring: #e8035f;
+	--radius: 0.35rem;
+}
+
+/* sidebar + chart tokens (derived; mostly unused but kept resolvable) */
+:root {
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--card-foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--accent);
+	--sidebar-accent-foreground: var(--accent-foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
+	--chart-1: var(--primary);
+	--chart-2: var(--signal);
+	--chart-3: var(--success);
+	--chart-4: var(--warning);
+	--chart-5: var(--destructive);
+}
+
+/* ===========================================================================
+ *  TAILWIND TOKEN MAP  (inline → utilities resolve to the live vars above)
+ * ======================================================================== */
+@theme inline {
+	/* shadcn semantic colors */
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+
+	/* drive-in extras */
+	--color-ink: var(--ink);
+	--color-signal: var(--signal);
+	--color-signal-deep: var(--signal-deep);
+	--color-surface-2: var(--surface-2);
+	--color-surface-3: var(--surface-3);
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-primary-bright: var(--primary-bright);
+	--color-primary-deep: var(--primary-deep);
+
+	/* fonts */
+	--font-sans: var(--font-body);
+	--font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+	--font-body: "Hanken Grotesk", system-ui, sans-serif;
+	--font-mono: "Space Mono", ui-monospace, monospace;
+
+	/* radii */
+	--radius-sm: calc(var(--radius) - 2px);
+	--radius-md: var(--radius);
+	--radius-lg: calc(var(--radius) + 2px);
+	--radius-xl: calc(var(--radius) + 6px);
+	--font-heading: var(--font-display);
+}
+
+/* ===========================================================================
+ *  BASE
+ * ======================================================================== */
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	html {
+		background-color: var(--ink);
+		color: var(--foreground);
+		font-family: var(--font-body);
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+		scrollbar-color: var(--primary-deep) transparent;
+	}
+
+	body {
+		margin: 0;
+		min-height: 100vh;
+		@apply bg-background text-foreground font-sans;
+	}
+
+	h1, h2, h3, .display {
+		font-family: var(--font-display);
+		font-weight: 400;
+		letter-spacing: 0.02em;
+		line-height: 0.95;
+		text-transform: uppercase;
+	}
+
+	a {
+		color: var(--signal);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+	a:hover {
+		color: var(--primary-bright);
+	}
+
+	::selection {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--surface-3);
+		border-radius: 99px;
+		border: 2px solid transparent;
+		background-clip: padding-box;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--primary-deep);
+		background-clip: padding-box;
+	}
+
+	input, textarea, select, button {
+		font-family: inherit;
+	}
+}
+
+/* ===========================================================================
+ *  ATMOSPHERE — scanlines, film grain, vignette  (full-screen, non-interactive)
+ * ======================================================================== */
+@layer components {
+	.ott-scanlines::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		z-index: 30;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			to bottom,
+			rgb(0 0 0 / 0) 0,
+			rgb(0 0 0 / 0) 2px,
+			rgb(0 0 0 / 0.22) 3px,
+			rgb(0 0 0 / 0) 4px
+		);
+		mix-blend-mode: multiply;
+		opacity: 0.5;
+	}
+
+	.ott-grain::before {
+		content: "";
+		position: fixed;
+		inset: -50%;
+		z-index: 30;
+		pointer-events: none;
+		opacity: 0.045;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+		animation: ott-grain-shift 0.5s steps(3) infinite;
+	}
+
+	@keyframes ott-grain-shift {
+		0% { transform: translate(0, 0); }
+		33% { transform: translate(-4%, 3%); }
+		66% { transform: translate(3%, -2%); }
+		100% { transform: translate(0, 0); }
+	}
+
+	.ott-vignette::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background: radial-gradient(120% 120% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.45) 100%);
+	}
+}
+
+/* ===========================================================================
+ *  UTILITIES — marquee glow, ticket notch, mono-label, flicker
+ * ======================================================================== */
+@layer utilities {
+	.text-glow-primary {
+		text-shadow: 0 0 18px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 2px var(--primary);
+	}
+	.text-glow-signal {
+		text-shadow: 0 0 16px color-mix(in srgb, var(--signal) 55%, transparent);
+	}
+	.glow-primary {
+		box-shadow: var(--glow-primary);
+	}
+	.glow-signal {
+		box-shadow: var(--glow-signal);
+	}
+
+	.label-mono {
+		font-family: var(--font-mono);
+		text-transform: uppercase;
+		letter-spacing: 0.22em;
+		font-size: 0.68rem;
+	}
+
+	.ticket-notch {
+		clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+	}
+
+	.marquee-flicker {
+		animation: ott-flicker 6s infinite;
+	}
+	@keyframes ott-flicker {
+		0%, 100% { opacity: 1; }
+		92% { opacity: 1; }
+		93% { opacity: 0.55; }
+		94% { opacity: 1; }
+		96% { opacity: 0.7; }
+		97% { opacity: 1; }
+	}
+
+	@keyframes ott-fade-up {
+		from { opacity: 0; transform: translateY(14px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+	.animate-fade-up {
+		animation: ott-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+
+	@keyframes ott-spin {
+		to { transform: rotate(360deg); }
+	}
+
+	.scrollbarBeGone {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.scrollbarBeGone::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ott-grain::before,
+	.marquee-flicker {
+		animation: none !important;
+	}
+}

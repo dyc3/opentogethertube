@@ -54,8 +54,6 @@ withDefaults(
 <style lang="scss">
 @use "./media-controls.scss";
 
-$media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
-
 .grow {
 	flex-grow: 1;
 }
@@ -71,11 +69,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 		position: absolute;
 		bottom: 0;
 
-		background: linear-gradient(
-			to top,
-			rgba($media-control-background, 0.65),
-			rgba($media-control-background, 0)
-		);
+		background: linear-gradient(to top, rgb(8 6 4 / 0.78), rgb(8 6 4 / 0));
 		transition: all 0.2s;
 
 		&.hide {
@@ -86,7 +80,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 	}
 
 	&.outside-video {
-		background: rgb($media-control-background);
+		background: var(--ink);
 		border-radius: 0 0 10px 10px;
 
 		&.hide {

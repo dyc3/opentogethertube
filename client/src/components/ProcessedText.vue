@@ -2,18 +2,25 @@
 	<span data-cy="processed-text">
 		<span v-for="(item, index) in content" :key="index">
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
+			<Tooltip v-else-if="item.type === 'link' && showAddQueueTooltip">
+				<TooltipTrigger as-child>
+					<a
+						class="text-primary underline-offset-2 hover:underline"
+						:href="item.text"
+						@click="e => onLinkClick(e, item.text)"
+					>
+						{{ item.text }}
+					</a>
+				</TooltipTrigger>
+				<TooltipContent>{{ $t("processed-text.link-hint") }}</TooltipContent>
+			</Tooltip>
 			<a
 				v-else-if="item.type === 'link'"
-				class="link text-primary"
+				class="text-primary underline-offset-2 hover:underline"
 				:href="item.text"
 				@click="e => onLinkClick(e, item.text)"
 			>
-				<span>
-					{{ item.text }}
-					<v-tooltip top activator="parent" v-if="showAddQueueTooltip">
-						<span>{{ $t("processed-text.link-hint") }}</span>
-					</v-tooltip>
-				</span>
+				{{ item.text }}
 			</a>
 		</span>
 	</span>
@@ -95,6 +102,3 @@ watch(
 );
 </script>
 
-<style lang="scss" scoped>
-@use "../variables.scss";
-</style>

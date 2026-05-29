@@ -3,16 +3,16 @@
 		<div v-for="(t, index) in store.state.toast.notifications" :key="t.id" class="toast-item">
 			<ToastNotification :toast="t" :number="index" />
 		</div>
-		<v-btn
-			block
-			color="primary"
+		<Button
+			variant="default"
+			class="close-all w-full"
 			key="closeall"
 			@click="closeAll"
 			v-if="store.state.toast.notifications.length > 1"
 			data-cy="toast-close-all"
 		>
 			{{ $t("common.close-all") }}
-		</v-btn>
+		</Button>
 	</transition-group>
 </template>
 
@@ -29,7 +29,7 @@ function closeAll() {
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .toast-list {
 	display: flex;
 	flex-direction: column;
@@ -40,14 +40,19 @@ function closeAll() {
 	right: 0;
 	pointer-events: none;
 	z-index: 1000;
-
-	.toast,
-	button {
-		pointer-events: auto;
-	}
 }
 
-// define the animations for individual toasts
+.toast-list :deep(.toast),
+.toast-list .close-all {
+	pointer-events: auto;
+}
+
+.close-all {
+	margin: 0 8px 8px;
+	max-width: 672px;
+}
+
+/* define the animations for individual toasts */
 .toast-list-move {
 	transition: all 0.25s ease;
 }
@@ -60,6 +65,5 @@ function closeAll() {
 .toast-list-leave-to {
 	opacity: 0;
 	transform: translateY(50px);
-	// bottom: -50px;
 }
 </style>

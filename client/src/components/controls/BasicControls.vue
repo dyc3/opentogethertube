@@ -1,65 +1,75 @@
 <template>
-	<div>
-		<v-btn
-			variant="text"
-			icon
-			@click="seekDelta(-10)"
-			:disabled="!granted('playback.seek')"
-			class="media-control"
-			:aria-label="$t('room.rewind')"
-		>
-			<v-icon :icon="mdiChevronLeft" />
-			<v-tooltip activator="parent" location="bottom">
-				<span>{{ $t("room.rewind") }}</span>
-			</v-tooltip>
-		</v-btn>
-		<v-btn
-			variant="text"
-			icon
-			@click="togglePlayback()"
-			:disabled="!granted('playback.play-pause')"
-			class="media-control"
-			:aria-label="$t('room.play-pause')"
-		>
-			<v-icon :icon="store.state.room.isPlaying ? mdiPause : mdiPlay" />
-			<v-tooltip activator="parent" location="bottom">
-				<span>{{ $t("room.play-pause") }}</span>
-			</v-tooltip>
-		</v-btn>
-		<v-btn
-			variant="text"
-			icon
-			@click="seekDelta(10)"
-			:disabled="!granted('playback.seek')"
-			class="media-control"
-			:aria-label="$t('room.skip')"
-		>
-			<v-icon :icon="mdiChevronRight" />
-			<v-tooltip activator="parent" location="bottom">
-				<span>{{ $t("room.skip") }}</span>
-			</v-tooltip>
-		</v-btn>
-		<v-btn
-			variant="text"
-			icon
-			@click="skip()"
-			:disabled="!granted('playback.skip')"
-			class="media-control"
-			:aria-label="
-				store.state.room.enableVoteSkip ? $t('room.next-video-vote') : $t('room.next-video')
-			"
-		>
-			<v-icon :icon="mdiSkipForward" />
-			<v-tooltip activator="parent" location="bottom">
-				<span>
-					{{
+	<div class="flex items-center">
+		<Tooltip>
+			<TooltipTrigger as-child>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="media-control"
+					:disabled="!granted('playback.seek')"
+					:aria-label="$t('room.rewind')"
+					@click="seekDelta(-10)"
+				>
+					<Icon :icon="mdiChevronLeft" class="size-5" />
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent side="bottom">{{ $t("room.rewind") }}</TooltipContent>
+		</Tooltip>
+		<Tooltip>
+			<TooltipTrigger as-child>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="media-control"
+					:disabled="!granted('playback.play-pause')"
+					:aria-label="$t('room.play-pause')"
+					@click="togglePlayback()"
+				>
+					<Icon :icon="store.state.room.isPlaying ? mdiPause : mdiPlay" class="size-5" />
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent side="bottom">{{ $t("room.play-pause") }}</TooltipContent>
+		</Tooltip>
+		<Tooltip>
+			<TooltipTrigger as-child>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="media-control"
+					:disabled="!granted('playback.seek')"
+					:aria-label="$t('room.skip')"
+					@click="seekDelta(10)"
+				>
+					<Icon :icon="mdiChevronRight" class="size-5" />
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent side="bottom">{{ $t("room.skip") }}</TooltipContent>
+		</Tooltip>
+		<Tooltip>
+			<TooltipTrigger as-child>
+				<Button
+					variant="ghost"
+					size="icon"
+					class="media-control"
+					:disabled="!granted('playback.skip')"
+					:aria-label="
 						store.state.room.enableVoteSkip
-							? $t("room.next-video-vote")
-							: $t("room.next-video")
-					}}
-				</span>
-			</v-tooltip>
-		</v-btn>
+							? $t('room.next-video-vote')
+							: $t('room.next-video')
+					"
+					@click="skip()"
+				>
+					<Icon :icon="mdiSkipForward" class="size-5" />
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent side="bottom">
+				{{
+					store.state.room.enableVoteSkip
+						? $t("room.next-video-vote")
+						: $t("room.next-video")
+				}}
+			</TooltipContent>
+		</Tooltip>
 	</div>
 </template>
 
@@ -142,7 +152,8 @@ function skip() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./media-controls.scss";
+<style scoped>
+.media-control {
+	color: var(--foreground);
+}
 </style>

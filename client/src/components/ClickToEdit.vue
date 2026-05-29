@@ -1,12 +1,8 @@
 <template>
-	<div style="display: inline-flex">
+	<div class="inline-flex">
 		<div v-if="editing">
-			<v-text-field
-				variant="solo"
-				hide-details
-				density="compact"
-				single-line
-				class="editor"
+			<Input
+				class="editor h-8"
 				ref="editor"
 				v-model="valueDirty"
 				@keyup.enter="apply"
@@ -43,7 +39,7 @@ const emit = defineEmits<{
 	change: [value: T];
 }>();
 
-const editor = ref<HTMLInputElement | undefined>();
+const editor = ref<{ $el?: HTMLInputElement } | undefined>();
 const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
 const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
 
@@ -63,7 +59,7 @@ async function activate() {
 	}
 	editing.value = true;
 	await nextTick();
-	editor.value?.focus();
+	editor.value?.$el?.focus();
 }
 
 function apply() {

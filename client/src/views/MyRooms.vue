@@ -1,74 +1,82 @@
 <template>
-	<v-container class="room-list" fill-height style="align-items: inherit">
-		<v-row class="center-shit" v-if="isLoading" style="width: 100%">
-			<v-col cols="12">
-				<v-progress-circular indeterminate />
-			</v-col>
-		</v-row>
+	<div class="mx-auto max-w-4xl px-6 py-12">
+		<div v-if="isLoading" class="flex min-h-[50vh] items-center justify-center">
+			<Spinner class="size-10 text-primary" />
+		</div>
 
-		<v-row v-if="!isLoading && rooms.length === 0" class="center-shit" style="width: 100%">
-			<div>
-				<h1>{{ $t("room-list.no-rooms") }}</h1>
-				<v-btn elevation="12" size="x-large" @click="createTempRoom">
-					{{ $t("room-list.create") }}
-				</v-btn>
+		<div
+			v-if="!isLoading && rooms.length === 0"
+			class="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center"
+		>
+			<span class="label-mono text-signal">Your lot is empty</span>
+			<h1 class="font-display text-5xl tracking-wide">{{ $t("room-list.no-rooms") }}</h1>
+			<Button variant="default" size="xl" @click="createTempRoom">
+				{{ $t("room-list.create") }}
+			</Button>
+		</div>
+
+		<template v-if="!isLoading && rooms.length > 0">
+			<div class="mb-8">
+				<span class="label-mono text-signal">Owned</span>
+				<h1 class="section-title font-display text-4xl tracking-wide">
+					{{ $t("nav.my-rooms") }}
+				</h1>
 			</div>
-		</v-row>
-
-		<v-row v-if="!isLoading && rooms.length > 0">
-			<v-col cols="12" class="mb-4">
-				<h1>{{ $t("nav.my-rooms") }}</h1>
-			</v-col>
-			<v-col cols="12">
-				<v-list density="compact" nav>
-					<v-list-item
-						v-for="(room, index) in rooms"
-						:key="index"
-						:to="`/room/${room.name}`"
+			<ul class="flex flex-col gap-2">
+				<li v-for="(room, index) in rooms" :key="index">
+					<div
+						class="flex items-center gap-3 rounded-lg border border-line bg-card px-4 py-3 transition hover:border-primary/50 hover:bg-surface-2"
 					>
-						<v-list-item-title>
-							{{ room.title ? `${room.title} (${room.name})` : room.name }}
-						</v-list-item-title>
-						<v-list-item-subtitle>
-							<span v-if="room.description">{{ room.description }}</span>
-							<span v-else>{{ $t("room-list.no-description") }}</span>
-						</v-list-item-subtitle>
-						<template #append v-if="!room.isTemporary">
-							<v-btn
-								icon
-								variant="text"
-								color="error"
-								@click.stop.prevent="openDeleteDialog(room)"
-							>
-								<v-icon :icon="mdiDelete" />
-							</v-btn>
-						</template>
-					</v-list-item>
-				</v-list>
-			</v-col>
-		</v-row>
-		<v-dialog v-model="showDeleteDialog" max-width="500">
-			<v-card>
-				<v-card-title class="text-h6">{{ $t("common.delete") }}</v-card-title>
-				<v-card-text>
-					{{
-						$t("my-rooms.confirm-delete", {
-							name: roomPendingDelete ? roomPendingDelete.name : "",
-						})
-					}}
-				</v-card-text>
-				<v-card-actions>
-					<v-spacer />
-					<v-btn variant="text" @click="closeDeleteDialog">{{
-						$t("common.cancel")
-					}}</v-btn>
-					<v-btn color="error" variant="flat" @click="confirmDelete">{{
-						$t("common.delete")
-					}}</v-btn>
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
-	</v-container>
+						<router-link :to="`/room/${room.name}`" class="min-w-0 flex-1">
+							<div class="font-display text-lg tracking-wide text-foreground">
+								{{ room.title ? `${room.title} (${room.name})` : room.name }}
+							</div>
+							<div class="truncate text-sm text-muted-foreground">
+								<span v-if="room.description">{{ room.description }}</span>
+								<span v-else class="italic text-dim">
+									{{ $t("room-list.no-description") }}
+								</span>
+							</div>
+						</router-link>
+						<Button
+							v-if="!room.isTemporary"
+							variant="ghost"
+							size="icon"
+							class="text-destructive hover:text-destructive"
+							@click.stop.prevent="openDeleteDialog(room)"
+						>
+							<Icon :icon="mdiDelete" class="size-5" />
+						</Button>
+					</div>
+				</li>
+			</ul>
+		</template>
+
+		<Dialog v-model:open="showDeleteDialog">
+			<DialogContent class="max-w-md sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle class="font-display text-2xl tracking-wide">
+						{{ $t("common.delete") }}
+					</DialogTitle>
+					<DialogDescription>
+						{{
+							$t("my-rooms.confirm-delete", {
+								name: roomPendingDelete ? roomPendingDelete.name : "",
+							})
+						}}
+					</DialogDescription>
+				</DialogHeader>
+				<DialogFooter class="gap-2">
+					<Button variant="ghost" @click="closeDeleteDialog">
+						{{ $t("common.cancel") }}
+					</Button>
+					<Button variant="destructive" @click="confirmDelete">
+						{{ $t("common.delete") }}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	</div>
 </template>
 
 <script lang="ts" setup>
@@ -142,4 +150,20 @@ async function deleteOwnedRoom(room: RoomListItem) {
 }
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+.section-title {
+	position: relative;
+	padding-left: 1rem;
+	margin-top: 0.25rem;
+}
+.section-title::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0.1em;
+	bottom: 0.1em;
+	width: 4px;
+	background: var(--primary);
+	box-shadow: 0 0 12px var(--primary);
+}
+</style>

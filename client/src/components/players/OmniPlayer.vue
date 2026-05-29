@@ -1,29 +1,27 @@
 <template>
 	<div class="player">
 		<div class="in-player-notifs">
-			<!-- TODO: replace with v-banner when this is fixed: https://github.com/vuetifyjs/vuetify/issues/17124 -->
-			<v-sheet color="warning" density="compact" v-if="showBufferWarning">
-				<v-container fluid style="padding: 6px">
-					<div style="display: flex; align-items: center">
-						<v-progress-circular indeterminate size="16" width="2" />
-						<span>{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}</span>
-						<v-spacer />
-						<v-btn
-							size="x-small"
-							variant="text"
-							icon
-							@click="showBufferWarning = false"
-						>
-							<v-icon :icon="mdiClose" />
-						</v-btn>
-					</div>
-				</v-container>
-			</v-sheet>
+			<div
+				v-if="showBufferWarning"
+				class="flex items-center gap-2 bg-warning p-1.5 text-background"
+			>
+				<Spinner class="size-4" />
+				<span>{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}</span>
+				<div class="flex-1" />
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					aria-label="Close"
+					@click="showBufferWarning = false"
+				>
+					<Icon :icon="mdiClose" class="size-4" />
+				</Button>
+			</div>
 		</div>
-		<v-alert prominent variant="tonal" class="playback-error" v-if="showPlaybackError">
+		<div v-if="showPlaybackError" class="playback-error">
 			<div class="playback-error-text">
-				<h1>
-					<v-icon :icon="mdiAlertCircle" />
+				<h1 class="flex items-center gap-2">
+					<Icon :icon="mdiAlertCircle" class="size-6" />
 					{{
 						$t(`player.playback-error-title.${currentPlaybackError?.type ?? "unknown"}`)
 					}}
@@ -36,7 +34,7 @@
 					<em>{{ currentPlaybackError?.message }}</em>
 				</span>
 			</div>
-		</v-alert>
+		</div>
 
 		<Suspense>
 			<YoutubePlayer
@@ -140,7 +138,7 @@
 			</div>
 			<template #fallback>
 				<div class="no-video">
-					<v-progress-circular indeterminate />
+					<Spinner class="size-8" />
 				</div>
 			</template>
 		</Suspense>
@@ -426,22 +424,8 @@ const renderedSpans = computed(() => {
 
 	opacity: 60%;
 	border-radius: 3px;
-}
-
-.v-theme--dark,
-.v-theme--deepblue,
-.v-theme--deepred {
-	.no-video {
-		color: #fff;
-		border: 1px solid rgba(255, 255, 255, 0.5);
-	}
-}
-
-.v-theme--light {
-	.no-video {
-		color: #000;
-		border: 1px solid rgba(0, 0, 0, 0.5);
-	}
+	color: var(--foreground);
+	border: 1px solid var(--border);
 }
 
 .player {
@@ -466,7 +450,7 @@ const renderedSpans = computed(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: rgba(var(--v-theme-background), 1);
+	background-color: var(--background);
 	z-index: 1;
 }
 </style>

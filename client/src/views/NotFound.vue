@@ -1,22 +1,18 @@
 <template>
-	<v-container>
-		<v-row class="center-shit">
-			<div>
-				<h1>{{ $t("not-found.title") }}</h1>
-				<v-btn block class="not-found-btn" elevation="12" size="x-large" to="/">
-					{{ $t("not-found.home") }}
-				</v-btn>
-				<v-btn block class="not-found-btn" elevation="12" size="x-large" to="/rooms">
-					{{ $t("not-found.browse") }}
-				</v-btn>
+	<div class="flex min-h-[70vh] items-center justify-center px-6 py-16">
+		<div class="w-full max-w-md text-center">
+			<span class="label-mono text-signal">Error · 404</span>
+			<h1 class="font-display mt-3 text-7xl text-primary text-glow-primary">
+				{{ $t("not-found.title") }}
+			</h1>
+			<div class="mt-10 flex flex-col gap-3">
+				<Button variant="default" size="xl" class="w-full" as-child>
+					<router-link to="/">{{ $t("not-found.home") }}</router-link>
+				</Button>
+				<Button variant="marquee" size="xl" class="w-full" as-child>
+					<router-link to="/rooms">{{ $t("not-found.browse") }}</router-link>
+				</Button>
 			</div>
-		</v-row>
-	</v-container>
+		</div>
+	</div>
 </template>
-
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-.not-found-btn {
-	margin: 8px;
-}
-</style>

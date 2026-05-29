@@ -1,150 +1,172 @@
 <template>
-	<div class="room-settings" style="margin: 12px">
-		<v-form @submit="submitRoomSettings">
-			<v-text-field
-				:label="$t('room-settings.title')"
-				v-model="settings.title.value"
-				:loading="isLoadingRoomSettings || dirtySettings.includes('title')"
-				:disabled="!granted('configure-room.set-title')"
-				data-cy="input-title"
-			/>
-			<v-text-field
-				:label="$t('room-settings.description')"
-				v-model="settings.description.value"
-				:loading="isLoadingRoomSettings || dirtySettings.includes('description')"
-				:disabled="!granted('configure-room.set-description')"
-				data-cy="input-description"
-			/>
-			<v-select
-				:label="$t('room-settings.visibility')"
-				:items="[
-					{ title: $t('room-settings.public'), value: Visibility.Public },
-					{ title: $t('room-settings.unlisted'), value: Visibility.Unlisted },
-				]"
-				v-model="settings.visibility.value"
-				:menu="visibilityMenuOpen"
-				@update:menu="visibilityMenuOpen = $event"
-				:loading="isLoadingRoomSettings || dirtySettings.includes('visibility')"
-				:disabled="!granted('configure-room.set-visibility')"
-				data-cy="select-visibility"
-			>
-				<template #item="{ props }">
-					<v-list-item v-bind="props" />
-				</template>
-			</v-select>
-			<v-select
-				:label="$t('room-settings.queue-mode')"
-				:items="[
-					{
-						title: $t('room-settings.manual'),
-						value: QueueMode.Manual,
-						description: $t('room-settings.manual-hint'),
-					},
-					{
-						title: $t('room-settings.vote'),
-						value: QueueMode.Vote,
-						description: $t('room-settings.vote-hint'),
-					},
-					{
-						title: $t('room-settings.loop'),
-						value: QueueMode.Loop,
-						description: $t('room-settings.loop-hint'),
-					},
-					{
-						title: $t('room-settings.dj'),
-						value: QueueMode.Dj,
-						description: $t('room-settings.dj-hint'),
-					},
-				]"
-				v-model="settings.queueMode.value"
-				:loading="isLoadingRoomSettings || dirtySettings.includes('queueMode')"
-				:disabled="!granted('configure-room.set-queue-mode')"
-				data-cy="select-queueMode"
-			>
-				<template #item="{ props, item }">
-					<v-list-item v-bind="props">
-						<span class="text-grey text-caption">{{ item.raw.description }}</span>
-					</v-list-item>
-				</template>
-			</v-select>
-			<AutoSkipSegmentSettings
-				:loading="
-					isLoadingRoomSettings || dirtySettings.includes('autoSkipSegmentCategories')
-				"
-				:disabled="!granted('configure-room.other')"
-				v-model="settings.autoSkipSegmentCategories.value"
-			/>
-			<v-select
-				:label="$t('room-settings.restore-queue')"
-				:items="[
-					{
-						title: $t(`behavior.${BehaviorOption.Always}`),
-						value: BehaviorOption.Always,
-					},
-					{
-						title: $t(`behavior.${BehaviorOption.Prompt}`),
-						value: BehaviorOption.Prompt,
-					},
-					{
-						title: $t(`behavior.${BehaviorOption.Never}`),
-						value: BehaviorOption.Never,
-					},
-				]"
-				v-model="settings.restoreQueueBehavior.value"
-				:loading="isLoadingRoomSettings || dirtySettings.includes('restoreQueueBehavior')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="select-restore-queue"
-			>
-				<template #item="{ props }">
-					<v-list-item v-bind="props" />
-				</template>
-			</v-select>
-			<v-checkbox
-				v-model="settings.enableVoteSkip.value"
-				:label="$t('room-settings.enable-vote-skip')"
-				:disabled="!granted('configure-room.other')"
-				data-cy="input-vote-skip"
-			/>
-			<PermissionsEditor
-				v-if="store.state.user && store.state.room.hasOwner"
-				v-model="settings.grants.value as Grants"
-				:current-role="store.getters['users/self']?.role ?? Role.Owner"
-			/>
-			<div v-else-if="!store.state.room.hasOwner">
-				{{ $t("room-settings.room-needs-owner") }}
-				<span v-if="!store.state.user">
-					{{ $t("room-settings.login-to-claim") }}
-				</span>
-			</div>
-			<div v-else>
-				{{ $t("room-settings.arent-able-to-modify-permissions") }}
-			</div>
-			<div class="submit">
-				<v-btn
-					size="large"
-					block
-					color="#2196f3"
+	<div class="room-settings">
+		<form @submit.prevent="submitRoomSettings">
+			<FieldGroup>
+				<Field>
+					<FieldLabel for="rs-title">{{ $t("room-settings.title") }}</FieldLabel>
+					<Input
+						id="rs-title"
+						v-model="settings.title.value"
+						:disabled="!granted('configure-room.set-title')"
+						data-cy="input-title"
+					/>
+				</Field>
+				<Field>
+					<FieldLabel for="rs-description">{{ $t("room-settings.description") }}</FieldLabel>
+					<Input
+						id="rs-description"
+						v-model="settings.description.value"
+						:disabled="!granted('configure-room.set-description')"
+						data-cy="input-description"
+					/>
+				</Field>
+				<Field>
+					<FieldLabel>{{ $t("room-settings.visibility") }}</FieldLabel>
+					<Select
+						v-model="settings.visibility.value"
+						v-model:open="visibilityMenuOpen"
+						:disabled="!granted('configure-room.set-visibility')"
+					>
+						<SelectTrigger class="w-full" data-cy="select-visibility">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem :value="Visibility.Public">
+								{{ $t("room-settings.public") }}
+							</SelectItem>
+							<SelectItem :value="Visibility.Unlisted">
+								{{ $t("room-settings.unlisted") }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+				</Field>
+				<Field>
+					<FieldLabel>{{ $t("room-settings.queue-mode") }}</FieldLabel>
+					<Select
+						v-model="settings.queueMode.value"
+						:disabled="!granted('configure-room.set-queue-mode')"
+					>
+						<SelectTrigger class="w-full" data-cy="select-queueMode">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem :value="QueueMode.Manual">
+								<div class="flex flex-col">
+									<span>{{ $t("room-settings.manual") }}</span>
+									<span class="text-xs text-muted-foreground">
+										{{ $t("room-settings.manual-hint") }}
+									</span>
+								</div>
+							</SelectItem>
+							<SelectItem :value="QueueMode.Vote">
+								<div class="flex flex-col">
+									<span>{{ $t("room-settings.vote") }}</span>
+									<span class="text-xs text-muted-foreground">
+										{{ $t("room-settings.vote-hint") }}
+									</span>
+								</div>
+							</SelectItem>
+							<SelectItem :value="QueueMode.Loop">
+								<div class="flex flex-col">
+									<span>{{ $t("room-settings.loop") }}</span>
+									<span class="text-xs text-muted-foreground">
+										{{ $t("room-settings.loop-hint") }}
+									</span>
+								</div>
+							</SelectItem>
+							<SelectItem :value="QueueMode.Dj">
+								<div class="flex flex-col">
+									<span>{{ $t("room-settings.dj") }}</span>
+									<span class="text-xs text-muted-foreground">
+										{{ $t("room-settings.dj-hint") }}
+									</span>
+								</div>
+							</SelectItem>
+						</SelectContent>
+					</Select>
+				</Field>
+				<AutoSkipSegmentSettings
+					:loading="
+						isLoadingRoomSettings || dirtySettings.includes('autoSkipSegmentCategories')
+					"
+					:disabled="!granted('configure-room.other')"
+					v-model="settings.autoSkipSegmentCategories.value"
+				/>
+				<Field>
+					<FieldLabel>{{ $t("room-settings.restore-queue") }}</FieldLabel>
+					<Select
+						v-model="settings.restoreQueueBehavior.value"
+						:disabled="!granted('configure-room.other')"
+					>
+						<SelectTrigger class="w-full" data-cy="select-restore-queue">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem :value="BehaviorOption.Always">
+								{{ $t(`behavior.${BehaviorOption.Always}`) }}
+							</SelectItem>
+							<SelectItem :value="BehaviorOption.Prompt">
+								{{ $t(`behavior.${BehaviorOption.Prompt}`) }}
+							</SelectItem>
+							<SelectItem :value="BehaviorOption.Never">
+								{{ $t(`behavior.${BehaviorOption.Never}`) }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+				</Field>
+				<div class="flex items-center gap-2">
+					<Checkbox
+						id="rs-vote-skip"
+						v-model="settings.enableVoteSkip.value"
+						:disabled="!granted('configure-room.other')"
+						data-cy="input-vote-skip"
+					/>
+					<Label for="rs-vote-skip" class="cursor-pointer">
+						{{ $t("room-settings.enable-vote-skip") }}
+					</Label>
+				</div>
+				<PermissionsEditor
+					v-if="store.state.user && store.state.room.hasOwner"
+					v-model="settings.grants.value as Grants"
+					:current-role="store.getters['users/self']?.role ?? Role.Owner"
+				/>
+				<p v-else-if="!store.state.room.hasOwner" class="text-sm text-muted-foreground">
+					{{ $t("room-settings.room-needs-owner") }}
+					<span v-if="!store.state.user">
+						{{ $t("room-settings.login-to-claim") }}
+					</span>
+				</p>
+				<p v-else class="text-sm text-muted-foreground">
+					{{ $t("room-settings.arent-able-to-modify-permissions") }}
+				</p>
+			</FieldGroup>
+			<div class="submit flex flex-col gap-3 pt-4">
+				<Button
 					v-if="!store.state.room.hasOwner"
+					variant="signal"
+					size="lg"
+					class="w-full"
+					type="button"
 					:disabled="!store.state.user"
 					role="submit"
-					@click="claimOwnership"
 					data-cy="claim"
+					@click="claimOwnership"
 				>
 					Claim Room
-				</v-btn>
-				<v-btn
-					size="x-large"
-					block
-					@click="submitRoomSettings"
+				</Button>
+				<Button
+					size="xl"
+					class="w-full"
+					type="submit"
 					role="submit"
-					:loading="isLoadingRoomSettings"
-					:disabled="dirtySettings.length === 0"
+					:disabled="dirtySettings.length === 0 || isLoadingRoomSettings"
 					data-cy="save"
 				>
+					<Spinner v-if="isLoadingRoomSettings" class="size-4" />
 					{{ $t("common.save") }}
-				</v-btn>
+				</Button>
 			</div>
-		</v-form>
+		</form>
 	</div>
 </template>
 
@@ -324,15 +346,13 @@ defineExpose({
 });
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
+<style scoped>
+.room-settings {
+	margin: 12px;
+}
 .room-settings .submit {
 	position: -webkit-sticky;
 	position: sticky;
 	bottom: 20px;
-
-	.v-btn {
-		margin: 10px 0;
-	}
 }
 </style>

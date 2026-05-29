@@ -1,37 +1,29 @@
 <template>
-	<v-icon :icon="volumeIcon" @click="toggleMute" />
-	<div class="volume">
-		<vue-slider
-			:model-value="volume.volume.value"
-			@update:model-value="changed"
-			:tooltip-placement="'bottom'"
-			:tooltip="'hover'"
-			:tooltip-formatter="value => `${value}%`"
-			:tooltip-style="{
-				backgroundColor: 'rgb(var(--v-theme-surface-variant))',
-				color: 'rgb(var(--v-theme-on-surface-variant))',
-			}"
-			:process="
-				dotsPos => [
-					[
-						0,
-						dotsPos[0],
-						{
-							backgroundColor: 'rgb(var(--v-theme-primary))',
-						},
-					],
-				]
-			"
-			:drag-on-click="true"
-			data-cy="volume-slider"
-		/>
+	<div class="flex items-center">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="media-control"
+			aria-label="Mute"
+			@click="toggleMute"
+		>
+			<Icon :icon="volumeIcon" class="size-5" />
+		</Button>
+		<div class="volume">
+			<Slider
+				:model-value="[volume.volume.value]"
+				:min="0"
+				:max="100"
+				:step="1"
+				data-cy="volume-slider"
+				@update:model-value="v => changed(v?.[0] ?? 0)"
+			/>
+		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import VueSlider from "vue-slider-component";
-import "vue-slider-component/theme/default.css";
 import { useVolume } from "../composables";
 import { mdiVolumeHigh, mdiVolumeMedium, mdiVolumeLow, mdiVolumeOff } from "@mdi/js";
 
@@ -63,15 +55,19 @@ function toggleMute() {
 }
 </script>
 
-<style lang="scss" scoped>
-@use "../../variables.scss";
+<style scoped>
+.media-control {
+	color: var(--foreground);
+}
 
 .volume {
 	width: 150px;
 	margin-left: 10px;
 	margin-right: 20px;
+}
 
-	@media (max-width: variables.$md-max) {
+@media (max-width: 960px) {
+	.volume {
 		width: 100px;
 	}
 }

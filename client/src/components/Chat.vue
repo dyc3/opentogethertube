@@ -6,16 +6,16 @@
 		}"
 	>
 		<div class="chat-header" v-if="activated">
-			<v-btn
-				icon
-				size="x-small"
+			<Button
+				variant="ghost"
+				size="icon-sm"
 				@click="setActivated(false)"
 				data-cy="chat-deactivate"
 				aria-label="close chat"
 			>
-				<v-icon :icon="mdiChevronDown" />
-			</v-btn>
-			<h4>{{ $t("chat.title") }}</h4>
+				<Icon :icon="mdiChevronDown" class="size-4" />
+			</Button>
+			<h4 class="label-mono text-primary">{{ $t("chat.title") }}</h4>
 		</div>
 		<div ref="messages" @scroll="onScroll" class="messages grow">
 			<div class="grow"><!-- Spacer --></div>
@@ -36,16 +36,14 @@
 			</transition-group>
 		</div>
 		<div v-if="!stickToBottom" class="to-bottom">
-			<v-btn size="x-small" icon @click="forceToBottom">
-				<v-icon :icon="mdiChevronDoubleDown" />
-			</v-btn>
+			<Button variant="signal" size="icon-sm" @click="forceToBottom" aria-label="scroll to bottom">
+				<Icon :icon="mdiChevronDoubleDown" class="size-4" />
+			</Button>
 		</div>
 		<Transition name="input" @after-enter="enforceStickToBottom">
 			<div class="input-box" v-if="activated">
-				<v-text-field
-					variant="solo"
-					density="compact"
-					single-line
+				<Input
+					class="w-full font-mono"
 					:placeholder="$t('chat.type-here')"
 					@keydown="onInputKeyDown"
 					v-model="inputValue"
@@ -57,17 +55,15 @@
 			</div>
 		</Transition>
 		<div class="manual-activate" v-if="!activated">
-			<v-btn
-				variant="text"
-				icon
-				size="x-small"
+			<Button
+				variant="ghost"
+				size="icon"
 				@click="setActivated(true, true)"
-				color="white"
 				data-cy="chat-activate"
 				aria-label="open chat"
 			>
-				<v-icon :icon="mdiCommentOutline" />
-			</v-btn>
+				<Icon :icon="mdiCommentOutline" class="size-5" />
+			</Button>
 		</div>
 	</div>
 </template>
@@ -111,7 +107,19 @@ const chatMessagePast: Ref<ChatMessage[]> = ref([]);
  */
 const chatMessageRecent: Ref<ChatMessage[]> = ref([]);
 const messages = ref();
-const chatInput: Ref<HTMLInputElement | undefined> = ref();
+const chatInput: Ref<{ $el?: HTMLInputElement } | HTMLInputElement | undefined> = ref();
+
+/** Resolve the underlying <input> element whether chatInput holds a component instance or the DOM node. */
+function getChatInputEl(): HTMLInputElement | undefined {
+	const c = chatInput.value as { $el?: HTMLInputElement } | HTMLInputElement | undefined;
+	if (!c) {
+		return undefined;
+	}
+	if (c instanceof HTMLElement) {
+		return c as HTMLInputElement;
+	}
+	return c.$el;
+}
 
 const shortcuts = useRoomKeyboardShortcuts();
 onMounted(() => {
@@ -128,7 +136,7 @@ onUnmounted(() => {
 });
 
 function focusChatInput() {
-	chatInput.value?.focus();
+	getChatInputEl()?.focus();
 }
 
 async function setActivated(value: boolean, manual = false): Promise<void> {
@@ -142,7 +150,7 @@ async function setActivated(value: boolean, manual = false): Promise<void> {
 		await nextTick();
 		focusChatInput();
 	} else {
-		chatInput.value?.blur();
+		getChatInputEl()?.blur();
 		forceToBottom();
 	}
 }
@@ -215,7 +223,10 @@ onUpdated(enforceStickToBottom);
 	height: 100%;
 
 	&.activated {
-		background: rgba(var(--v-theme-background), $alpha: 0.8);
+		background: color-mix(in srgb, var(--background) 82%, transparent);
+		backdrop-filter: blur(6px);
+		border: 1px solid var(--line-strong);
+		border-radius: 4px;
 		pointer-events: auto;
 	}
 }
@@ -240,7 +251,13 @@ onUpdated(enforceStickToBottom);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	border-bottom: 1px solid #666;
+	gap: 6px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--line-strong);
+
+	h4 {
+		margin: 0;
+	}
 }
 
 .input-box {

@@ -1,17 +1,22 @@
 <template>
-	<v-btn
-		variant="text"
-		icon
-		:disabled="!supported"
-		class="media-control"
-		aria-label="Closed Captions"
-		@click="toggleCaptions()"
-	>
-		<v-icon :icon="enabled ? mdiClosedCaption : mdiClosedCaptionOutline" />
-		<v-tooltip activator="parent" location="bottom">
-			{{ $t("room.subtitles") }}
-		</v-tooltip>
-	</v-btn>
+	<Tooltip>
+		<TooltipTrigger as-child>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="media-control"
+				aria-label="Closed Captions"
+				:disabled="!supported"
+				@click="toggleCaptions()"
+			>
+				<Icon
+					:icon="enabled ? mdiClosedCaption : mdiClosedCaptionOutline"
+					class="size-5"
+				/>
+			</Button>
+		</TooltipTrigger>
+		<TooltipContent side="bottom">{{ $t("room.subtitles") }}</TooltipContent>
+	</Tooltip>
 </template>
 
 <script lang="ts" setup>
@@ -37,7 +42,8 @@ function toggleCaptions() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./media-controls.scss";
+<style scoped>
+.media-control {
+	color: var(--foreground);
+}
 </style>

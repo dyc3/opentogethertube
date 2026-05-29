@@ -1,183 +1,190 @@
 <template>
-	<v-sheet>
-		<v-tabs v-model="mode">
-			<v-tab key="login">{{ $t("login-form.login") }}</v-tab>
-			<v-tab key="register">{{ $t("login-form.register") }}</v-tab>
-		</v-tabs>
-		<v-window v-model="mode">
-			<v-window-item>
-				<v-card>
-					<v-form
-						ref="loginForm"
-						@submit.prevent="login"
-						v-model="loginValid"
-						:lazy-validation="false"
-					>
-						<v-card-title>
+	<Card class="border-line-strong">
+		<Tabs v-model="mode" class="gap-0">
+			<CardHeader class="pb-0">
+				<TabsList class="w-full">
+					<TabsTrigger value="login">{{ $t("login-form.login") }}</TabsTrigger>
+					<TabsTrigger value="register">{{ $t("login-form.register") }}</TabsTrigger>
+				</TabsList>
+			</CardHeader>
+
+			<!-- ░░ LOGIN ░░ -->
+			<TabsContent value="login">
+				<form @submit.prevent="login">
+					<CardContent class="pt-6">
+						<div class="grid gap-6 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
+							<div class="flex items-center justify-center">
+								<Button
+									type="button"
+									size="lg"
+									class="w-full bg-[#7289DA] text-white hover:bg-[#5b6eae]"
+									@click="goLoginDiscord"
+								>
+									<Icon :icon="mdiMessageText" class="size-5" />
+									{{ $t("login-form.login-discord") }}
+								</Button>
+							</div>
+							<Separator orientation="vertical" class="hidden md:block" />
+							<Separator class="md:hidden" />
+							<FieldGroup>
+								<Field :data-invalid="!!logInFailureMessage || undefined">
+									<FieldLabel for="login-user">
+										{{ $t("login-form.email-or-username") }}
+									</FieldLabel>
+									<Input
+										id="login-user"
+										v-model="emailOrUsername"
+										:disabled="isLoading"
+										:aria-invalid="!!logInFailureMessage || undefined"
+										data-cy="login-user"
+									/>
+								</Field>
+								<Field :data-invalid="!!logInFailureMessage || undefined">
+									<FieldLabel for="login-password">
+										{{ $t("login-form.password") }}
+									</FieldLabel>
+									<Input
+										id="login-password"
+										v-model="password"
+										type="password"
+										:disabled="isLoading"
+										:aria-invalid="!!logInFailureMessage || undefined"
+										data-cy="login-password"
+									/>
+									<FieldError v-if="logInFailureMessage">
+										{{ logInFailureMessage }}
+									</FieldError>
+								</Field>
+								<ForgotPassword @password-reset="$emit('shouldClose')" />
+							</FieldGroup>
+						</div>
+					</CardContent>
+					<CardFooter class="justify-end">
+						<Button
+							type="submit"
+							:disabled="!loginValid || isLoading"
+							data-cy="login-button"
+						>
+							<Spinner v-if="isLoading" class="size-4" />
 							{{ $t("login-form.login") }}
-						</v-card-title>
-						<v-card-text>
-							<v-row>
-								<v-col cols="12" md="6">
-									<v-container>
-										<v-btn
-											size="x-large"
-											block
-											@click="goLoginDiscord"
-											color="#7289DA"
-										>
-											{{ $t("login-form.login-discord") }}
-										</v-btn>
-									</v-container>
-								</v-col>
-								<v-divider vertical />
-								<v-col cols="12" md="6" style="margin-left: -1px">
-									<v-container>
-										<v-row>
-											<v-col>
-												<v-text-field
-													:loading="isLoading"
-													:label="$t('login-form.email-or-username')"
-													required
-													v-model="emailOrUsername"
-													:error-messages="logInFailureMessage"
-													data-cy="login-user"
-												/>
-												<v-text-field
-													:loading="isLoading"
-													:label="$t('login-form.password')"
-													type="password"
-													required
-													v-model="password"
-													:error-messages="logInFailureMessage"
-													data-cy="login-password"
-												/>
-												<ForgotPassword
-													@password-reset="$emit('shouldClose')"
-												/>
-											</v-col>
-										</v-row>
-										<v-row v-if="logInFailureMessage">
-											{{ logInFailureMessage }}
-										</v-row>
-									</v-container>
-								</v-col>
-							</v-row>
-						</v-card-text>
-						<v-card-actions>
-							<v-spacer />
-							<v-btn
-								type="submit"
-								color="primary"
-								:loading="isLoading"
-								@click.prevent="login"
-								:disabled="!loginValid"
-								data-cy="login-button"
-								>{{ $t("login-form.login") }}</v-btn
+						</Button>
+					</CardFooter>
+				</form>
+			</TabsContent>
+
+			<!-- ░░ REGISTER ░░ -->
+			<TabsContent value="register">
+				<form @submit.prevent="register">
+					<CardContent class="pt-6">
+						<FieldGroup>
+							<Field :data-invalid="showError('email') || undefined">
+								<FieldLabel for="reg-email">{{ $t("login-form.email") }}</FieldLabel>
+								<Input
+									id="reg-email"
+									v-model="email"
+									:disabled="isLoading"
+									:aria-invalid="showError('email') || undefined"
+									@blur="touched.email = true"
+								/>
+								<FieldDescription>{{ $t("login-form.email-optional") }}</FieldDescription>
+								<FieldError v-if="showError('email')">{{ errors.email }}</FieldError>
+								<FieldError v-if="registerFieldErrors.email">
+									{{ registerFieldErrors.email }}
+								</FieldError>
+							</Field>
+							<Field :data-invalid="showError('username') || undefined">
+								<FieldLabel for="reg-username">{{ $t("login-form.username") }}</FieldLabel>
+								<Input
+									id="reg-username"
+									v-model="username"
+									:disabled="isLoading"
+									:aria-invalid="showError('username') || undefined"
+									@blur="touched.username = true"
+								/>
+								<FieldError v-if="showError('username')">{{ errors.username }}</FieldError>
+								<FieldError v-if="registerFieldErrors.username">
+									{{ registerFieldErrors.username }}
+								</FieldError>
+							</Field>
+							<Field :data-invalid="showError('password') || undefined">
+								<FieldLabel for="reg-password">{{ $t("login-form.password") }}</FieldLabel>
+								<Input
+									id="reg-password"
+									v-model="password"
+									type="password"
+									:disabled="isLoading"
+									:aria-invalid="showError('password') || undefined"
+									@blur="touched.password = true"
+								/>
+								<div class="flex justify-end">
+									<span class="text-xs text-dim font-mono">{{ password.length }}</span>
+								</div>
+								<FieldError v-if="showError('password')">{{ errors.password }}</FieldError>
+								<FieldError v-if="registerFieldErrors.password">
+									{{ registerFieldErrors.password }}
+								</FieldError>
+							</Field>
+							<Field :data-invalid="showError('password2') || undefined">
+								<FieldLabel for="reg-password2">
+									{{ $t("login-form.retype-password") }}
+								</FieldLabel>
+								<Input
+									id="reg-password2"
+									v-model="password2"
+									type="password"
+									:disabled="isLoading"
+									:aria-invalid="showError('password2') || undefined"
+									@blur="touched.password2 = true"
+								/>
+								<FieldError v-if="showError('password2')">{{ errors.password2 }}</FieldError>
+								<FieldError v-if="registerFieldErrors.password2">
+									{{ registerFieldErrors.password2 }}
+								</FieldError>
+							</Field>
+							<p v-if="registerFailureMessage" class="text-sm text-destructive">
+								{{ registerFailureMessage }}
+							</p>
+							<Button
+								v-if="!store.state.production"
+								type="button"
+								variant="outline"
+								class="w-fit"
+								@click="
+									() => {
+										username = 'alice';
+										password = '12345asdfg';
+										password2 = '12345asdfg';
+									}
+								"
 							>
-						</v-card-actions>
-					</v-form>
-				</v-card>
-			</v-window-item>
-			<v-window-item>
-				<v-card>
-					<v-form
-						ref="registerForm"
-						@submit.prevent="register"
-						v-model="registerValid"
-						:lazy-validation="false"
-					>
-						<v-card-title>
+								Sample User 1
+							</Button>
+						</FieldGroup>
+					</CardContent>
+					<CardFooter class="justify-end">
+						<Button
+							type="submit"
+							:disabled="!registerValid || isLoading"
+							data-cy="register-button"
+						>
+							<Spinner v-if="isLoading" class="size-4" />
 							{{ $t("login-form.register") }}
-						</v-card-title>
-						<v-card-text>
-							<v-container>
-								<v-row>
-									<v-col>
-										<v-text-field
-											:loading="isLoading"
-											:label="$t('login-form.email')"
-											required
-											v-model="email"
-											:error-messages="registerFieldErrors.email"
-											:rules="emailRules"
-											:hint="$t('login-form.email-optional')"
-										/>
-										<v-text-field
-											:loading="isLoading"
-											:label="$t('login-form.username')"
-											required
-											v-model="username"
-											:error-messages="registerFieldErrors.username"
-											:rules="usernameRules"
-										/>
-										<v-text-field
-											:loading="isLoading"
-											:label="$t('login-form.password')"
-											type="password"
-											required
-											v-model="password"
-											:error-messages="registerFieldErrors.password"
-											:rules="passwordRules"
-											counter
-										/>
-										<v-text-field
-											:loading="isLoading"
-											:label="$t('login-form.retype-password')"
-											type="password"
-											required
-											v-model="password2"
-											:error-messages="registerFieldErrors.password2"
-											:rules="retypePasswordRules"
-										/>
-									</v-col>
-								</v-row>
-								<v-row v-if="registerFailureMessage">
-									{{ registerFailureMessage }}
-								</v-row>
-								<v-row v-if="!store.state.production">
-									<v-btn
-										@click="
-											() => {
-												username = 'alice';
-												password = '12345asdfg';
-												password2 = '12345asdfg';
-											}
-										"
-									>
-										Sample User 1
-									</v-btn>
-								</v-row>
-							</v-container>
-						</v-card-text>
-						<v-card-actions>
-							<v-spacer />
-							<v-btn
-								type="submit"
-								color="primary"
-								:loading="isLoading"
-								@click.prevent="register"
-								:disabled="!registerValid"
-								data-cy="register-button"
-							>
-								{{ $t("login-form.register") }}
-							</v-btn>
-						</v-card-actions>
-					</v-form>
-				</v-card>
-			</v-window-item>
-		</v-window>
-	</v-sheet>
+						</Button>
+					</CardFooter>
+				</form>
+			</TabsContent>
+		</Tabs>
+	</Card>
 </template>
 
 <script lang="ts" setup>
+import { mdiMessageText } from "@mdi/js";
 import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
-import { reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 import { goLoginDiscord } from "@/util/discord";
 import ForgotPassword from "./ForgotPassword.vue";
 
@@ -192,13 +199,11 @@ const emailOrUsername = ref("");
 const password = ref("");
 const password2 = ref("");
 
-const mode = ref("");
+const mode = ref("login");
 const isLoading = ref(false);
 const logInFailureMessage = ref("");
 const registerFailureMessage = ref("");
 
-const loginValid = ref(false);
-const registerValid = ref(false);
 let registerFieldErrors = reactive({
 	email: "",
 	username: "",
@@ -206,33 +211,57 @@ let registerFieldErrors = reactive({
 	password2: "",
 });
 
-// magic line that grabs a static ref to the DOM element/component with ref="loginForm"
-const loginForm = ref<VForm | undefined>(null);
-const registerForm = ref<VForm | undefined>(null);
+const touched = reactive({
+	email: false,
+	username: false,
+	password: false,
+	password2: false,
+});
 
-const emailRules = [v => (v && isEmail(v)) || !v || t("login-form.rules.valid-email")];
-const usernameRules = [
-	v => !!v || t("login-form.rules.username-required"),
-	v =>
-		(!!v && v.length > 0 && v.length <= USERNAME_LENGTH_MAX) ||
-		t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX }),
-];
+const loginValid = computed(() => !!emailOrUsername.value && !!password.value);
 
-const passwordRules = [
-	v => !!v || t("login-form.rules.password-required"),
-	v =>
-		(v && v.length >= 10) ||
-		(import.meta.env.DEV && v === "1") ||
-		t("login-form.rules.password-length"),
-];
-const retypePasswordRules = [
-	v => !!v || t("login-form.rules.retype-password"),
-	v => comparePassword(v) || t("login-form.rules.passwords-match"),
-];
+const errors = computed(() => {
+	let emailErr = "";
+	if (email.value && !isEmail(email.value)) {
+		emailErr = t("login-form.rules.valid-email");
+	}
 
-function comparePassword(v: string) {
-	// HACK: required because otherwise this.password is undefined for some reason in the validation rule's context
-	return password.value === v;
+	let usernameErr = "";
+	if (!username.value) {
+		usernameErr = t("login-form.rules.username-required");
+	} else if (username.value.length > USERNAME_LENGTH_MAX) {
+		usernameErr = t("login-form.rules.username-length", { length: USERNAME_LENGTH_MAX });
+	}
+
+	let passwordErr = "";
+	if (!password.value) {
+		passwordErr = t("login-form.rules.password-required");
+	} else if (
+		!(password.value.length >= 10) &&
+		!(import.meta.env.DEV && password.value === "1")
+	) {
+		passwordErr = t("login-form.rules.password-length");
+	}
+
+	let password2Err = "";
+	if (!password2.value) {
+		password2Err = t("login-form.rules.retype-password");
+	} else if (password.value !== password2.value) {
+		password2Err = t("login-form.rules.passwords-match");
+	}
+
+	return {
+		email: emailErr,
+		username: usernameErr,
+		password: passwordErr,
+		password2: password2Err,
+	};
+});
+
+const registerValid = computed(() => !Object.values(errors.value).some(Boolean));
+
+function showError(field: keyof typeof errors.value): boolean {
+	return touched[field] && !!errors.value[field];
 }
 
 watch(email, () => {
@@ -249,7 +278,6 @@ watch(username, () => {
 });
 
 async function login() {
-	loginForm.value.validate();
 	if (!loginValid.value) {
 		return;
 	}
@@ -287,7 +315,10 @@ async function login() {
 }
 
 async function register() {
-	registerForm.value.validate();
+	touched.email = true;
+	touched.username = true;
+	touched.password = true;
+	touched.password2 = true;
 	if (!registerValid.value) {
 		return;
 	}
@@ -345,5 +376,3 @@ async function register() {
 	isLoading.value = false;
 }
 </script>
-
-<style lang="scss" scoped></style>

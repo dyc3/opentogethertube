@@ -1,172 +1,190 @@
 <template>
-	<v-container>
-		<v-row v-if="isLoading" justify="center">
-			<v-col cols="12" class="text-center">
-				<v-progress-circular indeterminate />
-			</v-col>
-		</v-row>
+	<div class="mx-auto max-w-2xl px-6 py-12">
+		<div v-if="isLoading" class="flex min-h-[40vh] items-center justify-center">
+			<Spinner class="size-10 text-primary" />
+		</div>
 
 		<template v-else-if="account">
-			<v-row>
-				<v-col cols="12" md="8" lg="6">
-					<h1>{{ $t("account.title") }}</h1>
-					<p>{{ $t("account.description") }}</p>
-				</v-col>
-			</v-row>
+			<div class="mb-8">
+				<span class="label-mono text-signal">Your pass</span>
+				<h1 class="section-title font-display text-4xl tracking-wide">
+					{{ $t("account.title") }}
+				</h1>
+				<p class="mt-3 text-muted-foreground">{{ $t("account.description") }}</p>
+			</div>
 
-			<v-row>
-				<v-col cols="12" md="8" lg="6">
-					<v-card>
-						<v-card-title>{{ $t("account.details") }}</v-card-title>
-						<v-card-text>
-							<div class="account-row">
-								<strong>{{ $t("account.username") }}</strong>
-								<span>{{ account.username }}</span>
-							</div>
-							<div class="account-row">
-								<strong>{{ $t("account.email") }}</strong>
-								<span>{{ account.email ?? $t("account.no-email") }}</span>
-							</div>
-						</v-card-text>
-					</v-card>
-				</v-col>
-			</v-row>
+			<div class="flex flex-col gap-6">
+				<Card class="border-line-strong">
+					<CardHeader>
+						<CardTitle class="text-xl tracking-wide">{{ $t("account.details") }}</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div class="account-row">
+							<strong class="text-foreground">{{ $t("account.username") }}</strong>
+							<span class="text-muted-foreground">{{ account.username }}</span>
+						</div>
+						<div class="account-row">
+							<strong class="text-foreground">{{ $t("account.email") }}</strong>
+							<span class="text-muted-foreground">
+								{{ account.email ?? $t("account.no-email") }}
+							</span>
+						</div>
+					</CardContent>
+				</Card>
 
-			<v-row>
-				<v-col cols="12" md="8" lg="6">
-					<v-card>
-						<v-card-title>{{ $t("account.social") }}</v-card-title>
-						<v-card-text>
-							<div class="account-row">
-								<strong>{{ $t("account.discord") }}</strong>
-								<span>{{
+				<Card class="border-line-strong">
+					<CardHeader>
+						<CardTitle class="text-xl tracking-wide">{{ $t("account.social") }}</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div class="account-row">
+							<strong class="text-foreground">{{ $t("account.discord") }}</strong>
+							<span class="text-muted-foreground">
+								{{
 									account.discordLinked
 										? $t("account.linked")
 										: $t("account.not-linked")
-								}}</span>
-							</div>
-							<p
-								v-if="account.discordLinked && !account.hasPassword"
-								class="text-muted social-note"
-							>
-								{{ $t("account.discord-unlink-requires-password") }}
-							</p>
-						</v-card-text>
-						<v-card-actions>
-							<v-spacer />
-							<v-btn
-								v-if="!account.discordLinked"
-								color="primary"
-								data-cy="account-link-discord"
-								@click="goLoginDiscord"
-							>
-								{{ $t("account.link-discord") }}
-							</v-btn>
-							<v-btn
-								v-else
-								color="error"
-								variant="flat"
-								data-cy="account-unlink-discord"
-								:disabled="!account.hasPassword"
-								:loading="isSavingDiscord"
-								@click="unlinkDiscord"
-							>
-								{{ $t("account.unlink-discord") }}
-							</v-btn>
-						</v-card-actions>
-					</v-card>
-				</v-col>
-			</v-row>
+								}}
+							</span>
+						</div>
+						<p
+							v-if="account.discordLinked && !account.hasPassword"
+							class="social-note text-sm text-muted-foreground"
+						>
+							{{ $t("account.discord-unlink-requires-password") }}
+						</p>
+					</CardContent>
+					<CardFooter class="justify-end">
+						<Button
+							v-if="!account.discordLinked"
+							data-cy="account-link-discord"
+							@click="goLoginDiscord"
+						>
+							{{ $t("account.link-discord") }}
+						</Button>
+						<Button
+							v-else
+							variant="destructive"
+							data-cy="account-unlink-discord"
+							:disabled="!account.hasPassword || isSavingDiscord"
+							@click="unlinkDiscord"
+						>
+							<Spinner v-if="isSavingDiscord" class="size-4" />
+							{{ $t("account.unlink-discord") }}
+						</Button>
+					</CardFooter>
+				</Card>
 
-			<v-row>
-				<v-col cols="12" md="8" lg="6">
-					<v-card>
-						<v-card-title>{{ emailFormTitle }}</v-card-title>
-						<v-form ref="emailForm" v-model="emailValid" @submit.prevent="saveEmail">
-							<v-card-text>
-								<v-text-field
+				<Card class="border-line-strong">
+					<CardHeader>
+						<CardTitle class="text-xl tracking-wide">{{ emailFormTitle }}</CardTitle>
+					</CardHeader>
+					<form @submit.prevent="saveEmail">
+						<CardContent>
+							<Field :data-invalid="showEmailError || undefined">
+								<FieldLabel for="account-email">{{ $t("account.email") }}</FieldLabel>
+								<Input
+									id="account-email"
 									v-model="email"
 									data-cy="account-email"
-									:label="$t('account.email')"
-									:loading="isSavingEmail"
-									:rules="emailRules"
+									:aria-invalid="showEmailError || undefined"
 									required
+									@blur="touched.email = true"
 								/>
-							</v-card-text>
-							<v-card-actions>
-								<v-spacer />
-								<v-btn
-									color="primary"
-									type="submit"
-									data-cy="account-save-email"
-									:loading="isSavingEmail"
-									:disabled="!emailValid"
-								>
-									{{ emailSubmitText }}
-								</v-btn>
-							</v-card-actions>
-						</v-form>
-					</v-card>
-				</v-col>
-			</v-row>
+								<FieldError v-if="showEmailError">{{ emailError }}</FieldError>
+							</Field>
+						</CardContent>
+						<CardFooter class="justify-end">
+							<Button
+								type="submit"
+								data-cy="account-save-email"
+								:disabled="!emailValid || isSavingEmail"
+							>
+								<Spinner v-if="isSavingEmail" class="size-4" />
+								{{ emailSubmitText }}
+							</Button>
+						</CardFooter>
+					</form>
+				</Card>
 
-			<v-row>
-				<v-col cols="12" md="8" lg="6">
-					<v-card>
-						<v-card-title>{{ passwordFormTitle }}</v-card-title>
-						<v-form
-							ref="passwordForm"
-							v-model="passwordValid"
-							@submit.prevent="savePassword"
-						>
-							<v-card-text>
-								<v-text-field
+				<Card class="border-line-strong">
+					<CardHeader>
+						<CardTitle class="text-xl tracking-wide">{{ passwordFormTitle }}</CardTitle>
+					</CardHeader>
+					<form @submit.prevent="savePassword">
+						<CardContent>
+							<FieldGroup>
+								<Field
 									v-if="account.hasPassword"
-									v-model="currentPassword"
-									data-cy="account-current-password"
-									:label="$t('account.current-password')"
-									type="password"
-									:loading="isSavingPassword"
-									:rules="currentPasswordRules"
-									required
-								/>
-								<v-text-field
-									v-model="newPassword"
-									data-cy="account-new-password"
-									:label="$t('login-form.password')"
-									type="password"
-									:loading="isSavingPassword"
-									:rules="passwordRules"
-									required
-								/>
-								<v-text-field
-									v-model="newPasswordConfirm"
-									data-cy="account-new-password-confirm"
-									:label="$t('login-form.retype-password')"
-									type="password"
-									:loading="isSavingPassword"
-									:rules="passwordConfirmRules"
-									required
-								/>
-							</v-card-text>
-							<v-card-actions>
-								<v-spacer />
-								<v-btn
-									color="primary"
-									type="submit"
-									data-cy="account-save-password"
-									:loading="isSavingPassword"
-									:disabled="!passwordValid"
+									:data-invalid="showCurrentPasswordError || undefined"
 								>
-									{{ passwordSubmitText }}
-								</v-btn>
-							</v-card-actions>
-						</v-form>
-					</v-card>
-				</v-col>
-			</v-row>
+									<FieldLabel for="account-current-password">
+										{{ $t("account.current-password") }}
+									</FieldLabel>
+									<Input
+										id="account-current-password"
+										v-model="currentPassword"
+										data-cy="account-current-password"
+										type="password"
+										:aria-invalid="showCurrentPasswordError || undefined"
+										required
+										@blur="touched.currentPassword = true"
+									/>
+									<FieldError v-if="showCurrentPasswordError">
+										{{ currentPasswordError }}
+									</FieldError>
+								</Field>
+								<Field :data-invalid="showNewPasswordError || undefined">
+									<FieldLabel for="account-new-password">
+										{{ $t("login-form.password") }}
+									</FieldLabel>
+									<Input
+										id="account-new-password"
+										v-model="newPassword"
+										data-cy="account-new-password"
+										type="password"
+										:aria-invalid="showNewPasswordError || undefined"
+										required
+										@blur="touched.newPassword = true"
+									/>
+									<FieldError v-if="showNewPasswordError">
+										{{ newPasswordError }}
+									</FieldError>
+								</Field>
+								<Field :data-invalid="showConfirmError || undefined">
+									<FieldLabel for="account-new-password-confirm">
+										{{ $t("login-form.retype-password") }}
+									</FieldLabel>
+									<Input
+										id="account-new-password-confirm"
+										v-model="newPasswordConfirm"
+										data-cy="account-new-password-confirm"
+										type="password"
+										:aria-invalid="showConfirmError || undefined"
+										required
+										@blur="touched.confirm = true"
+									/>
+									<FieldError v-if="showConfirmError">
+										{{ confirmError }}
+									</FieldError>
+								</Field>
+							</FieldGroup>
+						</CardContent>
+						<CardFooter class="justify-end">
+							<Button
+								type="submit"
+								data-cy="account-save-password"
+								:disabled="!passwordValid || isSavingPassword"
+							>
+								<Spinner v-if="isSavingPassword" class="size-4" />
+								{{ passwordSubmitText }}
+							</Button>
+						</CardFooter>
+					</form>
+				</Card>
+			</div>
 		</template>
-	</v-container>
+	</div>
 </template>
 
 <script lang="ts" setup>
@@ -174,10 +192,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { AxiosError } from "axios";
 import type { OttApiResponseAccount, OttResponseBody } from "ott-common/models/rest-api";
 import isEmail from "validator/es/lib/isEmail";
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import type { VForm } from "vuetify/lib/components/VForm/VForm.mjs";
 import { API } from "@/common-http";
 import { ToastStyle } from "@/models/toast";
 import { useStore } from "@/store";
@@ -194,28 +211,63 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const newPasswordConfirm = ref("");
 
-const emailValid = ref(false);
-const passwordValid = ref(false);
+const touched = reactive({
+	email: false,
+	currentPassword: false,
+	newPassword: false,
+	confirm: false,
+});
 
-const emailForm = ref<VForm | undefined>(null);
-const passwordForm = ref<VForm | undefined>(null);
+const emailError = computed(() => {
+	if (!email.value) {
+		return t("login-form.rules.email-required");
+	}
+	if (!isEmail(email.value)) {
+		return t("login-form.rules.valid-email");
+	}
+	return "";
+});
+const currentPasswordError = computed(() =>
+	!currentPassword.value ? t("account.current-password-required") : "",
+);
+const newPasswordError = computed(() => {
+	if (!newPassword.value) {
+		return t("login-form.rules.password-required");
+	}
+	if (
+		newPassword.value.length < 10 &&
+		!(import.meta.env.DEV && newPassword.value === "1")
+	) {
+		return t("login-form.rules.password-length");
+	}
+	return "";
+});
+const confirmError = computed(() => {
+	if (!newPasswordConfirm.value) {
+		return t("login-form.rules.retype-password");
+	}
+	if (newPasswordConfirm.value !== newPassword.value) {
+		return t("login-form.rules.passwords-match");
+	}
+	return "";
+});
 
-const emailRules = [
-	v => !!v || t("login-form.rules.email-required"),
-	v => (v && isEmail(v)) || t("login-form.rules.valid-email"),
-];
-const passwordRules = [
-	v => !!v || t("login-form.rules.password-required"),
-	v =>
-		(v && v.length >= 10) ||
-		(import.meta.env.DEV && v === "1") ||
-		t("login-form.rules.password-length"),
-];
-const currentPasswordRules = [v => !!v || t("account.current-password-required")];
-const passwordConfirmRules = [
-	v => !!v || t("login-form.rules.retype-password"),
-	v => (v && v === newPassword.value) || t("login-form.rules.passwords-match"),
-];
+const emailValid = computed(() => !emailError.value);
+const passwordValid = computed(() => {
+	const needsCurrent = account.value?.hasPassword;
+	return (
+		(!needsCurrent || !currentPasswordError.value) &&
+		!newPasswordError.value &&
+		!confirmError.value
+	);
+});
+
+const showEmailError = computed(() => touched.email && !!emailError.value);
+const showCurrentPasswordError = computed(
+	() => touched.currentPassword && !!currentPasswordError.value,
+);
+const showNewPasswordError = computed(() => touched.newPassword && !!newPasswordError.value);
+const showConfirmError = computed(() => touched.confirm && !!confirmError.value);
 
 const emailFormTitle = computed(() =>
 	account.value?.email ? t("account.change-email") : t("account.add-email"),
@@ -382,7 +434,7 @@ const unlinkDiscordMutation = useMutation({
 });
 
 async function saveEmail() {
-	emailForm.value?.validate();
+	touched.email = true;
 	if (!emailValid.value) {
 		return;
 	}
@@ -390,7 +442,9 @@ async function saveEmail() {
 }
 
 async function savePassword() {
-	passwordForm.value?.validate();
+	touched.currentPassword = true;
+	touched.newPassword = true;
+	touched.confirm = true;
 	if (!passwordValid.value) {
 		return;
 	}
@@ -402,7 +456,23 @@ async function unlinkDiscord() {
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
+.section-title {
+	position: relative;
+	padding-left: 1rem;
+	margin-top: 0.25rem;
+}
+.section-title::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0.1em;
+	bottom: 0.1em;
+	width: 4px;
+	background: var(--primary);
+	box-shadow: 0 0 12px var(--primary);
+}
+
 .account-row {
 	display: flex;
 	justify-content: space-between;
