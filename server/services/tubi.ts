@@ -111,7 +111,9 @@ export default class TubiAdapter extends ServiceAdapter {
 	 */
 	private async fetchPageData(url: string): Promise<string> {
 		const resp = await this.api.get(url, {
-			headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+			headers: {
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+			},
 		});
 		const match = TUBI_PAGE_DATA_REGEX.exec(resp.data as string);
 		if (!match) {
