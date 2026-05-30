@@ -1,66 +1,78 @@
 <template>
 	<!--
-		"Midnight Drive-In" hero backdrop. A glowing aurora sky (amber core,
-		cyan signal tips) with warm projector god-rays raking down from the top,
-		masked so it fades out before reaching the marquee text. All colors are
-		pulled live from the active theme's CSS vars and re-read when the
-		`data-theme` attribute changes, so it tracks every theme.
+		"Plasma" hero backdrop — a warped, glowing energy field: an amber plasma
+		core with electric cyan filaments arcing through it, concentrated to the
+		right and edges and masked away behind the headline so text stays readable.
+		Grounded on an ink base and finished with a vignette + animated film grain.
+
+		Colors are read live from the active theme's CSS vars and re-read whenever
+		the <html data-theme> attribute changes, so it tracks every theme.
 	-->
 	<Shader v-if="mounted" class="hero-shader" tone-mapping="aces">
-		<!-- opaque base so the canvas is grounded even before the glow ramps in -->
+		<!-- opaque base so the canvas is grounded even before the field ramps in -->
 		<SolidColor :color="colors.ink" />
 
-		<!-- mask: vibrant across the top, fading away toward the content below -->
+		<!-- carve a calm zone behind the headline: energy fades out across the
+		     left/center, strongest toward the right and edges -->
 		<Circle
-			id="heroGlowMask"
+			id="readZone"
 			:visible="false"
 			color="#ffffff"
-			:radius="2"
-			:softness="1"
-			:center="{ x: 0.5, y: 0 }"
+			:radius="1.45"
+			:softness="0.8"
+			:center="{ x: 0.4, y: 0.5 }"
 		/>
 
-		<Group mask-source="heroGlowMask">
-			<Aurora
-				:color-a="colors.primaryDeep"
-				:color-b="colors.primaryBright"
-				:color-c="colors.signal"
-				color-space="oklch"
-				:intensity="72"
-				:curtain-count="4"
-				:speed="2.4"
-				:waviness="78"
-				:ray-density="30"
-				:height="140"
-				:center="{ x: 0.5, y: 0 }"
-			/>
-			<Godrays
-				:center="{ x: 0.5, y: 0 }"
-				:density="0.28"
-				:intensity="0.6"
-				:spotty="0.15"
-				:speed="0.32"
-				:ray-color="colors.primary"
-			/>
-		</Group>
+		<!-- amber plasma core -->
+		<Plasma
+			:color-a="colors.primary"
+			:color-b="colors.ink"
+			color-space="oklch"
+			:density="1.6"
+			:speed="1.1"
+			:warp="0.6"
+			:intensity="1.45"
+			:contrast="1.25"
+			:balance="58"
+			:opacity="0.95"
+			mask-source="readZone"
+			mask-type="alphaInverted"
+		/>
 
-		<!-- frame the eye toward the marquee, darken the edges back to ink -->
+		<!-- electric cyan filaments arcing through, added on top -->
+		<Plasma
+			:color-a="colors.signal"
+			color-b="#000000"
+			color-space="oklch"
+			:density="2.6"
+			:speed="0.85"
+			:warp="0.85"
+			:intensity="1.3"
+			:contrast="1.55"
+			:balance="44"
+			:opacity="0.5"
+			blend-mode="screen"
+			mask-source="readZone"
+			mask-type="alphaInverted"
+		/>
+
+		<!-- frame the eye toward the marquee, darken edges back to ink -->
 		<Vignette
 			:color="colors.ink"
-			:center="{ x: 0.5, y: 0.4 }"
-			:radius="0.55"
-			:falloff="0.85"
-			:intensity="0.92"
+			:center="{ x: 0.46, y: 0.44 }"
+			:radius="0.54"
+			:falloff="0.9"
+			:intensity="0.9"
 		/>
 
-		<!-- analog cinema grain over the whole composition -->
+		<!-- analog grain over the whole composition, ties into the site texture -->
 		<FilmGrain :strength="0.05" :bias="2.6" :animated="true" />
 	</Shader>
 </template>
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { Aurora, Circle, FilmGrain, Godrays, Group, Shader, SolidColor, Vignette } from "shaders/vue";
+import { Circle, FilmGrain, Plasma, Shader, SolidColor, Vignette } from "shaders/vue";
 
 /** Read a CSS custom property off <html>, falling back to a dark-theme default. */
 function getCSSVar(name: string, fallback: string): string {
@@ -71,8 +83,6 @@ function getCSSVar(name: string, fallback: string): string {
 const colors = ref({
 	ink: "#0c0a08",
 	primary: "#ffbe3d",
-	primaryBright: "#ffd271",
-	primaryDeep: "#e89a1c",
 	signal: "#4fe6df",
 });
 
@@ -80,8 +90,6 @@ function readThemeColors() {
 	colors.value = {
 		ink: getCSSVar("--ink", "#0c0a08"),
 		primary: getCSSVar("--primary", "#ffbe3d"),
-		primaryBright: getCSSVar("--primary-bright", "#ffd271"),
-		primaryDeep: getCSSVar("--primary-deep", "#e89a1c"),
 		signal: getCSSVar("--signal", "#4fe6df"),
 	};
 }
