@@ -33,6 +33,7 @@
 		"lucide-vue-next": "^1.0.0",
 		"ott-common": "workspace:*",
 		"reka-ui": "^2.9.8",
+		"shaders": "^2.5.128",
 		"sortablejs": "^1.15.0",
 		"sortablejs-vue3": "^1.2.3",
 		"tailwind-merge": "^3.6.0",

@@ -16745,6 +16745,7 @@ __metadata:
     ott-common: "workspace:*"
     reka-ui: "npm:^2.9.8"
     sass: "npm:^1.93.1"
+    shaders: "npm:^2.5.128"
     sortablejs: "npm:^1.15.0"
     sortablejs-vue3: "npm:^1.2.3"
     tailwind-merge: "npm:^3.6.0"
@@ -19765,6 +19766,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"shaders@npm:^2.5.128":
+  version: 2.5.128
+  resolution: "shaders@npm:2.5.128"
+  dependencies:
+    three: "npm:^0.184.0"
+  peerDependencies:
+    pixi.js: ^8.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+    solid-js: ^1.8.0
+    svelte: ^5
+    vue: ^3.5.0
+  peerDependenciesMeta:
+    pixi.js:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    solid-js:
+      optional: true
+    svelte:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/4386a33c845c56e173fe4a6a7724e28540717f08a756d65144f0b46ddec045098c14999893f5b0be2f91db20496dd5124576e07b4128b73782a411f6344c239e
+  languageName: node
+  linkType: hard
+
 "shallow-clone@npm:^3.0.0":
   version: 3.0.1
   resolution: "shallow-clone@npm:3.0.1"
@@ -20903,6 +20933,13 @@ __metadata:
   version: 0.2.0
   resolution: "text-table@npm:0.2.0"
   checksum: 10c0/02805740c12851ea5982686810702e2f14369a5f4c5c40a836821e3eefc65ffeec3131ba324692a37608294b0fd8c1e55a2dd571ffed4909822787668ddbee5c
+  languageName: node
+  linkType: hard
+
+"three@npm:^0.184.0":
+  version: 0.184.0
+  resolution: "three@npm:0.184.0"
+  checksum: 10c0/6af4a36dd97e7082c8daca57af162a36df0ca18337a805913bdb6787dd5b2626face8b51d361a0cb2f767e18fdb1ad7e73ab945ae32647741af9278311f5369d
   languageName: node
   linkType: hard
 

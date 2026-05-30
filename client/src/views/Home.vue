@@ -2,7 +2,7 @@
 	<div class="home">
 		<!-- ░░ HERO — THE MARQUEE ░░ -->
 		<section class="hero ott-vignette">
-			<div class="hero-glow" aria-hidden="true" />
+			<HeroShader aria-hidden="true" />
 			<div class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24">
 				<span class="label-mono mb-6 flex items-center gap-3 text-primary">
 					<span class="inline-block size-2 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
@@ -138,9 +138,15 @@ import {
 	mdiVote,
 	mdiContentCopy,
 } from "@mdi/js";
+import { defineAsyncComponent } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import { isOfficialSite } from "@/util/misc";
+
+// Lazy-loaded: pulls in the shaders/three.js bundle as its own chunk so it
+// doesn't bloat the landing page's initial JS. The .hero CSS gradient shows
+// as a fallback until the shader chunk loads and the canvas mounts.
+const HeroShader = defineAsyncComponent(() => import("@/components/HeroShader.vue"));
 
 const store = useStore();
 
@@ -173,15 +179,6 @@ async function createTempRoom() {
 		radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%),
 		var(--ink);
 	border-bottom: 1px solid var(--line-strong);
-}
-.hero-glow {
-	position: absolute;
-	inset: 0;
-	background:
-		radial-gradient(40% 60% at 15% 30%, color-mix(in srgb, var(--signal) 16%, transparent), transparent),
-		radial-gradient(50% 60% at 85% 60%, color-mix(in srgb, var(--primary) 14%, transparent), transparent);
-	filter: blur(20px);
-	pointer-events: none;
 }
 .hero-filmstrip {
 	position: absolute;
