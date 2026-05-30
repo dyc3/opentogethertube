@@ -8,13 +8,6 @@
 		},
 		"jsx": "preserve"
 	},
-	"include": [
-		"src/**/*.ts",
-		"src/**/*.tsx",
-		"src/**/*.vue",
-		"tests/**/*.ts",
-		"tests/**/*.tsx",
-		"cypress.config.ts"
-	],
+	"include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "tests/**/*.ts", "tests/**/*.tsx"],
 	"exclude": ["node_modules", "dist", "ts-out"]
 }

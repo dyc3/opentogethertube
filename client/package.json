@@ -10,8 +10,8 @@
 		"i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
 		"lint-ci": "tsc --noEmit && eslint --cache .",
 		"test": "vitest run --coverage",
-		"cy:open": "cypress open --component",
-		"cy:run": "cypress run --component"
+		"test:component": "vitest run tests/unit/*.component.spec.ts",
+		"cy:run": "yarn test:component"
 	},
 	"dependencies": {
 		"@mdi/js": "^7.4.47",
@@ -39,15 +39,12 @@
 		"vuex": "4.1.0"
 	},
 	"devDependencies": {
-		"@cypress/vue": "^5.0.3",
 		"@types/vimeo__player": "^2.16.0",
 		"@types/web": "0.0.80",
 		"@vitejs/plugin-vue": "^6.0.1",
 		"@vitest/coverage-v8": "^1.2.2",
 		"@vue/eslint-config-typescript": "^11.0.3",
 		"@vue/test-utils": "2.2.1",
-		"cypress": "15.2.0",
-		"cypress-real-events": "^1.15.0",
 		"eslint": "^8.57.0",
 		"eslint-plugin-cypress": "^2.12.1",
 		"eslint-plugin-vitest": "0.3.22",

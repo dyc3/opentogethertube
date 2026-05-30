@@ -1779,7 +1779,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cypress/request@npm:^3.0.10, @cypress/request@npm:^3.0.9":
+"@cypress/request@npm:^3.0.10":
   version: 3.0.10
   resolution: "@cypress/request@npm:3.0.10"
   dependencies:
@@ -1802,20 +1802,6 @@ __metadata:
     tunnel-agent: "npm:^0.6.0"
     uuid: "npm:^8.3.2"
   checksum: 10c0/93da9754315261474deeefff235ed0397811d49f03f2dfcebd01aff12b75fd58e104b0c7fd3d720e1ebc51d73059e1f540db68c58bbda4612493610227ade710
-  languageName: node
-  linkType: hard
-
-"@cypress/vue@npm:^5.0.3":
-  version: 5.0.4
-  resolution: "@cypress/vue@npm:5.0.4"
-  peerDependencies:
-    "@cypress/webpack-dev-server": "*"
-    cypress: ">=7.0.0"
-    vue: ">=3.0.0"
-  peerDependenciesMeta:
-    "@cypress/webpack-dev-server":
-      optional: true
-  checksum: 10c0/e5f9df7b203f2f0e41e4d0d7ddd848ab90342a0c879b9c129d93db66fc411cc989a92c8984a0958fdb0ac6c112dd889b3526e37af854bde07d68c1a3c390fd2e
   languageName: node
   linkType: hard
 
@@ -9446,60 +9432,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:15.2.0":
-  version: 15.2.0
-  resolution: "cypress@npm:15.2.0"
-  dependencies:
-    "@cypress/request": "npm:^3.0.9"
-    "@cypress/xvfb": "npm:^1.2.4"
-    "@types/sinonjs__fake-timers": "npm:8.1.1"
-    "@types/sizzle": "npm:^2.3.2"
-    arch: "npm:^2.2.0"
-    blob-util: "npm:^2.0.2"
-    bluebird: "npm:^3.7.2"
-    buffer: "npm:^5.7.1"
-    cachedir: "npm:^2.3.0"
-    chalk: "npm:^4.1.0"
-    check-more-types: "npm:^2.24.0"
-    ci-info: "npm:^4.1.0"
-    cli-cursor: "npm:^3.1.0"
-    cli-table3: "npm:0.6.1"
-    commander: "npm:^6.2.1"
-    common-tags: "npm:^1.8.0"
-    dayjs: "npm:^1.10.4"
-    debug: "npm:^4.3.4"
-    enquirer: "npm:^2.3.6"
-    eventemitter2: "npm:6.4.7"
-    execa: "npm:4.1.0"
-    executable: "npm:^4.1.1"
-    extract-zip: "npm:2.0.1"
-    figures: "npm:^3.2.0"
-    fs-extra: "npm:^9.1.0"
-    hasha: "npm:5.2.2"
-    is-installed-globally: "npm:~0.4.0"
-    lazy-ass: "npm:^1.6.0"
-    listr2: "npm:^3.8.3"
-    lodash: "npm:^4.17.21"
-    log-symbols: "npm:^4.0.0"
-    minimist: "npm:^1.2.8"
-    ospath: "npm:^1.2.2"
-    pretty-bytes: "npm:^5.6.0"
-    process: "npm:^0.11.10"
-    proxy-from-env: "npm:1.0.0"
-    request-progress: "npm:^3.0.0"
-    semver: "npm:^7.7.1"
-    supports-color: "npm:^8.1.1"
-    systeminformation: "npm:5.27.7"
-    tmp: "npm:~0.2.4"
-    tree-kill: "npm:1.2.2"
-    untildify: "npm:^4.0.0"
-    yauzl: "npm:^2.10.0"
-  bin:
-    cypress: bin/cypress
-  checksum: 10c0/afd9dc9042dc523234f57878ad0d5db2e5dffd502b77374077478512c5ea11338e85188ee6c39eaa7be35e24fa96b21aedd6a3b39b8b6e330218f7c105d9b2e8
-  languageName: node
-  linkType: hard
-
 "cypress@npm:9.5.1":
   version: 9.5.1
   resolution: "cypress@npm:9.5.1"
@@ -16566,7 +16498,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ott-client@workspace:client"
   dependencies:
-    "@cypress/vue": "npm:^5.0.3"
     "@mdi/js": "npm:^7.4.47"
     "@peertube/embed-api": "npm:^0.0.6"
     "@tanstack/vue-query": "npm:^5.100.2"
@@ -16579,8 +16510,6 @@ __metadata:
     "@vue/test-utils": "npm:2.2.1"
     "@vueuse/core": "npm:^9.6.0"
     axios: "npm:1.13.5"
-    cypress: "npm:15.2.0"
-    cypress-real-events: "npm:^1.15.0"
     dashjs: "npm:5.0.3"
     dayjs: "npm:^1.10.4"
     eslint: "npm:^8.57.0"
@@ -19430,15 +19359,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.7.1":
-  version: 7.7.4
-  resolution: "semver@npm:7.7.4"
-  bin:
-    semver: bin/semver.js
-  checksum: 10c0/5215ad0234e2845d4ea5bb9d836d42b03499546ddafb12075566899fc617f68794bb6f146076b6881d755de17d6c6cc73372555879ec7dce2c2feee947866ad2
-  languageName: node
-  linkType: hard
-
 "semver@npm:~7.0.0":
   version: 7.0.0
   resolution: "semver@npm:7.0.0"
@@ -20607,16 +20527,6 @@ __metadata:
   version: 3.2.4
   resolution: "symbol-tree@npm:3.2.4"
   checksum: 10c0/dfbe201ae09ac6053d163578778c53aa860a784147ecf95705de0cd23f42c851e1be7889241495e95c37cabb058edb1052f141387bef68f705afc8f9dd358509
-  languageName: node
-  linkType: hard
-
-"systeminformation@npm:5.27.7":
-  version: 5.27.7
-  resolution: "systeminformation@npm:5.27.7"
-  bin:
-    systeminformation: lib/cli.js
-  checksum: 10c0/92a9f3a2f37e135422da745be8e51984d66ae4c411e3d5c0ffdab9aef5cd8abc45d0d476bfa28c4bfee30a6e73722649544a88c4b6fa82b426c291adbfcdd8f9
-  conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
 

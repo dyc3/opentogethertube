@@ -178,13 +178,25 @@
 		},
 		{
 			"includes": [
-				"tests/e2e/**",
 				"client/tests/**",
-				"packages/ott-vis-datasource/cypress/**",
 				"packages/ott-vis-datasource/**/*.spec.ts",
 				"packages/ott-vis-panel/**/*.spec.ts",
 				"packages/ott-vis-panel/**/*.test.ts"
 			],
+			"javascript": {
+				"globals": ["describe", "expect", "it", "beforeEach", "afterEach"]
+			},
+			"linter": {
+				"rules": {
+					"nursery": {
+						"noNestedPromises": "off",
+						"noVueOptionsApi": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["tests/e2e/**", "packages/ott-vis-datasource/cypress/**"],
 			"javascript": {
 				"globals": [
 					"before",
