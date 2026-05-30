@@ -41,7 +41,7 @@
 	"devDependencies": {
 		"@types/vimeo__player": "^2.16.0",
 		"@types/web": "0.0.80",
-		"@vitejs/plugin-vue": "^6.0.1",
+		"@vitejs/plugin-vue": "^6.0.7",
 		"@vitest/coverage-v8": "^1.2.2",
 		"@vue/eslint-config-typescript": "^11.0.3",
 		"@vue/test-utils": "2.2.1",
@@ -51,7 +51,7 @@
 		"eslint-plugin-vue": "^9.9.0",
 		"jsdom": "^21.1.0",
 		"sass": "^1.93.1",
-		"vite": "^7.3.2",
+		"vite": "^8",
 		"vite-plugin-vuetify": "2.1.2",
 		"vitest": "^1.2.2"
 	}
