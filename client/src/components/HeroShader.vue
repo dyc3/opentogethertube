@@ -8,7 +8,7 @@
 		Colors are read live from the active theme's CSS vars and re-read whenever
 		the <html data-theme> attribute changes, so it tracks every theme.
 	-->
-	<Shader v-if="mounted" class="hero-shader" tone-mapping="aces">
+	<Shader v-if="mounted" class="hero-shader" :class="{ 'is-ready': ready }" tone-mapping="aces">
 		<!-- opaque base so the canvas is grounded even before the field ramps in -->
 		<SolidColor :color="colors.ink" />
 
@@ -96,11 +96,19 @@ function readThemeColors() {
 
 // WebGPU only exists client-side; gate the canvas behind a mount flag.
 const mounted = ref(false);
+// flipped a beat after mount so the canvas crossfades in from the ink
+// background instead of popping once its first GPU frame paints.
+const ready = ref(false);
 let observer: MutationObserver | null = null;
+let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
 onMounted(() => {
 	readThemeColors();
 	mounted.value = true;
+	// give the shader a moment to render its first frame, then fade it in
+	fadeTimer = setTimeout(() => {
+		ready.value = true;
+	}, 150);
 	// re-read whenever the theme switches (data-theme flips on <html>)
 	observer = new MutationObserver(readThemeColors);
 	observer.observe(document.documentElement, {
@@ -112,6 +120,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	observer?.disconnect();
 	observer = null;
+	clearTimeout(fadeTimer);
 });
 </script>
 
@@ -124,5 +133,16 @@ onBeforeUnmount(() => {
 	pointer-events: none;
 	/* sits above the .hero CSS fallback bg, below the z-10 content */
 	z-index: 0;
+	/* crossfade in from the ink hero background once the first frame paints */
+	opacity: 0;
+	transition: opacity 1s ease;
+}
+.hero-shader.is-ready {
+	opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+	.hero-shader {
+		transition: none;
+	}
 }
 </style>
