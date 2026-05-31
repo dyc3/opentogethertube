@@ -2,12 +2,11 @@ import { mount, type MountingOptions } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { defineComponent, h, reactive, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
-import type { Store } from "vuex";
 import { afterEach } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { i18n } from "@/i18n";
 import { routes } from "@/router";
-import { buildNewStore, key, type FullOTTStoreState } from "@/store";
+import { buildNewStore, key } from "@/store";
 import { OttRoomConnectionMock, connectionInjectKey } from "@/plugins/connection";
 import { OttSfx, sfxInjectKey } from "@/plugins/sfx";
 import toast from "@/util/toast";
@@ -65,7 +64,7 @@ export function mountComponent(component: Component, options: MountingOptions<an
 		setup() {
 			return () =>
 				h(TooltipProvider, null, {
-					default: () => h(component as any, childProps, options.slots ?? {}),
+					default: () => h(component, childProps, options.slots ?? {}),
 				});
 		},
 	});
@@ -82,7 +81,7 @@ export function mountComponent(component: Component, options: MountingOptions<an
 			},
 		},
 	});
-	const wrapper = hostWrapper.getComponent(component as any) as VueWrapper;
+	const wrapper = hostWrapper.getComponent(component);
 	const setProps = wrapper.setProps.bind(wrapper);
 	wrapper.setProps = async props => {
 		try {
