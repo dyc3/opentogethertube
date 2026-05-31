@@ -17,6 +17,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { useStore } from "@/store";
 import toast from "@/util/toast";

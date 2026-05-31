@@ -16,6 +16,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@/components/ui/icon";
+import { Progress } from "@/components/ui/progress";
 import { mdiSkipNext } from "@mdi/js";
 import { computed } from "vue";
 import { useStore } from "@/store";

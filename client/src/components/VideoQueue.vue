@@ -67,6 +67,10 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Icon } from "@/components/ui/icon";
+import { Textarea } from "@/components/ui/textarea";
 import { mdiPlus, mdiShuffleVariant, mdiExportVariant, mdiContentCopy } from "@mdi/js";
 import { ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";

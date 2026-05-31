@@ -146,6 +146,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { mdiAlertCircle, mdiClose } from "@mdi/js";
 import { ALL_VIDEO_SERVICES } from "ott-common";
 import { PlayerStatus } from "ott-common/models/types";

@@ -25,6 +25,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Icon } from "@/components/ui/icon";
 import { mdiAccountCircle } from "@mdi/js";
 import { goLoginDiscord } from "@/util/discord";
 import { useStore } from "@/store";

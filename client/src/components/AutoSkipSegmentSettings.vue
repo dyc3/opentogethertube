@@ -21,6 +21,9 @@
 </template>
 
 <script setup lang="ts">
+import { Checkbox } from "@/components/ui/checkbox";
+import { FieldLabel } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
 import type { Category } from "sponsorblock-api";
 

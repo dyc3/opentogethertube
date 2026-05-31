@@ -24,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Icon } from "@/components/ui/icon";
 import { mdiPlusBox, mdiFlashOutline } from "@mdi/js";
 defineEmits(["createtemp", "createperm"]);
 </script>

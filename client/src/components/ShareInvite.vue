@@ -39,6 +39,11 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
 import { mdiClipboardOutline } from "@mdi/js";
 import { ref, computed } from "vue";
 import { useStore } from "@/store";

@@ -12,6 +12,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ref, watch } from "vue";
 import { loadLanguageAsync } from "@/i18n";
 import { useStore } from "@/store";

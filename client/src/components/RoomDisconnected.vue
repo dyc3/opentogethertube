@@ -11,6 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
 import { useI18n } from "vue-i18n";
 import { useConnection } from "@/plugins/connection";
 

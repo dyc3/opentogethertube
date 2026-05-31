@@ -80,6 +80,10 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Icon } from "@/components/ui/icon";
+import { Spinner } from "@/components/ui/spinner";
 import { mdiDelete } from "@mdi/js";
 import { API } from "@/common-http";
 import { ref, onMounted } from "vue";

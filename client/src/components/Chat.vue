@@ -69,6 +69,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
 import { mdiChevronDown, mdiChevronDoubleDown, mdiCommentOutline } from "@mdi/js";
 import { onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
 import type { ChatMessage } from "ott-common/models/types";

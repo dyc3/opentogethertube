@@ -44,6 +44,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { mdiSquareOutline, mdiFullscreenExit } from "@mdi/js";
 import { computed, onMounted, shallowRef } from "vue";
 import { useStore } from "@/store";

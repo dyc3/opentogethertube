@@ -117,6 +117,11 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { mdiMagnify, mdiPlus } from "@mdi/js";
 import { ref, computed, watch, type Ref } from "vue";
 import { useRoute } from "vue-router";

@@ -178,6 +178,14 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mdiMessageText } from "@mdi/js";
 import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";

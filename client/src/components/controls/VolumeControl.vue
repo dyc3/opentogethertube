@@ -23,6 +23,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Slider } from "@/components/ui/slider";
 import { computed } from "vue";
 import { useVolume } from "../composables";
 import { mdiVolumeHigh, mdiVolumeMedium, mdiVolumeLow, mdiVolumeOff } from "@mdi/js";

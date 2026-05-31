@@ -20,6 +20,9 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { computed } from "vue";
 import { mdiClosedCaption, mdiClosedCaptionOutline } from "@mdi/js";
 import { useCaptions } from "../composables";

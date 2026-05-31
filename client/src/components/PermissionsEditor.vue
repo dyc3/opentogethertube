@@ -55,6 +55,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ref, type Ref, toRefs, watch } from "vue";
 import _ from "lodash";
 import { PERMISSIONS, type Permission, Grants } from "ott-common/permissions";

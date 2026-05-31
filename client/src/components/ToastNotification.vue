@@ -22,6 +22,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { mdiClose, mdiCheckBold, mdiAlertCircle } from "@mdi/js";
 import { ref, toRefs, onMounted, onUnmounted, type Ref, computed } from "vue";
 import { type Toast, ToastStyle } from "@/models/toast";

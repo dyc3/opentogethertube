@@ -27,6 +27,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ref, onMounted, watch, type Ref, toRefs } from "vue";
 
 const urlRegex = /(https?:\/\/[^\s]+)/;

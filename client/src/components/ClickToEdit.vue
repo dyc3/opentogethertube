@@ -17,6 +17,7 @@
 </template>
 
 <script lang="ts" setup generic="T extends string | number">
+import { Input } from "@/components/ui/input";
 /**
  * Provides a value display that can be clicked to edit.
  */

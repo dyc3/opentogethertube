@@ -186,6 +186,15 @@
 </template>
 
 <script lang="ts">
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Icon } from "@/components/ui/icon";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Spinner } from "@/components/ui/spinner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useDisplay } from "@/components/ui/useDisplay";
 import { mdiBug, mdiHeart, mdiPlusBox, mdiMenu } from "@mdi/js";
 import { defineComponent, onMounted, ref, computed } from "vue";
 import { API } from "@/common-http";
@@ -200,7 +209,6 @@ import { useRouter } from "vue-router";
 import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
 import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
-import { useDisplay } from "@/components/ui/useDisplay";
 
 // biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 const App = defineComponent({
@@ -212,6 +220,22 @@ const App = defineComponent({
 		NavCreateRoom,
 		Notifier,
 		LocaleSelector,
+		Button,
+		Dialog,
+		DialogContent,
+		DialogTitle,
+		DropdownMenu,
+		DropdownMenuContent,
+		DropdownMenuTrigger,
+		Icon,
+		Separator,
+		Sheet,
+		SheetContent,
+		SheetFooter,
+		SheetHeader,
+		SheetTitle,
+		Spinner,
+		TooltipProvider,
 	},
 	setup() {
 		const store = useStore();

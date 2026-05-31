@@ -201,6 +201,12 @@
 </template>
 
 <script lang="ts">
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	mdiPlay,
 	mdiFormatListBulleted,
@@ -278,6 +284,17 @@ export default defineComponent({
 		WorkaroundUserStateNotifier,
 		RestoreQueue,
 		VoteSkip,
+		Badge,
+		Button,
+		Card,
+		Icon,
+		Tabs,
+		TabsContent,
+		TabsList,
+		TabsTrigger,
+		Tooltip,
+		TooltipContent,
+		TooltipTrigger,
 	},
 	setup() {
 		const store = useStore();

@@ -33,6 +33,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ref } from "vue";
 import { useStore } from "../store";
 import { useConnection } from "@/plugins/connection";

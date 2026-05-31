@@ -69,6 +69,8 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { onMounted } from "vue";
 import { Theme } from "@/stores/settings";
 import VideoControls from "@/components/controls/VideoControls.vue";

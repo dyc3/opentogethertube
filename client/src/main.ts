@@ -7,7 +7,6 @@ import { router } from "./router";
 import { i18n } from "./i18n";
 import { OttRoomConnectionPlugin } from "./plugins/connection";
 import { OttSfxPlugin } from "./plugins/sfx";
-import { OttUiPlugin } from "./plugins/ui";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +20,6 @@ createApp(App)
 	.use(router)
 	.use(VueQueryPlugin, { queryClient })
 	.use(i18n)
-	.use(OttUiPlugin)
 	.use(OttRoomConnectionPlugin)
 	.use(OttSfxPlugin)
 	.mount("#app");
