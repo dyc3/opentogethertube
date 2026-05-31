@@ -35,7 +35,7 @@ describe("Notifier component", () => {
 
 	for (const [toastStyle, className] of [
 		[ToastStyle.Success, "bg-success"],
-		[ToastStyle.Error, "bg-error"],
+		[ToastStyle.Error, "bg-destructive"],
 	] as const) {
 		it(`renders a toast notification with ${className} style`, async () => {
 			const { wrapper, store } = mountComponent(Notifier);
@@ -43,7 +43,7 @@ describe("Notifier component", () => {
 			store.commit("toast/ADD_TOAST", { content: "test", style: toastStyle });
 			await wrapper.vm.$nextTick();
 
-			expect(wrapper.get(".toast").classes()).toContain(className);
+			expect(wrapper.get(".bar").classes()).toContain(className);
 		});
 	}
 

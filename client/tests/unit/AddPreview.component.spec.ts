@@ -28,7 +28,7 @@ describe("AddPreview component", () => {
 		store.state.production = true;
 		await wrapper.vm.$nextTick();
 		await wrapper
-			.get('[data-cy="add-preview-input"] textarea')
+			.get('[data-cy="add-preview-input"]')
 			.setValue("https://youtube.com/watch?v=LP8GRjv6AIo");
 		await new Promise(resolve => setTimeout(resolve, 1100));
 		await flush();
@@ -53,7 +53,7 @@ describe("AddPreview component", () => {
 
 		store.state.production = true;
 		await wrapper.vm.$nextTick();
-		await wrapper.get('[data-cy="add-preview-input"] textarea').setValue("foo");
+		await wrapper.get('[data-cy="add-preview-input"]').setValue("foo");
 		await flush();
 		expect(API.get).not.toHaveBeenCalled();
 

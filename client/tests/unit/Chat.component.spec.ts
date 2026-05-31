@@ -25,7 +25,7 @@ describe("Chat component", () => {
 	it("sends the message when enter is pressed", async () => {
 		const { wrapper, connection } = mountComponent(Chat);
 		await wrapper.get('[data-cy="chat-activate"]').trigger("click");
-		await wrapper.get('[data-cy="chat-input"] input').setValue("foo");
+		await wrapper.get('[data-cy="chat-input"]').setValue("foo");
 		await wrapper.get('[data-cy="chat-input"]').trigger("keydown", { key: "Enter" });
 
 		const expected: ClientMessageRoomRequest = {
@@ -40,7 +40,7 @@ describe("Chat component", () => {
 		await wrapper.get('[data-cy="chat-activate"]').trigger("click");
 		await wrapper.get('[data-cy="chat-input"]').trigger("keydown", { key: "Enter" });
 		await wrapper.get('[data-cy="chat-activate"]').trigger("click");
-		await wrapper.get('[data-cy="chat-input"] input').setValue("foo");
+		await wrapper.get('[data-cy="chat-input"]').setValue("foo");
 		await wrapper.get('[data-cy="chat-input"]').trigger("keydown", { key: "Escape" });
 
 		expect(connection.sent).toEqual([]);

@@ -1,10 +1,10 @@
 import { mount, type MountingOptions } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
-import type { Component } from "vue";
+import { defineComponent, h, reactive, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import type { Store } from "vuex";
 import { afterEach } from "vitest";
-import vuetify from "@/plugins/vuetify";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { i18n } from "@/i18n";
 import { routes } from "@/router";
 import { buildNewStore, key, type FullOTTStoreState } from "@/store";
@@ -60,12 +60,21 @@ export function mountComponent(component: Component, options: MountingOptions<an
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 
-	const wrapper = mount(component as any, {
+	const childProps = reactive({ ...(options.props ?? {}) });
+	const host = defineComponent({
+		setup() {
+			return () =>
+				h(TooltipProvider, null, {
+					default: () => h(component as any, childProps, options.slots ?? {}),
+				});
+		},
+	});
+
+	const hostWrapper = mount(host, {
 		attachTo: root,
-		...options,
 		global: {
 			...options.global,
-			plugins: [vuetify, [store, key], i18n, router, ...(options.global?.plugins ?? [])],
+			plugins: [[store, key], i18n, router, ...(options.global?.plugins ?? [])],
 			provide: {
 				[connectionInjectKey as symbol]: connection,
 				[sfxInjectKey as symbol]: sfx,
@@ -73,7 +82,20 @@ export function mountComponent(component: Component, options: MountingOptions<an
 			},
 		},
 	});
-	wrappers.push(wrapper);
+	const wrapper = hostWrapper.getComponent(component as any) as VueWrapper;
+	const setProps = wrapper.setProps.bind(wrapper);
+	wrapper.setProps = async props => {
+		try {
+			await setProps(props);
+		} catch (error) {
+			if (!(error instanceof Error) || !error.message.includes("mounted component")) {
+				throw error;
+			}
+			Object.assign(childProps, props);
+			await hostWrapper.vm.$nextTick();
+		}
+	};
+	wrappers.push(hostWrapper);
 
 	return { wrapper, store, connection, router };
 }

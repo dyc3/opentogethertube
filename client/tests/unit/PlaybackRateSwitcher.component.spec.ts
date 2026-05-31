@@ -1,16 +1,7 @@
-import { it, describe, expect, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { describe, expect, it } from "vitest";
 import PlaybackRateSwitcher from "@/components/controls/PlaybackRateSwitcher.vue";
-import { i18n } from "@/i18n";
-import { createVuetify } from "vuetify";
-import { MockOttRoomConnectionPlugin } from "@/plugins/connection";
 import { usePlaybackRate } from "@/components/composables";
-
-const mountOptions = {
-	global: {
-		plugins: [createVuetify(), i18n, MockOttRoomConnectionPlugin],
-	},
-};
+import { mountComponent } from "./component-test-utils";
 
 describe("PlaybackRateSwitcher component", () => {
 	const PLAYBACK_RATES: [number, string][] = [
@@ -25,14 +16,14 @@ describe("PlaybackRateSwitcher component", () => {
 		[1.75, "1.75x"],
 		[2, "2x"],
 	];
+
 	it.each(PLAYBACK_RATES)("should format rate %s correctly", (rate, formatted) => {
 		const playbackRate = usePlaybackRate();
 		playbackRate.availablePlaybackRates.value = PLAYBACK_RATES.map(r => r[0]);
 		playbackRate.playbackRate.value = rate;
-		const wrapper = mount(PlaybackRateSwitcher, {
-			...mountOptions,
-			mounted: vi.fn(),
-		});
-		expect(wrapper.vm.$el.textContent.trim()).toEqual(formatted);
+
+		const { wrapper } = mountComponent(PlaybackRateSwitcher);
+
+		expect(wrapper.get('button[aria-label="Playback Speed"]').text()).toEqual(formatted);
 	});
 });
