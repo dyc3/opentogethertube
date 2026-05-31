@@ -7,7 +7,7 @@
 			>
 				<Spinner class="size-4" />
 				<span>{{ $t("player.buffer-warn.spans", { ranges: renderedSpans }) }}</span>
-				<div class="flex-1" />
+				<div class="flex-1"></div>
 				<Button
 					variant="ghost"
 					size="icon-sm"

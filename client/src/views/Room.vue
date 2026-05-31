@@ -43,7 +43,9 @@
 					<Icon
 						:icon="mdiCircle"
 						class="ml-2 size-3"
-						:class="connectionStatusColor === 'success' ? 'text-success' : 'text-warning'"
+						:class="
+							connectionStatusColor === 'success' ? 'text-success' : 'text-warning'
+						"
 					/>
 					<span id="connectStatus" class="ml-1 label-mono">{{ connectionStatus }}</span>
 				</div>
@@ -126,8 +128,12 @@
 				<div class="user-invite-container">
 					<div v-if="debugMode" class="debug-container">
 						<Card class="p-4">
-							<div class="mb-2 font-display text-xl">Debug (prod: {{ production }})</div>
-							<div class="flex flex-col gap-1 font-mono text-xs text-muted-foreground">
+							<div class="mb-2 font-display text-xl">
+								Debug (prod: {{ production }})
+							</div>
+							<div
+								class="flex flex-col gap-1 font-mono text-xs text-muted-foreground"
+							>
 								<div>Player status: {{ store.state.playerStatus }}</div>
 								<div v-if="store.state.playerBufferPercent">
 									Buffered:
@@ -149,7 +155,8 @@
 											.map(
 												i =>
 													`${i}: [${secondsToTimestamp(
-														store.state.playerBufferSpans?.start(i) ?? 0,
+														store.state.playerBufferSpans?.start(i) ??
+															0,
 													)} => ${secondsToTimestamp(
 														store.state.playerBufferSpans?.end(i) ?? 0,
 													)}]`,
@@ -165,10 +172,20 @@
 									{{ controlsVisible }}
 								</div>
 								<div class="mt-2 flex gap-2">
-									<Button size="sm" variant="outline" @click="roomapi.kickMe()" :disabled="!isConnected">
+									<Button
+										size="sm"
+										variant="outline"
+										@click="roomapi.kickMe()"
+										:disabled="!isConnected"
+									>
 										{{ $t("room.kick-me") }}
 									</Button>
-									<Button size="sm" variant="outline" @click="roomapi.kickMe(1000)" :disabled="!isConnected">
+									<Button
+										size="sm"
+										variant="outline"
+										@click="roomapi.kickMe(1000)"
+										:disabled="!isConnected"
+									>
 										Disconnect Me
 									</Button>
 								</div>

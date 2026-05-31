@@ -77,8 +77,16 @@
 							aria-label="add to queue"
 						>
 							<Spinner v-if="isLoadingAdd" class="size-4" />
-							<Icon v-else-if="hasError" :icon="mdiExclamation" class="size-5 text-destructive" />
-							<Icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" class="size-5 text-success" />
+							<Icon
+								v-else-if="hasError"
+								:icon="mdiExclamation"
+								class="size-5 text-destructive"
+							/>
+							<Icon
+								v-else-if="hasBeenAdded"
+								:icon="mdiCheckBold"
+								class="size-5 text-success"
+							/>
 							<Icon v-else :icon="mdiPlus" class="size-5" />
 						</Button>
 					</TooltipTrigger>
@@ -94,12 +102,21 @@
 					aria-label="remove from queue"
 				>
 					<Spinner v-if="isLoadingAdd" class="size-4" />
-					<Icon v-else-if="hasError" :icon="mdiExclamation" class="size-5 text-destructive" />
+					<Icon
+						v-else-if="hasError"
+						:icon="mdiExclamation"
+						class="size-5 text-destructive"
+					/>
 					<Icon v-else :icon="mdiTrashCan" class="size-5" />
 				</Button>
 				<DropdownMenu>
 					<DropdownMenuTrigger as-child>
-						<Button variant="ghost" size="icon" data-cy="btn-menu" aria-label="more actions">
+						<Button
+							variant="ghost"
+							size="icon"
+							data-cy="btn-menu"
+							aria-label="more actions"
+						>
 							<Icon :icon="mdiDotsVertical" class="size-5" />
 						</Button>
 					</DropdownMenuTrigger>
@@ -200,8 +217,19 @@
 
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";

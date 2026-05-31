@@ -46,14 +46,20 @@
 						<h3 class="font-display text-xl tracking-wide text-foreground">
 							{{ room.isTemporary ? $t("room.title-temp") : room.name }}
 						</h3>
-						<div class="description mt-1 text-sm text-muted-foreground" v-if="room.description">
+						<div
+							class="description mt-1 text-sm text-muted-foreground"
+							v-if="room.description"
+						>
 							{{ room.description }}
 						</div>
 						<div class="description empty mt-1 text-sm text-dim" v-else>
 							{{ $t("room-list.no-description") }}
 						</div>
 
-						<div class="video-title mt-3 text-sm text-signal" v-if="room.currentSource?.title">
+						<div
+							class="video-title mt-3 text-sm text-signal"
+							v-if="room.currentSource?.title"
+						>
 							{{ room.currentSource.title }}
 						</div>
 						<div class="video-title empty mt-3 text-sm text-dim" v-else>

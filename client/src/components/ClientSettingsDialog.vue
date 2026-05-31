@@ -56,7 +56,9 @@
 				<Field>
 					<div class="flex items-center justify-between">
 						<FieldLabel>{{ $t("client-settings.audio-boost") }}</FieldLabel>
-						<span class="audio-boost-value font-mono text-sm">{{ settings.audioBoost }}%</span>
+						<span class="audio-boost-value font-mono text-sm"
+							>{{ settings.audioBoost }}%</span
+						>
 					</div>
 					<Slider
 						:model-value="[settings.audioBoost]"
@@ -125,11 +127,25 @@
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { mdiChevronDown } from "@mdi/js";

@@ -16,7 +16,9 @@
 			<div class="flex flex-col gap-6">
 				<Card class="border-line-strong">
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{ $t("account.details") }}</CardTitle>
+						<CardTitle class="text-xl tracking-wide">{{
+							$t("account.details")
+						}}</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div class="account-row">
@@ -34,7 +36,9 @@
 
 				<Card class="border-line-strong">
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{ $t("account.social") }}</CardTitle>
+						<CardTitle class="text-xl tracking-wide">{{
+							$t("account.social")
+						}}</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div class="account-row">
@@ -82,7 +86,9 @@
 					<form @submit.prevent="saveEmail">
 						<CardContent>
 							<Field :data-invalid="showEmailError || undefined">
-								<FieldLabel for="account-email">{{ $t("account.email") }}</FieldLabel>
+								<FieldLabel for="account-email">{{
+									$t("account.email")
+								}}</FieldLabel>
 								<Input
 									id="account-email"
 									v-model="email"
@@ -239,10 +245,7 @@ const newPasswordError = computed(() => {
 	if (!newPassword.value) {
 		return t("login-form.rules.password-required");
 	}
-	if (
-		newPassword.value.length < 10 &&
-		!(import.meta.env.DEV && newPassword.value === "1")
-	) {
+	if (newPassword.value.length < 10 && !(import.meta.env.DEV && newPassword.value === "1")) {
 		return t("login-form.rules.password-length");
 	}
 	return "";

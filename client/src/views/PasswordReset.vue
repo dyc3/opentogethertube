@@ -11,7 +11,9 @@
 				<CardContent>
 					<FieldGroup>
 						<Field :data-invalid="showPasswordError || undefined">
-							<FieldLabel for="pwr-password">{{ $t("login-form.password") }}</FieldLabel>
+							<FieldLabel for="pwr-password">{{
+								$t("login-form.password")
+							}}</FieldLabel>
 							<Input
 								id="pwr-password"
 								v-model="password"

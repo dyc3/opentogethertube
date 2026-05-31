@@ -36,7 +36,12 @@
 			</transition-group>
 		</div>
 		<div v-if="!stickToBottom" class="to-bottom">
-			<Button variant="signal" size="icon-sm" @click="forceToBottom" aria-label="scroll to bottom">
+			<Button
+				variant="signal"
+				size="icon-sm"
+				@click="forceToBottom"
+				aria-label="scroll to bottom"
+			>
 				<Icon :icon="mdiChevronDoubleDown" class="size-4" />
 			</Button>
 		</div>

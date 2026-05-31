@@ -9,10 +9,7 @@
 				:disabled="!supported"
 				@click="toggleCaptions()"
 			>
-				<Icon
-					:icon="enabled ? mdiClosedCaption : mdiClosedCaptionOutline"
-					class="size-5"
-				/>
+				<Icon :icon="enabled ? mdiClosedCaption : mdiClosedCaptionOutline" class="size-5" />
 			</Button>
 		</TooltipTrigger>
 		<TooltipContent side="bottom">{{ $t("room.subtitles") }}</TooltipContent>

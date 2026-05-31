@@ -15,9 +15,9 @@ const props = defineProps<{
 		:class="
 			cn(
 				'inline-block size-6 rounded-full border-2 border-current/25 border-t-current align-middle',
-				props.class
+				props.class,
 			)
 		"
 		:style="{ animation: 'ott-spin 0.7s linear infinite' }"
-	/>
+	></span>
 </template>

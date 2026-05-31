@@ -56,7 +56,11 @@
 
 				<!-- Quality submenu -->
 				<div v-else-if="currentMenu === 'quality'" key="quality" class="menu-content">
-					<button type="button" class="menu-item menu-header" @click="navigateToMenu('main')">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
 						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
 						<span>{{ $t("room.quality") }}</span>
 					</button>
@@ -85,7 +89,11 @@
 
 				<!-- Subtitle submenu -->
 				<div v-else-if="currentMenu === 'subtitle'" key="subtitle" class="menu-content">
-					<button type="button" class="menu-item menu-header" @click="navigateToMenu('main')">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
 						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
 						<span>{{ $t("room.subtitles") }}</span>
 					</button>

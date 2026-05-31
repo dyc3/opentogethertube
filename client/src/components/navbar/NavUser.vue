@@ -1,7 +1,12 @@
 <template>
 	<DropdownMenu v-if="store.state.user">
 		<DropdownMenuTrigger as-child>
-			<Button variant="ghost" size="sm" :key="store.state.user.username" data-cy="user-logged-in">
+			<Button
+				variant="ghost"
+				size="sm"
+				:key="store.state.user.username"
+				data-cy="user-logged-in"
+			>
 				<Icon :icon="mdiAccountCircle" class="size-4 text-signal" />
 				{{ store.state.user.username }}
 			</Button>
@@ -26,7 +31,13 @@
 
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/ui/icon";
 import { mdiAccountCircle } from "@mdi/js";
 import { goLoginDiscord } from "@/util/discord";

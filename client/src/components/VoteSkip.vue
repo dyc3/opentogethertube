@@ -1,9 +1,6 @@
 <template>
 	<Transition appear name="banner">
-		<div
-			class="vote-skip"
-			v-if="store.state.room.enableVoteSkip && currentVotes > 0"
-		>
+		<div class="vote-skip" v-if="store.state.room.enableVoteSkip && currentVotes > 0">
 			<div class="vote-skip-row">
 				<Icon :icon="mdiSkipNext" class="size-4 text-signal" />
 				<span class="vote-skip-text">

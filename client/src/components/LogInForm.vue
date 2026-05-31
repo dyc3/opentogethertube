@@ -78,7 +78,9 @@
 					<CardContent class="pt-6">
 						<FieldGroup>
 							<Field :data-invalid="showError('email') || undefined">
-								<FieldLabel for="reg-email">{{ $t("login-form.email") }}</FieldLabel>
+								<FieldLabel for="reg-email">{{
+									$t("login-form.email")
+								}}</FieldLabel>
 								<Input
 									id="reg-email"
 									v-model="email"
@@ -86,14 +88,20 @@
 									:aria-invalid="showError('email') || undefined"
 									@blur="touched.email = true"
 								/>
-								<FieldDescription>{{ $t("login-form.email-optional") }}</FieldDescription>
-								<FieldError v-if="showError('email')">{{ errors.email }}</FieldError>
+								<FieldDescription>{{
+									$t("login-form.email-optional")
+								}}</FieldDescription>
+								<FieldError v-if="showError('email')">{{
+									errors.email
+								}}</FieldError>
 								<FieldError v-if="registerFieldErrors.email">
 									{{ registerFieldErrors.email }}
 								</FieldError>
 							</Field>
 							<Field :data-invalid="showError('username') || undefined">
-								<FieldLabel for="reg-username">{{ $t("login-form.username") }}</FieldLabel>
+								<FieldLabel for="reg-username">{{
+									$t("login-form.username")
+								}}</FieldLabel>
 								<Input
 									id="reg-username"
 									v-model="username"
@@ -101,13 +109,17 @@
 									:aria-invalid="showError('username') || undefined"
 									@blur="touched.username = true"
 								/>
-								<FieldError v-if="showError('username')">{{ errors.username }}</FieldError>
+								<FieldError v-if="showError('username')">{{
+									errors.username
+								}}</FieldError>
 								<FieldError v-if="registerFieldErrors.username">
 									{{ registerFieldErrors.username }}
 								</FieldError>
 							</Field>
 							<Field :data-invalid="showError('password') || undefined">
-								<FieldLabel for="reg-password">{{ $t("login-form.password") }}</FieldLabel>
+								<FieldLabel for="reg-password">{{
+									$t("login-form.password")
+								}}</FieldLabel>
 								<Input
 									id="reg-password"
 									v-model="password"
@@ -117,9 +129,13 @@
 									@blur="touched.password = true"
 								/>
 								<div class="flex justify-end">
-									<span class="text-xs text-dim font-mono">{{ password.length }}</span>
+									<span class="text-xs text-dim font-mono">{{
+										password.length
+									}}</span>
 								</div>
-								<FieldError v-if="showError('password')">{{ errors.password }}</FieldError>
+								<FieldError v-if="showError('password')">{{
+									errors.password
+								}}</FieldError>
 								<FieldError v-if="registerFieldErrors.password">
 									{{ registerFieldErrors.password }}
 								</FieldError>
@@ -136,7 +152,9 @@
 									:aria-invalid="showError('password2') || undefined"
 									@blur="touched.password2 = true"
 								/>
-								<FieldError v-if="showError('password2')">{{ errors.password2 }}</FieldError>
+								<FieldError v-if="showError('password2')">{{
+									errors.password2
+								}}</FieldError>
 								<FieldError v-if="registerFieldErrors.password2">
 									{{ registerFieldErrors.password2 }}
 								</FieldError>
@@ -244,10 +262,7 @@ const errors = computed(() => {
 	let passwordErr = "";
 	if (!password.value) {
 		passwordErr = t("login-form.rules.password-required");
-	} else if (
-		!(password.value.length >= 10) &&
-		!(import.meta.env.DEV && password.value === "1")
-	) {
+	} else if (!(password.value.length >= 10) && !(import.meta.env.DEV && password.value === "1")) {
 		passwordErr = t("login-form.rules.password-length");
 	}
 

@@ -14,7 +14,12 @@
 					:icon="mdiSquareOutline"
 					class="size-5"
 				/>
-				<Icon v-else style="transform: scaleX(130%)" :icon="mdiSquareOutline" class="size-5" />
+				<Icon
+					v-else
+					style="transform: scaleX(130%)"
+					:icon="mdiSquareOutline"
+					class="size-5"
+				/>
 			</Button>
 		</TooltipTrigger>
 		<TooltipContent side="bottom">

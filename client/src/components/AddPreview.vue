@@ -52,7 +52,10 @@
 								:key="`${groupName}-${idx}`"
 								type="button"
 								class="test-chip"
-								:class="{ 'test-chip--active': selectedTestVideo === `${groupName}-${idx}` }"
+								:class="{
+									'test-chip--active':
+										selectedTestVideo === `${groupName}-${idx}`,
+								}"
 								@click="inputAddPreview = v[1]"
 								data-cy="test-video"
 							>
@@ -119,7 +122,13 @@
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { mdiMagnify, mdiPlus } from "@mdi/js";

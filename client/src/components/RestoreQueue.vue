@@ -18,7 +18,9 @@
 					<DialogTitle>{{ $t("video-queue.restore-queue") }}</DialogTitle>
 				</DialogHeader>
 				<div class="flex flex-col gap-2">
-					<div class="text-muted-foreground">{{ $t("video-queue.restore-queue-hint") }}</div>
+					<div class="text-muted-foreground">
+						{{ $t("video-queue.restore-queue-hint") }}
+					</div>
 					<div v-for="video in store.state.room.prevQueue" :key="video.id">
 						<VideoQueueItem :item="video" :hide-all-buttons="true" />
 					</div>
@@ -34,7 +36,13 @@
 
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { ref } from "vue";
 import { useStore } from "../store";
 import { useConnection } from "@/plugins/connection";

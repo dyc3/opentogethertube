@@ -4,17 +4,16 @@
 		<span class="toast-content">
 			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
 		</span>
-		<div class="bar" :class="barClass" :style="{ 'animation-duration': `${toast.duration}ms` }" />
+		<div
+			class="bar"
+			:class="barClass"
+			:style="{ 'animation-duration': `${toast.duration}ms` }"
+		></div>
 		<div class="ml-auto flex items-center">
 			<Button variant="ghost" size="sm" v-if="undoable" @click="undo">
 				{{ $t("common.undo") }}
 			</Button>
-			<Button
-				variant="ghost"
-				size="icon-sm"
-				@click="close"
-				:aria-label="$t('common.close')"
-			>
+			<Button variant="ghost" size="icon-sm" @click="close" :aria-label="$t('common.close')">
 				<Icon :icon="mdiClose" class="size-4" />
 			</Button>
 		</div>

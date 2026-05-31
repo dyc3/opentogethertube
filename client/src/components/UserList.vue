@@ -35,11 +35,7 @@
 				</div>
 			</div>
 
-			<div
-				v-for="(user, index) in users"
-				:key="index"
-				:class="getUserCssClasses(user)"
-			>
+			<div v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
 				<span class="name">{{ user.name }}</span>
 				<Badge v-if="debugMode" variant="secondary" class="user-chip font-mono">
 					{{ user.id }}
@@ -72,13 +68,16 @@
 								user.id === store.state.users.you.id ? 'your' : user.name
 							} player is ${user.status}`"
 						>
-							<Icon class="player-status size-4" :icon="getPlayerStatusIcon(user.status)" />
+							<Icon
+								class="player-status size-4"
+								:icon="getPlayerStatusIcon(user.status)"
+							/>
 						</span>
 					</TooltipTrigger>
 					<TooltipContent>{{ user.status }}</TooltipContent>
 				</Tooltip>
 
-				<div class="flex-1" />
+				<div class="flex-1"></div>
 
 				<div v-if="user.id !== store.state.users.you.id">
 					<DropdownMenu>
@@ -124,7 +123,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";

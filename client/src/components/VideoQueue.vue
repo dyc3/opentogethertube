@@ -12,7 +12,12 @@
 			</div>
 		</div>
 		<div class="queue-controls" v-if="store.state.room.queue.length > 0">
-			<Button variant="ghost" size="icon" aria-label="shuffle queue" @click="roomapi.shuffle()">
+			<Button
+				variant="ghost"
+				size="icon"
+				aria-label="shuffle queue"
+				@click="roomapi.shuffle()"
+			>
 				<Icon :icon="mdiShuffleVariant" class="size-5" />
 			</Button>
 			<Dialog v-model:open="exportDialog">
@@ -68,7 +73,14 @@
 
 <script lang="ts" setup>
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { Textarea } from "@/components/ui/textarea";
 import { mdiPlus, mdiShuffleVariant, mdiExportVariant, mdiContentCopy } from "@mdi/js";

@@ -15,7 +15,9 @@
 				<TableHeader>
 					<TableRow>
 						<TableHead scope="col">{{ $t("permissions-editor.permission") }}</TableHead>
-						<TableHead scope="col">{{ $t(`roles.${Role.UnregisteredUser}`) }}</TableHead>
+						<TableHead scope="col">{{
+							$t(`roles.${Role.UnregisteredUser}`)
+						}}</TableHead>
 						<TableHead scope="col">{{ $t(`roles.${Role.RegisteredUser}`) }}</TableHead>
 						<TableHead scope="col">{{ $t(`roles.${Role.TrustedUser}`) }}</TableHead>
 						<TableHead scope="col">{{ $t(`roles.${Role.Moderator}`) }}</TableHead>
@@ -56,7 +58,14 @@
 
 <script lang="ts" setup>
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { ref, type Ref, toRefs, watch } from "vue";
 import _ from "lodash";
 import { PERMISSIONS, type Permission, Grants } from "ott-common/permissions";

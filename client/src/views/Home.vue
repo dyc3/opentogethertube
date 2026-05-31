@@ -3,9 +3,13 @@
 		<!-- HERO -->
 		<section class="hero ott-vignette">
 			<HeroShader aria-hidden="true" />
-			<div class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24">
+			<div
+				class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24"
+			>
 				<span class="label-mono mb-6 flex items-center gap-3 text-primary">
-					<span class="inline-block size-2 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
+					<span
+						class="inline-block size-2 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]"
+					></span>
 					Now showing · No sign-up required
 				</span>
 				<h1 class="hero-title marquee-flicker">
@@ -30,7 +34,7 @@
 					</Button>
 				</div>
 			</div>
-			<div class="hero-filmstrip" aria-hidden="true" />
+			<div class="hero-filmstrip" aria-hidden="true"></div>
 		</section>
 
 		<!-- CONTENT -->
@@ -71,7 +75,9 @@
 						<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
 							{{ $t(`landing.features.${feat.key}.text`) }}
 						</p>
-						<span class="feature-index label-mono">{{ String(i + 1).padStart(2, "0") }}</span>
+						<span class="feature-index label-mono">{{
+							String(i + 1).padStart(2, "0")
+						}}</span>
 					</article>
 				</div>
 			</section>
@@ -81,7 +87,9 @@
 				<div>
 					<h2 class="section-title">{{ $t("landing.support.title") }}</h2>
 					<p class="mt-6 text-muted-foreground">
-						<strong class="text-foreground">{{ $t("landing.support.description1") }}</strong>
+						<strong class="text-foreground">{{
+							$t("landing.support.description1")
+						}}</strong>
 						{{ $t("landing.support.description2") }}
 					</p>
 				</div>
@@ -110,8 +118,9 @@
 			<footer class="border-t border-line pt-8 text-center">
 				<p class="label-mono text-muted-foreground">
 					{{ new Date().getFullYear() }} —
-					<a href="https://carsonmcmanus.com/">Carson McManus</a> — {{ $t("footer.made-in") }} —
-					{{ $t("footer.thanks-to") }} <a href="https://softe.club">SEC</a> @ Stevens
+					<a href="https://carsonmcmanus.com/">Carson McManus</a> —
+					{{ $t("footer.made-in") }} — {{ $t("footer.thanks-to") }}
+					<a href="https://softe.club">SEC</a> @ Stevens
 				</p>
 				<p class="mt-3 flex justify-center gap-4 label-mono">
 					<router-link v-if="isOfficialSite()" to="/privacypolicy">{{
@@ -177,8 +186,11 @@ async function createTempRoom() {
 .hero {
 	position: relative;
 	overflow: hidden;
-	background:
-		radial-gradient(60% 50% at 50% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%),
+	background: radial-gradient(
+			60% 50% at 50% 0%,
+			color-mix(in srgb, var(--primary) 10%, transparent),
+			transparent 70%
+		),
 		var(--ink);
 	border-bottom: 1px solid var(--line-strong);
 }
@@ -188,8 +200,7 @@ async function createTempRoom() {
 	left: 0;
 	right: 0;
 	height: 18px;
-	background:
-		repeating-linear-gradient(to right, var(--primary) 0 14px, transparent 14px 34px);
+	background: repeating-linear-gradient(to right, var(--primary) 0 14px, transparent 14px 34px);
 	opacity: 0.5;
 	mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
@@ -199,8 +210,7 @@ async function createTempRoom() {
 	line-height: 0.88;
 	letter-spacing: 0.01em;
 	color: var(--primary);
-	text-shadow:
-		0 0 24px color-mix(in srgb, var(--primary) 45%, transparent),
+	text-shadow: 0 0 24px color-mix(in srgb, var(--primary) 45%, transparent),
 		0 0 2px var(--primary);
 }
 

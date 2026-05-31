@@ -19,8 +19,12 @@
 							@blur="touched.name = true"
 						/>
 						<div class="flex justify-between gap-2">
-							<FieldDescription>{{ $t("create-room-form.name-hint") }}</FieldDescription>
-							<span class="text-xs text-dim font-mono">{{ options.name.length }}/32</span>
+							<FieldDescription>{{
+								$t("create-room-form.name-hint")
+							}}</FieldDescription>
+							<span class="text-xs text-dim font-mono"
+								>{{ options.name.length }}/32</span
+							>
 						</div>
 						<FieldError v-if="showNameError">{{ errors.name }}</FieldError>
 					</Field>
@@ -42,12 +46,18 @@
 					<Transition name="ott-expand">
 						<div v-if="showSettings" class="flex flex-col gap-5 overflow-hidden">
 							<Field>
-								<FieldLabel for="crf-title">{{ $t("create-room-form.title") }}</FieldLabel>
+								<FieldLabel for="crf-title">{{
+									$t("create-room-form.title")
+								}}</FieldLabel>
 								<Input id="crf-title" v-model="options.title" />
-								<FieldDescription>{{ $t("create-room-form.title-hint") }}</FieldDescription>
+								<FieldDescription>{{
+									$t("create-room-form.title-hint")
+								}}</FieldDescription>
 							</Field>
 							<Field>
-								<FieldLabel for="crf-desc">{{ $t("create-room-form.description") }}</FieldLabel>
+								<FieldLabel for="crf-desc">{{
+									$t("create-room-form.description")
+								}}</FieldLabel>
 								<Input id="crf-desc" v-model="options.description" />
 								<FieldDescription>
 									{{ $t("create-room-form.description-hint") }}
@@ -60,13 +70,17 @@
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="public">{{ $t("create-room-form.public") }}</SelectItem>
+										<SelectItem value="public">{{
+											$t("create-room-form.public")
+										}}</SelectItem>
 										<SelectItem value="unlisted">
 											{{ $t("create-room-form.unlisted") }}
 										</SelectItem>
 									</SelectContent>
 								</Select>
-								<FieldDescription>{{ $t("create-room-form.visibility-hint") }}</FieldDescription>
+								<FieldDescription>{{
+									$t("create-room-form.visibility-hint")
+								}}</FieldDescription>
 							</Field>
 							<Field>
 								<FieldLabel>{{ $t("create-room-form.queue-mode") }}</FieldLabel>
@@ -75,10 +89,18 @@
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="manual">{{ $t("create-room-form.manual") }}</SelectItem>
-										<SelectItem value="vote">{{ $t("create-room-form.vote") }}</SelectItem>
-										<SelectItem value="loop">{{ $t("create-room-form.loop") }}</SelectItem>
-										<SelectItem value="dj">{{ $t("create-room-form.dj") }}</SelectItem>
+										<SelectItem value="manual">{{
+											$t("create-room-form.manual")
+										}}</SelectItem>
+										<SelectItem value="vote">{{
+											$t("create-room-form.vote")
+										}}</SelectItem>
+										<SelectItem value="loop">{{
+											$t("create-room-form.loop")
+										}}</SelectItem>
+										<SelectItem value="dj">{{
+											$t("create-room-form.dj")
+										}}</SelectItem>
 									</SelectContent>
 								</Select>
 							</Field>
@@ -107,7 +129,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { mdiChevronDown } from "@mdi/js";
 import { computed, reactive, ref, watch } from "vue";

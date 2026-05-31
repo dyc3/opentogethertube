@@ -4,183 +4,196 @@
 			id="app"
 			class="ott-grain ott-scanlines relative flex min-h-screen flex-col bg-background text-foreground"
 		>
-		<!-- MARQUEE HEADER -->
-		<header
-			v-show="!fullscreen"
-			class="sticky top-0 z-40 border-b border-line-strong bg-background/85 backdrop-blur-md"
-		>
-			<div class="flex h-16 items-center gap-3 px-4 md:px-6">
-				<!-- mobile menu -->
-				<Button
-					variant="ghost"
-					size="icon"
-					class="lg:hidden"
-					aria-label="nav menu"
-					@click="drawer = true"
-				>
-					<Icon :icon="mdiMenu" class="size-6" />
-				</Button>
-
-				<router-link to="/" class="group flex items-center gap-3">
-					<img :src="logoUrl" alt="" class="size-8 drop-shadow-[0_0_8px_var(--primary)]" />
-					<span
-						class="font-display text-2xl leading-none tracking-wide text-primary text-glow-primary marquee-flicker md:text-3xl"
+			<!-- MARQUEE HEADER -->
+			<header
+				v-show="!fullscreen"
+				class="sticky top-0 z-40 border-b border-line-strong bg-background/85 backdrop-blur-md"
+			>
+				<div class="flex h-16 items-center gap-3 px-4 md:px-6">
+					<!-- mobile menu -->
+					<Button
+						variant="ghost"
+						size="icon"
+						class="lg:hidden"
+						aria-label="nav menu"
+						@click="drawer = true"
 					>
-						OpenTogetherTube
-					</span>
-				</router-link>
+						<Icon :icon="mdiMenu" class="size-6" />
+					</Button>
 
-				<nav v-if="display.lgAndUp.value" class="ml-6 flex items-center gap-1">
-					<Button variant="ghost" size="sm" as-child>
-						<router-link to="/rooms">{{ $t("nav.browse") }}</router-link>
-					</Button>
-					<Button v-if="store.state.user" variant="ghost" size="sm" as-child>
-						<router-link to="/my-rooms">{{ $t("nav.my-rooms") }}</router-link>
-					</Button>
-					<Button variant="ghost" size="sm" as-child>
+					<router-link to="/" class="group flex items-center gap-3">
+						<img
+							:src="logoUrl"
+							alt=""
+							class="size-8 drop-shadow-[0_0_8px_var(--primary)]"
+						/>
+						<span
+							class="font-display text-2xl leading-none tracking-wide text-primary text-glow-primary marquee-flicker md:text-3xl"
+						>
+							OpenTogetherTube
+						</span>
+					</router-link>
+
+					<nav v-if="display.lgAndUp.value" class="ml-6 flex items-center gap-1">
+						<Button variant="ghost" size="sm" as-child>
+							<router-link to="/rooms">{{ $t("nav.browse") }}</router-link>
+						</Button>
+						<Button v-if="store.state.user" variant="ghost" size="sm" as-child>
+							<router-link to="/my-rooms">{{ $t("nav.my-rooms") }}</router-link>
+						</Button>
+						<Button variant="ghost" size="sm" as-child>
+							<a
+								href="https://github.com/dyc3/opentogethertube/discussions/830"
+								target="_blank"
+								>{{ $t("nav.faq") }}</a
+							>
+						</Button>
+						<Button variant="ghost" size="sm" as-child>
+							<a
+								href="https://github.com/dyc3/opentogethertube/issues/new/choose"
+								target="_blank"
+							>
+								<Icon :icon="mdiBug" />
+								{{ $t("nav.bug") }}
+							</a>
+						</Button>
+						<Button variant="ghost" size="sm" as-child>
+							<a href="https://github.com/sponsors/dyc3" target="_blank">
+								<Icon :icon="mdiHeart" class="text-primary" />
+								{{ $t("nav.support") }}
+							</a>
+						</Button>
+					</nav>
+
+					<div class="flex-1"></div>
+
+					<div v-if="display.mdAndUp.value" class="flex items-center gap-2">
+						<DropdownMenu>
+							<DropdownMenuTrigger as-child>
+								<Button variant="marquee" size="sm">
+									<Icon :icon="mdiPlusBox" />
+									{{ $t("nav.create.title") }}
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" class="w-72">
+								<NavCreateRoom
+									@createtemp="createTempRoom"
+									@createperm="showCreateRoomForm = true"
+								/>
+							</DropdownMenuContent>
+						</DropdownMenu>
+						<NavUser @login="showLogin = true" @logout="logout" />
+						<LocaleSelector />
+					</div>
+				</div>
+			</header>
+
+			<!-- MOBILE DRAWER -->
+			<Sheet v-model:open="drawer">
+				<SheetContent side="left" class="w-72 border-line-strong bg-background">
+					<SheetHeader>
+						<SheetTitle class="font-display text-2xl text-primary text-glow-primary">
+							Menu
+						</SheetTitle>
+					</SheetHeader>
+					<nav class="flex flex-col gap-1 px-2">
+						<router-link class="ott-drawer-link" to="/" @click="drawer = false">
+							{{ $t("nav.home") }}
+						</router-link>
+						<router-link class="ott-drawer-link" to="/rooms" @click="drawer = false">
+							{{ $t("nav.browse") }}
+						</router-link>
+						<router-link
+							v-if="store.state.user"
+							class="ott-drawer-link"
+							to="/my-rooms"
+							@click="drawer = false"
+						>
+							{{ $t("nav.my-rooms") }}
+						</router-link>
 						<a
+							class="ott-drawer-link"
 							href="https://github.com/dyc3/opentogethertube/discussions/830"
 							target="_blank"
 							>{{ $t("nav.faq") }}</a
 						>
-					</Button>
-					<Button variant="ghost" size="sm" as-child>
 						<a
+							class="ott-drawer-link"
 							href="https://github.com/dyc3/opentogethertube/issues/new/choose"
 							target="_blank"
 						>
-							<Icon :icon="mdiBug" />
-							{{ $t("nav.bug") }}
+							<Icon :icon="mdiBug" class="size-4" /> {{ $t("nav.bug") }}
 						</a>
-					</Button>
-					<Button variant="ghost" size="sm" as-child>
-						<a href="https://github.com/sponsors/dyc3" target="_blank">
-							<Icon :icon="mdiHeart" class="text-primary" />
+						<a
+							class="ott-drawer-link"
+							href="https://github.com/sponsors/dyc3"
+							target="_blank"
+						>
+							<Icon :icon="mdiHeart" class="size-4 text-primary" />
 							{{ $t("nav.support") }}
 						</a>
-					</Button>
-				</nav>
+						<Separator class="my-2" />
+						<NavCreateRoom
+							@createtemp="
+								() => {
+									drawer = false;
+									createTempRoom();
+								}
+							"
+							@createperm="
+								() => {
+									drawer = false;
+									showCreateRoomForm = true;
+								}
+							"
+						/>
+					</nav>
+					<SheetFooter class="mt-auto flex-row items-center gap-2">
+						<NavUser @login="showLogin = true" @logout="logout" />
+						<LocaleSelector />
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
 
-				<div class="flex-1" />
+			<!-- MAIN -->
+			<main class="relative flex-1">
+				<router-view />
+			</main>
 
-				<div v-if="display.mdAndUp.value" class="flex items-center gap-2">
-					<DropdownMenu>
-						<DropdownMenuTrigger as-child>
-							<Button variant="marquee" size="sm">
-								<Icon :icon="mdiPlusBox" />
-								{{ $t("nav.create.title") }}
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" class="w-72">
-							<NavCreateRoom
-								@createtemp="createTempRoom"
-								@createperm="showCreateRoomForm = true"
-							/>
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<NavUser @login="showLogin = true" @logout="logout" />
-					<LocaleSelector />
-				</div>
-			</div>
-		</header>
-
-		<!-- MOBILE DRAWER -->
-		<Sheet v-model:open="drawer">
-			<SheetContent side="left" class="w-72 border-line-strong bg-background">
-				<SheetHeader>
-					<SheetTitle class="font-display text-2xl text-primary text-glow-primary">
-						Menu
-					</SheetTitle>
-				</SheetHeader>
-				<nav class="flex flex-col gap-1 px-2">
-					<router-link class="ott-drawer-link" to="/" @click="drawer = false">
-						{{ $t("nav.home") }}
-					</router-link>
-					<router-link class="ott-drawer-link" to="/rooms" @click="drawer = false">
-						{{ $t("nav.browse") }}
-					</router-link>
-					<router-link
-						v-if="store.state.user"
-						class="ott-drawer-link"
-						to="/my-rooms"
-						@click="drawer = false"
-					>
-						{{ $t("nav.my-rooms") }}
-					</router-link>
-					<a
-						class="ott-drawer-link"
-						href="https://github.com/dyc3/opentogethertube/discussions/830"
-						target="_blank"
-						>{{ $t("nav.faq") }}</a
-					>
-					<a
-						class="ott-drawer-link"
-						href="https://github.com/dyc3/opentogethertube/issues/new/choose"
-						target="_blank"
-					>
-						<Icon :icon="mdiBug" class="size-4" /> {{ $t("nav.bug") }}
-					</a>
-					<a class="ott-drawer-link" href="https://github.com/sponsors/dyc3" target="_blank">
-						<Icon :icon="mdiHeart" class="size-4 text-primary" /> {{ $t("nav.support") }}
-					</a>
-					<Separator class="my-2" />
-					<NavCreateRoom
-						@createtemp="() => {
-							drawer = false;
-							createTempRoom();
-						}
-						"
-						@createperm="() => {
-							drawer = false;
-							showCreateRoomForm = true;
-						}
-						"
+			<!-- create room dialog -->
+			<Dialog v-model:open="showCreateRoomForm">
+				<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
+					<DialogTitle class="sr-only">{{
+						$t("create-room-form.card-title")
+					}}</DialogTitle>
+					<CreateRoomForm
+						@roomCreated="showCreateRoomForm = false"
+						@cancel="showCreateRoomForm = false"
 					/>
-				</nav>
-				<SheetFooter class="mt-auto flex-row items-center gap-2">
-					<NavUser @login="showLogin = true" @logout="logout" />
-					<LocaleSelector />
-				</SheetFooter>
-			</SheetContent>
-		</Sheet>
+				</DialogContent>
+			</Dialog>
 
-		<!-- MAIN -->
-		<main class="relative flex-1">
-			<router-view />
-		</main>
+			<!-- login dialog -->
+			<Dialog v-model:open="showLogin">
+				<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
+					<DialogTitle class="sr-only">{{ $t("login-form.login") }}</DialogTitle>
+					<LogInForm @shouldClose="showLogin = false" />
+				</DialogContent>
+			</Dialog>
 
-		<!-- create room dialog -->
-		<Dialog v-model:open="showCreateRoomForm">
-			<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
-				<DialogTitle class="sr-only">{{ $t("create-room-form.card-title") }}</DialogTitle>
-				<CreateRoomForm
-					@roomCreated="showCreateRoomForm = false"
-					@cancel="showCreateRoomForm = false"
-				/>
-			</DialogContent>
-		</Dialog>
-
-		<!-- login dialog -->
-		<Dialog v-model:open="showLogin">
-			<DialogContent class="max-w-xl gap-0 p-0 sm:max-w-xl">
-				<DialogTitle class="sr-only">{{ $t("login-form.login") }}</DialogTitle>
-				<LogInForm @shouldClose="showLogin = false" />
-			</DialogContent>
-		</Dialog>
-
-		<!-- room creation loading overlay -->
-		<Transition name="ott-overlay">
-			<div
-				v-if="store.state.misc.isLoadingCreateRoom"
-				class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-sm"
-			>
-				<Spinner class="size-12 text-primary" />
-				<p class="label-mono text-muted">{{ $t("nav.create.title") }}…</p>
-				<Button variant="outline" size="lg" @click="cancelRoom">
-					{{ $t("common.cancel") }}
-				</Button>
-			</div>
-		</Transition>
+			<!-- room creation loading overlay -->
+			<Transition name="ott-overlay">
+				<div
+					v-if="store.state.misc.isLoadingCreateRoom"
+					class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-sm"
+				>
+					<Spinner class="size-12 text-primary" />
+					<p class="label-mono text-muted">{{ $t("nav.create.title") }}…</p>
+					<Button variant="outline" size="lg" @click="cancelRoom">
+						{{ $t("common.cancel") }}
+					</Button>
+				</div>
+			</Transition>
 
 			<Notifier />
 		</div>
@@ -190,7 +203,11 @@
 <script lang="ts">
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/ui/icon";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";

@@ -12,7 +12,9 @@
 					/>
 				</Field>
 				<Field>
-					<FieldLabel for="rs-description">{{ $t("room-settings.description") }}</FieldLabel>
+					<FieldLabel for="rs-description">{{
+						$t("room-settings.description")
+					}}</FieldLabel>
 					<Input
 						id="rs-description"
 						v-model="settings.description.value"
@@ -176,7 +178,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import _ from "lodash";
 import PermissionsEditor from "@/components/PermissionsEditor.vue";
