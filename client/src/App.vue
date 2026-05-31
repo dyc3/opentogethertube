@@ -125,13 +125,15 @@
 					</a>
 					<Separator class="my-2" />
 					<NavCreateRoom
-						@createtemp="
+						@createtemp="() => {
 							drawer = false;
 							createTempRoom();
+						}
 						"
-						@createperm="
+						@createperm="() => {
 							drawer = false;
 							showCreateRoomForm = true;
+						}
 						"
 					/>
 				</nav>

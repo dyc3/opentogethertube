@@ -28,6 +28,7 @@ const content = computed(() => {
     return typeof uniqueErrors[0] === 'string' ? uniqueErrors[0] : uniqueErrors[0].message
   }
 
+  // biome-ignore lint/nursery/noVueRefAsOperand: false positive
   return uniqueErrors.map(error => typeof error === 'string' ? error : error?.message)
 })
 </script>
