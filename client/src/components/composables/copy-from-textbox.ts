@@ -2,7 +2,7 @@ import { type Ref, ref, type ComputedRef } from "vue";
 
 export function useCopyFromTextbox(
 	text: Ref<string> | ComputedRef<string>,
-	textboxComponent: Ref<any>,
+	textboxComponent: Ref<{ $el: Element } | null>,
 ) {
 	let copySuccessTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	const copySuccess = ref(false);
@@ -21,9 +21,9 @@ export function useCopyFromTextbox(
 				copySuccess.value = false;
 			}, 3000);
 		} else {
-			const textfield: HTMLInputElement | HTMLTextAreaElement | null = (
-				textboxComponent.value.$el as HTMLInputElement | HTMLTextAreaElement
-			).querySelector("input, textarea");
+			const textfield = textboxComponent.value?.$el.querySelector<
+				HTMLInputElement | HTMLTextAreaElement
+			>("input, textarea");
 			if (!textfield) {
 				console.error("failed to copy link: input not found");
 				return;

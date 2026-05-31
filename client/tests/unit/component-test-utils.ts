@@ -13,7 +13,10 @@ import toast from "@/util/toast";
 
 const wrappers: VueWrapper[] = [];
 
-export function mountComponent(component: Component, options: MountingOptions<any> = {}) {
+export function mountComponent(
+	component: Component,
+	options: MountingOptions<Record<string, unknown>> = {},
+) {
 	if (!window.AudioContext) {
 		window.AudioContext = class {
 			createGain() {
