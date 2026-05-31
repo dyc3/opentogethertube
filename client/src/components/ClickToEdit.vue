@@ -25,7 +25,9 @@ import { ref, nextTick, type Ref } from "vue";
 
 const props = withDefaults(
 	defineProps<{
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		valueFormatter?: (value: number) => string;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		valueParser?: (value: string) => number;
 	}>(),
 	{
@@ -41,7 +43,9 @@ const emit = defineEmits<{
 }>();
 
 const editor = ref<{ $el?: HTMLInputElement } | undefined>();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
 
 const editing = ref(false);
