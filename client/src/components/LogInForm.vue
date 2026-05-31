@@ -8,7 +8,7 @@
 				</TabsList>
 			</CardHeader>
 
-			<!-- ░░ LOGIN ░░ -->
+			<!-- LOGIN -->
 			<TabsContent value="login">
 				<form @submit.prevent="login">
 					<CardContent class="pt-6">
@@ -72,7 +72,7 @@
 				</form>
 			</TabsContent>
 
-			<!-- ░░ REGISTER ░░ -->
+			<!-- REGISTER -->
 			<TabsContent value="register">
 				<form @submit.prevent="register">
 					<CardContent class="pt-6">

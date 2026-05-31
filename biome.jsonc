@@ -88,7 +88,10 @@
 			"style": {
 				"noCommonJs": "warn",
 				"noNestedTernary": "off",
-				"useBlockStatements": "error",
+				"useBlockStatements": {
+					"level": "error",
+					"fix": "safe"
+				},
 				"useConsistentArrowReturn": "off"
 			},
 			"suspicious": {
@@ -144,6 +147,9 @@
 			"indentScriptAndStyle": false,
 			"selfCloseVoidElements": "always"
 		}
+	},
+	"css": {
+		"parser": { "tailwindDirectives": true }
 	},
 	"overrides": [
 		{

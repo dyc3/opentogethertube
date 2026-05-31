@@ -25,8 +25,7 @@ export const buttonVariants = cva(
 					"border-primary/60 bg-primary text-primary-foreground hover:bg-primary-bright hover:shadow-[var(--glow-primary)]",
 				marquee:
 					"border-primary/70 bg-transparent text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[var(--glow-primary)] text-glow-primary",
-				signal:
-					"border-signal/60 bg-transparent text-signal hover:bg-signal hover:text-background hover:shadow-[var(--glow-signal)]",
+				signal: "border-signal/60 bg-transparent text-signal hover:bg-signal hover:text-background hover:shadow-[var(--glow-signal)]",
 				outline:
 					"border-line-strong bg-surface-2/40 text-foreground hover:border-primary/60 hover:text-primary hover:bg-surface-2",
 				secondary:
@@ -50,6 +49,6 @@ export const buttonVariants = cva(
 			variant: "default",
 			size: "default",
 		},
-	}
+	},
 );
 export type ButtonVariants = VariantProps<typeof buttonVariants>;

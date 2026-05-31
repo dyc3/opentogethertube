@@ -4,7 +4,7 @@
 			id="app"
 			class="ott-grain ott-scanlines relative flex min-h-screen flex-col bg-background text-foreground"
 		>
-		<!-- ░░ MARQUEE HEADER ░░ -->
+		<!-- MARQUEE HEADER -->
 		<header
 			v-show="!fullscreen"
 			class="sticky top-0 z-40 border-b border-line-strong bg-background/85 backdrop-blur-md"
@@ -84,7 +84,7 @@
 			</div>
 		</header>
 
-		<!-- ░░ MOBILE DRAWER ░░ -->
+		<!-- MOBILE DRAWER -->
 		<Sheet v-model:open="drawer">
 			<SheetContent side="left" class="w-72 border-line-strong bg-background">
 				<SheetHeader>
@@ -142,7 +142,7 @@
 			</SheetContent>
 		</Sheet>
 
-		<!-- ░░ MAIN ░░ -->
+		<!-- MAIN -->
 		<main class="relative flex-1">
 			<router-view />
 		</main>

@@ -46,10 +46,18 @@ export function useDisplay() {
 
 	const name = computed(() => {
 		const w = width.value;
-		if (w >= BREAKPOINTS.xl) return "xl";
-		if (w >= BREAKPOINTS.lg) return "lg";
-		if (w >= BREAKPOINTS.md) return "md";
-		if (w >= BREAKPOINTS.sm) return "sm";
+		if (w >= BREAKPOINTS.xl) {
+			return "xl";
+		}
+		if (w >= BREAKPOINTS.lg) {
+			return "lg";
+		}
+		if (w >= BREAKPOINTS.md) {
+			return "md";
+		}
+		if (w >= BREAKPOINTS.sm) {
+			return "sm";
+		}
 		return "xs";
 	});
 

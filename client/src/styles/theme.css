@@ -14,7 +14,16 @@
  */
 
 /* dark: variant applies inside any of our dark themes */
-@custom-variant dark (&:is([data-theme="dark"] *, [data-theme="deepred"] *, [data-theme="deepblue"] *, [data-theme="greenslate"] *, [data-theme="dark"], [data-theme="deepred"], [data-theme="deepblue"], [data-theme="greenslate"]));
+@custom-variant dark (&:is(
+	[data-theme="dark"] *,
+	[data-theme="deepred"] *,
+	[data-theme="deepblue"] *,
+	[data-theme="greenslate"] *,
+	[data-theme="dark"],
+	[data-theme="deepred"],
+	[data-theme="deepblue"],
+	[data-theme="greenslate"]
+));
 
 /*
  * Reka UI state variants used by the shadcn-vue "nova" components.
@@ -26,7 +35,11 @@
 @custom-variant data-closed (&:is([data-state="closed"], [data-closed]));
 @custom-variant data-active (&:is([data-state="active"], [data-active]));
 @custom-variant data-checked (&:is([data-state="checked"], [data-state="on"], [data-checked]));
-@custom-variant data-unchecked (&:is([data-state="unchecked"], [data-state="off"], [data-unchecked]));
+@custom-variant data-unchecked (&:is(
+	[data-state="unchecked"],
+	[data-state="off"],
+	[data-unchecked]
+));
 @custom-variant data-horizontal (&[data-orientation="horizontal"]);
 @custom-variant data-vertical (&[data-orientation="vertical"]);
 @custom-variant data-disabled (&:is([data-disabled], [data-state="disabled"]));
@@ -369,7 +382,10 @@
 		@apply bg-background text-foreground font-sans;
 	}
 
-	h1, h2, h3, .display {
+	h1,
+	h2,
+	h3,
+	.display {
 		font-family: var(--font-display);
 		font-weight: 400;
 		letter-spacing: 0.02em;
@@ -409,7 +425,10 @@
 		background-clip: padding-box;
 	}
 
-	input, textarea, select, button {
+	input,
+	textarea,
+	select,
+	button {
 		font-family: inherit;
 	}
 }
@@ -447,10 +466,18 @@
 	}
 
 	@keyframes ott-grain-shift {
-		0% { transform: translate(0, 0); }
-		33% { transform: translate(-4%, 3%); }
-		66% { transform: translate(3%, -2%); }
-		100% { transform: translate(0, 0); }
+		0% {
+			transform: translate(0, 0);
+		}
+		33% {
+			transform: translate(-4%, 3%);
+		}
+		66% {
+			transform: translate(3%, -2%);
+		}
+		100% {
+			transform: translate(0, 0);
+		}
 	}
 
 	.ott-vignette::after {
@@ -468,7 +495,9 @@
  * ======================================================================== */
 @layer utilities {
 	.text-glow-primary {
-		text-shadow: 0 0 18px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 2px var(--primary);
+		text-shadow:
+			0 0 18px color-mix(in srgb, var(--primary) 55%, transparent),
+			0 0 2px var(--primary);
 	}
 	.text-glow-signal {
 		text-shadow: 0 0 16px color-mix(in srgb, var(--signal) 55%, transparent);
@@ -488,31 +517,59 @@
 	}
 
 	.ticket-notch {
-		clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+		clip-path: polygon(
+			0 0,
+			calc(100% - 10px) 0,
+			100% 10px,
+			100% 100%,
+			10px 100%,
+			0 calc(100% - 10px)
+		);
 	}
 
 	.marquee-flicker {
 		animation: ott-flicker 6s infinite;
 	}
 	@keyframes ott-flicker {
-		0%, 100% { opacity: 1; }
-		92% { opacity: 1; }
-		93% { opacity: 0.55; }
-		94% { opacity: 1; }
-		96% { opacity: 0.7; }
-		97% { opacity: 1; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		92% {
+			opacity: 1;
+		}
+		93% {
+			opacity: 0.55;
+		}
+		94% {
+			opacity: 1;
+		}
+		96% {
+			opacity: 0.7;
+		}
+		97% {
+			opacity: 1;
+		}
 	}
 
 	@keyframes ott-fade-up {
-		from { opacity: 0; transform: translateY(14px); }
-		to { opacity: 1; transform: translateY(0); }
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 	.animate-fade-up {
 		animation: ott-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 
 	@keyframes ott-spin {
-		to { transform: rotate(360deg); }
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.scrollbarBeGone {

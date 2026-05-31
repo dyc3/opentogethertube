@@ -1,6 +1,6 @@
 <template>
 	<div class="home">
-		<!-- ░░ HERO — THE MARQUEE ░░ -->
+		<!-- HERO -->
 		<section class="hero ott-vignette">
 			<HeroShader aria-hidden="true" />
 			<div class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24">
@@ -33,7 +33,7 @@
 			<div class="hero-filmstrip" aria-hidden="true" />
 		</section>
 
-		<!-- ░░ CONTENT ░░ -->
+		<!-- CONTENT -->
 		<div class="mx-auto max-w-6xl px-6 py-20">
 			<!-- intro -->
 			<section class="mb-24 max-w-3xl">
