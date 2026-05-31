@@ -88,19 +88,14 @@
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<template v-for="role in [4, 3, 2, 1]" :key="user.role + role">
-								<DropdownMenuItem
-									v-if="canUserBePromotedTo(user, role)"
-									@click="promoteUser(user.id, role)"
-								>
-									{{
-										user.role > role
-											? $t("room.users.demote")
-											: $t("room.users.promote")
-									}}
-									to {{ $t(`roles.${role}`) }}
-								</DropdownMenuItem>
-							</template>
+							<DropdownMenuItem
+								v-for="role in getRoleActions(user)"
+								:key="`${user.id}-${role}`"
+								@click="promoteUser(user.id, role)"
+							>
+								{{ user.role > role ? $t("room.users.demote") : $t("room.users.promote") }}
+								to {{ $t(`roles.${role}`) }}
+							</DropdownMenuItem>
 							<DropdownMenuItem
 								v-if="canSelfKickUser(user)"
 								class="text-destructive"
@@ -168,6 +163,12 @@ const inputUsername = ref("");
 const showEditName = ref(false);
 const setUsernameLoading = ref(false);
 const setUsernameFailureText = ref("");
+const roleActions = [
+	Role.Administrator,
+	Role.Moderator,
+	Role.TrustedUser,
+	Role.RegisteredUser,
+];
 
 function openEditName() {
 	if (!inputUsername.value) {
@@ -226,6 +227,10 @@ function canUserBePromotedTo(user: RoomUserInfo, role: Role): boolean {
 	}
 
 	return false;
+}
+
+function getRoleActions(user: RoomUserInfo): Role[] {
+	return roleActions.filter(role => canUserBePromotedTo(user, role));
 }
 
 function canSelfKickUser(user: RoomUserInfo): boolean {
