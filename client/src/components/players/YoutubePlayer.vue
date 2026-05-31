@@ -1,28 +1,84 @@
 <template>
-	<div>
-		<DebugPlayerWatcher :data="_debug" />
-		<div class="youtube" id="ytcontainer"></div>
+	<div ref="rootElem" data-cy="youtube-player">
+		<DebugPlayerWatcher v-if="isDev" :data="debugData" />
+		<div ref="containerElem" class="youtube"></div>
 	</div>
 </template>
 
-<script>
-import _ from "lodash";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import DebugPlayerWatcher from "@/components/debug/DebugPlayerWatcher.vue";
 import { getSdk } from "@/util/playerHelper.js";
 import toast from "@/util/toast";
 import { ToastStyle } from "@/models/toast";
+import type { CaptionTrack } from "@/models/media-tracks";
 import { useCaptions } from "../composables";
 
 const YOUTUBE_IFRAME_API_URL = "https://www.youtube.com/iframe_api";
-// TODO: convert to ts and use an enum for this.
-// eslint-disable-next-line no-unused-vars
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const YT_STATUS_UNSTARTED = -1;
-const YT_STATUS_ENDED = 0;
-const YT_STATUS_PLAYING = 1;
-const YT_STATUS_PAUSED = 2;
-const YT_STATUS_BUFFERING = 3;
-const YT_STATUS_CUED = 5;
+
+const YOUTUBE_STATUS_UNSTARTED = -1;
+const YOUTUBE_STATUS_ENDED = 0;
+const YOUTUBE_STATUS_PLAYING = 1;
+const YOUTUBE_STATUS_PAUSED = 2;
+const YOUTUBE_STATUS_BUFFERING = 3;
+const YOUTUBE_STATUS_CUED = 5;
+
+type YoutubeStatus =
+	| typeof YOUTUBE_STATUS_UNSTARTED
+	| typeof YOUTUBE_STATUS_ENDED
+	| typeof YOUTUBE_STATUS_PLAYING
+	| typeof YOUTUBE_STATUS_PAUSED
+	| typeof YOUTUBE_STATUS_BUFFERING
+	| typeof YOUTUBE_STATUS_CUED;
+
+interface YoutubeSdk {
+	Player: new (
+		element: HTMLElement,
+		options: {
+			events: {
+				onApiChange: () => void;
+				onReady: () => void;
+				onStateChange: (event: YoutubeStateChangeEvent) => void;
+				onError: () => void;
+			};
+			playerVars: Record<string, number>;
+		},
+	) => YoutubePlayerApi;
+}
+
+interface YoutubeStateChangeEvent {
+	data: YoutubeStatus;
+}
+
+interface YoutubeCaptionTrack {
+	languageCode: string;
+	languageName?: string;
+}
+
+interface YoutubePlayerApi {
+	destroy?: () => void;
+	playVideo: () => void;
+	pauseVideo: () => void;
+	getCurrentTime: () => number;
+	seekTo: (position: number) => void;
+	setVolume: (volume: number) => void;
+	loadModule: (module: string) => void;
+	unloadModule: (module: string) => void;
+	getOption: (module: "captions", option: "tracklist") => YoutubeCaptionTrack[] | undefined;
+	setOption: (module: "captions", option: "reload", value: boolean) => void;
+	setOption: (module: "captions", option: "fontSize", value: number) => void;
+	setOption: (module: "captions", option: "track", value: YoutubeCaptionTrack) => void;
+	getAvailablePlaybackRates: () => number[];
+	getPlaybackRate: () => number;
+	setPlaybackRate: (rate: number) => void;
+	loadVideoById: (videoId: string) => void;
+	getVideoLoadedFraction: () => number;
+	setSize: (width: string, height: string) => void;
+}
+
+interface Props {
+	videoId: string;
+}
 
 /**
  * Component that manages youtube's iframe player (and all of the woes that come with it), and provides the common OTT player interface.
@@ -34,271 +90,298 @@ const YT_STATUS_CUED = 5;
  * - At this point, the user must interact with the video manually in order to play the video.
  */
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
-export default {
-	name: "YoutubePlayer",
-	props: {
-		videoId: { type: String, required: true },
-	},
-	components: import.meta.env.DEV
-		? {
-				// eslint-disable-next-line vue/no-unused-components
-				DebugPlayerWatcher,
-		  }
-		: {},
-	emits: [
-		"apiready",
-		"ended",
-		"playing",
-		"paused",
-		"buffering",
-		"ready",
-		"error",
-		"buffer-progress",
-	],
-	data() {
-		return {
-			YT: null,
-			player: null,
-			resizeObserver: null,
-			debug: {
-				YoutubeState: null,
+defineOptions({ name: "YoutubePlayer" });
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+	"apiready": [];
+	"ended": [];
+	"playing": [];
+	"paused": [];
+	"buffering": [];
+	"ready": [];
+	"error": [];
+	"buffer-progress": [progress: number];
+}>();
+
+const isDev = import.meta.env.DEV;
+const captions = useCaptions();
+const rootElem = ref<HTMLElement>();
+const containerElem = ref<HTMLElement>();
+const player = ref<YoutubePlayerApi | null>(null);
+const resizeObserver = ref<ResizeObserver | null>(null);
+const youtubeState = ref<YoutubeStatus | null>(null);
+const queuedSeek = ref<number | null>(null);
+const queuedPlaying = ref<boolean | null>(null);
+const queuedVolume = ref<number | null>(null);
+const captionsEnabled = ref(false);
+const isCaptionsLoaded = ref(false);
+
+const debugData = computed(() => ({
+	YoutubeState: youtubeState.value,
+	queuedSeek: queuedSeek.value,
+	queuedPlaying: queuedPlaying.value,
+	isCaptionsEnabled: isCaptionsEnabled(),
+	isCaptionsLoaded: isCaptionsLoaded.value,
+}));
+
+onMounted(async () => {
+	const YT = (await getSdk(
+		YOUTUBE_IFRAME_API_URL,
+		"YT",
+		"onYouTubeIframeAPIReady",
+	)) as YoutubeSdk;
+
+	if (!player.value && containerElem.value) {
+		player.value = new YT.Player(containerElem.value, {
+			events: {
+				onApiChange,
+				onReady,
+				onStateChange,
+				onError,
 			},
+			playerVars: {
+				autoplay: 0,
+				enablejsapi: 1,
+				controls: 0,
+				disablekb: 1,
+				// required for iOS
+				playsinline: 1,
+			},
+		});
+	}
 
-			queuedSeek: null,
-			queuedPlaying: null,
-			queuedVolume: null,
+	if (rootElem.value) {
+		resizeObserver.value = new ResizeObserver(fitToContainer);
+		resizeObserver.value.observe(rootElem.value);
+	}
 
-			captionsEnabled: false,
-			isCaptionsLoaded: false,
-			resizeRunawayDetected: false,
-		};
-	},
-	computed: {
-		_debug() {
-			return {
-				...this.debug,
-				queuedSeek: this.queuedSeek,
-				queuedPlaying: this.queuedPlaying,
-				isCaptionsEnabled: this.isCaptionsEnabled(),
-				isCaptionsLoaded: this.isCaptionsLoaded,
-			};
-		},
-	},
-	async created() {
-		this.YT = await getSdk(YOUTUBE_IFRAME_API_URL, "YT", "onYouTubeIframeAPIReady");
-		if (!this.player) {
-			this.player = new this.YT.Player("ytcontainer", {
-				events: {
-					onApiChange: this.onApiChange,
-					onReady: this.onReady,
-					onStateChange: this.onStateChange,
-					onError: this.onError,
-				},
-				playerVars: {
-					autoplay: 0,
-					enablejsapi: 1,
-					controls: 0,
-					disablekb: 1,
-					// required for iOS
-					playsinline: 1,
-				},
-			});
-		}
+	fitToContainer();
+});
 
-		this.resizeObserver = new ResizeObserver(this.fitToContainer);
-		console.log(this.$el);
-		this.resizeObserver.observe(this.$el);
-	},
-	mounted() {
-		this.fitToContainer();
-	},
-	beforeUnmount() {
-		if (this.resizeObserver) {
-			this.resizeObserver.disconnect();
+onBeforeUnmount(() => {
+	resizeObserver.value?.disconnect();
+	resizeObserver.value = null;
+	player.value?.destroy?.();
+	player.value = null;
+});
+
+watch(
+	() => props.videoId,
+	videoId => {
+		if (!player.value) {
+			return;
 		}
-		if (this.player?.destroy) {
-			this.player.destroy();
-			delete this.player;
+		emit("buffering");
+		player.value.loadVideoById(videoId);
+		isCaptionsLoaded.value = false;
+		captionsEnabled.value = false;
+	},
+);
+
+function play(): Promise<void> {
+	if (!player.value) {
+		queuedPlaying.value = true;
+		return Promise.resolve();
+	}
+	player.value.playVideo();
+	return Promise.resolve();
+}
+
+function pause(): void {
+	if (!player.value) {
+		queuedPlaying.value = false;
+		return;
+	}
+	player.value.pauseVideo();
+}
+
+function getPosition(): number {
+	if (!player.value) {
+		return 0;
+	}
+	return player.value.getCurrentTime();
+}
+
+function setPosition(position: number): void {
+	if (!player.value) {
+		queuedSeek.value = position;
+		return;
+	}
+	player.value.seekTo(position);
+}
+
+function setVolume(volume: number): void {
+	if (!player.value) {
+		queuedVolume.value = volume;
+		return;
+	}
+	player.value.setVolume(volume);
+}
+
+function isCaptionsSupported(): boolean {
+	return true;
+}
+
+function isCaptionsEnabled(): boolean {
+	return captionsEnabled.value;
+}
+
+function setCaptionsEnabled(value: boolean): void {
+	if (!player.value) {
+		return;
+	}
+	loadCaptionsIfNeeded();
+	if (value) {
+		player.value.loadModule("captions");
+		player.value.setOption("captions", "fontSize", 0);
+	} else {
+		player.value.unloadModule("captions");
+	}
+	captionsEnabled.value = value;
+}
+
+function getRawCaptionsTracks(): YoutubeCaptionTrack[] {
+	return player.value?.getOption("captions", "tracklist") ?? [];
+}
+
+function getCaptionsTracks(): CaptionTrack[] {
+	return getRawCaptionsTracks().map(track => ({
+		kind: "captions",
+		label: track.languageName,
+		srclang: track.languageCode,
+	}));
+}
+
+function setCaptionsTrack(track: number): void {
+	if (!player.value) {
+		return;
+	}
+	loadCaptionsIfNeeded();
+	const tracklist = getRawCaptionsTracks();
+	console.debug("youtube: found tracks:", tracklist);
+	const selectedTrack = tracklist[track];
+	if (selectedTrack) {
+		player.value.setOption("captions", "track", selectedTrack);
+	} else {
+		toast.add({
+			content: `Unknown captions track ${track}`,
+			style: ToastStyle.Error,
+			duration: 4000,
+		});
+	}
+}
+
+function isQualitySupported(): boolean {
+	return false;
+}
+
+function getAvailablePlaybackRates(): number[] {
+	if (!player.value) {
+		return [1];
+	}
+	return player.value.getAvailablePlaybackRates();
+}
+
+function getPlaybackRate(): number {
+	if (!player.value) {
+		return 1;
+	}
+	return player.value.getPlaybackRate();
+}
+
+function setPlaybackRate(rate: number): void {
+	if (!player.value) {
+		return;
+	}
+	player.value.setPlaybackRate(rate);
+}
+
+function onApiChange(): void {
+	console.debug("youtube: onApiChange");
+	captions.captionsTracks.value = getCaptionsTracks();
+}
+
+function onReady(): void {
+	if (!player.value) {
+		return;
+	}
+	emit("apiready");
+	player.value.loadVideoById(props.videoId);
+}
+
+function onStateChange(event: YoutubeStateChangeEvent): void {
+	if (!player.value) {
+		return;
+	}
+	youtubeState.value = event.data;
+	if (event.data === YOUTUBE_STATUS_ENDED) {
+		emit("ended");
+	} else if (event.data === YOUTUBE_STATUS_PLAYING) {
+		emit("playing");
+	} else if (event.data === YOUTUBE_STATUS_PAUSED) {
+		emit("paused");
+	} else if (event.data === YOUTUBE_STATUS_BUFFERING) {
+		emit("buffering");
+	} else if (event.data === YOUTUBE_STATUS_CUED) {
+		emit("ready");
+	}
+
+	if (event.data === YOUTUBE_STATUS_PLAYING || event.data === YOUTUBE_STATUS_PAUSED) {
+		if (queuedSeek.value !== null) {
+			player.value.seekTo(queuedSeek.value);
+			queuedSeek.value = null;
 		}
-	},
-	setup() {
-		const captions = useCaptions();
-		return {
-			captions,
-		};
-	},
-	methods: {
-		play() {
-			if (!this.player) {
-				this.queuedPlaying = true;
-				return Promise.resolve();
-			}
-			this.player.playVideo();
-			return Promise.resolve();
-		},
-		pause() {
-			if (!this.player) {
-				this.queuedPlaying = false;
-				return;
-			}
-			this.player.pauseVideo();
-		},
-		getPosition() {
-			if (!this.player) {
-				return 0;
-			}
-			return this.player.getCurrentTime();
-		},
-		setPosition(position) {
-			if (!this.player) {
-				this.queuedSeek = position;
-				return;
-			}
-			return this.player.seekTo(position);
-		},
-		setVolume(volume) {
-			if (!this.player) {
-				this.queuedVolume = volume;
-				return;
-			}
-			this.player.setVolume(volume);
-		},
-		isCaptionsSupported() {
-			return true;
-		},
-		isCaptionsEnabled() {
-			return this.captionsEnabled;
-		},
-		setCaptionsEnabled(value) {
-			if (!this.isCaptionsLoaded) {
-				this.player.setOption("captions", "reload", true);
-				this.isCaptionsLoaded = true;
-			}
-			if (value) {
-				this.player.loadModule("captions");
-				this.player.setOption("captions", "fontSize", 0);
+		if (queuedPlaying.value !== null) {
+			if (queuedPlaying.value) {
+				player.value.playVideo();
 			} else {
-				this.player.unloadModule("captions");
+				player.value.pauseVideo();
 			}
-			this.captionsEnabled = value;
-		},
-		getCaptionsTracks() {
-			const tracks = this.player.getOption("captions", "tracklist");
-			if (!tracks) {
-				return [];
-			}
-			return tracks.map(track => track.languageCode);
-		},
-		setCaptionsTrack(track) {
-			if (!this.isCaptionsLoaded) {
-				this.player.setOption("captions", "reload", true);
-				this.isCaptionsLoaded = true;
-			}
-			const tracklist = this.getCaptionsTracks();
-			console.debug(`youtube: found tracks:`, tracklist);
-			if (tracklist.includes(track)) {
-				this.player.setOption("captions", "track", track);
-			} else {
-				toast.add({
-					content: `Unknown captions track ${track}`,
-					style: ToastStyle.Error,
-					duration: 4000,
-				});
-			}
-		},
+			queuedPlaying.value = null;
+		}
+		if (queuedVolume.value !== null) {
+			player.value.setVolume(queuedVolume.value);
+			queuedVolume.value = null;
+		}
+	}
 
-		isQualitySupported() {
-			return false;
-		},
+	emit("buffer-progress", player.value.getVideoLoadedFraction());
+}
 
-		getAvailablePlaybackRates() {
-			if (!this.player) {
-				return [1];
-			}
-			return this.player.getAvailablePlaybackRates();
-		},
-		getPlaybackRate() {
-			if (!this.player) {
-				return 1;
-			}
-			return this.player.getPlaybackRate();
-		},
-		setPlaybackRate(rate) {
-			if (!this.player) {
-				return;
-			}
-			this.player.setPlaybackRate(rate);
-		},
+function onError(): void {
+	emit("error");
+}
 
-		onApiChange() {
-			console.debug(`youtube: onApiChange`);
-			this.captions.captionsTracks.value = this.getCaptionsTracks();
-		},
-		onReady() {
-			this.$emit("apiready");
-			this.player.loadVideoById(this.videoId);
-		},
-		onStateChange(e) {
-			this.debug.YoutubeState = e.data;
-			if (e.data === YT_STATUS_ENDED) {
-				this.$emit("ended");
-			} else if (e.data === YT_STATUS_PLAYING) {
-				this.$emit("playing");
-			} else if (e.data === YT_STATUS_PAUSED) {
-				this.$emit("paused");
-			} else if (e.data === YT_STATUS_BUFFERING) {
-				this.$emit("buffering");
-			} else if (e.data === YT_STATUS_CUED) {
-				this.$emit("ready");
-			}
+function fitToContainer(): void {
+	if (!player.value) {
+		return;
+	}
+	player.value.setSize("100%", "100%");
+}
 
-			if (e.data === YT_STATUS_PLAYING || e.data === YT_STATUS_PAUSED) {
-				if (this.queuedSeek !== null) {
-					this.player.seekTo(this.queuedSeek);
-					this.queuedSeek = null;
-				}
-				if (this.queuedPlaying !== null) {
-					if (this.queuedPlaying) {
-						this.player.play();
-					} else {
-						this.player.pause();
-					}
-					this.queuedPlaying = null;
-				}
-				if (this.queuedVolume !== null) {
-					this.player.setVolume(this.queuedVolume);
-					this.queuedVolume = null;
-				}
-			}
+function loadCaptionsIfNeeded(): void {
+	if (!player.value || isCaptionsLoaded.value) {
+		return;
+	}
+	player.value.setOption("captions", "reload", true);
+	isCaptionsLoaded.value = true;
+}
 
-			if (this.$store) {
-				this.$emit("buffer-progress", this.player.getVideoLoadedFraction());
-			}
-		},
-		onError() {
-			this.$emit("error");
-		},
-
-		onResize: _.debounce(function () {
-			this.fitToContainer();
-		}, 25),
-		fitToContainer() {
-			if (!this.player) {
-				return;
-			}
-			this.player.setSize("100%", "100%");
-		},
-	},
-	watch: {
-		videoId() {
-			this.$emit("buffering");
-			this.player.loadVideoById(this.videoId);
-			this.isCaptionsLoaded = false;
-			this.captionsEnabled = false;
-		},
-	},
-};
+defineExpose({
+	play,
+	pause,
+	getPosition,
+	setPosition,
+	setVolume,
+	isCaptionsSupported,
+	isCaptionsEnabled,
+	setCaptionsEnabled,
+	getCaptionsTracks,
+	setCaptionsTrack,
+	isQualitySupported,
+	getAvailablePlaybackRates,
+	getPlaybackRate,
+	setPlaybackRate,
+});
 </script>
-
-<style lang="scss" scoped></style>
