@@ -17,10 +17,7 @@
 
 		<template v-if="!isLoading && rooms.length > 0">
 			<div class="mb-8">
-				<span class="label-mono text-signal">{{ $t("my-rooms.owned-eyebrow") }}</span>
-				<h1 class="section-title font-display text-4xl tracking-wide">
-					{{ $t("nav.my-rooms") }}
-				</h1>
+				<PageHeader :eyebrow="$t('my-rooms.owned-eyebrow')" :title="$t('nav.my-rooms')" />
 			</div>
 			<ul class="flex flex-col gap-2">
 				<li v-for="(room, index) in rooms" :key="index">
@@ -97,6 +94,7 @@ import { ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import type { OttResponseBody, RoomListItem } from "ott-common/models/rest-api";
+import PageHeader from "@/components/PageHeader.vue";
 
 const isLoading = ref(false);
 const rooms = ref<RoomListItem[]>([]);

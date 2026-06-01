@@ -6,26 +6,21 @@
 
 		<template v-else-if="account">
 			<div class="mb-8">
-				<span class="label-mono text-signal">{{ $t("account.eyebrow") }}</span>
-				<h1 class="section-title font-display text-4xl tracking-wide">
-					{{ $t("account.title") }}
-				</h1>
+				<PageHeader :eyebrow="$t('account.eyebrow')" :title="$t('account.title')" />
 				<p class="mt-3 text-muted-foreground">{{ $t("account.description") }}</p>
 			</div>
 
 			<div class="flex flex-col gap-6">
-				<Card class="border-line-strong">
+				<Card>
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{
-							$t("account.details")
-						}}</CardTitle>
+						<CardTitle>{{ $t("account.details") }}</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div class="account-row">
+						<div class="flex justify-between gap-4 py-1.5">
 							<strong class="text-foreground">{{ $t("account.username") }}</strong>
 							<span class="text-muted-foreground">{{ account.username }}</span>
 						</div>
-						<div class="account-row">
+						<div class="flex justify-between gap-4 py-1.5">
 							<strong class="text-foreground">{{ $t("account.email") }}</strong>
 							<span class="text-muted-foreground">
 								{{ account.email ?? $t("account.no-email") }}
@@ -34,14 +29,12 @@
 					</CardContent>
 				</Card>
 
-				<Card class="border-line-strong">
+				<Card>
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{
-							$t("account.social")
-						}}</CardTitle>
+						<CardTitle>{{ $t("account.social") }}</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div class="account-row">
+						<div class="flex justify-between gap-4 py-1.5">
 							<strong class="text-foreground">{{ $t("account.discord") }}</strong>
 							<span class="text-muted-foreground">
 								{{
@@ -53,12 +46,12 @@
 						</div>
 						<p
 							v-if="account.discordLinked && !account.hasPassword"
-							class="social-note text-sm text-muted-foreground"
+							class="mt-2 text-sm text-muted-foreground"
 						>
 							{{ $t("account.discord-unlink-requires-password") }}
 						</p>
 					</CardContent>
-					<CardFooter class="justify-end">
+					<CardFooter>
 						<Button
 							v-if="!account.discordLinked"
 							data-cy="account-link-discord"
@@ -79,9 +72,9 @@
 					</CardFooter>
 				</Card>
 
-				<Card class="border-line-strong">
+				<Card>
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{ emailFormTitle }}</CardTitle>
+						<CardTitle>{{ emailFormTitle }}</CardTitle>
 					</CardHeader>
 					<form @submit.prevent="saveEmail">
 						<CardContent>
@@ -100,7 +93,7 @@
 								<FieldError v-if="showEmailError">{{ emailError }}</FieldError>
 							</Field>
 						</CardContent>
-						<CardFooter class="justify-end">
+						<CardFooter>
 							<Button
 								type="submit"
 								data-cy="account-save-email"
@@ -113,9 +106,9 @@
 					</form>
 				</Card>
 
-				<Card class="border-line-strong">
+				<Card>
 					<CardHeader>
-						<CardTitle class="text-xl tracking-wide">{{ passwordFormTitle }}</CardTitle>
+						<CardTitle>{{ passwordFormTitle }}</CardTitle>
 					</CardHeader>
 					<form @submit.prevent="savePassword">
 						<CardContent>
@@ -176,7 +169,7 @@
 								</Field>
 							</FieldGroup>
 						</CardContent>
-						<CardFooter class="justify-end">
+						<CardFooter>
 							<Button
 								type="submit"
 								data-cy="account-save-password"
@@ -211,6 +204,7 @@ import { ToastStyle } from "@/models/toast";
 import { useStore } from "@/store";
 import { goLoginDiscord } from "@/util/discord";
 import toast from "@/util/toast";
+import PageHeader from "@/components/PageHeader.vue";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -463,32 +457,3 @@ async function unlinkDiscord() {
 	await unlinkDiscordMutation.mutateAsync().catch(() => undefined);
 }
 </script>
-
-<style scoped>
-.section-title {
-	position: relative;
-	padding-left: 1rem;
-	margin-top: 0.25rem;
-}
-.section-title::before {
-	content: "";
-	position: absolute;
-	left: 0;
-	top: 0.1em;
-	bottom: 0.1em;
-	width: 4px;
-	background: var(--primary);
-	box-shadow: 0 0 12px var(--primary);
-}
-
-.account-row {
-	display: flex;
-	justify-content: space-between;
-	gap: 16px;
-	padding: 6px 0;
-}
-
-.social-note {
-	margin: 8px 0 0;
-}
-</style>

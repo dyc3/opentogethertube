@@ -2,7 +2,7 @@
 	<Card class="border-line-strong">
 		<form @submit.prevent="submit">
 			<CardHeader>
-				<CardTitle class="text-2xl tracking-wide">
+				<CardTitle>
 					{{ $t("create-room-form.card-title") }}
 				</CardTitle>
 			</CardHeader>
@@ -110,7 +110,7 @@
 					<p v-if="error" :key="error" class="text-sm text-destructive">{{ error }}</p>
 				</FieldGroup>
 			</CardContent>
-			<CardFooter class="justify-end gap-2">
+			<CardFooter>
 				<Button variant="ghost" type="button" @click="$emit('cancel')">
 					{{ $t("common.cancel") }}
 				</Button>

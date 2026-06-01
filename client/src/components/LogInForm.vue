@@ -1,7 +1,7 @@
 <template>
 	<Card class="border-line-strong">
 		<Tabs v-model="mode" class="gap-0">
-			<CardHeader class="pb-0">
+			<CardHeader class="mx-8">
 				<TabsList class="w-full">
 					<TabsTrigger value="login">{{ $t("login-form.login") }}</TabsTrigger>
 					<TabsTrigger value="register">{{ $t("login-form.register") }}</TabsTrigger>
@@ -59,7 +59,7 @@
 							</FieldGroup>
 						</div>
 					</CardContent>
-					<CardFooter class="justify-end">
+					<CardFooter>
 						<Button
 							type="submit"
 							:disabled="!loginValid || isLoading"
@@ -179,7 +179,7 @@
 							</Button>
 						</FieldGroup>
 					</CardContent>
-					<CardFooter class="justify-end">
+					<CardFooter>
 						<Button
 							type="submit"
 							:disabled="!registerValid || isLoading"
