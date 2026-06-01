@@ -24,6 +24,6 @@ describe("PlaybackRateSwitcher component", () => {
 
 		const { wrapper } = mountComponent(PlaybackRateSwitcher);
 
-		expect(wrapper.get('button[aria-label="Playback Speed"]').text()).toEqual(formatted);
+		expect(wrapper.get('button[aria-label="Playback speed"]').text()).toEqual(formatted);
 	});
 });
