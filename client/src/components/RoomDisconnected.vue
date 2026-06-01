@@ -1,6 +1,6 @@
 <template>
 	<div class="disconnected">
-		<h1 class="font-display text-4xl text-primary text-glow-primary">
+		<h1 class="font-display text-4xl text-primary glow-text-primary">
 			{{ $t("connect-overlay.title") }}
 		</h1>
 		<span class="dc-reason label-mono text-muted-foreground">{{ reasonText() }}</span>

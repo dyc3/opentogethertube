@@ -1,6 +1,6 @@
 <template>
 	<div class="add-video-helper">
-		<h1 class="font-display text-3xl tracking-wide text-primary text-glow-primary">
+		<h1 class="font-display text-3xl tracking-wide text-primary glow-text-primary">
 			{{ $t("add-preview.title") }}
 		</h1>
 		<h3 class="label-mono mt-4 text-signal">{{ $t("add-preview.single-videos") }}</h3>

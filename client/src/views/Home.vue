@@ -2,7 +2,8 @@
 	<div class="home">
 		<!-- HERO -->
 		<section class="hero ott-vignette">
-			<HeroShader aria-hidden="true" />
+			<HeroShaderLight v-if="isLightTheme" aria-hidden="true" />
+			<HeroShader v-else aria-hidden="true" />
 			<div
 				class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24"
 			>
@@ -152,7 +153,7 @@ import {
 	mdiVote,
 	mdiContentCopy,
 } from "@mdi/js";
-import { defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import { isOfficialSite } from "@/util/misc";
@@ -161,6 +162,26 @@ import { isOfficialSite } from "@/util/misc";
 // doesn't bloat the landing page's initial JS. The .hero CSS gradient shows
 // as a fallback until the shader chunk loads and the canvas mounts.
 const HeroShader = defineAsyncComponent(() => import("@/components/HeroShader.vue"));
+const HeroShaderLight = defineAsyncComponent(() => import("@/components/HeroShaderLight.vue"));
+
+// Dark themes use the moody amber Plasma; light themes get the "Silk" liquid
+// mesh, which reads far better on a pale page. Track the active theme so we can
+// pick the right hero backdrop and re-pick when the user switches themes.
+const LIGHT_THEMES = ["light", "strawberry"];
+const currentTheme = ref(document.documentElement.getAttribute("data-theme") || "dark");
+const isLightTheme = computed(() => LIGHT_THEMES.includes(currentTheme.value));
+let themeObserver: MutationObserver | null = null;
+onMounted(() => {
+	themeObserver = new MutationObserver(() => {
+		currentTheme.value = document.documentElement.getAttribute("data-theme") || "dark";
+	});
+	themeObserver.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["data-theme"],
+	});
+});
+onBeforeUnmount(() => themeObserver?.disconnect());
+// ------------------------------------------------------------------------------
 
 const store = useStore();
 
@@ -217,8 +238,7 @@ async function createTempRoom() {
 	line-height: 0.88;
 	letter-spacing: 0.01em;
 	color: var(--primary);
-	text-shadow: 0 0 24px color-mix(in srgb, var(--primary) 45%, transparent),
-		0 0 2px var(--primary);
+	text-shadow: var(--hero-text-glow);
 }
 
 /* ── sections ── */

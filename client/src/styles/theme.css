@@ -65,6 +65,13 @@
 	--glow-primary: 0 0 0 1px rgb(255 190 61 / 0.35), 0 0 24px -4px rgb(255 190 61 / 0.55);
 	--glow-signal: 0 0 0 1px rgb(79 230 223 / 0.35), 0 0 22px -4px rgb(79 230 223 / 0.5);
 	--shadow-panel: 0 1px 0 0 rgb(255 230 190 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+	/* neon text glows — read as light blooming on a dark backdrop. Light themes
+	   override these (a glow on a pale page just smears) — see [data-theme=light]. */
+	--text-glow-primary:
+		0 0 18px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 2px var(--primary);
+	--text-glow-signal: 0 0 16px color-mix(in srgb, var(--signal) 55%, transparent);
+	--hero-text-glow:
+		0 0 24px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 2px var(--primary);
 
 	/* shadcn semantic */
 	--background: #100d0a;
@@ -89,40 +96,53 @@
 	--radius: 0.35rem;
 }
 
-/* warm theater-lobby light */
+/* warm matinee-lobby light */
 [data-theme="light"] {
 	color-scheme: light;
-	--ink: #efe6d4;
-	--primary-bright: #f0920f;
-	--primary-deep: #a85906;
-	--signal: #0e8f93;
-	--signal-deep: #0a6d70;
-	--surface-2: #fff9ee;
-	--surface-3: #f1e6cf;
+	--ink: #f0e7d6;
+	--primary-bright: #f59e0b;
+	--primary-deep: #b45309;
+	--signal: #0d8b8f;
+	--signal-deep: #0a6c6f;
+	--surface-2: #fffaf1;
+	--surface-3: #ece0c8;
 	--success: #2f8f3e;
 	--warning: #c2740a;
-	--glow-primary: 0 0 0 1px rgb(217 119 6 / 0.3), 0 6px 22px -8px rgb(217 119 6 / 0.45);
-	--glow-signal: 0 0 0 1px rgb(14 143 147 / 0.3), 0 6px 22px -8px rgb(14 143 147 / 0.4);
-	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.6) inset, 0 18px 44px -26px rgb(80 50 10 / 0.4);
+	--glow-primary: 0 0 0 1px rgb(217 119 6 / 0.22), 0 10px 28px -12px rgb(217 119 6 / 0.5);
+	--glow-signal: 0 0 0 1px rgb(13 139 143 / 0.22), 0 10px 28px -12px rgb(13 139 143 / 0.45);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(74 46 12 / 0.45);
+	/* no neon text glow on a pale page — just a tight warm shadow for depth */
+	--text-glow-primary: none;
+	--text-glow-signal: none;
+	--hero-text-glow: 0 1px 1px rgb(74 46 12 / 0.18);
+	/* hero shader: warm amber clouds that actually read on a pale page. The teal
+	   accent uses multiply (screen is invisible on light) for cool variation. */
+	--hero-core-a: #ec8a0e;
+	--hero-core-b: #d9821e;
+	--hero-core-opacity: 0.76;
+	--hero-accent-a: var(--signal);
+	--hero-accent-b: var(--background);
+	--hero-accent-blend: multiply;
+	--hero-accent-opacity: 0.55;
 
-	--background: #f4ecdb;
-	--foreground: #2a1d0e;
-	--card: #fbf4e6;
-	--card-foreground: #2a1d0e;
-	--popover: #fff9ee;
-	--popover-foreground: #2a1d0e;
+	--background: #f6efe1;
+	--foreground: #2a1c0b;
+	--card: #fffdf8;
+	--card-foreground: #2a1c0b;
+	--popover: #fffefb;
+	--popover-foreground: #2a1c0b;
 	--primary: #d97706;
 	--primary-foreground: #fff8ec;
-	--secondary: #efe2c9;
-	--secondary-foreground: #2a1d0e;
-	--muted: #ece0c8;
-	--muted-foreground: #6a553a;
-	--accent: #f1e6cf;
+	--secondary: #ecdfc3;
+	--secondary-foreground: #3a2912;
+	--muted: #ebdfc7;
+	--muted-foreground: #6c5639;
+	--accent: #f5e9cf;
 	--accent-foreground: #a85906;
-	--destructive: #c8362a;
+	--destructive: #c4362a;
 	--destructive-foreground: #fff;
-	--border: rgb(60 40 10 / 0.16);
-	--input: rgb(60 40 10 / 0.22);
+	--border: rgb(74 46 12 / 0.16);
+	--input: rgb(74 46 12 / 0.26);
 	--ring: #d97706;
 	--radius: 0.35rem;
 }
@@ -244,37 +264,50 @@
 /* candy concession-stand light */
 [data-theme="strawberry"] {
 	color-scheme: light;
-	--ink: #ffe3ec;
+	--ink: #ffe6ee;
 	--primary-bright: #ff4d8d;
 	--primary-deep: #b80049;
-	--signal: #4a9d5e;
-	--signal-deep: #357a47;
-	--surface-2: #ffdfe9;
-	--surface-3: #ffd0de;
-	--success: #4a9d5e;
+	--signal: #2f9457;
+	--signal-deep: #237042;
+	--surface-2: #fff6f9;
+	--surface-3: #ffd8e4;
+	--success: #2f9457;
 	--warning: #e0801f;
-	--glow-primary: 0 0 0 1px rgb(232 3 95 / 0.3), 0 6px 22px -8px rgb(232 3 95 / 0.5);
-	--glow-signal: 0 0 0 1px rgb(74 157 94 / 0.3), 0 6px 22px -8px rgb(74 157 94 / 0.4);
-	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.7) inset, 0 18px 44px -26px rgb(120 10 50 / 0.35);
+	--glow-primary: 0 0 0 1px rgb(232 3 95 / 0.22), 0 10px 28px -12px rgb(232 3 95 / 0.5);
+	--glow-signal: 0 0 0 1px rgb(47 148 87 / 0.22), 0 10px 28px -12px rgb(47 148 87 / 0.42);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(140 14 62 / 0.4);
+	/* no neon text glow on a pale page — just a tight berry shadow for depth */
+	--text-glow-primary: none;
+	--text-glow-signal: none;
+	--hero-text-glow: 0 1px 1px rgb(140 14 62 / 0.18);
+	/* hero shader: candy-pink clouds that read on the pale pink page; green
+	   accent via multiply (screen is invisible on light) for cool variation. */
+	--hero-core-a: #f0327f;
+	--hero-core-b: #e85a96;
+	--hero-core-opacity: 0.74;
+	--hero-accent-a: var(--signal);
+	--hero-accent-b: var(--background);
+	--hero-accent-blend: multiply;
+	--hero-accent-opacity: 0.5;
 
-	--background: #ffe9f0;
-	--foreground: #4a0b25;
-	--card: #fff2f6;
-	--card-foreground: #4a0b25;
-	--popover: #fff2f6;
-	--popover-foreground: #4a0b25;
+	--background: #fff0f5;
+	--foreground: #4a0f29;
+	--card: #fffafc;
+	--card-foreground: #4a0f29;
+	--popover: #fffdfe;
+	--popover-foreground: #4a0f29;
 	--primary: #e8035f;
 	--primary-foreground: #fff;
-	--secondary: #ffd9e6;
-	--secondary-foreground: #4a0b25;
-	--muted: #ffd9e6;
-	--muted-foreground: #8f3a59;
-	--accent: #ffd0de;
+	--secondary: #ffdbe7;
+	--secondary-foreground: #4a0f29;
+	--muted: #ffdce8;
+	--muted-foreground: #8c3a58;
+	--accent: #ffd5e2;
 	--accent-foreground: #b80049;
 	--destructive: #c8123f;
 	--destructive-foreground: #fff;
-	--border: rgb(120 10 50 / 0.14);
-	--input: rgb(120 10 50 / 0.2);
+	--border: rgb(140 14 62 / 0.16);
+	--input: rgb(140 14 62 / 0.26);
 	--ring: #e8035f;
 	--radius: 0.35rem;
 }
@@ -522,13 +555,14 @@
  *  UTILITIES — marquee glow, ticket notch, mono-label, flicker
  * ======================================================================== */
 @layer utilities {
-	.text-glow-primary {
-		text-shadow:
-			0 0 18px color-mix(in srgb, var(--primary) 55%, transparent),
-			0 0 2px var(--primary);
+	/* Named "glow-text-*" (not "text-glow-*") so tailwind-merge doesn't mistake
+	   it for a text-color utility and drop a sibling text-{color} class when both
+	   pass through cn() — e.g. the marquee button's `text-primary`. */
+	.glow-text-primary {
+		text-shadow: var(--text-glow-primary);
 	}
-	.text-glow-signal {
-		text-shadow: 0 0 16px color-mix(in srgb, var(--signal) 55%, transparent);
+	.glow-text-signal {
+		text-shadow: var(--text-glow-signal);
 	}
 	.glow-primary {
 		box-shadow: var(--glow-primary);

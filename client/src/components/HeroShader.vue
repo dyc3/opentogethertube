@@ -10,7 +10,7 @@
 	-->
 	<Shader v-if="mounted" class="hero-shader" :class="{ 'is-ready': ready }" tone-mapping="aces">
 		<!-- opaque base so the canvas is grounded even before the field ramps in -->
-		<SolidColor :color="colors.ink" />
+		<SolidColor :color="cfg.base" />
 
 		<!-- carve a calm zone behind the headline: energy fades out across the
 		     left/center, strongest toward the right and edges -->
@@ -23,46 +23,46 @@
 			:center="{ x: 0.4, y: 0.5 }"
 		/>
 
-		<!-- amber plasma core -->
+		<!-- warm plasma core -->
 		<Plasma
-			:color-a="colors.primary"
-			:color-b="colors.ink"
+			:color-a="cfg.coreA"
+			:color-b="cfg.coreB"
 			color-space="oklch"
 			:density="1.6"
 			:speed="1.1"
 			:warp="0.6"
-			:intensity="1.45"
-			:contrast="1.25"
+			:intensity="cfg.coreIntensity"
+			:contrast="cfg.coreContrast"
 			:balance="58"
-			:opacity="0.95"
+			:opacity="cfg.coreOpacity"
 			mask-source="readZone"
 			mask-type="alphaInverted"
 		/>
 
-		<!-- electric cyan filaments arcing through, added on top -->
+		<!-- accent filaments arcing through, added on top -->
 		<Plasma
-			:color-a="colors.signal"
-			color-b="#000000"
+			:color-a="cfg.accentA"
+			:color-b="cfg.accentB"
 			color-space="oklch"
 			:density="2.6"
 			:speed="0.85"
 			:warp="0.85"
-			:intensity="1.3"
+			:intensity="cfg.accentIntensity"
 			:contrast="1.55"
 			:balance="44"
-			:opacity="0.5"
-			blend-mode="screen"
+			:opacity="cfg.accentOpacity"
+			:blend-mode="cfg.accentBlend"
 			mask-source="readZone"
 			mask-type="alphaInverted"
 		/>
 
-		<!-- frame the eye toward the marquee, darken edges back to ink -->
+		<!-- frame the eye toward the marquee, darken edges back to the base -->
 		<Vignette
-			:color="colors.ink"
+			:color="cfg.base"
 			:center="{ x: 0.46, y: 0.44 }"
 			:radius="0.54"
 			:falloff="0.9"
-			:intensity="0.9"
+			:intensity="cfg.vignette"
 		/>
 
 		<!-- analog grain over the whole composition, ties into the site texture -->
@@ -74,23 +74,56 @@
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { Circle, FilmGrain, Plasma, Shader, SolidColor, Vignette } from "shaders/vue";
 
-/** Read a CSS custom property off <html>, falling back to a dark-theme default. */
+/** Read a CSS custom property off <html>, falling back to a default. */
 function getCSSVar(name: string, fallback: string): string {
 	const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 	return value || fallback;
 }
+function getCSSNum(name: string, fallback: number): number {
+	const value = parseFloat(getCSSVar(name, ""));
+	return Number.isFinite(value) ? value : fallback;
+}
 
-const colors = ref({
-	ink: "#0c0a08",
-	primary: "#ffbe3d",
-	signal: "#4fe6df",
+/*
+ * The whole field is themeable. Dark themes fall back to the original
+ * amber-core / cyan-screen look; light themes set `--hero-*` tokens to get a
+ * richer, higher-contrast composition that actually reads on a pale page
+ * (a "screen" accent is invisible on light, so light uses "multiply"). Tokens
+ * default to the active theme's --primary/--signal/--ink so a theme that sets
+ * nothing still tracks its palette.
+ */
+const cfg = ref({
+	base: "#0c0a08",
+	coreA: "#ffbe3d",
+	coreB: "#0c0a08",
+	coreIntensity: 1.45,
+	coreContrast: 1.25,
+	coreOpacity: 0.95,
+	accentA: "#4fe6df",
+	accentB: "#000000",
+	accentIntensity: 1.3,
+	accentOpacity: 0.5,
+	accentBlend: "screen",
+	vignette: 0.9,
 });
 
 function readThemeColors() {
-	colors.value = {
-		ink: getCSSVar("--ink", "#0c0a08"),
-		primary: getCSSVar("--primary", "#ffbe3d"),
-		signal: getCSSVar("--signal", "#4fe6df"),
+	const ink = getCSSVar("--ink", "#0c0a08");
+	const primary = getCSSVar("--primary", "#ffbe3d");
+	const signal = getCSSVar("--signal", "#4fe6df");
+	cfg.value = {
+		base: getCSSVar("--hero-base", ink),
+		coreA: getCSSVar("--hero-core-a", primary),
+		coreB: getCSSVar("--hero-core-b", ink),
+		coreIntensity: getCSSNum("--hero-core-intensity", 1.45),
+		coreContrast: getCSSNum("--hero-core-contrast", 1.25),
+		coreOpacity: getCSSNum("--hero-core-opacity", 0.95),
+		accentA: getCSSVar("--hero-accent-a", signal),
+		accentB: getCSSVar("--hero-accent-b", "#000000"),
+		accentIntensity: getCSSNum("--hero-accent-intensity", 1.3),
+		accentOpacity: getCSSNum("--hero-accent-opacity", 0.5),
+		accentBlend: getCSSVar("--hero-accent-blend", "screen"),
+		vignette: getCSSNum("--hero-vignette", 0.9),
 	};
 }
 
