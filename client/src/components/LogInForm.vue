@@ -8,189 +8,191 @@
 				</TabsList>
 			</CardHeader>
 
-			<!-- LOGIN -->
-			<TabsContent value="login">
-				<form @submit.prevent="login">
-					<CardContent class="pt-6">
-						<div class="grid gap-6 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
-							<div class="flex items-center justify-center">
-								<Button
-									type="button"
-									size="lg"
-									class="w-full bg-[#7289DA] text-white hover:bg-[#5b6eae]"
-									@click="goLoginDiscord"
-								>
-									<Icon :icon="mdiMessageText" class="size-5" />
-									{{ $t("login-form.login-discord") }}
-								</Button>
+			<TabsContentAnimatedGroup>
+				<!-- LOGIN -->
+				<TabsContentAnimated value="login">
+					<form @submit.prevent="login">
+						<CardContent class="pt-6">
+							<div class="grid gap-6 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
+								<div class="flex items-center justify-center">
+									<Button
+										type="button"
+										size="lg"
+										class="w-full bg-[#7289DA] text-white hover:bg-[#5b6eae]"
+										@click="goLoginDiscord"
+									>
+										<Icon :icon="mdiMessageText" class="size-5" />
+										{{ $t("login-form.login-discord") }}
+									</Button>
+								</div>
+								<Separator orientation="vertical" class="hidden md:block" />
+								<Separator class="md:hidden" />
+								<FieldGroup>
+									<Field :data-invalid="!!logInFailureMessage || undefined">
+										<FieldLabel for="login-user">
+											{{ $t("login-form.email-or-username") }}
+										</FieldLabel>
+										<Input
+											id="login-user"
+											v-model="emailOrUsername"
+											:disabled="isLoading"
+											:aria-invalid="!!logInFailureMessage || undefined"
+											data-cy="login-user"
+										/>
+									</Field>
+									<Field :data-invalid="!!logInFailureMessage || undefined">
+										<FieldLabel for="login-password">
+											{{ $t("login-form.password") }}
+										</FieldLabel>
+										<Input
+											id="login-password"
+											v-model="password"
+											type="password"
+											:disabled="isLoading"
+											:aria-invalid="!!logInFailureMessage || undefined"
+											data-cy="login-password"
+										/>
+										<FieldError v-if="logInFailureMessage">
+											{{ logInFailureMessage }}
+										</FieldError>
+									</Field>
+									<ForgotPassword @password-reset="$emit('shouldClose')" />
+								</FieldGroup>
 							</div>
-							<Separator orientation="vertical" class="hidden md:block" />
-							<Separator class="md:hidden" />
+						</CardContent>
+						<CardFooter>
+							<Button
+								type="submit"
+								:disabled="!loginValid || isLoading"
+								data-cy="login-button"
+							>
+								<Spinner v-if="isLoading" class="size-4" />
+								{{ $t("login-form.login") }}
+							</Button>
+						</CardFooter>
+					</form>
+				</TabsContentAnimated>
+
+				<!-- REGISTER -->
+				<TabsContentAnimated value="register">
+					<form @submit.prevent="register">
+						<CardContent class="pt-6">
 							<FieldGroup>
-								<Field :data-invalid="!!logInFailureMessage || undefined">
-									<FieldLabel for="login-user">
-										{{ $t("login-form.email-or-username") }}
-									</FieldLabel>
+								<Field :data-invalid="showError('email') || undefined">
+									<FieldLabel for="reg-email">{{
+										$t("login-form.email")
+									}}</FieldLabel>
 									<Input
-										id="login-user"
-										v-model="emailOrUsername"
+										id="reg-email"
+										v-model="email"
 										:disabled="isLoading"
-										:aria-invalid="!!logInFailureMessage || undefined"
-										data-cy="login-user"
+										:aria-invalid="showError('email') || undefined"
+										@blur="touched.email = true"
 									/>
+									<FieldDescription>{{
+										$t("login-form.email-optional")
+									}}</FieldDescription>
+									<FieldError v-if="showError('email')">{{
+										errors.email
+									}}</FieldError>
+									<FieldError v-if="registerFieldErrors.email">
+										{{ registerFieldErrors.email }}
+									</FieldError>
 								</Field>
-								<Field :data-invalid="!!logInFailureMessage || undefined">
-									<FieldLabel for="login-password">
-										{{ $t("login-form.password") }}
-									</FieldLabel>
+								<Field :data-invalid="showError('username') || undefined">
+									<FieldLabel for="reg-username">{{
+										$t("login-form.username")
+									}}</FieldLabel>
 									<Input
-										id="login-password"
+										id="reg-username"
+										v-model="username"
+										:disabled="isLoading"
+										:aria-invalid="showError('username') || undefined"
+										@blur="touched.username = true"
+									/>
+									<FieldError v-if="showError('username')">{{
+										errors.username
+									}}</FieldError>
+									<FieldError v-if="registerFieldErrors.username">
+										{{ registerFieldErrors.username }}
+									</FieldError>
+								</Field>
+								<Field :data-invalid="showError('password') || undefined">
+									<FieldLabel for="reg-password">{{
+										$t("login-form.password")
+									}}</FieldLabel>
+									<Input
+										id="reg-password"
 										v-model="password"
 										type="password"
 										:disabled="isLoading"
-										:aria-invalid="!!logInFailureMessage || undefined"
-										data-cy="login-password"
+										:aria-invalid="showError('password') || undefined"
+										@blur="touched.password = true"
 									/>
-									<FieldError v-if="logInFailureMessage">
-										{{ logInFailureMessage }}
+									<div class="flex justify-end">
+										<span class="text-xs text-dim font-mono">{{
+											password.length
+										}}</span>
+									</div>
+									<FieldError v-if="showError('password')">{{
+										errors.password
+									}}</FieldError>
+									<FieldError v-if="registerFieldErrors.password">
+										{{ registerFieldErrors.password }}
 									</FieldError>
 								</Field>
-								<ForgotPassword @password-reset="$emit('shouldClose')" />
+								<Field :data-invalid="showError('password2') || undefined">
+									<FieldLabel for="reg-password2">
+										{{ $t("login-form.retype-password") }}
+									</FieldLabel>
+									<Input
+										id="reg-password2"
+										v-model="password2"
+										type="password"
+										:disabled="isLoading"
+										:aria-invalid="showError('password2') || undefined"
+										@blur="touched.password2 = true"
+									/>
+									<FieldError v-if="showError('password2')">{{
+										errors.password2
+									}}</FieldError>
+									<FieldError v-if="registerFieldErrors.password2">
+										{{ registerFieldErrors.password2 }}
+									</FieldError>
+								</Field>
+								<p v-if="registerFailureMessage" class="text-sm text-destructive">
+									{{ registerFailureMessage }}
+								</p>
+								<Button
+									v-if="!store.state.production"
+									type="button"
+									variant="outline"
+									class="w-fit"
+									@click="
+										() => {
+											username = 'alice';
+											password = '12345asdfg';
+											password2 = '12345asdfg';
+										}
+									"
+								>
+									Sample User 1
+								</Button>
 							</FieldGroup>
-						</div>
-					</CardContent>
-					<CardFooter>
-						<Button
-							type="submit"
-							:disabled="!loginValid || isLoading"
-							data-cy="login-button"
-						>
-							<Spinner v-if="isLoading" class="size-4" />
-							{{ $t("login-form.login") }}
-						</Button>
-					</CardFooter>
-				</form>
-			</TabsContent>
-
-			<!-- REGISTER -->
-			<TabsContent value="register">
-				<form @submit.prevent="register">
-					<CardContent class="pt-6">
-						<FieldGroup>
-							<Field :data-invalid="showError('email') || undefined">
-								<FieldLabel for="reg-email">{{
-									$t("login-form.email")
-								}}</FieldLabel>
-								<Input
-									id="reg-email"
-									v-model="email"
-									:disabled="isLoading"
-									:aria-invalid="showError('email') || undefined"
-									@blur="touched.email = true"
-								/>
-								<FieldDescription>{{
-									$t("login-form.email-optional")
-								}}</FieldDescription>
-								<FieldError v-if="showError('email')">{{
-									errors.email
-								}}</FieldError>
-								<FieldError v-if="registerFieldErrors.email">
-									{{ registerFieldErrors.email }}
-								</FieldError>
-							</Field>
-							<Field :data-invalid="showError('username') || undefined">
-								<FieldLabel for="reg-username">{{
-									$t("login-form.username")
-								}}</FieldLabel>
-								<Input
-									id="reg-username"
-									v-model="username"
-									:disabled="isLoading"
-									:aria-invalid="showError('username') || undefined"
-									@blur="touched.username = true"
-								/>
-								<FieldError v-if="showError('username')">{{
-									errors.username
-								}}</FieldError>
-								<FieldError v-if="registerFieldErrors.username">
-									{{ registerFieldErrors.username }}
-								</FieldError>
-							</Field>
-							<Field :data-invalid="showError('password') || undefined">
-								<FieldLabel for="reg-password">{{
-									$t("login-form.password")
-								}}</FieldLabel>
-								<Input
-									id="reg-password"
-									v-model="password"
-									type="password"
-									:disabled="isLoading"
-									:aria-invalid="showError('password') || undefined"
-									@blur="touched.password = true"
-								/>
-								<div class="flex justify-end">
-									<span class="text-xs text-dim font-mono">{{
-										password.length
-									}}</span>
-								</div>
-								<FieldError v-if="showError('password')">{{
-									errors.password
-								}}</FieldError>
-								<FieldError v-if="registerFieldErrors.password">
-									{{ registerFieldErrors.password }}
-								</FieldError>
-							</Field>
-							<Field :data-invalid="showError('password2') || undefined">
-								<FieldLabel for="reg-password2">
-									{{ $t("login-form.retype-password") }}
-								</FieldLabel>
-								<Input
-									id="reg-password2"
-									v-model="password2"
-									type="password"
-									:disabled="isLoading"
-									:aria-invalid="showError('password2') || undefined"
-									@blur="touched.password2 = true"
-								/>
-								<FieldError v-if="showError('password2')">{{
-									errors.password2
-								}}</FieldError>
-								<FieldError v-if="registerFieldErrors.password2">
-									{{ registerFieldErrors.password2 }}
-								</FieldError>
-							</Field>
-							<p v-if="registerFailureMessage" class="text-sm text-destructive">
-								{{ registerFailureMessage }}
-							</p>
+						</CardContent>
+						<CardFooter>
 							<Button
-								v-if="!store.state.production"
-								type="button"
-								variant="outline"
-								class="w-fit"
-								@click="
-									() => {
-										username = 'alice';
-										password = '12345asdfg';
-										password2 = '12345asdfg';
-									}
-								"
+								type="submit"
+								:disabled="!registerValid || isLoading"
+								data-cy="register-button"
 							>
-								Sample User 1
+								<Spinner v-if="isLoading" class="size-4" />
+								{{ $t("login-form.register") }}
 							</Button>
-						</FieldGroup>
-					</CardContent>
-					<CardFooter>
-						<Button
-							type="submit"
-							:disabled="!registerValid || isLoading"
-							data-cy="register-button"
-						>
-							<Spinner v-if="isLoading" class="size-4" />
-							{{ $t("login-form.register") }}
-						</Button>
-					</CardFooter>
-				</form>
-			</TabsContent>
+						</CardFooter>
+					</form>
+				</TabsContentAnimated>
+			</TabsContentAnimatedGroup>
 		</Tabs>
 	</Card>
 </template>
@@ -203,7 +205,13 @@ import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tabs,
+	TabsContentAnimated,
+	TabsContentAnimatedGroup,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs";
 import { mdiMessageText } from "@mdi/js";
 import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";

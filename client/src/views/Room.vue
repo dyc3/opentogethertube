@@ -130,15 +130,18 @@
 								}}</span>
 							</TabsTrigger>
 						</TabsList>
-						<TabsContent value="queue">
-							<VideoQueue @switchtab="queueTab = 'add'" />
-						</TabsContent>
-						<TabsContent value="add">
-							<AddPreview ref="addpreview" />
-						</TabsContent>
-						<TabsContent value="settings">
-							<RoomSettingsForm ref="settings" />
-						</TabsContent>
+
+						<TabsContentAnimatedGroup>
+							<TabsContentAnimated value="queue">
+								<VideoQueue @switchtab="queueTab = 'add'" />
+							</TabsContentAnimated>
+							<TabsContentAnimated value="add">
+								<AddPreview ref="addpreview" />
+							</TabsContentAnimated>
+							<TabsContentAnimated value="settings">
+								<RoomSettingsForm ref="settings" />
+							</TabsContentAnimated>
+						</TabsContentAnimatedGroup>
 					</Tabs>
 				</div>
 				<div class="flex min-h-[500px] flex-col gap-2.5 px-2.5">
@@ -238,7 +241,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tabs,
+	TabsContentAnimated,
+	TabsContentAnimatedGroup,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	mdiPlay,
@@ -297,6 +306,9 @@ import { isOfficialSite } from "@/util/misc";
 import { Visibility } from "ott-common/models/types";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
+const QUEUE_TABS = ["queue", "add", "settings"] as const;
+
+type QueueTab = (typeof QUEUE_TABS)[number];
 
 // biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 export default defineComponent({
@@ -325,7 +337,8 @@ export default defineComponent({
 		CardContent,
 		Icon,
 		Tabs,
-		TabsContent,
+		TabsContentAnimated,
+		TabsContentAnimatedGroup,
 		TabsList,
 		TabsTrigger,
 		Tooltip,
@@ -637,7 +650,7 @@ export default defineComponent({
 			() => window.matchMedia("only screen and (max-width: 760px)").matches,
 		);
 		const orientation = useScreenOrientation();
-		const queueTab = ref("queue");
+		const queueTab = ref<QueueTab>("queue");
 		const roomSettingsForm = ref<typeof RoomSettingsForm | null>(null);
 
 		onMounted(() => {
