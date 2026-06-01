@@ -12,7 +12,10 @@
 					></span>
 					{{ $t("landing.hero.eyebrow") }}
 				</span>
-				<h1 class="hero-title marquee-flicker">
+				<h1
+					class="hero-title marquee-flicker ott-text-scanlines"
+					:data-text="$t('landing.hero.title')"
+				>
 					{{ $t("landing.hero.title") }}
 				</h1>
 				<p class="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
@@ -205,6 +208,10 @@ async function createTempRoom() {
 	mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 .hero-title {
+	/* shrink-wrap to the text so the scoped scanline overlay hugs the
+	   lettering instead of spanning the full hero width (the hero is a
+	   flex column, so opt out of the default stretch) */
+	align-self: flex-start;
 	font-family: var(--font-display);
 	font-size: clamp(3.5rem, 11vw, 8rem);
 	line-height: 0.88;

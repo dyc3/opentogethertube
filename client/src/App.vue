@@ -2,7 +2,7 @@
 	<TooltipProvider :delay-duration="200">
 		<div
 			id="app"
-			class="ott-grain ott-scanlines relative flex min-h-screen flex-col bg-background text-foreground"
+			class="ott-grain relative flex min-h-screen flex-col bg-background text-foreground"
 		>
 			<!-- MARQUEE HEADER -->
 			<header
@@ -28,7 +28,8 @@
 							class="size-8 drop-shadow-[0_0_8px_var(--primary)]"
 						/>
 						<span
-							class="font-display text-2xl leading-none tracking-wide text-primary text-glow-primary marquee-flicker md:text-3xl"
+							class="ott-text-scanlines inline-block font-display text-2xl leading-none tracking-wide text-primary text-glow-primary marquee-flicker md:text-3xl"
+							data-text="OpenTogetherTube"
 						>
 							OpenTogetherTube
 						</span>

@@ -454,6 +454,34 @@
 		opacity: 0.5;
 	}
 
+	/* Element-scoped scanlines — same CRT banding, but masked to the element's
+	   own glyphs instead of the whole viewport. The ::after duplicates the text
+	   (via data-text) and clips the scanline gradient to the letterforms, so the
+	   banding only darkens the lettering itself. Used on the hero title and the
+	   nav brand. Elements using this MUST set a matching data-text attribute. */
+	.ott-text-scanlines {
+		position: relative;
+	}
+	.ott-text-scanlines::after {
+		content: attr(data-text);
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			to bottom,
+			rgb(0 0 0 / 0) 0,
+			rgb(0 0 0 / 0) 2px,
+			rgb(0 0 0 / 0.55) 3px,
+			rgb(0 0 0 / 0) 4px
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		text-shadow: none;
+		mix-blend-mode: multiply;
+	}
+
 	.ott-grain::before {
 		content: "";
 		position: fixed;
