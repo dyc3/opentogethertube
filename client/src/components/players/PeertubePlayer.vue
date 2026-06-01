@@ -1,6 +1,6 @@
 <template>
 	<iframe
-		title="PeerTube Player"
+		:title="$t('player.peertube-player')"
 		class="peertube"
 		id="peertube-player"
 		:src="peertubeUrl"

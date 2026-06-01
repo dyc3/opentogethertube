@@ -15,7 +15,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				aria-label="shuffle queue"
+				:aria-label="$t('room.shuffle-queue')"
 				@click="roomapi.shuffle()"
 			>
 				<Icon :icon="mdiShuffleVariant" class="size-5" />

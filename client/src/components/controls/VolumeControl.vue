@@ -4,7 +4,7 @@
 			variant="ghost"
 			size="icon"
 			class="media-control"
-			aria-label="Mute"
+			:aria-label="$t('room.mute-volume')"
 			@click="toggleMute"
 		>
 			<Icon :icon="volumeIcon" class="size-5" />

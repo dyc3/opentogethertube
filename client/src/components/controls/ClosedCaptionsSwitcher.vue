@@ -5,7 +5,7 @@
 				variant="ghost"
 				size="icon"
 				class="media-control"
-				aria-label="Closed Captions"
+				:aria-label="$t('room.subtitles')"
 				:disabled="!supported"
 				@click="toggleCaptions()"
 			>

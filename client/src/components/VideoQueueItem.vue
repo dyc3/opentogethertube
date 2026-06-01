@@ -59,7 +59,7 @@
 							@click="playNow"
 							:disabled="!granted('manage-queue.play-now')"
 							data-cy="btn-play-now"
-							aria-label="play now"
+							:aria-label="$t('video.playnow')"
 						>
 							<Icon :icon="mdiPlay" class="size-5" />
 						</Button>
@@ -74,7 +74,7 @@
 							:disabled="isLoadingAdd"
 							@click="addToQueue"
 							data-cy="btn-add-to-queue"
-							aria-label="add to queue"
+							:aria-label="$t('video.add-to-queue')"
 						>
 							<Spinner v-if="isLoadingAdd" class="size-4" />
 							<Icon
@@ -99,7 +99,7 @@
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
 					data-cy="btn-remove-from-queue"
-					aria-label="remove from queue"
+					:aria-label="$t('video.remove-from-queue')"
 				>
 					<Spinner v-if="isLoadingAdd" class="size-4" />
 					<Icon
@@ -115,7 +115,7 @@
 							variant="ghost"
 							size="icon"
 							data-cy="btn-menu"
-							aria-label="more actions"
+							:aria-label="$t('video.more-actions')"
 						>
 							<Icon :icon="mdiDotsVertical" class="size-5" />
 						</Button>

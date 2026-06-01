@@ -10,7 +10,7 @@
 					<span
 						class="inline-block size-2 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]"
 					></span>
-					Now showing · No sign-up required
+					{{ $t("landing.hero.eyebrow") }}
 				</span>
 				<h1 class="hero-title marquee-flicker">
 					{{ $t("landing.hero.title") }}

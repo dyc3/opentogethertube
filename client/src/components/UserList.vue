@@ -6,7 +6,7 @@
 				variant="ghost"
 				size="icon-sm"
 				@click="openEditName"
-				aria-label="toggle edit name"
+				:aria-label="$t('room.users.toggle-edit-name')"
 			>
 				<Icon :icon="mdiWrench" class="size-4" />
 			</Button>
@@ -93,7 +93,11 @@
 								:key="`${user.id}-${role}`"
 								@click="promoteUser(user.id, role)"
 							>
-								{{ user.role > role ? $t("room.users.demote") : $t("room.users.promote") }}
+								{{
+									user.role > role
+										? $t("room.users.demote")
+										: $t("room.users.promote")
+								}}
 								to {{ $t(`roles.${role}`) }}
 							</DropdownMenuItem>
 							<DropdownMenuItem
@@ -163,12 +167,7 @@ const inputUsername = ref("");
 const showEditName = ref(false);
 const setUsernameLoading = ref(false);
 const setUsernameFailureText = ref("");
-const roleActions = [
-	Role.Administrator,
-	Role.Moderator,
-	Role.TrustedUser,
-	Role.RegisteredUser,
-];
+const roleActions = [Role.Administrator, Role.Moderator, Role.TrustedUser, Role.RegisteredUser];
 
 function openEditName() {
 	if (!inputUsername.value) {

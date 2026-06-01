@@ -11,7 +11,7 @@
 				<Button
 					variant="ghost"
 					size="icon-sm"
-					aria-label="Close"
+					:aria-label="$t('common.close')"
 					@click="showBufferWarning = false"
 				>
 					<Icon :icon="mdiClose" class="size-4" />

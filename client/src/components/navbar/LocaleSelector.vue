@@ -1,6 +1,6 @@
 <template>
 	<Select v-model="locale">
-		<SelectTrigger size="sm" class="w-[72px]" aria-label="language">
+		<SelectTrigger size="sm" class="w-[72px]" :aria-label="$t('common.language')">
 			<SelectValue />
 		</SelectTrigger>
 		<SelectContent>

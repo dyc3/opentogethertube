@@ -8,7 +8,7 @@
 			v-if="!isLoading && rooms.length === 0"
 			class="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center"
 		>
-			<span class="label-mono text-signal">Your lot is empty</span>
+			<span class="label-mono text-signal">{{ $t("my-rooms.empty-eyebrow") }}</span>
 			<h1 class="font-display text-5xl tracking-wide">{{ $t("room-list.no-rooms") }}</h1>
 			<Button variant="default" size="xl" @click="createTempRoom">
 				{{ $t("room-list.create") }}
@@ -17,7 +17,7 @@
 
 		<template v-if="!isLoading && rooms.length > 0">
 			<div class="mb-8">
-				<span class="label-mono text-signal">Owned</span>
+				<span class="label-mono text-signal">{{ $t("my-rooms.owned-eyebrow") }}</span>
 				<h1 class="section-title font-display text-4xl tracking-wide">
 					{{ $t("nav.my-rooms") }}
 				</h1>

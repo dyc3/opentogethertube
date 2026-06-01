@@ -1,6 +1,6 @@
 <template>
 	<div class="mx-auto max-w-3xl px-6 py-16">
-		<span class="label-mono text-signal">Credits</span>
+		<span class="label-mono text-signal">{{ $t("attribution.eyebrow") }}</span>
 		<h1 class="font-display mt-2 text-4xl tracking-wide">{{ $t("footer.attribution") }}</h1>
 		<Separator class="my-6" />
 		<p class="text-muted-foreground">

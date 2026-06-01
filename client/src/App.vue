@@ -15,7 +15,7 @@
 						variant="ghost"
 						size="icon"
 						class="lg:hidden"
-						aria-label="nav menu"
+						:aria-label="$t('common.nav-menu')"
 						@click="drawer = true"
 					>
 						<Icon :icon="mdiMenu" class="size-6" />

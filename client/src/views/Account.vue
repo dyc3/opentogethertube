@@ -6,7 +6,7 @@
 
 		<template v-else-if="account">
 			<div class="mb-8">
-				<span class="label-mono text-signal">Your pass</span>
+				<span class="label-mono text-signal">{{ $t("account.eyebrow") }}</span>
 				<h1 class="section-title font-display text-4xl tracking-wide">
 					{{ $t("account.title") }}
 				</h1>

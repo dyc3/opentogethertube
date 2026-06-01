@@ -3,7 +3,9 @@
 		<Card class="border-line-strong">
 			<form @submit.prevent="submitPasswordReset">
 				<CardHeader>
-					<span class="label-mono text-signal">Reset</span>
+					<span class="label-mono text-signal">{{
+						$t("login-form.change-password.eyebrow")
+					}}</span>
 					<CardTitle class="text-2xl tracking-wide">
 						{{ $t("login-form.change-password.title") }}
 					</CardTitle>

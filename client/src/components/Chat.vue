@@ -11,7 +11,7 @@
 				size="icon-sm"
 				@click="setActivated(false)"
 				data-cy="chat-deactivate"
-				aria-label="close chat"
+				:aria-label="$t('room.close-chat')"
 			>
 				<Icon :icon="mdiChevronDown" class="size-4" />
 			</Button>
@@ -40,7 +40,7 @@
 				variant="signal"
 				size="icon-sm"
 				@click="forceToBottom"
-				aria-label="scroll to bottom"
+				:aria-label="$t('room.scroll-chat-bottom')"
 			>
 				<Icon :icon="mdiChevronDoubleDown" class="size-4" />
 			</Button>
@@ -65,7 +65,7 @@
 				size="icon"
 				@click="setActivated(true, true)"
 				data-cy="chat-activate"
-				aria-label="open chat"
+				:aria-label="$t('room.open-chat')"
 			>
 				<Icon :icon="mdiCommentOutline" class="size-5" />
 			</Button>

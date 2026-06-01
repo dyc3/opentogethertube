@@ -142,13 +142,6 @@ yarn workspace ott-vis-datasource test
 -   Use ` anyhow` for error handling
 -   Prefer `async/await` over callbacks
 
-### Import Order
-
-1. Node.js built-ins (e.g., `node:url`, `node:http`)
-2. External dependencies (e.g., `axios`, `lodash`)
-3. Internal workspace packages (e.g., `ott-common/*`)
-4. Local project imports
-
 ### Naming Conventions
 
 -   Files: kebab-case (e.g., `room-manager.ts`)
@@ -163,6 +156,11 @@ yarn workspace ott-vis-datasource test
 -   Always use `try/catch` for async operations
 -   Use Zod for runtime validation
 -   Prefer `await` over `.then()` chains
+
+### User Facing Strings
+
+- Never write user-facing strings directly in markup. Instead, add them to the localization files in `client/src/locales` and reference them using the localization utilities like `$t("key")`.
+- Only provide English strings, don't worry about translations unless explicitly asked.
 
 ## Testing Patterns
 

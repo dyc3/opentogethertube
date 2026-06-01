@@ -11,7 +11,7 @@ const props = defineProps<{
 <template>
 	<span
 		role="status"
-		aria-label="loading"
+		:aria-label="$t('common.loading')"
 		:class="
 			cn(
 				'inline-block size-6 rounded-full border-2 border-current/25 border-t-current align-middle',

@@ -1,7 +1,7 @@
 <template>
 	<div class="flex min-h-[70vh] items-center justify-center px-6 py-16">
 		<div class="w-full max-w-md text-center">
-			<span class="label-mono text-signal">Error · 404</span>
+			<span class="label-mono text-signal">{{ $t("not-found.eyebrow") }}</span>
 			<h1 class="font-display mt-3 text-7xl text-primary text-glow-primary">
 				{{ $t("not-found.title") }}
 			</h1>

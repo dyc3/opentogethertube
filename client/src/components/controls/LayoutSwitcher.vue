@@ -5,7 +5,7 @@
 				variant="ghost"
 				size="icon"
 				class="media-control"
-				aria-label="Switch Layout"
+				:aria-label="$t('room.switch-layout')"
 				@click="rotateRoomLayout"
 			>
 				<Icon

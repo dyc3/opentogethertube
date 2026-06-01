@@ -1,6 +1,6 @@
 <template>
 	<div class="mx-auto max-w-3xl px-6 py-16">
-		<span class="label-mono text-signal">The fine print</span>
+		<span class="label-mono text-signal">{{ $t("privacy.eyebrow") }}</span>
 		<h1 class="section-title font-display mt-2 text-4xl tracking-wide">
 			{{ $t("privacy.title") }}
 		</h1>
@@ -57,7 +57,9 @@
 			</p>
 		</div>
 
-		<h2 class="section-title font-display mt-12 text-3xl tracking-wide">Contact Info</h2>
+		<h2 class="section-title font-display mt-12 text-3xl tracking-wide">
+			{{ $t("privacy.contact") }}
+		</h2>
 
 		<p class="mt-6 text-muted-foreground">
 			Email:

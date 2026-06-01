@@ -7,7 +7,7 @@
 						variant="ghost"
 						size="sm"
 						class="media-control font-mono"
-						aria-label="Playback Speed"
+						:aria-label="$t('room.playback-speed')"
 						:disabled="!supported"
 					>
 						{{ formatRate(playbackRate.playbackRate.value) }}
