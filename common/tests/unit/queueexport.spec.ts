@@ -22,6 +22,11 @@ describe("exportQueue", () => {
 				id: "video.m3u8",
 				hls_url: "https://example.com/video.m3u8",
 			},
+			{
+				service: "dash",
+				id: "video.mpd",
+				dash_url: "https://example.com/video.mpd",
+			},
 		];
 
 		const result = exportQueue(queue);
@@ -31,6 +36,7 @@ describe("exportQueue", () => {
 			"https://vimeo.com/5",
 			"https://example.com/video.mp4",
 			"https://example.com/video.m3u8",
+			"https://example.com/video.mpd",
 		]);
 	});
 });
