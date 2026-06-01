@@ -114,24 +114,24 @@
 								<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
 							</TabsTrigger>
 						</TabsList>
-						<TabsContent value="queue" class="pt-4">
+						<TabsContent value="queue">
 							<VideoQueue @switchtab="queueTab = 'add'" />
 						</TabsContent>
-						<TabsContent value="add" class="pt-4">
+						<TabsContent value="add">
 							<AddPreview ref="addpreview" />
 						</TabsContent>
-						<TabsContent value="settings" class="pt-4">
+						<TabsContent value="settings">
 							<RoomSettingsForm ref="settings" />
 						</TabsContent>
 					</Tabs>
 				</div>
 				<div class="user-invite-container">
 					<div v-if="debugMode" class="debug-container">
-						<Card class="p-4">
-							<div class="mb-2 font-display text-xl">
-								Debug (prod: {{ production }})
-							</div>
-							<div
+						<Card>
+							<CardHeader>
+								<CardTitle>Debug (prod: {{ production }})</CardTitle>
+							</CardHeader>
+							<CardContent
 								class="flex flex-col gap-1 font-mono text-xs text-muted-foreground"
 							>
 								<div>Player status: {{ store.state.playerStatus }}</div>
@@ -189,7 +189,7 @@
 										Disconnect Me
 									</Button>
 								</div>
-							</div>
+							</CardContent>
 						</Card>
 					</div>
 					<UserList :users="Array.from(store.state.users.users.values())" />
@@ -220,7 +220,7 @@
 <script lang="ts">
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -304,6 +304,9 @@ export default defineComponent({
 		Badge,
 		Button,
 		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
 		Icon,
 		Tabs,
 		TabsContent,

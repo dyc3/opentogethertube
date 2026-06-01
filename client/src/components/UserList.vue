@@ -1,7 +1,7 @@
 <template>
-	<Card class="user-list border-line-strong">
-		<CardHeader class="flex flex-row items-center justify-between gap-2 py-3">
-			<CardTitle class="label-mono text-primary">{{ $t("room.users.title") }}</CardTitle>
+	<Card class="user-list">
+		<CardHeader class="flex flex-row items-center justify-between gap-2">
+			<CardTitle>{{ $t("room.users.title") }}</CardTitle>
 			<Button
 				variant="ghost"
 				size="icon-sm"
@@ -11,8 +11,8 @@
 				<Icon :icon="mdiWrench" class="size-4" />
 			</Button>
 		</CardHeader>
-		<CardContent class="flex flex-col gap-1 pb-3">
-			<div v-if="showEditName" class="px-1 py-2">
+		<CardContent class="flex flex-col gap-1">
+			<div v-if="showEditName" class="px-1">
 				<div class="relative flex items-center">
 					<Input
 						v-model="inputUsername"
@@ -35,51 +35,70 @@
 				</div>
 			</div>
 
-			<div v-for="(user, index) in users" :key="index" :class="getUserCssClasses(user)">
-				<span class="name">{{ user.name }}</span>
-				<Badge v-if="debugMode" variant="secondary" class="user-chip font-mono">
-					{{ user.id }}
-				</Badge>
-				<Badge
-					v-if="user.id === store.state.users.you.id"
-					variant="outline"
-					class="user-chip border-primary text-primary"
-				>
-					{{ $t("room.users.you") }}
-				</Badge>
-				<Tooltip v-if="!!getRoleIcon(user.role)">
-					<TooltipTrigger as-child>
-						<span
-							class="inline-flex"
-							:aria-label="`${
-								user.id === store.state.users.you.id ? 'you' : user.name
-							} is roles.${user.role}`"
-						>
-							<Icon class="role size-4" :icon="getRoleIcon(user.role)" />
-						</span>
-					</TooltipTrigger>
-					<TooltipContent>{{ $t(`roles.${user.role}`) }}</TooltipContent>
-				</Tooltip>
-				<Tooltip v-if="!!getPlayerStatusIcon(user.status)">
-					<TooltipTrigger as-child>
-						<span
-							class="inline-flex"
-							:aria-label="`${
-								user.id === store.state.users.you.id ? 'your' : user.name
-							} player is ${user.status}`"
-						>
-							<Icon
-								class="player-status size-4"
-								:icon="getPlayerStatusIcon(user.status)"
-							/>
-						</span>
-					</TooltipTrigger>
-					<TooltipContent>{{ user.status }}</TooltipContent>
-				</Tooltip>
+			<div
+				v-for="(user, index) in users"
+				:key="index"
+				:class="
+					cn(
+						'flex items-center rounded min-h-8 group hover:bg-surface-2',
+						// TODO: remove role-* classes being assigned. kept for now because they're used in integration tests.
+						`user role-${ROLE_NAMES[user.role]}`,
+					)
+				"
+				:data-role="ROLE_NAMES[user.role]"
+				:data-registered="user.isLoggedIn"
+			>
+				<span class="flex gap-2 px-2">
+					<span
+						class="group-data-[registered=false]:italic group-data-[registered=false]:text-muted-foreground"
+						>{{ user.name }}</span
+					>
+					<Badge v-if="debugMode" variant="secondary" class="font-mono">
+						{{ user.id }}
+					</Badge>
+					<Badge
+						v-if="user.id === store.state.users.you.id"
+						variant="outline"
+						class="border-primary text-primary"
+					>
+						{{ $t("room.users.you") }}
+					</Badge>
 
-				<div class="flex-1"></div>
+					<Tooltip v-if="!!getRoleIcon(user.role)">
+						<TooltipTrigger as-child>
+							<span
+								class="inline-flex"
+								:aria-label="`${
+									user.id === store.state.users.you.id ? 'you' : user.name
+								} is roles.${user.role}`"
+							>
+								<Icon
+									class="text-muted-foreground size-4 group-data-[role=owner]:text-primary"
+									:icon="getRoleIcon(user.role)"
+								/>
+							</span>
+						</TooltipTrigger>
+						<TooltipContent>{{ $t(`roles.${user.role}`) }}</TooltipContent>
+					</Tooltip>
+					<Tooltip v-if="!!getPlayerStatusIcon(user.status)">
+						<TooltipTrigger as-child>
+							<span
+								class="inline-flex"
+								:aria-label="`${
+									user.id === store.state.users.you.id ? 'your' : user.name
+								} player is ${user.status}`"
+							>
+								<Icon
+									class="text-muted-foreground size-4"
+									:icon="getPlayerStatusIcon(user.status)"
+								/>
+							</span>
+						</TooltipTrigger>
+						<TooltipContent>{{ user.status }}</TooltipContent>
+					</Tooltip>
+				</span>
 
-				<div v-if="user.id !== store.state.users.you.id">
+				<div v-if="user.id !== store.state.users.you.id" class="ml-auto">
 					<DropdownMenu>
 						<DropdownMenuTrigger as-child>
 							<Button variant="ghost" size="sm" class="user-actions gap-1">
@@ -111,7 +130,10 @@
 					</DropdownMenu>
 				</div>
 			</div>
-			<div class="nobody-here" v-if="users.length === 1">
+			<div
+				class="nobody-here italic text-muted-foreground text-xs p-2"
+				v-if="users.length === 1"
+			>
 				{{ $t("room.users.empty") }}
 			</div>
 		</CardContent>
@@ -119,6 +141,7 @@
 </template>
 
 <script lang="ts" setup>
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -201,14 +224,6 @@ function roleToPermission(role: Role, demote = false) {
 	return `manage-users.${demote ? "de" : "pro"}mote-${r}`;
 }
 
-function getUserCssClasses(user: RoomUserInfo) {
-	const cls = ["user", `role-${ROLE_NAMES[user.role]}`];
-	if (user.isLoggedIn) {
-		cls.push("registered");
-	}
-	return cls.join(" ");
-}
-
 function canUserBePromotedTo(user: RoomUserInfo, role: Role): boolean {
 	if (user.role === role) {
 		return false;
@@ -268,54 +283,6 @@ function kickUser(clientId: ClientId) {
 
 <style lang="scss" scoped>
 .user {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 2px;
-	padding: 4px 8px;
-	border-radius: 3px;
-	border-left: 2px solid transparent;
 	transition: background 0.15s ease, border-color 0.15s ease;
-
-	&:hover {
-		background: var(--surface-2);
-	}
-
-	.name {
-		color: var(--muted-foreground);
-		font-style: italic;
-	}
-
-	.role,
-	.player-status {
-		margin: 0 3px;
-		color: var(--muted-foreground);
-	}
-
-	.user-chip {
-		margin: 0 3px;
-	}
-
-	&.registered {
-		.name {
-			color: var(--foreground);
-			font-style: normal;
-		}
-	}
-
-	&.role-owner {
-		border-left-color: var(--primary);
-
-		.role {
-			color: var(--primary);
-		}
-	}
-}
-
-.nobody-here {
-	font-style: italic;
-	color: var(--muted-foreground);
-	font-size: 0.9em;
-	padding: 4px 8px;
 }
 </style>
