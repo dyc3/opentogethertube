@@ -1,6 +1,6 @@
 <template>
 	<div data-cy="input-auto-skip" class="flex flex-col gap-2">
-		<FieldLabel class="label-mono text-muted-foreground">
+		<FieldLabel>
 			{{ $t("room-settings.auto-skip-text") }}
 		</FieldLabel>
 		<div
