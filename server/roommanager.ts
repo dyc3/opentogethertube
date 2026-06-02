@@ -170,7 +170,7 @@ export async function unloadRoom(
 	options: Partial<{ preserveRedis: boolean }> = {},
 ): Promise<void> {
 	const opts = _.defaults(options, {
-		preserveRedis: false,
+		preserveRedis: reason === UnloadReason.Commanded,
 	});
 
 	let idx = -1;

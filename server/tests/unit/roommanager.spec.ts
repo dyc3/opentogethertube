@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions.js";
 import storage from "../../storage.js";
 import { VideoQueue } from "../../../server/videoqueue.js";
-import { buildClients } from "../../redisclient.js";
+import { buildClients, redisClient } from "../../redisclient.js";
 import { UnloadReason } from "../../generated.js";
 
 describe("Room manager", () => {
@@ -143,6 +143,24 @@ describe("Room manager", () => {
 			} finally {
 				await DbRoom.destroy({ where: { name: roomName } });
 			}
+		});
+
+		it("should preserve redis state when commanded to unload", async () => {
+			const roomName = "test-commanded-unload-preserve-redis";
+			await roommanager.createRoom({ name: roomName, isTemporary: true });
+			const room = (await roommanager.getRoom(roomName)).unwrap();
+			await room.queue.enqueue({ service: "direct", id: "video" });
+			await room.sync();
+			await room.saveStateToRedisDebounced.flush();
+
+			expect(await redisClient.exists(`room:${roomName}`)).toEqual(1);
+
+			await roommanager.unloadRoom(roomName, UnloadReason.Commanded);
+
+			expect(await redisClient.exists(`room:${roomName}`)).toEqual(1);
+
+			const loaded = (await roommanager.getRoom(roomName)).unwrap();
+			expect(loaded.queue.items).toEqual([{ service: "direct", id: "video" }]);
 		});
 	});
 
