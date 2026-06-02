@@ -25,7 +25,7 @@
 							class="size-8 drop-shadow-[0_0_8px_var(--primary)]"
 						/>
 						<span
-							class="ott-text-scanlines inline-block font-display text-2xl leading-none tracking-wide text-primary glow-text-primary marquee-flicker md:text-3xl"
+							class="ott-text-scanlines inline-block font-display text-2xl leading-none tracking-wide text-primary text-shadow-glow-primary light:text-shadow-none marquee-flicker md:text-3xl"
 							data-text="OpenTogetherTube"
 						>
 							OpenTogetherTube
@@ -90,7 +90,9 @@
 			<Sheet v-model:open="drawer">
 				<SheetContent side="left" class="w-72 bg-background">
 					<SheetHeader>
-						<SheetTitle class="font-display text-2xl text-primary glow-text-primary">
+						<SheetTitle
+							class="font-display text-2xl text-primary text-shadow-glow-primary light:text-shadow-none"
+						>
 							Menu
 						</SheetTitle>
 					</SheetHeader>

@@ -24,6 +24,12 @@
 	[data-theme="deepblue"],
 	[data-theme="greenslate"]
 ));
+@custom-variant light (&:is(
+	[data-theme="light"] *,
+	[data-theme="strawberry"] *,
+	[data-theme="light"],
+	[data-theme="strawberry"]
+));
 
 /*
  * Reka UI state variants used by the shadcn-vue "nova" components.
@@ -65,11 +71,8 @@
 	--glow-primary: 0 0 0 1px rgb(255 190 61 / 0.35), 0 0 24px -4px rgb(255 190 61 / 0.55);
 	--glow-signal: 0 0 0 1px rgb(79 230 223 / 0.35), 0 0 22px -4px rgb(79 230 223 / 0.5);
 	--shadow-panel: 0 1px 0 0 rgb(255 230 190 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
-	/* neon text glows — read as light blooming on a dark backdrop. Light themes
-	   override these (a glow on a pale page just smears) — see [data-theme=light]. */
 	--text-glow-primary:
 		0 0 18px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 2px var(--primary);
-	--text-glow-signal: 0 0 16px color-mix(in srgb, var(--signal) 55%, transparent);
 	--hero-text-glow:
 		0 0 24px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 2px var(--primary);
 
@@ -111,9 +114,6 @@
 	--glow-primary: 0 0 0 1px rgb(217 119 6 / 0.22), 0 10px 28px -12px rgb(217 119 6 / 0.5);
 	--glow-signal: 0 0 0 1px rgb(13 139 143 / 0.22), 0 10px 28px -12px rgb(13 139 143 / 0.45);
 	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(74 46 12 / 0.45);
-	/* no neon text glow on a pale page — just a tight warm shadow for depth */
-	--text-glow-primary: none;
-	--text-glow-signal: none;
 	--hero-text-glow: 0 1px 1px rgb(74 46 12 / 0.18);
 	/* hero shader: warm amber clouds that actually read on a pale page. The teal
 	   accent uses multiply (screen is invisible on light) for cool variation. */
@@ -276,9 +276,6 @@
 	--glow-primary: 0 0 0 1px rgb(232 3 95 / 0.22), 0 10px 28px -12px rgb(232 3 95 / 0.5);
 	--glow-signal: 0 0 0 1px rgb(47 148 87 / 0.22), 0 10px 28px -12px rgb(47 148 87 / 0.42);
 	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(140 14 62 / 0.4);
-	/* no neon text glow on a pale page — just a tight berry shadow for depth */
-	--text-glow-primary: none;
-	--text-glow-signal: none;
 	--hero-text-glow: 0 1px 1px rgb(140 14 62 / 0.18);
 	/* hero shader: candy-pink clouds that read on the pale pink page; green
 	   accent via multiply (screen is invisible on light) for cool variation. */
@@ -374,6 +371,12 @@
 	--color-warning: var(--warning);
 	--color-primary-bright: var(--primary-bright);
 	--color-primary-deep: var(--primary-deep);
+
+	/* glow shadows → named utilities (shadow-glow-*, text-shadow-glow-*),
+	   bridging the per-theme runtime tokens so they re-color with the theme */
+	--shadow-glow-primary: var(--glow-primary);
+	--shadow-glow-signal: var(--glow-signal);
+	--text-shadow-glow-primary: var(--text-glow-primary);
 
 	/* fonts */
 	--font-sans: var(--font-body);
@@ -500,29 +503,6 @@
 }
 
 @layer utilities {
-	/* Named "glow-text-*" (not "text-glow-*") so tailwind-merge doesn't mistake
-	   it for a text-color utility and drop a sibling text-{color} class when both
-	   pass through cn() — e.g. the marquee button's `text-primary`. */
-	.glow-text-primary {
-		text-shadow: var(--text-glow-primary);
-	}
-	.glow-text-signal {
-		text-shadow: var(--text-glow-signal);
-	}
-	.glow-primary {
-		box-shadow: var(--glow-primary);
-	}
-	.glow-signal {
-		box-shadow: var(--glow-signal);
-	}
-
-	.label-mono {
-		font-family: var(--font-mono);
-		text-transform: uppercase;
-		letter-spacing: 0.22em;
-		font-size: 0.68rem;
-	}
-
 	.ticket-notch {
 		clip-path: polygon(
 			0 0,
@@ -586,6 +566,13 @@
 	.scrollbarBeGone::-webkit-scrollbar {
 		display: none;
 	}
+}
+
+@utility label-mono {
+	font-family: var(--font-mono);
+	text-transform: uppercase;
+	letter-spacing: 0.22em;
+	font-size: 0.68rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

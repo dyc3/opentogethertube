@@ -2,7 +2,9 @@
 	<div class="flex min-h-[70vh] items-center justify-center px-6 py-16">
 		<div class="w-full max-w-md text-center">
 			<span class="label-mono text-signal">{{ $t("not-found.eyebrow") }}</span>
-			<h1 class="font-display mt-3 text-7xl text-primary glow-text-primary">
+			<h1
+				class="font-display mt-3 text-7xl text-primary text-shadow-glow-primary light:text-shadow-none"
+			>
 				{{ $t("not-found.title") }}
 			</h1>
 			<div class="mt-10 flex flex-col gap-3">
