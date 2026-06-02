@@ -37,7 +37,7 @@
 					:player="null"
 				/>
 
-				<Card class="mt-6 border-line">
+				<Card class="mt-6">
 					<CardHeader>
 						<CardTitle>Card</CardTitle>
 					</CardHeader>

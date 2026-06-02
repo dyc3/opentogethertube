@@ -1,6 +1,6 @@
 <template>
 	<div class="mx-auto max-w-md px-6 py-16">
-		<Card class="border-line-strong">
+		<Card>
 			<form @submit.prevent="submitPasswordReset">
 				<CardHeader>
 					<span class="label-mono text-signal">{{

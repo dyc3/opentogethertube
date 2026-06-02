@@ -22,7 +22,7 @@
 			<ul class="flex flex-col gap-2">
 				<li v-for="(room, index) in rooms" :key="index">
 					<div
-						class="flex items-center gap-3 rounded-lg border border-line bg-card px-4 py-3 transition hover:border-primary/50 hover:bg-surface-2"
+						class="flex items-center gap-3 rounded-lg border bg-card px-4 py-3 transition hover:border-primary/50 hover:bg-surface-2"
 					>
 						<router-link :to="`/room/${room.name}`" class="min-w-0 flex-1">
 							<div class="font-display text-lg tracking-wide text-foreground">

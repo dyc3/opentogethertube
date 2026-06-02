@@ -1,5 +1,5 @@
 <template>
-	<Card class="border-line-strong">
+	<Card>
 		<Tabs v-model="mode" class="gap-0">
 			<CardHeader class="mx-8">
 				<TabsList class="w-full">

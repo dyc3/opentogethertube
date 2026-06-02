@@ -10,7 +10,7 @@
 				{{ $t("permissions-editor.viewing-as") }}: {{ $t(`roles.${currentRole}`) }}
 			</p>
 		</div>
-		<div class="overflow-x-auto rounded-lg border border-line">
+		<div class="overflow-x-auto rounded-lg border">
 			<Table>
 				<TableHeader>
 					<TableRow>

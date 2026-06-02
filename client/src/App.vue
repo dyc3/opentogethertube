@@ -1,13 +1,10 @@
 <template>
 	<TooltipProvider :delay-duration="200">
-		<div
-			id="app"
-			class="relative flex min-h-screen flex-col bg-background text-foreground"
-		>
+		<div id="app" class="relative flex min-h-screen flex-col bg-background text-foreground">
 			<!-- MARQUEE HEADER -->
 			<header
 				v-show="!fullscreen"
-				class="sticky top-0 z-40 border-b border-line-strong bg-background/85 backdrop-blur-md"
+				class="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md"
 			>
 				<div class="flex h-16 items-center gap-3 px-4 md:px-6">
 					<!-- mobile menu -->
@@ -91,7 +88,7 @@
 
 			<!-- MOBILE DRAWER -->
 			<Sheet v-model:open="drawer">
-				<SheetContent side="left" class="w-72 border-line-strong bg-background">
+				<SheetContent side="left" class="w-72 bg-background">
 					<SheetHeader>
 						<SheetTitle class="font-display text-2xl text-primary glow-text-primary">
 							Menu

@@ -1,5 +1,5 @@
 <template>
-	<Card class="border-line-strong">
+	<Card>
 		<form @submit.prevent="submit">
 			<CardHeader>
 				<CardTitle>
@@ -31,7 +31,7 @@
 
 					<button
 						type="button"
-						class="flex w-full items-center justify-between rounded-md border border-line bg-surface-2/40 px-3 py-2 font-mono text-sm uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+						class="flex w-full items-center justify-between rounded-md border bg-surface-2/40 px-3 py-2 font-mono text-sm uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
 						:aria-expanded="showSettings"
 						@click="showSettings = !showSettings"
 					>

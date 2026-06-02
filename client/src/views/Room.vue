@@ -216,7 +216,7 @@
 				</div>
 			</div>
 		</div>
-		<footer class="border-t border-line px-4 py-6 text-center" v-if="!store.state.fullscreen">
+		<footer class="border-t px-4 py-6 text-center" v-if="!store.state.fullscreen">
 			<p class="label-mono text-muted-foreground" v-if="isOfficialSite()">
 				<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
 			</p>

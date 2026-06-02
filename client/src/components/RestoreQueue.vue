@@ -3,7 +3,7 @@
 		<Transition name="banner">
 			<div
 				v-if="(store.state.room.prevQueue?.length ?? 0) > 0"
-				class="restore flex flex-col gap-3 rounded-lg border border-line bg-card p-4 sm:flex-row sm:items-center"
+				class="restore flex flex-col gap-3 rounded-lg border bg-card p-4 sm:flex-row sm:items-center"
 			>
 				<span class="flex-1 text-foreground">{{ $t("video-queue.restore") }}</span>
 				<div class="flex gap-2">

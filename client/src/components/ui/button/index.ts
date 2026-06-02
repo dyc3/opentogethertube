@@ -27,7 +27,7 @@ export const buttonVariants = cva(
 					"border-primary/70 bg-transparent text-primary hover:bg-primary hover:text-primary-foreground hover:shadow-[var(--glow-primary)] glow-text-primary",
 				signal: "border-signal/60 bg-transparent text-signal hover:bg-signal hover:text-background hover:shadow-[var(--glow-signal)]",
 				outline:
-					"border-line-strong bg-surface-2/40 text-foreground hover:border-primary/60 hover:text-primary hover:bg-surface-2",
+					"bg-surface-2/40 text-foreground hover:border-primary/60 hover:text-primary hover:bg-surface-2",
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground hover:bg-surface-3",
 				ghost: "border-transparent bg-transparent text-muted hover:text-foreground hover:bg-surface-2/60",

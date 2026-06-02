@@ -4,7 +4,7 @@
 			{{ $t("room-settings.auto-skip-text") }}
 		</FieldLabel>
 		<div
-			class="grid grid-cols-2 gap-x-4 gap-y-2 rounded border border-line bg-surface-3 p-3 sm:grid-cols-3"
+			class="grid grid-cols-2 gap-x-4 gap-y-2 rounded border bg-surface-3 p-3 sm:grid-cols-3"
 			:class="{ 'opacity-50': disabled || loading }"
 		>
 			<div v-for="cat in ALL_SKIP_CATEGORIES" :key="cat" class="flex items-center gap-2">

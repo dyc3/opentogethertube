@@ -119,7 +119,7 @@
 			<p class="mb-10 text-sm italic text-dim">{{ $t("footer.disclaimer") }}</p>
 
 			<!-- footer -->
-			<footer class="border-t border-line pt-8 text-center">
+			<footer class="border-t pt-8 text-center">
 				<p class="label-mono text-muted-foreground">
 					{{ new Date().getFullYear() }} —
 					<a href="https://carsonmcmanus.com/">Carson McManus</a> —

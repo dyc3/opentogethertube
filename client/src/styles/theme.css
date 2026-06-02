@@ -329,9 +329,6 @@
 	--chart-5: var(--destructive);
 }
 
-/* ===========================================================================
- *  TAILWIND TOKEN MAP  (inline → utilities resolve to the live vars above)
- * ======================================================================== */
 @theme inline {
 	/* shadcn semantic colors */
 	--color-background: var(--background);

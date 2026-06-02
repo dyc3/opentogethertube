@@ -27,7 +27,7 @@
 					v-for="(room, index) in rooms"
 					:key="index"
 					:to="`/room/${room.name}`"
-					class="room ticket-notch group flex flex-col overflow-hidden rounded-lg border border-line bg-card transition hover:border-primary/60 hover:shadow-[var(--glow-primary)]"
+					class="room ticket-notch group flex flex-col overflow-hidden rounded-lg border bg-card transition hover:border-primary/60 hover:shadow-[var(--glow-primary)]"
 				>
 					<div v-if="display.smAndUp.value" class="relative">
 						<img
