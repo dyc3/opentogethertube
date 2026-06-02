@@ -2,7 +2,22 @@ import childProcess from "node:child_process";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { createLogger, defineConfig, searchForWorkspaceRoot } from "vite";
+
+const logger = createLogger();
+const warn = logger.warn;
+
+logger.warn = (message, options) => {
+	// HACK: dashjs publishes an ESM entry with CommonJS wrapper code that floods build output.
+	if (
+		message.includes("COMMONJS_VARIABLE_IN_ESM") &&
+		message.includes("dashjs/dist/modern/esm/dash.all.min.js")
+	) {
+		return;
+	}
+
+	warn(message, options);
+};
 
 function gitCommit() {
 	if (process.env.GIT_COMMIT) {
@@ -19,6 +34,7 @@ function gitCommit() {
 }
 // https://vitejs.dev/config/
 export default defineConfig({
+	customLogger: logger,
 	define: {
 		__COMMIT_HASH__: JSON.stringify(gitCommit()),
 	},
