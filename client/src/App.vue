@@ -348,7 +348,7 @@ const App = defineComponent({
 export default App;
 </script>
 
-<style>
+<style scoped>
 .ott-drawer-link {
 	display: flex;
 	align-items: center;
@@ -377,17 +377,5 @@ export default App;
 .ott-overlay-enter-from,
 .ott-overlay-leave-to {
 	opacity: 0;
-}
-
-.link {
-	text-decoration: underline;
-	cursor: pointer;
-}
-.link-invis {
-	text-decoration: none;
-	color: inherit;
-}
-.text-muted {
-	color: var(--muted-foreground);
 }
 </style>

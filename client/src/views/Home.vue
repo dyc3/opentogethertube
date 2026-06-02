@@ -30,7 +30,7 @@
 					<Button variant="marquee" size="xl" as-child>
 						<router-link to="/rooms">{{ $t("landing.hero.btns.browse") }}</router-link>
 					</Button>
-					<Button variant="ghost" size="xl" as-child>
+					<Button variant="marquee" size="xl" as-child>
 						<a href="https://github.com/dyc3/opentogethertube">
 							<Icon :icon="mdiGithub" class="size-5" />
 							{{ $t("landing.hero.btns.source") }}

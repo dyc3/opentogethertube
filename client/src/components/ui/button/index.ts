@@ -30,7 +30,7 @@ export const buttonVariants = cva(
 					"bg-surface-2/40 text-foreground hover:border-primary/60 hover:text-primary hover:bg-surface-2",
 				secondary:
 					"border-transparent bg-secondary text-secondary-foreground hover:bg-surface-3",
-				ghost: "border-transparent bg-transparent text-muted hover:text-foreground hover:bg-surface-2/60",
+				ghost: "border-transparent bg-transparent text-muted-foreground hover:text-foreground hover:bg-surface-2/60",
 				destructive:
 					"border-destructive/50 bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground",
 				link: "border-transparent text-signal tracking-normal normal-case font-body underline-offset-4 hover:underline hover:text-primary-bright",

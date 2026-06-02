@@ -1,7 +1,7 @@
 <template>
 	<Dialog v-model:open="showForgotPassword">
 		<DialogTrigger as-child>
-			<a href="#" class="link text-primary" @click.prevent="showForgotPassword = true">
+			<a href="#" @click.prevent="showForgotPassword = true">
 				{{ $t("login-form.change-password.forgot") }}
 			</a>
 		</DialogTrigger>
