@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { QueryClient, VueQueryPlugin } from "@tanstack/vue-query";
+import "./styles/fonts.css";
 import "./styles/theme.css";
 import App from "./App.vue";
 import { store, key } from "./store";
