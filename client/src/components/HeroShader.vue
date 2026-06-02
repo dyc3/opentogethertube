@@ -64,15 +64,12 @@
 			:falloff="0.9"
 			:intensity="cfg.vignette"
 		/>
-
-		<!-- analog grain over the whole composition, ties into the site texture -->
-		<FilmGrain :strength="0.05" :bias="2.6" :animated="true" />
 	</Shader>
 </template>
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { Circle, FilmGrain, Plasma, Shader, SolidColor, Vignette } from "shaders/vue";
+import { Circle, Plasma, Shader, SolidColor, Vignette } from "shaders/vue";
 
 /** Read a CSS custom property off <html>, falling back to a default. */
 function getCSSVar(name: string, fallback: string): string {

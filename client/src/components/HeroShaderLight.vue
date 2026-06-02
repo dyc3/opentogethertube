@@ -35,15 +35,12 @@
 			mask-source="readZone"
 			mask-type="alphaInverted"
 		/>
-
-		<!-- analog grain over the whole composition, ties into the site texture -->
-		<FilmGrain :strength="0.04" :bias="1.4" :animated="true" />
 	</Shader>
 </template>
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { Circle, FilmGrain, FlowingGradient, Shader, SolidColor } from "shaders/vue";
+import { Circle, FlowingGradient, Shader, SolidColor } from "shaders/vue";
 
 /** Read a CSS custom property off <html>, falling back to a light default. */
 function getCSSVar(name: string, fallback: string): string {

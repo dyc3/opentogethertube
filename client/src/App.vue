@@ -2,7 +2,7 @@
 	<TooltipProvider :delay-duration="200">
 		<div
 			id="app"
-			class="ott-grain relative flex min-h-screen flex-col bg-background text-foreground"
+			class="relative flex min-h-screen flex-col bg-background text-foreground"
 		>
 			<!-- MARQUEE HEADER -->
 			<header
