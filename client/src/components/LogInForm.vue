@@ -18,10 +18,10 @@
 									<Button
 										type="button"
 										size="lg"
-										class="w-full bg-[#7289DA] text-white hover:bg-[#5b6eae]"
+										class="w-full border-[#5865F2] bg-[#5865F2] text-white dark:shadow-[0_0_0_1px_rgb(88_101_242_/_0.35),0_0_24px_-4px_rgb(88_101_242_/_0.65)]! hover:border-[#4752C4] hover:bg-[#4752C4] dark:hover:shadow-[0_0_0_1px_rgb(88_101_242_/_0.5),0_0_30px_-3px_rgb(88_101_242_/_0.85)]!"
 										@click="goLoginDiscord"
 									>
-										<Icon :icon="mdiMessageText" class="size-5" />
+										<DiscordIcon class="size-5" />
 										{{ $t("login-form.login-discord") }}
 									</Button>
 								</div>
@@ -201,7 +201,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
@@ -212,7 +211,6 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/ui/tabs";
-import { mdiMessageText } from "@mdi/js";
 import { API } from "@/common-http";
 import isEmail from "validator/es/lib/isEmail";
 import { USERNAME_LENGTH_MAX } from "ott-common/constants";
@@ -220,6 +218,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { goLoginDiscord } from "@/util/discord";
+import DiscordIcon from "@/components/icons/DiscordIcon.vue";
 import ForgotPassword from "./ForgotPassword.vue";
 
 const emit = defineEmits(["shouldClose"]);
