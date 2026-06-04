@@ -5,7 +5,7 @@
 				{{ $t("client-settings.activator") }}
 			</Button>
 		</DialogTrigger>
-		<DialogContent class="max-w-xl sm:max-w-xl">
+		<DialogContent class="flex max-h-[calc(100vh-2rem)] max-w-xl flex-col sm:max-w-xl">
 			<DialogHeader>
 				<DialogTitle class="font-display text-2xl tracking-wide">
 					{{ $t("client-settings.title") }}
@@ -17,7 +17,10 @@
 
 			<Separator />
 
-			<div class="flex max-h-[60vh] flex-col gap-5 overflow-y-auto px-1 py-2">
+			<div
+				ref="settingsScroller"
+				class="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-1 py-2"
+			>
 				<Field>
 					<FieldLabel>{{ $t("client-settings.room-layout") }}</FieldLabel>
 					<Select v-model="settings.roomLayout">
@@ -86,7 +89,7 @@
 					type="button"
 					class="flex w-full items-center justify-between rounded-md border bg-surface-2/40 px-3 py-2 font-mono text-sm uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
 					:aria-expanded="showRoomSettings"
-					@click="showRoomSettings = !showRoomSettings"
+					@click="toggleRoomSettings"
 				>
 					<span>{{ $t("client-settings.room-settings") }}</span>
 					<Icon
@@ -96,8 +99,12 @@
 					/>
 				</button>
 
-				<Transition name="ott-expand">
-					<div v-if="showRoomSettings" class="overflow-hidden">
+				<Transition name="ott-expand" @after-enter="scrollRoomSettingsIntoView">
+					<div
+						v-if="showRoomSettings"
+						ref="roomSettingsSection"
+						class="flex shrink-0 flex-col overflow-hidden"
+					>
 						<AutoSkipSegmentSettings v-model="autoSkipCategories" />
 					</div>
 				</Transition>
@@ -151,7 +158,7 @@ import { Slider } from "@/components/ui/slider";
 import { mdiChevronDown } from "@mdi/js";
 import _ from "lodash";
 import { ALL_SKIP_CATEGORIES } from "ott-common";
-import { computed, type Ref, ref, watch } from "vue";
+import { computed, nextTick, type Ref, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { MediaPlayer, MediaPlayerWithAudioBoost } from "@/components/composables";
 import { useMediaPlayer } from "@/components/composables";
@@ -173,9 +180,33 @@ const settings: Ref<ExposedSettings> = ref(loadSettings());
 const sfx = useSfx();
 
 const showRoomSettings = ref(false);
+const settingsScroller = ref<HTMLElement>();
+const roomSettingsSection = ref<HTMLElement>();
 const autoSkipCategories = ref(
 	settings.value.defaultRoomSettings?.autoSkipSegmentCategories ?? ALL_SKIP_CATEGORIES,
 );
+
+async function toggleRoomSettings() {
+	showRoomSettings.value = !showRoomSettings.value;
+
+	if (!showRoomSettings.value) {
+		return;
+	}
+
+	await nextTick();
+	scrollRoomSettingsIntoView();
+}
+
+function scrollRoomSettingsIntoView() {
+	if (!settingsScroller.value || !roomSettingsSection.value) {
+		return;
+	}
+
+	settingsScroller.value.scrollTo({
+		top: roomSettingsSection.value.offsetTop - settingsScroller.value.offsetTop,
+		behavior: "smooth",
+	});
+}
 
 watch(autoSkipCategories, categories => {
 	settings.value.defaultRoomSettings = {
@@ -239,8 +270,10 @@ const audioBoostHint = computed(() => {
 }
 .ott-expand-enter-active,
 .ott-expand-leave-active {
-	transition: all 0.25s ease;
-	max-height: 600px;
+	transition:
+		max-height 0.25s ease,
+		opacity 0.2s ease;
+	max-height: 16rem;
 }
 .ott-expand-enter-from,
 .ott-expand-leave-to {
