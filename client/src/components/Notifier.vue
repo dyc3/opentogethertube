@@ -2,7 +2,7 @@
 	<transition-group
 		appear
 		tag="div"
-		class="pointer-events-none fixed bottom-0 right-0 z-[1000] flex flex-col items-end p-0"
+		class="pointer-events-none fixed bottom-0 right-0 z-1000 flex flex-col items-end p-0"
 		move-class="transition-all duration-[250ms] ease-in-out"
 		enter-active-class="transition-all duration-[250ms]"
 		leave-active-class="transition-all duration-[250ms]"

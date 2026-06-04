@@ -48,10 +48,10 @@
 				</div>
 			</div>
 			<div
-				class="grid w-full grid-cols-[1fr_auto] grid-rows-[minmax(400px,70vh)] group-data-[fullscreen=true]/room:m-0 group-data-[fullscreen=true]/room:block group-data-[fullscreen=true]/room:h-screen group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:w-screen group-data-[fullscreen=true]/room:[aspect-ratio:inherit] group-data-[layout=theater]/room:grid-rows-[minmax(400px,85vh)]"
+				class="grid w-full grid-cols-[1fr_auto] grid-rows-[minmax(400px,70vh)] group-data-[fullscreen=true]/room:m-0 group-data-[fullscreen=true]/room:block group-data-[fullscreen=true]/room:h-screen group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:w-screen group-data-[fullscreen=true]/room:aspect-[inherit] group-data-[layout=theater]/room:grid-rows-[minmax(400px,85vh)]"
 			>
 				<div
-					class="relative z-[31] flex h-full flex-col group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:!w-full group-data-[fullscreen=true]/room:p-0 group-data-[layout=default]/room:w-4/5 group-data-[layout=default]/room:justify-self-center group-data-[layout=default]/room:max-xl:w-full"
+					class="relative z-31 flex h-full flex-col group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:w-full! group-data-[fullscreen=true]/room:p-0 group-data-[layout=default]/room:w-4/5 group-data-[layout=default]/room:justify-self-center group-data-[layout=default]/room:max-xl:w-full"
 				>
 					<div
 						class="h-full w-full group-data-[fullscreen=true]/room:h-screen"
@@ -70,13 +70,13 @@
 							:class="{ hidden: controlsVisible }"
 						></div>
 						<div
-							class="pointer-events-none absolute bottom-20 right-0 h-[70%] min-h-[70px] w-[400px] px-2.5 py-[5px] max-lg:w-[250px]"
+							class="pointer-events-none absolute bottom-20 right-0 h-[70%] min-h-17.5 w-100 px-2.5 py-1.25 max-lg:w-62.5"
 							v-if="controlsMode === 'in-video'"
 						>
 							<Chat ref="chat" @link-click="setAddPreviewText" />
 						</div>
 						<div
-							class="absolute inset-0 z-[200] flex items-center justify-center"
+							class="absolute inset-0 z-200 flex items-center justify-center"
 							v-if="mediaPlaybackBlocked"
 						>
 							<Button size="xl" variant="default" @click="onClickUnblockPlayback">
@@ -94,7 +94,7 @@
 					/>
 				</div>
 				<div
-					class="pointer-events-none h-[300px] min-h-[100px] w-[400px] px-2.5 py-[5px] max-lg:w-[250px]"
+					class="pointer-events-none h-75 min-h-25 w-100 px-2.5 py-1.25 max-lg:w-62.5"
 					v-if="controlsMode === 'outside-video' && !store.state.fullscreen"
 				>
 					<Chat ref="chat" @link-click="setAddPreviewText" />
@@ -144,7 +144,7 @@
 						</TabsContentAnimatedGroup>
 					</Tabs>
 				</div>
-				<div class="flex min-h-[500px] flex-col gap-2.5 px-2.5">
+				<div class="flex min-h-125 flex-col gap-2.5 px-2.5">
 					<div v-if="debugMode">
 						<Card>
 							<CardHeader>
