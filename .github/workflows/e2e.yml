@@ -1,4 +1,4 @@
-name: Cypress Tests
+name: Playwright Tests
 
 on:
   pull_request:
@@ -55,16 +55,10 @@ jobs:
         run: yarn workspace ott-client run test:component
   e2e:
     runs-on: ubuntu-latest
-    # container:
-    #   image: cypress/browsers:node16.18.0-chrome107-ff106-edge
-    #   options: --user 1001
     strategy:
       fail-fast: false
       matrix:
         node-version: [22.x, 24.x, 26.x]
-        # run copies of the current job in parallel
-        # containers: [1, 2]
-        browsers: [electron]
     env:
       # this is safe because it's only used for testing
       SESSION_SECRET: LERTmi2Jiz6gJHt21AZUWBstezP41P3odxzEsCo1w4zL8XqGyjGdMZ2QPXUenVQQ2fY1xzGBYseB1g9teRHbxF
@@ -95,12 +89,6 @@ jobs:
           key: node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             node_modules-${{ runner.os }}-node-${{ matrix.node-version }}-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('yarn.lock') }}
-
       - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn install --immutable
@@ -108,31 +96,16 @@ jobs:
       - name: Build client
         run: yarn run build
 
-      - run: yarn run cypress install
+      - run: yarn playwright install --with-deps chromium
       - run: yarn workspace ott-server run sequelize db:migrate
 
       - name: "E2E Tests"
-        uses: cypress-io/github-action@v6.6.1
-        with:
-          install: false
-          start: yarn start
-          wait-on: "http://localhost:8080/api/status"
-          wait-on-timeout: 120
-          browser: ${{ matrix.browsers }}
-          record: true
-          # parallel: true
-          group: "E2E - node-${{ matrix.node-version }} - ${{ matrix.browsers }}"
+        run: yarn test:e2e
         env:
           PORT: 8080
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          CYPRESS_CI: true
-          CYPRESS_YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          # Recommended: pass the GitHub token lets this action correctly
-          # determine the unique run id necessary to re-run the checks
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   e2e-grafana:
     runs-on: ubuntu-latest
     strategy:

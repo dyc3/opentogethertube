@@ -56,10 +56,10 @@ yarn workspace ott-server test
 yarn workspace ott-client test
 yarn workspace ott-common test
 
-# E2E tests (Cypress)
-yarn cy:open           # Open Cypress UI (interactive)
-yarn cy:run            # Run E2E tests headless
-yarn cy:run:component  # Run component tests
+# E2E tests (Playwright)
+yarn test:e2e          # Run E2E tests headless
+yarn test:e2e:ui       # Open Playwright UI (interactive)
+yarn test:component    # Run component tests
 
 # Rust tests
 cargo test
@@ -165,7 +165,7 @@ yarn workspace ott-vis-datasource test
 ## Testing Patterns
 
 -   **Unit Tests:** Use Vitest (TypeScript), built-in test runner (Rust)
--   **E2E Tests:** Use Cypress
+-   **E2E Tests:** Use Playwright
 -   **Integration Tests:** Use harness crate for Rust
 -   Test files: `*.spec.ts` or `*.test.ts`
 -   Place tests in `/tests/unit/` or `/tests/e2e/`

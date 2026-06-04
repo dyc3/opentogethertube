@@ -65,16 +65,6 @@ export default defineConfig({
 	},
 	envDir: path.resolve(searchForWorkspaceRoot(process.cwd()), "env"),
 	envPrefix: ["VITE_", "VUE_APP_", "OTT_"],
-	// optimizeDeps: {
-	// 	// this attempts to mitigate https://github.com/cypress-io/cypress/issues/25913
-	// 	entries: [
-	// 		"tests/e2e/**/*.ts",
-	// 		"client/tests/e2e/**/*.ts",
-	// 		"tests/e2e/support/component.ts",
-	// 		"client/tests/e2e/support/component.ts",
-	// 		"**/*.{js,ts,vue}",
-	// 	],
-	// },
 	test: {
 		environment: "jsdom",
 	},

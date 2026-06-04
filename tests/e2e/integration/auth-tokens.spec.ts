@@ -1,17 +1,14 @@
+import { beforeEach, describe, expect, it } from "../support/fixtures";
+
 describe("Auth tokens", () => {
-	beforeEach(() => {
-		cy.clearCookies();
-		cy.clearLocalStorage();
+	beforeEach(async ({ context }) => {
+		await context.clearCookies();
 	});
 
-	it("should request a new auth token on page load and save it to localstorage", () => {
-		cy.window().then(win => {
-			expect(win.localStorage.token).to.be.undefined;
-		});
-		cy.visit("/");
-		cy.wait(100);
-		cy.window().then(win => {
-			expect(win.localStorage.token).to.not.be.undefined;
-		});
+	it("should request a new auth token on page load and save it to localstorage", async ({
+		page,
+	}) => {
+		await page.goto("/");
+		await expect.poll(() => page.evaluate(() => window.localStorage.token)).toBeDefined();
 	});
 });

@@ -1,26 +1,27 @@
+import { beforeEach, describe, expect, it } from "../support/fixtures";
+
 describe("Room events", () => {
-	Cypress.on("uncaught:exception", (_err, _runnable) => {
-		return false;
-	});
-
-	beforeEach(() => {
-		cy.ottEnsureToken();
-		cy.ottResetRateLimit();
-		cy.ottRequest({ method: "POST", url: "/api/room/generate" }).then(resp => {
-			// @ts-expect-error Cypress doesn't know how to respect this return type
-			cy.visit(`/room/${resp.body.room}`);
+	beforeEach(async ({ page, ott }) => {
+		page.on("pageerror", () => {
+			// Embedded player scripts can throw after load; these tests assert our UI state.
 		});
+		await ott.ensureToken();
+		await ott.resetRateLimit();
+		const response = await ott.request({ method: "POST", url: "/api/room/generate" });
+		const body = await response.json();
+		await page.goto(`/room/${body.room}`);
 	});
 
-	it("should show toasts when adding a video and skipping it", () => {
-		cy.contains("button", "Add a video").click();
-		cy.get('[data-cy="add-preview-input"]').type("https://vjs.zencdn.net/v/oceans.mp4");
-		cy.get(".video button").eq(1).click();
-		cy.get(".toast-item").contains("added oceans");
-		cy.get("video").should("exist").scrollIntoView();
+	it("should show toasts when adding a video and skipping it", async ({ page }) => {
+		await page.getByRole("button", { name: "Add a video" }).click();
+		await page
+			.locator('[data-cy="add-preview-input"]')
+			.fill("https://vjs.zencdn.net/v/oceans.mp4");
+		await page.locator(".video button").nth(1).click();
+		await expect(page.locator(".toast", { hasText: "added oceans" })).toBeVisible();
+		await expect(page.locator("video")).toBeVisible();
 
-		cy.wait(200);
-		cy.get('[aria-label="Next video"]').click();
-		cy.get(".toast-item").contains("skipped oceans");
+		await page.getByLabel("Next video").click();
+		await expect(page.locator(".toast", { hasText: "skipped oceans" })).toBeVisible();
 	});
 });
