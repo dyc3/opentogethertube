@@ -28,6 +28,14 @@ describe("Video playback", () => {
 			.toBe(paused);
 	}
 
+	async function expectCurrentTime(page, time: number) {
+		await expect
+			.poll(() =>
+				page.locator("video").evaluate(video => (video as HTMLVideoElement).currentTime),
+			)
+			.toBeCloseTo(time, 0);
+	}
+
 	async function clickMenuItem(page, name: string) {
 		await page
 			.getByRole("menuitem", { name })
@@ -65,6 +73,50 @@ describe("Video playback", () => {
 		await expectPaused(page, true);
 		await page.locator(".video-controls button").nth(1).click();
 		await expectPaused(page, false);
+	});
+
+	it("should synchronize direct video playback between viewers", async ({
+		browser,
+		page,
+		request,
+	}) => {
+		const roomUrl = page.url();
+		const tokenResponse = await request.get("/api/auth/grant");
+		expect(tokenResponse.ok()).toBe(true);
+		const tokenBody = await tokenResponse.json();
+
+		const secondContext = await browser.newContext();
+		await secondContext.addInitScript(token => {
+			window.localStorage.setItem("token", token as string);
+		}, tokenBody.token);
+		const secondPage = await secondContext.newPage();
+
+		try {
+			await secondPage.goto(roomUrl);
+			await expect(secondPage.locator("#connectStatus")).toHaveText("Connected");
+
+			await addVideo(page, "https://vjs.zencdn.net/v/oceans.mp4");
+			await expect(page.locator("video")).toBeVisible();
+			await expect(secondPage.locator("video")).toBeVisible();
+			await expectPaused(page, true);
+			await expectPaused(secondPage, true);
+
+			await page.locator('[data-cy="timestamp-display"] .editable').click();
+			await page.locator('[data-cy="timestamp-display"] .editor').fill("10");
+			await page.locator('[data-cy="timestamp-display"] .editor').press("Enter");
+			await expectCurrentTime(page, 10);
+			await expectCurrentTime(secondPage, 10);
+
+			await page.locator(".video-controls button").nth(1).click();
+			await expectPaused(page, false);
+			await expectPaused(secondPage, false);
+
+			await page.locator(".video-controls button").nth(1).click();
+			await expectPaused(page, true);
+			await expectPaused(secondPage, true);
+		} finally {
+			await secondContext.close();
+		}
 	});
 
 	it("should add a direct video and control it in various ways", async ({ page, ott }) => {
