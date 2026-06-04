@@ -6,6 +6,7 @@
 		"ignoreUnknown": true,
 		"includes": [
 			"**",
+			"!!.agents",
 			"!!server/tests/unit/fixtures",
 			"!!**/coverage",
 			"!!**/dist",
