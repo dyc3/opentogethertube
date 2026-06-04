@@ -4,7 +4,7 @@
 			:class="{
 				'video-controls': true,
 				'in-video': mode === 'in-video',
-				'outside-video': mode === 'outside-video',
+				'outside-video relative': mode === 'outside-video',
 				'hide': !controlsVisible,
 			}"
 		>
