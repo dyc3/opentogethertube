@@ -17,7 +17,11 @@ describe("Room chat", () => {
 		await page.locator('[data-cy="chat-input"]').press("Enter");
 	}
 
-	it("should send chat messages to all viewers in the room", async ({ browser, page, request }) => {
+	it("should send chat messages to all viewers in the room", async ({
+		browser,
+		page,
+		request,
+	}) => {
 		const roomUrl = page.url();
 		const tokenResponse = await request.get("/api/auth/grant");
 		expect(tokenResponse.ok()).toBe(true);

@@ -1,12 +1,14 @@
 import { describe, expect, it } from "../support/fixtures";
 
+const ROOM_URL_PATTERN = /room/;
+
 describe("Client Settings", () => {
 	it("keeps default room settings visible in a short viewport", async ({ page, ott }) => {
 		await ott.ensureToken();
 		await page.goto("/");
 		await page.getByRole("banner").getByRole("button", { name: "Create Room" }).click();
 		await page.getByText("Create Temporary Room", { exact: true }).click();
-		await expect(page).toHaveURL(/room/);
+		await expect(page).toHaveURL(ROOM_URL_PATTERN);
 		await page.setViewportSize({ width: 620, height: 560 });
 
 		await page.getByRole("button", { name: "Preferences" }).click();

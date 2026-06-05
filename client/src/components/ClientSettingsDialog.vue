@@ -270,9 +270,7 @@ const audioBoostHint = computed(() => {
 }
 .ott-expand-enter-active,
 .ott-expand-leave-active {
-	transition:
-		max-height 0.25s ease,
-		opacity 0.2s ease;
+	transition: max-height 0.25s ease, opacity 0.2s ease;
 	max-height: 16rem;
 }
 .ott-expand-enter-from,
