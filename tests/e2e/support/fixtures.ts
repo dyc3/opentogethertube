@@ -14,6 +14,7 @@ type OttFixtures = {
 		ensureToken(): Promise<string>;
 		request(options: RequestOptions): Promise<APIResponse>;
 		resetRateLimit(): Promise<APIResponse>;
+		forceDisconnect(roomName: string): Promise<APIResponse>;
 		createUser(userCreds: unknown): Promise<APIResponse>;
 		login(userCreds: unknown): Promise<APIResponse>;
 		createSocialUser(user: unknown): Promise<APIResponse>;
@@ -67,6 +68,12 @@ export const test = base.extend<OttFixtures>({
 			},
 			resetRateLimit() {
 				return this.request({ method: "POST", url: "/api/dev/reset-rate-limit" });
+			},
+			forceDisconnect(roomName: string) {
+				return this.request({
+					method: "POST",
+					url: `/api/dev/room/${roomName}/force-disconnect`,
+				});
 			},
 			createUser(userCreds: unknown) {
 				return this.request({ method: "POST", url: "/api/user/register", body: userCreds });
