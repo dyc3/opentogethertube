@@ -1,12 +1,9 @@
-import { describe, expect, it } from "../support/fixtures";
+import { describe, expect, it, beforeEach } from "../support/fixtures";
 import type { Locator, Page } from "@playwright/test";
 
 const ROOM_URL_PATTERN = /room/;
 
 async function openClientSettings(page: Page) {
-	await page.goto("/");
-	await page.getByRole("banner").getByRole("button", { name: "Create Room" }).click();
-	await page.getByText("Create Temporary Room", { exact: true }).click();
 	await expect(page).toHaveURL(ROOM_URL_PATTERN);
 	await page.keyboard.press("Escape");
 	await page.getByText("Preferences", { exact: true }).click();
@@ -25,8 +22,15 @@ async function savedTheme(page: Page) {
 }
 
 describe("Client Settings", () => {
-	it("previews and saves the selected theme", async ({ page, ott }) => {
+	beforeEach(async ({ page, ott }) => {
 		await ott.ensureToken();
+		await ott.resetRateLimit();
+		const response = await ott.request({ method: "POST", url: "/api/room/generate" });
+		const body = await response.json();
+		await page.goto(`/room/${body.room}`);
+	});
+
+	it("previews and saves the selected theme", async ({ page, ott }) => {
 		const dialog = await openClientSettings(page);
 
 		await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -42,7 +46,6 @@ describe("Client Settings", () => {
 	});
 
 	it("previews and restores the saved theme on cancel", async ({ page, ott }) => {
-		await ott.ensureToken();
 		const dialog = await openClientSettings(page);
 
 		await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -56,11 +59,6 @@ describe("Client Settings", () => {
 	});
 
 	it("keeps default room settings visible in a short viewport", async ({ page, ott }) => {
-		await ott.ensureToken();
-		await page.goto("/");
-		await page.getByRole("banner").getByRole("button", { name: "Create Room" }).click();
-		await page.getByText("Create Temporary Room", { exact: true }).click();
-		await expect(page).toHaveURL(ROOM_URL_PATTERN);
 		await page.setViewportSize({ width: 620, height: 560 });
 
 		await page.getByRole("button", { name: "Preferences" }).click();
