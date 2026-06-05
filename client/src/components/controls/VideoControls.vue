@@ -68,7 +68,11 @@ withDefaults(
 		position: absolute;
 		bottom: 0;
 
-		background: linear-gradient(to top, rgb(8 6 4 / 0.78), rgb(8 6 4 / 0));
+		background: linear-gradient(
+			to top,
+			color-mix(in srgb, var(--ink) 78%, transparent),
+			color-mix(in srgb, var(--ink) 0%, transparent)
+		);
 		transition: all 0.2s;
 
 		&.hide {
