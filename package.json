@@ -17,6 +17,7 @@
 	"scripts": {
 		"postinstall": "patch-package",
 		"start": "yarn workspace ott-server start",
+		"start:e2e": "NODE_ENV=development concurrently \"yarn workspace ott-server start\" \"yarn workspace ott-client serve\"",
 		"serve": "yarn workspace ott-client serve",
 		"build": "yarn workspaces foreach --all run build",
 		"lint": "biome check --write && prettier --write \"**/*.vue\" && yarn workspaces foreach --all run lint",

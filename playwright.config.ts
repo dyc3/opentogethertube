@@ -20,12 +20,9 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: "yarn start",
+		command: "yarn start:e2e",
 		url: "http://localhost:8080/api/status",
 		timeout: 120_000,
 		reuseExistingServer: !process.env.CI,
-		env: {
-			PORT: "8080",
-		},
 	},
 });
