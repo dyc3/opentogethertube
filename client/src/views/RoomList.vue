@@ -73,6 +73,8 @@
 				</router-link>
 			</div>
 		</template>
+
+		<AppFooter class="mt-12" />
 	</div>
 </template>
 
@@ -86,6 +88,7 @@ import { API } from "@/common-http";
 import { ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
+import AppFooter from "@/components/AppFooter.vue";
 
 import placeholderUrl from "@/assets/placeholder.svg";
 

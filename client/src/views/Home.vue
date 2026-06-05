@@ -118,22 +118,7 @@
 
 			<p class="mb-10 text-sm italic text-dim">{{ $t("footer.disclaimer") }}</p>
 
-			<!-- footer -->
-			<footer class="border-t pt-8 text-center">
-				<p class="label-mono text-muted-foreground">
-					{{ new Date().getFullYear() }} —
-					<a href="https://carsonmcmanus.com/">Carson McManus</a> —
-					{{ $t("footer.made-in") }} — {{ $t("footer.thanks-to") }}
-					<a href="https://softe.club">SEC</a> @ Stevens
-				</p>
-				<p class="mt-3 flex justify-center gap-4 label-mono">
-					<router-link v-if="isOfficialSite()" to="/privacypolicy">{{
-						$t("footer.privacy-policy")
-					}}</router-link>
-					<router-link to="/attribution">{{ $t("footer.attribution") }}</router-link>
-				</p>
-				<p class="mt-3 text-xs text-dim font-mono">{{ gitCommit }}</p>
-			</footer>
+			<AppFooter />
 		</div>
 	</div>
 </template>
@@ -156,7 +141,7 @@ import {
 import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
-import { isOfficialSite } from "@/util/misc";
+import AppFooter from "@/components/AppFooter.vue";
 
 // Lazy-loaded: pulls in the shaders/three.js bundle as its own chunk so it
 // doesn't bloat the landing page's initial JS. The .hero CSS gradient shows
@@ -184,8 +169,6 @@ onBeforeUnmount(() => themeObserver?.disconnect());
 // ------------------------------------------------------------------------------
 
 const store = useStore();
-
-const gitCommit = __COMMIT_HASH__;
 
 const features = [
 	{ key: "synchronized-playback", icon: mdiSync },
