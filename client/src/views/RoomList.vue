@@ -6,7 +6,7 @@
 
 		<div
 			v-if="rooms.length === 0 && !isLoading"
-			class="flex min-h-[50vh] flex-col items-center justify-center gap-6 text-center"
+			class="flex min-h-[50vh] flex-col items-center justify-center gap-6"
 		>
 			<span class="label-mono text-signal">{{ $t("room-list.empty-eyebrow") }}</span>
 			<h1 class="font-display text-5xl tracking-wide">{{ $t("room-list.no-rooms") }}</h1>
@@ -15,15 +15,8 @@
 			</Button>
 		</div>
 
-		<template v-if="!isLoading && rooms.length > 0">
-			<div class="mb-8">
-				<span class="label-mono text-signal">{{ $t("room-list.browse-eyebrow") }}</span>
-				<h1
-					class="relative mt-1 pl-4 font-display text-4xl tracking-wide before:absolute before:bottom-[0.1em] before:left-0 before:top-[0.1em] before:w-1 before:bg-primary before:shadow-[0_0_12px_var(--primary)] before:content-['']"
-				>
-					{{ $t("nav.browse") }}
-				</h1>
-			</div>
+		<div v-if="!isLoading && rooms.length > 0" class="flex flex-col gap-2">
+			<PageHeader :eyebrow="$t('room-list.browse-eyebrow')" :title="$t('nav.browse')" />
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 				<router-link
 					v-for="(room, index) in rooms"
@@ -72,7 +65,7 @@
 					</div>
 				</router-link>
 			</div>
-		</template>
+		</div>
 
 		<AppFooter class="mt-12" />
 	</div>
@@ -89,6 +82,7 @@ import { ref, onMounted } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { useStore } from "@/store";
 import AppFooter from "@/components/AppFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
 
 import placeholderUrl from "@/assets/placeholder.svg";
 
