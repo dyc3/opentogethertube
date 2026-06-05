@@ -1,5 +1,5 @@
 <template>
-	<div class="room-settings">
+	<div>
 		<form @submit.prevent="submitRoomSettings">
 			<FieldGroup>
 				<Field>
@@ -370,9 +370,3 @@ defineExpose({
 	openVisibilityMenu,
 });
 </script>
-
-<style scoped>
-.room-settings {
-	margin: 12px;
-}
-</style>
