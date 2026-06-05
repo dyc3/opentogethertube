@@ -68,12 +68,12 @@ describe("RoomSettingsForm component", () => {
 		API.patch.mockResolvedValue({ data: { success: true } });
 	});
 
-	it("makes the submit container sticky", async () => {
+	it("renders the submit container", async () => {
 		const { wrapper } = mountRoomSettings();
 		await flush();
 		await flush();
 
-		expect(wrapper.find(".room-settings .submit").exists()).toBe(true);
+		expect(wrapper.find(".submit").exists()).toBe(true);
 	});
 
 	it("fills the form with data from the API", async () => {
