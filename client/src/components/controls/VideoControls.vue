@@ -4,7 +4,7 @@
 			:class="{
 				'video-controls': true,
 				'in-video': mode === 'in-video',
-				'outside-video relative': mode === 'outside-video',
+				'outside-video relative rounded-b-md': mode === 'outside-video',
 				'hide': !controlsVisible,
 			}"
 		>
@@ -80,7 +80,6 @@ withDefaults(
 
 	&.outside-video {
 		background: var(--ink);
-		border-radius: 0 0 10px 10px;
 
 		&.hide {
 			opacity: 0;
