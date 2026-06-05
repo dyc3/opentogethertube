@@ -20,11 +20,13 @@
 	[data-theme="deepblue"] *,
 	[data-theme="greenslate"] *,
 	[data-theme="ultraviolet"] *,
+	[data-theme="sunset"] *,
 	[data-theme="dark"],
 	[data-theme="deepred"],
 	[data-theme="deepblue"],
 	[data-theme="greenslate"],
-	[data-theme="ultraviolet"]
+	[data-theme="ultraviolet"],
+	[data-theme="sunset"]
 ));
 @custom-variant light (&:is(
 	[data-theme="light"] *,
@@ -298,6 +300,45 @@
 	--border: rgb(200 170 255 / 0.13);
 	--input: rgb(200 170 255 / 0.2);
 	--ring: #b24bff;
+	--radius: 0.35rem;
+}
+
+/* last show before the horizon swallows the sun — tangerine sunset over a
+   warm mahogany dusk, with cool turquoise sea-and-stars signal */
+[data-theme="sunset"] {
+	color-scheme: dark;
+	--ink: #120a0e;
+	--primary-bright: #ffac63;
+	--primary-deep: #e0561a;
+	--signal: #2fe0d4;
+	--signal-deep: #16b3a8;
+	--surface-2: #2a1a20;
+	--surface-3: #36222a;
+	--success: #5fe0a0;
+	--warning: #ffc24f;
+	--glow-primary: 0 0 0 1px rgb(255 122 51 / 0.42), 0 0 28px -4px rgb(255 122 51 / 0.62);
+	--glow-signal: 0 0 0 1px rgb(47 224 212 / 0.35), 0 0 22px -4px rgb(47 224 212 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 220 200 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.92);
+
+	--background: #1c1016;
+	--foreground: #fcecdf;
+	--card: #261820;
+	--card-foreground: #fcecdf;
+	--popover: #2a1a24;
+	--popover-foreground: #fcecdf;
+	--primary: #ff7a33;
+	--primary-foreground: #2a0f02;
+	--secondary: #2a1a20;
+	--secondary-foreground: #fcecdf;
+	--muted: #2a1a20;
+	--muted-foreground: #d0b3a3;
+	--accent: #36222a;
+	--accent-foreground: #ffac63;
+	--destructive: #ff5640;
+	--destructive-foreground: #2a0603;
+	--border: rgb(255 200 175 / 0.13);
+	--input: rgb(255 200 175 / 0.2);
+	--ring: #ff7a33;
 	--radius: 0.35rem;
 }
 

@@ -28,6 +28,7 @@ export enum Theme {
 	deepblue = "deepblue",
 	greenslate = "greenslate",
 	ultraviolet = "ultraviolet",
+	sunset = "sunset",
 	strawberry = "strawberry",
 }
 
