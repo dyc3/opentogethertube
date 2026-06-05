@@ -19,11 +19,7 @@
 					</Button>
 
 					<router-link to="/" class="group flex items-center gap-3">
-						<img
-							:src="logoUrl"
-							alt=""
-							class="size-8 drop-shadow-[0_0_8px_var(--primary)]"
-						/>
+						<img :src="logoUrl" alt="" class="size-8" />
 						<span
 							class="ott-text-scanlines inline-block font-display text-2xl leading-none tracking-wide text-primary text-shadow-glow-primary light:text-shadow-none marquee-flicker md:text-3xl"
 							data-text="OpenTogetherTube"
