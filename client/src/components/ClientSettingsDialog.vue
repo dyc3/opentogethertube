@@ -42,7 +42,12 @@
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem v-for="theme in themes" :key="theme" :value="theme">
+							<SelectItem
+								v-for="theme in themes"
+								:key="theme"
+								:value="theme"
+								:data-theme="theme"
+							>
 								{{ theme }}
 							</SelectItem>
 						</SelectContent>
@@ -234,9 +239,24 @@ function cancelSettings() {
 	show.value = false;
 }
 
-watch(show, () => {
+function previewTheme(theme: Theme) {
+	document.documentElement.dataset.theme = theme;
+}
+
+watch(show, isOpen => {
+	if (isOpen) {
+		settings.value = loadSettings();
+		return;
+	}
+
+	previewTheme(store.state.settings.theme);
 	settings.value = loadSettings();
 });
+
+watch(
+	() => settings.value.theme,
+	theme => show.value && previewTheme(theme),
+);
 
 store.subscribe(mutation => {
 	if (mutation.type === "settings/UPDATE") {
