@@ -54,35 +54,15 @@
 							</SelectValue>
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem :value="QueueMode.Manual">
+							<SelectItem
+								v-for="queueMode in queueModeOptions"
+								:key="queueMode.value"
+								:value="queueMode.value"
+							>
 								<div class="flex flex-col">
-									<span>{{ $t("room-settings.manual") }}</span>
+									<span>{{ queueMode.label }}</span>
 									<span class="text-xs text-muted-foreground">
-										{{ $t("room-settings.manual-hint") }}
-									</span>
-								</div>
-							</SelectItem>
-							<SelectItem :value="QueueMode.Vote">
-								<div class="flex flex-col">
-									<span>{{ $t("room-settings.vote") }}</span>
-									<span class="text-xs text-muted-foreground">
-										{{ $t("room-settings.vote-hint") }}
-									</span>
-								</div>
-							</SelectItem>
-							<SelectItem :value="QueueMode.Loop">
-								<div class="flex flex-col">
-									<span>{{ $t("room-settings.loop") }}</span>
-									<span class="text-xs text-muted-foreground">
-										{{ $t("room-settings.loop-hint") }}
-									</span>
-								</div>
-							</SelectItem>
-							<SelectItem :value="QueueMode.Dj">
-								<div class="flex flex-col">
-									<span>{{ $t("room-settings.dj") }}</span>
-									<span class="text-xs text-muted-foreground">
-										{{ $t("room-settings.dj-hint") }}
+										{{ queueMode.hint }}
 									</span>
 								</div>
 							</SelectItem>
@@ -202,7 +182,7 @@ import {
 } from "ott-common/models/types";
 import { Grants } from "ott-common/permissions";
 import toast from "@/util/toast";
-import { type Ref, onMounted, reactive, ref, toRefs } from "vue";
+import { type Ref, computed, onMounted, reactive, ref, toRefs } from "vue";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import type { OttApiResponseGetRoom } from "ott-common/models/rest-api";
@@ -224,17 +204,31 @@ function openVisibilityMenu() {
 	visibilityMenuOpen.value = true;
 }
 
+const queueModeOptions = computed(() => [
+	{
+		value: QueueMode.Manual,
+		label: t("room-settings.manual"),
+		hint: t("room-settings.manual-hint"),
+	},
+	{
+		value: QueueMode.Vote,
+		label: t("room-settings.vote"),
+		hint: t("room-settings.vote-hint"),
+	},
+	{
+		value: QueueMode.Loop,
+		label: t("room-settings.loop"),
+		hint: t("room-settings.loop-hint"),
+	},
+	{
+		value: QueueMode.Dj,
+		label: t("room-settings.dj"),
+		hint: t("room-settings.dj-hint"),
+	},
+]);
+
 function queueModeLabel(queueMode: QueueMode) {
-	switch (queueMode) {
-		case QueueMode.Manual:
-			return t("room-settings.manual");
-		case QueueMode.Vote:
-			return t("room-settings.vote");
-		case QueueMode.Loop:
-			return t("room-settings.loop");
-		case QueueMode.Dj:
-			return t("room-settings.dj");
-	}
+	return queueModeOptions.value.find(option => option.value === queueMode)?.label;
 }
 
 const inputRoomSettings = reactive<RoomSettings>({
