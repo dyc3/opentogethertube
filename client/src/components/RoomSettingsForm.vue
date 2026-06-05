@@ -12,10 +12,10 @@
 					/>
 				</Field>
 				<Field>
-					<FieldLabel for="rs-description">{{
-						$t("room-settings.description")
-					}}</FieldLabel>
-					<Input
+					<FieldLabel for="rs-description">
+						{{ $t("room-settings.description") }}
+					</FieldLabel>
+					<Textarea
 						id="rs-description"
 						v-model="settings.description.value"
 						:disabled="!granted('configure-room.set-description')"
@@ -49,7 +49,9 @@
 						:disabled="!granted('configure-room.set-queue-mode')"
 					>
 						<SelectTrigger class="w-full" data-cy="select-queueMode">
-							<SelectValue />
+							<SelectValue>
+								{{ queueModeLabel(settings.queueMode.value) }}
+							</SelectValue>
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem :value="QueueMode.Manual">
@@ -178,6 +180,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -219,6 +222,19 @@ const visibilityMenuOpen = ref(false);
 
 function openVisibilityMenu() {
 	visibilityMenuOpen.value = true;
+}
+
+function queueModeLabel(queueMode: QueueMode) {
+	switch (queueMode) {
+		case QueueMode.Manual:
+			return t("room-settings.manual");
+		case QueueMode.Vote:
+			return t("room-settings.vote");
+		case QueueMode.Loop:
+			return t("room-settings.loop");
+		case QueueMode.Dj:
+			return t("room-settings.dj");
+	}
 }
 
 const inputRoomSettings = reactive<RoomSettings>({
@@ -364,10 +380,5 @@ defineExpose({
 <style scoped>
 .room-settings {
 	margin: 12px;
-}
-.room-settings .submit {
-	position: -webkit-sticky;
-	position: sticky;
-	bottom: 20px;
 }
 </style>
