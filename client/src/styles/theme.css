@@ -19,10 +19,12 @@
 	[data-theme="deepred"] *,
 	[data-theme="deepblue"] *,
 	[data-theme="greenslate"] *,
+	[data-theme="ultraviolet"] *,
 	[data-theme="dark"],
 	[data-theme="deepred"],
 	[data-theme="deepblue"],
-	[data-theme="greenslate"]
+	[data-theme="greenslate"],
+	[data-theme="ultraviolet"]
 ));
 @custom-variant light (&:is(
 	[data-theme="light"] *,
@@ -258,6 +260,44 @@
 	--border: rgb(170 230 170 / 0.13);
 	--input: rgb(170 230 170 / 0.2);
 	--ring: #5cf07f;
+	--radius: 0.35rem;
+}
+
+/* midnight cult-feature, the whole lot under blacklight — ultraviolet */
+[data-theme="ultraviolet"] {
+	color-scheme: dark;
+	--ink: #070411;
+	--primary-bright: #d99dff;
+	--primary-deep: #7d23c6;
+	--signal: #aef23c;
+	--signal-deep: #7ec01f;
+	--surface-2: #221838;
+	--surface-3: #2c2047;
+	--success: #3fe08a;
+	--warning: #ffb13d;
+	--glow-primary: 0 0 0 1px rgb(178 75 255 / 0.42), 0 0 28px -4px rgb(178 75 255 / 0.65);
+	--glow-signal: 0 0 0 1px rgb(174 242 60 / 0.35), 0 0 22px -4px rgb(174 242 60 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(220 200 255 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.92);
+
+	--background: #0e0a1a;
+	--foreground: #f0eafe;
+	--card: #161029;
+	--card-foreground: #f0eafe;
+	--popover: #1a1330;
+	--popover-foreground: #f0eafe;
+	--primary: #b24bff;
+	--primary-foreground: #15052a;
+	--secondary: #221838;
+	--secondary-foreground: #f0eafe;
+	--muted: #221838;
+	--muted-foreground: #b3a6d4;
+	--accent: #2c2047;
+	--accent-foreground: #d99dff;
+	--destructive: #ff5640;
+	--destructive-foreground: #1c0603;
+	--border: rgb(200 170 255 / 0.13);
+	--input: rgb(200 170 255 / 0.2);
+	--ring: #b24bff;
 	--radius: 0.35rem;
 }
 
