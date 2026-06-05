@@ -102,7 +102,6 @@ jobs:
       - name: "E2E Tests"
         run: yarn test:e2e
         env:
-          PORT: 8080
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
