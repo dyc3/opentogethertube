@@ -11,6 +11,7 @@
 		</Button>
 		<div class="volume">
 			<Slider
+				class="min-h-8"
 				:model-value="[volume.volume.value]"
 				:min="0"
 				:max="100"
