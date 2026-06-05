@@ -18,21 +18,26 @@
 				</Button>
 			</div>
 		</div>
-		<div v-if="showPlaybackError" class="playback-error">
+		<div v-if="showPlaybackError" class="playback-error border rounded-md">
 			<div class="playback-error-text">
-				<h1 class="flex items-center gap-2">
-					<Icon :icon="mdiAlertCircle" class="size-6" />
+				<h1 class="flex items-center gap-4 text-6xl">
+					<Icon :icon="mdiAlertCircle" class="size-14" />
 					{{
 						$t(`player.playback-error-title.${currentPlaybackError?.type ?? "unknown"}`)
 					}}
 				</h1>
-				<span>{{
-					$t(`player.playback-error-message.${currentPlaybackError?.type ?? "unknown"}`)
-				}}</span>
-				<span v-if="currentPlaybackError?.message">
-					<br /><br />
-					<em>{{ currentPlaybackError?.message }}</em>
-				</span>
+				<div>
+					{{
+						$t(
+							`player.playback-error-message.${
+								currentPlaybackError?.type ?? "unknown"
+							}`,
+						)
+					}}
+				</div>
+				<div v-if="currentPlaybackError?.message">
+					{{ currentPlaybackError?.message }}
+				</div>
 			</div>
 		</div>
 
@@ -132,8 +137,8 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
-			<div v-else class="no-video">
-				<h1>{{ $t("video.no-video") }}</h1>
+			<div v-else class="no-video rounded-md border">
+				<h1 class="text-6xl">{{ $t("video.no-video") }}</h1>
 				<span>{{ $t("video.no-video-text") }}</span>
 			</div>
 			<template #fallback>
@@ -426,9 +431,6 @@ const renderedSpans = computed(() => {
 	justify-content: center;
 
 	opacity: 60%;
-	border-radius: 3px;
-	color: var(--foreground);
-	border: 1px solid var(--border);
 }
 
 .player {
