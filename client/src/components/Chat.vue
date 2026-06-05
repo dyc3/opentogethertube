@@ -2,11 +2,12 @@
 	<div
 		:class="{
 			chat: true,
-			activated: activated,
+			activated: isActive,
 		}"
 	>
-		<div class="chat-header" v-if="activated">
+		<div class="chat-header" v-if="isActive">
 			<Button
+				v-if="!alwaysVisible"
 				variant="ghost"
 				size="icon-sm"
 				@click="setActivated(false)"
@@ -46,7 +47,7 @@
 			</Button>
 		</div>
 		<Transition name="input" @after-enter="enforceStickToBottom">
-			<div class="input-box" v-if="activated">
+			<div class="input-box" v-if="isActive">
 				<Input
 					class="w-full font-mono"
 					:placeholder="$t('chat.type-here')"
@@ -59,7 +60,7 @@
 				/>
 			</div>
 		</Transition>
-		<div class="manual-activate" v-if="!activated">
+		<div class="manual-activate" v-if="!isActive">
 			<Button
 				variant="ghost"
 				size="icon"
@@ -78,18 +79,24 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { mdiChevronDown, mdiChevronDoubleDown, mdiCommentOutline } from "@mdi/js";
-import { onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
-import type { ChatMessage } from "ott-common/models/types";
+import { computed, onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import type { ServerMessageChat } from "ott-common/models/messages";
 import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 import { useSfx } from "@/plugins/sfx";
 import ChatMsg from "./ChatMsg.vue";
+import { chatMessagePast, chatMessageRecent } from "./chat-state";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
 const emit = defineEmits(["link-click"]);
+const props = defineProps({
+	alwaysVisible: {
+		type: Boolean,
+		default: false,
+	},
+});
 
 const connection = useConnection();
 const roomapi = useRoomApi(connection);
@@ -103,17 +110,8 @@ const stickToBottom = ref(true);
  * they appear and fade away after `MSG_SHOW_TIMEOUT` ms.
  */
 const activated = ref(false);
+const isActive = computed(() => activated.value || props.alwaysVisible);
 const deactivateOnBlur = ref(false);
-/**
- * All past chat messages. They are are no longer
- * shown when deactivated.
- */
-const chatMessagePast: Ref<ChatMessage[]> = ref([]);
-/**
- * All recent chat messages that are currently shown when deactivated.
- * They will fade away after `MSG_SHOW_TIMEOUT` ms, and moved into `chatMessagePast`.
- */
-const chatMessageRecent: Ref<ChatMessage[]> = ref([]);
 const messages = ref();
 const chatInput: Ref<{ $el?: HTMLInputElement } | HTMLInputElement | undefined> = ref();
 
@@ -148,6 +146,9 @@ function focusChatInput() {
 }
 
 async function setActivated(value: boolean, manual = false): Promise<void> {
+	if (!value && props.alwaysVisible) {
+		return;
+	}
 	activated.value = value;
 	if (value) {
 		if (manual) {
