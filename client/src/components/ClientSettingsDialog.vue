@@ -61,12 +61,26 @@
 					</Label>
 				</div>
 
+				<Field v-if="settings.sfxEnabled">
+					<div class="flex items-center justify-between">
+						<FieldLabel>{{ $t("client-settings.sfx-volume") }}</FieldLabel>
+						<span class="font-mono text-sm"
+							>{{ (settings.sfxVolume * 100).toFixed(0) }}%</span
+						>
+					</div>
+					<Slider
+						:model-value="[settings.sfxVolume]"
+						:min="0"
+						:max="1"
+						:step="0.01"
+						@update:model-value="v => v && (settings.sfxVolume = v[0])"
+					/>
+				</Field>
+
 				<Field>
 					<div class="flex items-center justify-between">
 						<FieldLabel>{{ $t("client-settings.audio-boost") }}</FieldLabel>
-						<span class="audio-boost-value font-mono text-sm"
-							>{{ settings.audioBoost }}%</span
-						>
+						<span class="font-mono text-sm">{{ settings.audioBoost }}%</span>
 					</div>
 					<Slider
 						:model-value="[settings.audioBoost]"
@@ -77,17 +91,6 @@
 						@update:model-value="v => v && (settings.audioBoost = v[0])"
 					/>
 					<FieldDescription>{{ audioBoostHint }}</FieldDescription>
-				</Field>
-
-				<Field v-if="settings.sfxEnabled">
-					<FieldLabel>{{ $t("client-settings.sfx-volume") }}</FieldLabel>
-					<Slider
-						:model-value="[settings.sfxVolume]"
-						:min="0"
-						:max="1"
-						:step="0.01"
-						@update:model-value="v => v && (settings.sfxVolume = v[0])"
-					/>
 				</Field>
 
 				<button
@@ -284,10 +287,6 @@ const audioBoostHint = computed(() => {
 </script>
 
 <style scoped>
-.audio-boost-value {
-	min-width: 3.5rem;
-	text-align: right;
-}
 .ott-expand-enter-active,
 .ott-expand-leave-active {
 	transition: max-height 0.25s ease, opacity 0.2s ease;
