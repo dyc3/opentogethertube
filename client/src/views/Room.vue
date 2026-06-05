@@ -9,7 +9,7 @@
 		>
 			<div class="mx-2.5 flex flex-row items-center gap-2" v-if="!store.state.fullscreen">
 				<h1
-					class="font-display tracking-[0.01em] text-foreground text-2xl group-data-[layout=theater]/room:text-2xl"
+					class="relative pl-4 font-display text-foreground text-2xl before:absolute before:bottom-[0.1em] before:left-0 before:top-[0.1em] before:w-1 before:bg-primary before:shadow-[0_0_12px_var(--primary)] before:content-['']"
 				>
 					{{
 						store.state.room.title !== ""
