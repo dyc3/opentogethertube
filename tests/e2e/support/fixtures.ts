@@ -37,6 +37,30 @@ async function expectOttResponse(response: APIResponse) {
 }
 
 export const test = base.extend<OttFixtures>({
+	page: async ({ page }, use) => {
+		if (process.env.CI) {
+			await page.addInitScript(() => {
+				const style = document.createElement("style");
+				style.textContent = `
+					*, *::before, *::after {
+						animation-delay: 0s !important;
+						animation-duration: 0s !important;
+						transition-delay: 0s !important;
+						transition-duration: 0s !important;
+					}
+				`;
+
+				const appendStyle = () => document.head.appendChild(style);
+				if (document.head) {
+					appendStyle();
+				} else {
+					document.addEventListener("DOMContentLoaded", appendStyle, { once: true });
+				}
+			});
+		}
+
+		await use(page);
+	},
 	ott: async ({ page, request }, use) => {
 		const apiKey = "TESTAPIKEY-abcdefghijklmnopqrstuvwxyz";
 
