@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
 	testDir: "tests/e2e/integration",
 	fullyParallel: false,
+	workers: process.env.CI ? 1 : undefined,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 3 : 0,
 	reporter: process.env.CI ? "github" : "list",
