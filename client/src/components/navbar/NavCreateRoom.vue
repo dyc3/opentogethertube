@@ -1,5 +1,10 @@
 <template>
-	<button type="button" class="ott-create-row" @click="$emit('createtemp')">
+	<component
+		:is="asMenuItems ? DropdownMenuItem : 'button'"
+		:type="asMenuItems ? undefined : 'button'"
+		class="ott-create-row"
+		@click="$emit('createtemp')"
+	>
 		<Icon :icon="mdiFlashOutline" class="mt-0.5 size-5 shrink-0 text-primary" />
 		<span class="flex flex-col gap-0.5 text-left">
 			<span class="font-mono text-sm font-bold tracking-wide uppercase">
@@ -9,8 +14,13 @@
 				{{ $t("nav.create.temp-desc") }}
 			</span>
 		</span>
-	</button>
-	<button type="button" class="ott-create-row" @click="$emit('createperm')">
+	</component>
+	<component
+		:is="asMenuItems ? DropdownMenuItem : 'button'"
+		:type="asMenuItems ? undefined : 'button'"
+		class="ott-create-row"
+		@click="$emit('createperm')"
+	>
 		<Icon :icon="mdiPlusBox" class="mt-0.5 size-5 shrink-0 text-signal" />
 		<span class="flex flex-col gap-0.5 text-left">
 			<span class="font-mono text-sm font-bold tracking-wide uppercase">
@@ -20,12 +30,17 @@
 				{{ $t("nav.create.perm-desc") }}
 			</span>
 		</span>
-	</button>
+	</component>
 </template>
 
 <script lang="ts" setup>
 import { Icon } from "@/components/ui/icon";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { mdiPlusBox, mdiFlashOutline } from "@mdi/js";
+
+defineProps<{
+	asMenuItems?: boolean;
+}>();
 defineEmits(["createtemp", "createperm"]);
 </script>
 

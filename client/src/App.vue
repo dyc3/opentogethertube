@@ -71,6 +71,7 @@
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" class="w-72">
 								<NavCreateRoom
+									as-menu-items
 									@createtemp="createTempRoom"
 									@createperm="showCreateRoomForm = true"
 								/>
