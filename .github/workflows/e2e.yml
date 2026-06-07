@@ -105,6 +105,24 @@ jobs:
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+
+      - name: Upload Playwright report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-node-${{ matrix.node-version }}
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Playwright test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-node-${{ matrix.node-version }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
   e2e-grafana:
     runs-on: ubuntu-latest
     strategy:
