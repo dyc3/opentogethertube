@@ -38,6 +38,8 @@ async function expectOttResponse(response: APIResponse) {
 
 export const test = base.extend<OttFixtures>({
 	page: async ({ page }, use) => {
+		await page.emulateMedia({ reducedMotion: "reduce" });
+
 		if (process.env.CI) {
 			await page.addInitScript(() => {
 				const style = document.createElement("style");
