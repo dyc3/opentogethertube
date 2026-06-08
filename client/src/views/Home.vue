@@ -2,8 +2,8 @@
 	<div class="home">
 		<!-- HERO -->
 		<section class="hero ott-vignette">
-			<HeroShaderLight v-if="isLightTheme" aria-hidden="true" />
-			<HeroShader v-else aria-hidden="true" />
+			<HeroShaderLight v-if="showShader && isLightTheme" aria-hidden="true" />
+			<HeroShader v-else-if="showShader" aria-hidden="true" />
 			<div
 				class="relative z-10 mx-auto flex min-h-[88vh] max-w-5xl flex-col justify-center px-6 py-24"
 			>
@@ -155,7 +155,15 @@ const HeroShaderLight = defineAsyncComponent(() => import("@/components/HeroShad
 const LIGHT_THEMES = ["light", "strawberry"];
 const currentTheme = ref(document.documentElement.getAttribute("data-theme") || "dark");
 const isLightTheme = computed(() => LIGHT_THEMES.includes(currentTheme.value));
+const reducedMotion = ref(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const showShader = computed(() => !reducedMotion.value);
 let themeObserver: MutationObserver | null = null;
+let reducedMotionQuery: MediaQueryList | null = null;
+
+function updateReducedMotion(event: MediaQueryList | MediaQueryListEvent) {
+	reducedMotion.value = event.matches;
+}
+
 onMounted(() => {
 	themeObserver = new MutationObserver(() => {
 		currentTheme.value = document.documentElement.getAttribute("data-theme") || "dark";
@@ -164,8 +172,14 @@ onMounted(() => {
 		attributes: true,
 		attributeFilter: ["data-theme"],
 	});
+	reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+	updateReducedMotion(reducedMotionQuery);
+	reducedMotionQuery.addEventListener("change", updateReducedMotion);
 });
-onBeforeUnmount(() => themeObserver?.disconnect());
+onBeforeUnmount(() => {
+	themeObserver?.disconnect();
+	reducedMotionQuery?.removeEventListener("change", updateReducedMotion);
+});
 // ------------------------------------------------------------------------------
 
 const store = useStore();
