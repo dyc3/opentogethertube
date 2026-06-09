@@ -1,52 +1,61 @@
 <template>
 	<div class="video-queue">
 		<div class="empty-queue" v-if="store.state.room.queue.length === 0">
-			<v-container style="height: 100%">
-				<v-row class="center-shit" style="height: 100%">
-					<div>
-						<div class="msg">
-							{{ $t("video-queue.no-videos") }}
-						</div>
-						<v-btn size="x-large" block @click="$emit('switchtab')">
-							<v-icon style="margin-right: 8px" :icon="mdiPlus" />
-							{{ $t("video-queue.add-video") }}
-						</v-btn>
-					</div>
-				</v-row>
-			</v-container>
+			<div class="empty-inner">
+				<div class="msg label-mono">
+					{{ $t("video-queue.no-videos") }}
+				</div>
+				<Button variant="marquee" size="xl" class="w-full" @click="$emit('switchtab')">
+					<Icon :icon="mdiPlus" class="size-5" />
+					{{ $t("video-queue.add-video") }}
+				</Button>
+			</div>
 		</div>
 		<div class="queue-controls" v-if="store.state.room.queue.length > 0">
-			<v-btn icon @click="roomapi.shuffle()">
-				<v-icon :icon="mdiShuffleVariant" />
-			</v-btn>
-			<v-dialog v-model="exportDialog" width="600">
-				<template v-slot:activator="{ props }">
-					<v-btn v-bind="props">
+			<Button
+				variant="ghost"
+				size="icon"
+				:aria-label="$t('room.shuffle-queue')"
+				@click="roomapi.shuffle()"
+			>
+				<Icon :icon="mdiShuffleVariant" class="size-5" />
+			</Button>
+			<Dialog v-model:open="exportDialog">
+				<DialogTrigger as-child>
+					<Button variant="outline" size="sm">
+						<Icon :icon="mdiExportVariant" class="size-4" />
 						{{ $t("video-queue.export") }}
-					</v-btn>
-				</template>
-				<v-card>
-					<v-card-title>{{ $t("video-queue.export-diag-title") }}</v-card-title>
-					<v-card-text>
-						<span>{{ $t("video-queue.export-hint") }}</span>
-						<v-textarea
-							v-model="exportedQueue"
-							readonly
-							ref="exportTextBox"
-							:class="copyExportSuccess ? 'text-success' : ''"
-							:messages="copyExportSuccess ? $t('share-invite.copied') : ''"
-						/>
-					</v-card-text>
-					<v-card-actions>
-						<v-btn color="primary" @click="copyExported">
-							{{ $t("common.copy") }}
-						</v-btn>
-						<v-btn @click="exportDialog = false">
+					</Button>
+				</DialogTrigger>
+				<DialogContent class="max-w-xl sm:max-w-xl">
+					<DialogHeader>
+						<DialogTitle class="font-display text-2xl tracking-wide">
+							{{ $t("video-queue.export-diag-title") }}
+						</DialogTitle>
+					</DialogHeader>
+					<p class="text-sm text-muted-foreground">{{ $t("video-queue.export-hint") }}</p>
+					<Textarea
+						v-model="exportedQueue"
+						readonly
+						ref="exportTextBox"
+						rows="8"
+						class="font-mono"
+						:class="copyExportSuccess ? 'text-success' : ''"
+					/>
+					<p v-if="copyExportSuccess" class="text-xs text-success font-mono">
+						{{ $t("share-invite.copied") }}
+					</p>
+					<DialogFooter>
+						<Button variant="ghost" @click="exportDialog = false">
 							{{ $t("common.close") }}
-						</v-btn>
-					</v-card-actions>
-				</v-card>
-			</v-dialog>
+						</Button>
+						<Button @click="copyExported">
+							<Icon :icon="mdiContentCopy" class="size-4" />
+							{{ $t("common.copy") }}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 		<Sortable
 			:list="store.state.room.queue"
@@ -63,7 +72,18 @@
 </template>
 
 <script lang="ts" setup>
-import { mdiPlus, mdiShuffleVariant } from "@mdi/js";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Icon } from "@/components/ui/icon";
+import { Textarea } from "@/components/ui/textarea";
+import { mdiPlus, mdiShuffleVariant, mdiExportVariant, mdiContentCopy } from "@mdi/js";
 import { ref, computed } from "vue";
 import VideoQueueItem from "@/components/VideoQueueItem.vue";
 import { useStore } from "@/store";
@@ -106,16 +126,33 @@ const { copy: copyExported, copySuccess: copyExportSuccess } = useCopyFromTextbo
 }
 
 .empty-queue {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	height: 300px;
 
+	.empty-inner {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		align-items: center;
+		text-align: center;
+		max-width: 360px;
+		width: 100%;
+	}
+
 	.msg {
-		opacity: 0.6;
-		font-size: 20px;
+		color: var(--muted-foreground);
+		font-size: 0.85rem;
 	}
 }
 
 .queue-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	margin-top: 6px;
+	margin-bottom: 4px;
 }
 
 // Transition animation

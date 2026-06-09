@@ -8,6 +8,7 @@ import faker from "faker";
 import tokens from "../auth/tokens.js";
 import { setApiKey } from "../admin.js";
 import { User as UserModel } from "../models/index.js";
+import clientmanager from "../clientmanager.js";
 
 const router = express.Router();
 const log = getLogger("api/dev");
@@ -71,6 +72,12 @@ router.post("/room/:name/add-fake-user", async (req, res) => {
 			},
 		});
 	}
+});
+
+router.post("/room/:name/force-disconnect", (req, res) => {
+	const client = clientmanager.getClientByToken(req.token!, req.params.name);
+	client.kick(1000);
+	res.json({ success: true });
 });
 
 router.post("/set-admin-api-key", (req, res) => {

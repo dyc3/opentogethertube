@@ -1,43 +1,57 @@
 <template>
-	<v-btn
-		variant="text"
-		icon
-		v-if="!isMobile"
-		@click="rotateRoomLayout"
-		class="media-control"
-		aria-label="Switch Layout"
-	>
-		<v-icon
-			v-if="store.state.settings.roomLayout === 'theater'"
-			style="transform: scaleX(180%)"
-			:icon="mdiSquareOutline"
-		/>
-		<v-icon v-else style="transform: scaleX(130%)" :icon="mdiSquareOutline" />
-		<v-tooltip activator="parent" location="bottom" v-model="layoutTooltip">
-			<span>{{
+	<Tooltip v-if="!isMobile" v-model:open="layoutTooltip">
+		<TooltipTrigger as-child>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="media-control"
+				:aria-label="$t('room.switch-layout')"
+				@click="rotateRoomLayout"
+			>
+				<Icon
+					v-if="store.state.settings.roomLayout === 'theater'"
+					style="transform: scaleX(180%)"
+					:icon="mdiSquareOutline"
+					class="size-5"
+				/>
+				<Icon
+					v-else
+					style="transform: scaleX(130%)"
+					:icon="mdiSquareOutline"
+					class="size-5"
+				/>
+			</Button>
+		</TooltipTrigger>
+		<TooltipContent side="bottom">
+			{{
 				$t(
 					store.state.settings.roomLayout === "theater"
 						? "room.default-layout"
 						: "room.theater-mode",
 				)
-			}}</span>
-		</v-tooltip>
-	</v-btn>
-	<v-btn
-		variant="text"
-		icon
-		@click="toggleFullscreen()"
-		class="media-control"
-		:aria-label="$t('room.toggle-fullscreen')"
-	>
-		<v-icon :icon="mdiFullscreenExit" />
-		<v-tooltip activator="parent" location="bottom">
-			<span>{{ $t("room.toggle-fullscreen") }}</span>
-		</v-tooltip>
-	</v-btn>
+			}}
+		</TooltipContent>
+	</Tooltip>
+	<Tooltip>
+		<TooltipTrigger as-child>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="media-control"
+				:aria-label="$t('room.toggle-fullscreen')"
+				@click="toggleFullscreen()"
+			>
+				<Icon :icon="mdiFullscreenExit" class="size-5" />
+			</Button>
+		</TooltipTrigger>
+		<TooltipContent side="bottom">{{ $t("room.toggle-fullscreen") }}</TooltipContent>
+	</Tooltip>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { mdiSquareOutline, mdiFullscreenExit } from "@mdi/js";
 import { computed, onMounted, shallowRef } from "vue";
 import { useStore } from "@/store";
@@ -84,7 +98,8 @@ onMounted(() => {
 });
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./media-controls.scss";
+<style scoped>
+.media-control {
+	color: var(--foreground);
+}
 </style>

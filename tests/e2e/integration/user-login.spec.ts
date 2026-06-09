@@ -1,168 +1,93 @@
 import faker from "faker";
+import { beforeEach, describe, expect, it } from "../support/fixtures";
 
 describe("User login/registration", () => {
-	beforeEach(() => {
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		cy.ottResetRateLimit();
-		cy.ottRequest({
-			method: "POST",
-			url: "/api/dev/reset-rate-limit/user",
+	beforeEach(async ({ context, page, ott }) => {
+		await context.clearCookies();
+		await ott.ensureToken();
+		await ott.resetRateLimit();
+		await ott.request({ method: "POST", url: "/api/dev/reset-rate-limit/user" });
+		await page.goto("/");
+	});
+
+	async function openRegister(page) {
+		await page.locator('[data-cy="user-logged-out"]').click();
+		await page.getByRole("tab", { name: "Register" }).click();
+	}
+
+	async function fillRegisterField(page, label: string, value: string) {
+		const selectors: Record<string, string> = {
+			Email: "#reg-email",
+			Username: "#reg-username",
+			Password: "#reg-password",
+			"Retype Password": "#reg-password2",
+		};
+		await page.locator(selectors[label]).fill(value);
+	}
+
+	it("should register a new user", async ({ page }) => {
+		await openRegister(page);
+		const username = faker.internet.userName();
+		const password = faker.internet.password(10);
+		await fillRegisterField(page, "Email", faker.internet.email());
+		await fillRegisterField(page, "Username", username);
+		await fillRegisterField(page, "Password", password);
+		await fillRegisterField(page, "Retype Password", password);
+		await page.locator('[data-cy="register-button"]').click();
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(username);
+	});
+
+	it("should register a new user without an email", async ({ page }) => {
+		await openRegister(page);
+		const username = faker.internet.userName();
+		const password = faker.internet.password(10);
+		await fillRegisterField(page, "Username", username);
+		await fillRegisterField(page, "Password", password);
+		await fillRegisterField(page, "Retype Password", password);
+		await page.locator('[data-cy="register-button"]').click();
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(username);
+	});
+
+	for (const loginField of ["email", "username"] as const) {
+		it(`should log in an existing user using ${loginField}/password`, async ({ page, ott }) => {
+			const userCreds = {
+				email: faker.internet.email(),
+				username: faker.internet.userName(),
+				password: faker.internet.password(12),
+			};
+			await ott.createUser(userCreds);
+			await ott.request({ method: "POST", url: "/api/user/logout" });
+			await page.context().clearCookies();
+			await ott.ensureToken();
+
+			await page.locator('[data-cy="user-logged-out"]').click();
+			await page.locator('[data-cy="login-user"]').fill(userCreds[loginField]);
+			await page.locator('[data-cy="login-password"]').fill(userCreds.password);
+			await page.locator('[data-cy="login-button"]').click();
+			await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(
+				userCreds.username,
+			);
 		});
-		cy.visit("/");
-	});
+	}
 
-	it("should register a new user", () => {
-		cy.contains("button", "Log In").click();
-		cy.get('[role="tablist"]').contains(".v-tab", "Register").click();
-		cy.wait(500);
-		const username = faker.internet.userName();
-		const password = faker.internet.password(10);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Email")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(faker.internet.email());
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Username")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(username);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Password")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(password);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Retype Password")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(password);
-		cy.get('[data-cy="register-button"]').should("not.be.disabled").click();
-		cy.wait(500);
-		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", username);
-	});
-
-	it("should register a new user without an email", () => {
-		cy.contains("button", "Log In").click();
-		cy.get('[role="tablist"]').contains(".v-tab", "Register").click();
-		cy.wait(500);
-		const username = faker.internet.userName();
-		const password = faker.internet.password(10);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Username")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(username);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Password")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(password);
-		cy.get("form")
-			.contains("Register")
-			.parent()
-			.contains("label", "Retype Password")
-			.siblings("input")
-			.click()
-			.wait(250)
-			.type(password);
-		cy.get('[data-cy="register-button"]').should("not.be.disabled").click();
-		cy.wait(500);
-		cy.get('[data-cy="user-logged-in"]').should("be.visible").should("contain", username);
-	});
-
-	it("should log in an existing user using email/password", () => {
-		// setup
+	it("should keep the user logged in when the page is refreshed", async ({ page, ott }) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
 		};
-		cy.ottCreateUser(userCreds);
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
+		await ott.createUser(userCreds);
+		await ott.request({ method: "POST", url: "/api/user/logout" });
+		await page.context().clearCookies();
+		await ott.ensureToken();
 
-		// test
-		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-user"]').click().type(userCreds.email);
-		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
-		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
-		cy.wait(500);
-		cy.get('[data-cy="user-logged-in"]')
-			.should("be.visible")
-			.should("contain", userCreds.username);
-	});
+		await page.locator('[data-cy="user-logged-out"]').click();
+		await page.locator('[data-cy="login-user"]').fill(userCreds.email);
+		await page.locator('[data-cy="login-password"]').fill(userCreds.password);
+		await page.locator('[data-cy="login-button"]').click();
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(userCreds.username);
 
-	it("should log in an existing user using username/password", () => {
-		// setup
-		const userCreds = {
-			email: faker.internet.email(),
-			username: faker.internet.userName(),
-			password: faker.internet.password(12),
-		};
-		cy.ottCreateUser(userCreds);
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-
-		// test
-		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-user"]').click().type(userCreds.username);
-		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
-		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
-		cy.wait(500);
-		cy.get('[data-cy="user-logged-in"]')
-			.should("be.visible")
-			.should("contain", userCreds.username);
-	});
-
-	it("should keep the user logged in when the page is refreshed", () => {
-		// setup
-		const userCreds = {
-			email: faker.internet.email(),
-			username: faker.internet.userName(),
-			password: faker.internet.password(12),
-		};
-		cy.ottCreateUser(userCreds);
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-
-		// log in
-		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-user"]').click().type(userCreds.email);
-		cy.get('[data-cy="login-password"]').click().type(userCreds.password);
-		cy.get('[data-cy="login-button"]').should("not.be.disabled").click();
-		cy.wait(500);
-		cy.get('[data-cy="user-logged-in"]')
-			.should("be.visible")
-			.should("contain", userCreds.username);
-
-		// check if we stay logged in
-		cy.visit("/");
-		cy.get('[data-cy="user-logged-in"]')
-			.should("be.visible")
-			.should("contain", userCreds.username);
+		await page.goto("/");
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(userCreds.username);
 	});
 });

@@ -21,6 +21,8 @@ export default {
 		hide: "Hide",
 		discard: "Discard",
 		loading: "Loading...",
+		language: "Language",
+		"nav-menu": "Navigation menu",
 		view: "View",
 		restore: "Restore",
 		success: "Success",
@@ -40,6 +42,7 @@ export default {
 	},
 	landing: {
 		hero: {
+			eyebrow: "Now showing · No sign-up required",
 			title: "Enjoy Together.",
 			description:
 				"Real-time synchronized playback. Optional voting system.\nDark theme. No sign up required. All Open Source.\nIt's never been easier to watch videos together.",
@@ -104,6 +107,7 @@ export default {
 		attribution: "Attribution",
 	},
 	"not-found": {
+		eyebrow: "Error · 404",
 		title: "Page Not Found",
 		home: "@:nav.home",
 		browse: "@:landing.hero.btns.browse",
@@ -112,6 +116,7 @@ export default {
 		text: "Making a temporary room for you...",
 	},
 	attribution: {
+		eyebrow: "Credits",
 		"sponsorblock-text": "Uses SponsorBlock data from",
 	},
 	nav: {
@@ -134,9 +139,12 @@ export default {
 		},
 	},
 	"my-rooms": {
+		"empty-eyebrow": "Your lot is empty",
+		"owned-eyebrow": "Owned",
 		"confirm-delete": 'Permanently delete room "{name}"? This cannot be undone.',
 	},
 	account: {
+		eyebrow: "Manage",
 		title: "Account",
 		description: "Manage the email and password associated with your account.",
 		details: "Account Details",
@@ -165,6 +173,8 @@ export default {
 		"load-failed": "Unable to load account.",
 	},
 	"room-list": {
+		"empty-eyebrow": "Empty house",
+		"browse-eyebrow": "Now showing",
 		"no-rooms": "No rooms right now...",
 		create: "@:nav.create.title",
 		"no-description": "No description.",
@@ -184,6 +194,12 @@ export default {
 		subtitles: "Subtitles/CC",
 		quality: "Quality",
 		"playback-speed": "Playback speed",
+		"mute-volume": "Mute",
+		"close-chat": "Close chat",
+		"open-chat": "Open chat",
+		"scroll-chat-bottom": "Scroll to bottom",
+		"shuffle-queue": "Shuffle queue",
+		"switch-layout": "Switch layout",
 		"default-layout": "Default layout",
 		"theater-mode": "Theater mode",
 		"con-status": {
@@ -198,6 +214,7 @@ export default {
 		users: {
 			title: "Users",
 			set: "Set your name",
+			"toggle-edit-name": "Toggle edit name",
 			empty: "There seems to be nobody else here. Invite some friends!",
 			you: "You",
 			demote: "Demote",
@@ -207,6 +224,8 @@ export default {
 	},
 	privacy: {
 		title: "@:footer.privacy-policy",
+		eyebrow: "The fine print",
+		contact: "Contact Info",
 	},
 	chat: {
 		title: "Chat",
@@ -219,6 +238,9 @@ export default {
 	},
 	video: {
 		"add-explanation": "Add to the queue.",
+		"add-to-queue": "Add to queue",
+		"remove-from-queue": "Remove from queue",
+		"more-actions": "More actions",
 		playnow: "Play Now",
 		"playnow-explanation":
 			"Play this video now, pushing the current video to the top of the queue.",
@@ -386,6 +408,7 @@ export default {
 			"in-use": "Already in use.",
 		},
 		"change-password": {
+			eyebrow: "Reset",
 			title: "Change Password",
 			success: "Password change successful.",
 			forgot: "Forgot your password?",
@@ -448,6 +471,7 @@ export default {
 		BadApiArgumentException: "Bad API Argument. This is likely a bug, please report it.",
 	},
 	player: {
+		"peertube-player": "PeerTube Player",
 		"buffer-warn": {
 			spans: "You haven't buffered enough of the video yet. Current time ranges buffered: {ranges}",
 		},

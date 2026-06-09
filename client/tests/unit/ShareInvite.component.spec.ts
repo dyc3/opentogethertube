@@ -8,7 +8,7 @@ describe("ShareInvite component", () => {
 		store.state.room.name = "foobar";
 
 		expect(
-			(wrapper.get('[data-cy="share-invite-link"] input').element as HTMLInputElement).value,
+			(wrapper.get('[data-cy="share-invite-link"]').element as HTMLInputElement).value,
 		).not.toContain("foobar");
 	});
 
@@ -19,7 +19,7 @@ describe("ShareInvite component", () => {
 		await wrapper.vm.$nextTick();
 
 		expect(
-			(wrapper.get('[data-cy="share-invite-link"] input').element as HTMLInputElement).value,
+			(wrapper.get('[data-cy="share-invite-link"]').element as HTMLInputElement).value,
 		).toBe("https://ottr.cc/foobar");
 	});
 
@@ -34,7 +34,7 @@ describe("ShareInvite component", () => {
 		store.state.shortUrl = "ottr.cc";
 		await wrapper.vm.$nextTick();
 
-		await wrapper.get('[data-cy="share-invite-link"] [role="button"]').trigger("click");
+		await wrapper.get('button[aria-label="Share Invite"]').trigger("click");
 
 		expect(writeText).toHaveBeenCalledWith("https://ottr.cc/foobar");
 	});
@@ -50,7 +50,7 @@ describe("ShareInvite component", () => {
 		store.state.shortUrl = "ottr.cc";
 		await wrapper.vm.$nextTick();
 
-		await wrapper.get('[data-cy="share-invite-link"] [role="button"]').trigger("click");
+		await wrapper.get('button[aria-label="Share Invite"]').trigger("click");
 		expect(wrapper.get('[data-cy="share-invite-link"]').classes()).toContain("text-success");
 
 		vi.advanceTimersByTime(3000);

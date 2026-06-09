@@ -1,4 +1,3 @@
-import _ from "lodash";
 import type { Module } from "vuex/types";
 import { Grants } from "ott-common/permissions";
 import { QueueMode, Visibility } from "ott-common/models/types";
@@ -66,9 +65,52 @@ export const roomModule: Module<RoomState, FullOTTStoreState> = {
 	},
 	actions: {
 		sync(context, message: ServerMessageSync) {
-			const stateupdate: Partial<RoomState> = {
-				..._.omit(message, ["action", "grants", "voteCounts", "votesToSkip"]),
-			} as any;
+			const stateupdate: Partial<RoomState> = {};
+			if ("name" in message) {
+				stateupdate.name = message.name;
+			}
+			if ("title" in message) {
+				stateupdate.title = message.title;
+			}
+			if ("description" in message) {
+				stateupdate.description = message.description;
+			}
+			if ("isTemporary" in message) {
+				stateupdate.isTemporary = message.isTemporary;
+			}
+			if ("visibility" in message) {
+				stateupdate.visibility = message.visibility;
+			}
+			if ("queueMode" in message) {
+				stateupdate.queueMode = message.queueMode;
+			}
+			if ("isPlaying" in message) {
+				stateupdate.isPlaying = message.isPlaying;
+			}
+			if ("playbackPosition" in message) {
+				stateupdate.playbackPosition = message.playbackPosition;
+			}
+			if ("currentSource" in message) {
+				stateupdate.currentSource = message.currentSource;
+			}
+			if ("queue" in message) {
+				stateupdate.queue = message.queue;
+			}
+			if ("prevQueue" in message) {
+				stateupdate.prevQueue = message.prevQueue;
+			}
+			if ("playbackSpeed" in message) {
+				stateupdate.playbackSpeed = message.playbackSpeed;
+			}
+			if ("hasOwner" in message) {
+				stateupdate.hasOwner = message.hasOwner;
+			}
+			if ("enableVoteSkip" in message) {
+				stateupdate.enableVoteSkip = message.enableVoteSkip;
+			}
+			if ("videoSegments" in message) {
+				stateupdate.videoSegments = message.videoSegments;
+			}
 			if (
 				message.isPlaying !== undefined &&
 				this.state.room.isPlaying !== message.isPlaying

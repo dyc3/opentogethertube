@@ -5,7 +5,11 @@ import PermissionsEditor from "@/components/PermissionsEditor.vue";
 import { mountComponent } from "./component-test-utils";
 
 function permissionCheckbox(permission: string, role: Role) {
-	return `[data-cy="perm-chk-${permission}-${role}"] input`;
+	return `[data-cy="perm-chk-${permission}-${role}"]`;
+}
+
+function isChecked(element: Element) {
+	return element.attributes.getNamedItem("aria-checked")?.value === "true";
 }
 
 describe("PermissionsEditor component", () => {
@@ -17,34 +21,30 @@ describe("PermissionsEditor component", () => {
 		});
 
 		expect(
-			(
+			isChecked(
 				wrapper.get(permissionCheckbox("playback.play-pause", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+					.element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.seek", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.seek", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 
 		grants.setRoleGrants(Role.UnregisteredUser, 1 << 0);
@@ -52,34 +52,30 @@ describe("PermissionsEditor component", () => {
 		await wrapper.setProps({ modelValue: grants });
 
 		expect(
-			(
+			isChecked(
 				wrapper.get(permissionCheckbox("playback.play-pause", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+					.element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.seek", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.seek", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 	});
 
@@ -94,32 +90,29 @@ describe("PermissionsEditor component", () => {
 			.get(permissionCheckbox("playback.play-pause", Role.UnregisteredUser))
 			.trigger("click");
 		expect(
-			(
+			isChecked(
 				wrapper.get(permissionCheckbox("playback.play-pause", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+					.element,
+			),
 		).toBe(false);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.play-pause", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 
 		await wrapper
 			.get(permissionCheckbox("playback.skip", Role.UnregisteredUser))
 			.trigger("click");
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.UnregisteredUser)).element,
+			),
 		).toBe(false);
 		expect(
-			(
-				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser))
-					.element as HTMLInputElement
-			).checked,
+			isChecked(
+				wrapper.get(permissionCheckbox("playback.skip", Role.RegisteredUser)).element,
+			),
 		).toBe(true);
 	});
 });

@@ -1,8 +1,23 @@
 import childProcess from "node:child_process";
 import path from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
-import vuetify from "vite-plugin-vuetify";
+import { createLogger, defineConfig, searchForWorkspaceRoot } from "vite";
+
+const logger = createLogger();
+const warn = logger.warn;
+
+logger.warn = (message, options) => {
+	// HACK: dashjs publishes an ESM entry with CommonJS wrapper code that floods build output.
+	if (
+		message.includes("COMMONJS_VARIABLE_IN_ESM") &&
+		message.includes("dashjs/dist/modern/esm/dash.all.min.js")
+	) {
+		return;
+	}
+
+	warn(message, options);
+};
 
 function gitCommit() {
 	if (process.env.GIT_COMMIT) {
@@ -19,22 +34,12 @@ function gitCommit() {
 }
 // https://vitejs.dev/config/
 export default defineConfig({
+	customLogger: logger,
 	define: {
 		__COMMIT_HASH__: JSON.stringify(gitCommit()),
 	},
 	base: process.env.OTT_BASE_URL || "/",
-	plugins: [
-		vue(),
-		vuetify({
-			autoImport: true,
-			styles: {
-				configFile: path.resolve(
-					searchForWorkspaceRoot(process.cwd()),
-					"client/src/vuetify-settings.scss",
-				),
-			},
-		}),
-	],
+	plugins: [vue(), tailwindcss()],
 	// css: {
 	// 	preprocessorOptions: {
 	// 		scss: {
@@ -60,22 +65,7 @@ export default defineConfig({
 	},
 	envDir: path.resolve(searchForWorkspaceRoot(process.cwd()), "env"),
 	envPrefix: ["VITE_", "VUE_APP_", "OTT_"],
-	// optimizeDeps: {
-	// 	// this attempts to mitigate https://github.com/cypress-io/cypress/issues/25913
-	// 	entries: [
-	// 		"tests/e2e/**/*.ts",
-	// 		"client/tests/e2e/**/*.ts",
-	// 		"tests/e2e/support/component.ts",
-	// 		"client/tests/e2e/support/component.ts",
-	// 		"**/*.{js,ts,vue}",
-	// 	],
-	// },
 	test: {
 		environment: "jsdom",
-		server: {
-			deps: {
-				inline: ["vuetify"],
-			},
-		},
 	},
 });

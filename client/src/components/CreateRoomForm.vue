@@ -1,85 +1,144 @@
 <template>
-	<v-card>
-		<v-form ref="form" @submit="submit" v-model="isValid">
-			<v-card-title>{{ $t("create-room-form.card-title") }}</v-card-title>
-			<v-card-text>
-				<v-text-field
-					:label="$t('create-room-form.name')"
-					:hint="$t('create-room-form.name-hint')"
-					v-model="options.name"
-					required
-					counter="32"
-					:rules="rules.name"
-					@keydown="() => (isRoomNameTaken = false)"
-					persistent-hint
-				/>
-				<v-checkbox
-					v-model="showSettings"
-					:label="$t('room.tabs.settings')"
-					:false-icon="mdiChevronUp"
-					:true-icon="mdiChevronDown"
-				/>
-				<v-expand-transition>
-					<div v-if="showSettings">
-						<v-text-field
-							:label="$t('create-room-form.title')"
-							:hint="$t('create-room-form.title-hint')"
-							v-model="options.title"
-							persistent-hint
+	<Card>
+		<form @submit.prevent="submit">
+			<CardHeader>
+				<CardTitle>
+					{{ $t("create-room-form.card-title") }}
+				</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<FieldGroup>
+					<Field :data-invalid="showNameError || undefined">
+						<FieldLabel for="crf-name">{{ $t("create-room-form.name") }}</FieldLabel>
+						<Input
+							id="crf-name"
+							v-model="options.name"
+							maxlength="32"
+							:aria-invalid="showNameError || undefined"
+							@keydown="() => (isRoomNameTaken = false)"
+							@blur="touched.name = true"
 						/>
-						<v-text-field
-							:label="$t('create-room-form.description')"
-							:hint="$t('create-room-form.description-hint')"
-							v-model="options.description"
-							persistent-hint
+						<div class="flex justify-between gap-2">
+							<FieldDescription>{{
+								$t("create-room-form.name-hint")
+							}}</FieldDescription>
+							<span class="text-xs text-dim font-mono"
+								>{{ options.name.length }}/32</span
+							>
+						</div>
+						<FieldError v-if="showNameError">{{ errors.name }}</FieldError>
+					</Field>
+
+					<button
+						type="button"
+						class="flex w-full items-center justify-between rounded-md border bg-surface-2/40 px-3 py-2 font-mono text-sm uppercase tracking-wider text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+						:aria-expanded="showSettings"
+						@click="showSettings = !showSettings"
+					>
+						<span>{{ $t("room.tabs.settings") }}</span>
+						<Icon
+							:icon="mdiChevronDown"
+							class="size-4 transition-transform duration-200"
+							:class="{ 'rotate-180': showSettings }"
 						/>
-						<v-select
-							:label="$t('create-room-form.visibility')"
-							:hint="$t('create-room-form.visibility-hint')"
-							:items="[
-								{ title: $t('create-room-form.public'), value: 'public' },
-								{ title: $t('create-room-form.unlisted'), value: 'unlisted' },
-							]"
-							v-model="options.visibility"
-							:rules="rules.visibility"
-							persistent-hint
-						/>
-						<v-select
-							:label="$t('create-room-form.queue-mode')"
-							:items="[
-								{ title: $t('create-room-form.manual'), value: 'manual' },
-								{ title: $t('create-room-form.vote'), value: 'vote' },
-								{ title: $t('create-room-form.loop'), value: 'loop' },
-								{ title: $t('create-room-form.dj'), value: 'dj' },
-							]"
-							v-model="options.queueMode"
-							:rules="rules.queueMode"
-							persistent-hint
-						/>
-					</div>
-				</v-expand-transition>
-				<div :key="error">{{ error }}</div>
-			</v-card-text>
-			<v-card-actions>
-				<v-spacer />
-				<v-btn
-					variant="text"
-					@click="submit"
-					role="Submit"
-					:loading="isSubmitting"
-					:disabled="!isValid"
-					color="primary"
-					>{{ $t("create-room-form.create-room") }}</v-btn
-				>
-				<v-btn variant="text" @click="$emit('cancel')">{{ $t("common.cancel") }}</v-btn>
-			</v-card-actions>
-		</v-form>
-	</v-card>
+					</button>
+
+					<Transition name="ott-expand">
+						<div v-if="showSettings" class="flex flex-col gap-5 overflow-hidden">
+							<Field>
+								<FieldLabel for="crf-title">{{
+									$t("create-room-form.title")
+								}}</FieldLabel>
+								<Input id="crf-title" v-model="options.title" />
+								<FieldDescription>{{
+									$t("create-room-form.title-hint")
+								}}</FieldDescription>
+							</Field>
+							<Field>
+								<FieldLabel for="crf-desc">{{
+									$t("create-room-form.description")
+								}}</FieldLabel>
+								<Input id="crf-desc" v-model="options.description" />
+								<FieldDescription>
+									{{ $t("create-room-form.description-hint") }}
+								</FieldDescription>
+							</Field>
+							<Field>
+								<FieldLabel>{{ $t("create-room-form.visibility") }}</FieldLabel>
+								<Select v-model="options.visibility">
+									<SelectTrigger class="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="public">{{
+											$t("create-room-form.public")
+										}}</SelectItem>
+										<SelectItem value="unlisted">
+											{{ $t("create-room-form.unlisted") }}
+										</SelectItem>
+									</SelectContent>
+								</Select>
+								<FieldDescription>{{
+									$t("create-room-form.visibility-hint")
+								}}</FieldDescription>
+							</Field>
+							<Field>
+								<FieldLabel>{{ $t("create-room-form.queue-mode") }}</FieldLabel>
+								<Select v-model="options.queueMode">
+									<SelectTrigger class="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="manual">{{
+											$t("create-room-form.manual")
+										}}</SelectItem>
+										<SelectItem value="vote">{{
+											$t("create-room-form.vote")
+										}}</SelectItem>
+										<SelectItem value="loop">{{
+											$t("create-room-form.loop")
+										}}</SelectItem>
+										<SelectItem value="dj">{{
+											$t("create-room-form.dj")
+										}}</SelectItem>
+									</SelectContent>
+								</Select>
+							</Field>
+						</div>
+					</Transition>
+
+					<p v-if="error" :key="error" class="text-sm text-destructive">{{ error }}</p>
+				</FieldGroup>
+			</CardContent>
+			<CardFooter>
+				<Button variant="ghost" type="button" @click="$emit('cancel')">
+					{{ $t("common.cancel") }}
+				</Button>
+				<Button type="submit" role="Submit" :disabled="!isValid || isSubmitting">
+					<Spinner v-if="isSubmitting" class="size-4" />
+					{{ $t("create-room-form.create-room") }}
+				</Button>
+			</CardFooter>
+		</form>
+	</Card>
 </template>
 
 <script lang="ts" setup>
-import { mdiChevronUp, mdiChevronDown } from "@mdi/js";
-import { onMounted, reactive, type Ref, ref, watch } from "vue";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { mdiChevronDown } from "@mdi/js";
+import { computed, reactive, ref, watch } from "vue";
 import { createRoomHelper } from "@/util/roomcreator";
 import { ROOM_NAME_REGEX } from "ott-common/constants";
 import { Visibility, QueueMode } from "ott-common/models/types";
@@ -99,60 +158,38 @@ const options = reactive({
 	queueMode: QueueMode.Manual,
 });
 
-const rules = {
-	name: [
-		(v: string) => !!v || t("create-room-form.rules.name.name-required"),
-		(v: string) => (v && !v.includes(" ")) || t("create-room-form.rules.name.no-spaces"),
-		(v: string) =>
-			(v && v.length >= 3 && v.length <= 32) || t("create-room-form.rules.name.length"),
-		(v: string) =>
-			(v && ROOM_NAME_REGEX.test(v)) || t("create-room-form.rules.name.alphanumeric"),
-		(v: string) => (v && !isRoomNameTaken.value) || t("create-room-form.rules.name.taken"),
-	],
-	// eslint-disable-next-line array-bracket-newline
-	visibility: [
-		// eslint-disable-next-line array-bracket-newline
-		(v: string) =>
-			(v && [Visibility.Public, Visibility.Unlisted].includes(v as Visibility)) ||
-			t("create-room-form.rules.invalid-visibility"),
-	],
-	// eslint-disable-next-line array-bracket-newline
-	queueMode: [
-		// eslint-disable-next-line array-bracket-newline
-		(v: string) =>
-			(v &&
-				[QueueMode.Manual, QueueMode.Vote, QueueMode.Loop, QueueMode.Dj].includes(
-					v as QueueMode,
-				)) ||
-			t("create-room-form.rules.invalid-queue"),
-	],
-};
-
-const isValid = ref(true);
 const isSubmitting = ref(false);
 const isRoomNameTaken = ref(false);
 const error = ref("");
-const form: Ref<{ validate(): void } | undefined> = ref();
 const showSettings = ref(false);
+const touched = reactive({ name: false });
 
-// HACK: for some reason, the form doesn't start updating the model value unless we do this
-onMounted(() => {
-	if (form.value) {
-		form.value.validate();
+const errors = computed(() => {
+	const v = options.name;
+	let name = "";
+	if (!v) {
+		name = t("create-room-form.rules.name.name-required");
+	} else if (v.includes(" ")) {
+		name = t("create-room-form.rules.name.no-spaces");
+	} else if (v.length < 3 || v.length > 32) {
+		name = t("create-room-form.rules.name.length");
+	} else if (!ROOM_NAME_REGEX.test(v)) {
+		name = t("create-room-form.rules.name.alphanumeric");
+	} else if (isRoomNameTaken.value) {
+		name = t("create-room-form.rules.name.taken");
 	}
+	return { name };
 });
 
-async function submit(e): Promise<void> {
-	e.preventDefault();
-	if (!form.value) {
-		console.error("Form not found");
-		return;
-	}
-	form.value.validate();
+const isValid = computed(() => !errors.value.name);
+const showNameError = computed(() => touched.name && !!errors.value.name);
+
+async function submit(): Promise<void> {
+	touched.name = true;
 	if (!isValid.value) {
 		return;
 	}
-
+	isSubmitting.value = true;
 	try {
 		const opts = {
 			...options,
@@ -179,7 +216,8 @@ async function submit(e): Promise<void> {
 		} else {
 			error.value = err.message;
 		}
-		form.value.validate();
+	} finally {
+		isSubmitting.value = false;
 	}
 }
 
@@ -189,4 +227,15 @@ watch(options, () => {
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+.ott-expand-enter-active,
+.ott-expand-leave-active {
+	transition: all 0.25s ease;
+	max-height: 600px;
+}
+.ott-expand-enter-from,
+.ott-expand-leave-to {
+	max-height: 0;
+	opacity: 0;
+}
+</style>

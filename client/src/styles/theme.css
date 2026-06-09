@@ -1,0 +1,663 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * ───────────────────────────────────────────────────────────────────────────
+ *  OpenTogetherTube — "MIDNIGHT DRIVE-IN"
+ *  A retro-cinema / CRT-marquee aesthetic. Warm near-black, neon amber marquee
+ *  light, electric cyan signal glow, faint scanlines + film grain.
+ *
+ *  The drive-in palette DRIVES shadcn-vue's semantic tokens (--background,
+ *  --primary, --card, ...) so every shadcn component is skinned automatically.
+ *  Extra drive-in-only tokens (--signal, --ink, glows) live alongside them.
+ * ───────────────────────────────────────────────────────────────────────────
+ */
+
+/* dark: variant applies inside any of our dark themes */
+@custom-variant dark (&:is(
+	[data-theme="dark"] *,
+	[data-theme="deepred"] *,
+	[data-theme="deepblue"] *,
+	[data-theme="greenslate"] *,
+	[data-theme="ultraviolet"] *,
+	[data-theme="sunset"] *,
+	[data-theme="dark"],
+	[data-theme="deepred"],
+	[data-theme="deepblue"],
+	[data-theme="greenslate"],
+	[data-theme="ultraviolet"],
+	[data-theme="sunset"]
+));
+@custom-variant light (&:is(
+	[data-theme="light"] *,
+	[data-theme="strawberry"] *,
+	[data-theme="light"],
+	[data-theme="strawberry"]
+));
+
+/*
+ * Reka UI state variants used by the shadcn-vue "nova" components.
+ * (Normally provided by the "shadcn-vue/tailwind.css" import, which this CLI
+ * version doesn't ship — so we define them here.) Cover both the bare attribute
+ * and the data-state value form.
+ */
+@custom-variant data-open (&:is([data-state="open"], [data-open]));
+@custom-variant data-closed (&:is([data-state="closed"], [data-closed]));
+@custom-variant data-active (&:is([data-state="active"], [data-active]));
+@custom-variant data-checked (&:is([data-state="checked"], [data-state="on"], [data-checked]));
+@custom-variant data-unchecked (&:is(
+	[data-state="unchecked"],
+	[data-state="off"],
+	[data-unchecked]
+));
+@custom-variant data-horizontal (&[data-orientation="horizontal"]);
+@custom-variant data-vertical (&[data-orientation="vertical"]);
+@custom-variant data-disabled (&:is([data-disabled], [data-state="disabled"]));
+@custom-variant data-inset (&[data-inset]);
+@custom-variant data-placeholder (&[data-placeholder]);
+
+/* ===========================================================================
+ *  THEME TOKENS  (live CSS vars — swappable at runtime via data-theme)
+ * ======================================================================== */
+:root,
+[data-theme="dark"] {
+	color-scheme: dark;
+	/* drive-in extras */
+	--ink: #0c0a08;
+	--primary-bright: #ffd271;
+	--primary-deep: #e89a1c;
+	--signal: #4fe6df;
+	--signal-deep: #1fb9b3;
+	--surface-2: #211a14;
+	--surface-3: #2c231b;
+	--success: #8ad96b;
+	--warning: #ffb13d;
+	--glow-primary: 0 0 0 1px rgb(255 190 61 / 0.35), 0 0 24px -4px rgb(255 190 61 / 0.55);
+	--glow-signal: 0 0 0 1px rgb(79 230 223 / 0.35), 0 0 22px -4px rgb(79 230 223 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 230 190 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+	--text-glow-primary:
+		0 0 18px color-mix(in srgb, var(--primary) 55%, transparent), 0 0 2px var(--primary);
+	--hero-text-glow:
+		0 0 24px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 2px var(--primary);
+
+	/* shadcn semantic */
+	--background: #100d0a;
+	--foreground: #f6ecd9;
+	--card: #181310;
+	--card-foreground: #f6ecd9;
+	--popover: #1b1511;
+	--popover-foreground: #f6ecd9;
+	--primary: #ffbe3d;
+	--primary-foreground: #1a1206;
+	--secondary: #221b14;
+	--secondary-foreground: #f6ecd9;
+	--muted: #211a14;
+	--muted-foreground: #c4b49a;
+	--accent: #2c231b;
+	--accent-foreground: #ffd271;
+	--destructive: #ff5a4d;
+	--destructive-foreground: #1a0605;
+	--border: rgb(255 220 160 / 0.12);
+	--input: rgb(255 220 160 / 0.16);
+	--ring: #ffbe3d;
+	--radius: 0.35rem;
+}
+
+/* warm matinee-lobby light */
+[data-theme="light"] {
+	color-scheme: light;
+	--ink: #f0e7d6;
+	--primary-bright: #f59e0b;
+	--primary-deep: #b45309;
+	--signal: #0d8b8f;
+	--signal-deep: #0a6c6f;
+	--surface-2: #fffaf1;
+	--surface-3: #ece0c8;
+	--success: #2f8f3e;
+	--warning: #c2740a;
+	--glow-primary: 0 0 0 1px rgb(217 119 6 / 0.22), 0 10px 28px -12px rgb(217 119 6 / 0.5);
+	--glow-signal: 0 0 0 1px rgb(13 139 143 / 0.22), 0 10px 28px -12px rgb(13 139 143 / 0.45);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(74 46 12 / 0.45);
+	--hero-text-glow: 0 1px 1px rgb(74 46 12 / 0.18);
+	/* hero shader: warm amber clouds that actually read on a pale page. The teal
+	   accent uses multiply (screen is invisible on light) for cool variation. */
+	--hero-core-a: #ec8a0e;
+	--hero-core-b: #d9821e;
+	--hero-core-opacity: 0.76;
+	--hero-accent-a: var(--signal);
+	--hero-accent-b: var(--background);
+	--hero-accent-blend: multiply;
+	--hero-accent-opacity: 0.55;
+
+	--background: #f6efe1;
+	--foreground: #2a1c0b;
+	--card: #fffdf8;
+	--card-foreground: #2a1c0b;
+	--popover: #fffefb;
+	--popover-foreground: #2a1c0b;
+	--primary: #d97706;
+	--primary-foreground: #fff8ec;
+	--secondary: #ecdfc3;
+	--secondary-foreground: #3a2912;
+	--muted: #ebdfc7;
+	--muted-foreground: #6c5639;
+	--accent: #f5e9cf;
+	--accent-foreground: #a85906;
+	--destructive: #c4362a;
+	--destructive-foreground: #fff;
+	--border: rgb(74 46 12 / 0.16);
+	--input: rgb(74 46 12 / 0.26);
+	--ring: #d97706;
+	--radius: 0.35rem;
+}
+
+/* drive-in at the edge of sunset — deep red */
+[data-theme="deepred"] {
+	color-scheme: dark;
+	--ink: #1a0408;
+	--primary-bright: #ff6f86;
+	--primary-deep: #d11036;
+	--signal: #ffae54;
+	--signal-deep: #e1842d;
+	--surface-2: #421023;
+	--surface-3: #54162e;
+	--success: #44c98a;
+	--warning: #ffae54;
+	--glow-primary: 0 0 0 1px rgb(255 59 92 / 0.4), 0 0 26px -4px rgb(255 59 92 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(255 174 84 / 0.35), 0 0 22px -4px rgb(255 174 84 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 200 210 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #220610;
+	--foreground: #ffe7ec;
+	--card: #310a18;
+	--card-foreground: #ffe7ec;
+	--popover: #3a0d1d;
+	--popover-foreground: #ffe7ec;
+	--primary: #ff3b5c;
+	--primary-foreground: #2a0309;
+	--secondary: #421023;
+	--secondary-foreground: #ffe7ec;
+	--muted: #421023;
+	--muted-foreground: #d99fae;
+	--accent: #54162e;
+	--accent-foreground: #ff6f86;
+	--destructive: #ff5470;
+	--destructive-foreground: #2a0309;
+	--border: rgb(255 150 170 / 0.14);
+	--input: rgb(255 150 170 / 0.2);
+	--ring: #ff3b5c;
+	--radius: 0.35rem;
+}
+
+/* midnight broadcast — deep blue */
+[data-theme="deepblue"] {
+	color-scheme: dark;
+	--ink: #03101f;
+	--primary-bright: #87d0ff;
+	--primary-deep: #1c8fe6;
+	--signal: #5ef0d8;
+	--signal-deep: #1fc0a8;
+	--surface-2: #0c2c47;
+	--surface-3: #11385a;
+	--success: #4fe0b0;
+	--warning: #ffc04f;
+	--glow-primary: 0 0 0 1px rgb(79 182 255 / 0.4), 0 0 26px -4px rgb(79 182 255 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(94 240 216 / 0.35), 0 0 22px -4px rgb(94 240 216 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(190 220 255 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #051628;
+	--foreground: #e2f3ff;
+	--card: #082035;
+	--card-foreground: #e2f3ff;
+	--popover: #0a2740;
+	--popover-foreground: #e2f3ff;
+	--primary: #4fb6ff;
+	--primary-foreground: #04121f;
+	--secondary: #0c2c47;
+	--secondary-foreground: #e2f3ff;
+	--muted: #0c2c47;
+	--muted-foreground: #9cc2dc;
+	--accent: #11385a;
+	--accent-foreground: #87d0ff;
+	--destructive: #ff6b6b;
+	--destructive-foreground: #04121f;
+	--border: rgb(150 200 255 / 0.14);
+	--input: rgb(150 200 255 / 0.2);
+	--ring: #4fb6ff;
+	--radius: 0.35rem;
+}
+
+/* projector-room green phosphor */
+[data-theme="greenslate"] {
+	color-scheme: dark;
+	--ink: #0a0f0a;
+	--primary-bright: #8dff9f;
+	--primary-deep: #2fc257;
+	--signal: #e4d36a;
+	--signal-deep: #c2af3f;
+	--surface-2: #1d2b1d;
+	--surface-3: #263626;
+	--success: #5cf07f;
+	--warning: #efeb68;
+	--glow-primary: 0 0 0 1px rgb(92 240 127 / 0.4), 0 0 26px -4px rgb(92 240 127 / 0.6);
+	--glow-signal: 0 0 0 1px rgb(228 211 106 / 0.35), 0 0 22px -4px rgb(228 211 106 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(200 255 200 / 0.05) inset, 0 18px 50px -24px rgb(0 0 0 / 0.9);
+
+	--background: #0e150e;
+	--foreground: #e7f6e2;
+	--card: #151f15;
+	--card-foreground: #e7f6e2;
+	--popover: #182418;
+	--popover-foreground: #e7f6e2;
+	--primary: #5cf07f;
+	--primary-foreground: #061206;
+	--secondary: #1d2b1d;
+	--secondary-foreground: #e7f6e2;
+	--muted: #1d2b1d;
+	--muted-foreground: #a9c4a3;
+	--accent: #263626;
+	--accent-foreground: #8dff9f;
+	--destructive: #ff7a6a;
+	--destructive-foreground: #061206;
+	--border: rgb(170 230 170 / 0.13);
+	--input: rgb(170 230 170 / 0.2);
+	--ring: #5cf07f;
+	--radius: 0.35rem;
+}
+
+/* midnight cult-feature, the whole lot under blacklight — ultraviolet */
+[data-theme="ultraviolet"] {
+	color-scheme: dark;
+	--ink: #070411;
+	--primary-bright: #d99dff;
+	--primary-deep: #7d23c6;
+	--signal: #aef23c;
+	--signal-deep: #7ec01f;
+	--surface-2: #221838;
+	--surface-3: #2c2047;
+	--success: #3fe08a;
+	--warning: #ffb13d;
+	--glow-primary: 0 0 0 1px rgb(178 75 255 / 0.42), 0 0 28px -4px rgb(178 75 255 / 0.65);
+	--glow-signal: 0 0 0 1px rgb(174 242 60 / 0.35), 0 0 22px -4px rgb(174 242 60 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(220 200 255 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.92);
+
+	--background: #0e0a1a;
+	--foreground: #f0eafe;
+	--card: #161029;
+	--card-foreground: #f0eafe;
+	--popover: #1a1330;
+	--popover-foreground: #f0eafe;
+	--primary: #b24bff;
+	--primary-foreground: #15052a;
+	--secondary: #221838;
+	--secondary-foreground: #f0eafe;
+	--muted: #221838;
+	--muted-foreground: #b3a6d4;
+	--accent: #2c2047;
+	--accent-foreground: #d99dff;
+	--destructive: #ff5640;
+	--destructive-foreground: #1c0603;
+	--border: rgb(200 170 255 / 0.13);
+	--input: rgb(200 170 255 / 0.2);
+	--ring: #b24bff;
+	--radius: 0.35rem;
+}
+
+/* last show before the horizon swallows the sun — tangerine sunset over a
+   warm mahogany dusk, with cool turquoise sea-and-stars signal */
+[data-theme="sunset"] {
+	color-scheme: dark;
+	--ink: #120a0e;
+	--primary-bright: #ffac63;
+	--primary-deep: #e0561a;
+	--signal: #2fe0d4;
+	--signal-deep: #16b3a8;
+	--surface-2: #2a1a20;
+	--surface-3: #36222a;
+	--success: #5fe0a0;
+	--warning: #ffc24f;
+	--glow-primary: 0 0 0 1px rgb(255 122 51 / 0.42), 0 0 28px -4px rgb(255 122 51 / 0.62);
+	--glow-signal: 0 0 0 1px rgb(47 224 212 / 0.35), 0 0 22px -4px rgb(47 224 212 / 0.5);
+	--shadow-panel: 0 1px 0 0 rgb(255 220 200 / 0.06) inset, 0 18px 50px -24px rgb(0 0 0 / 0.92);
+
+	--background: #1c1016;
+	--foreground: #fcecdf;
+	--card: #261820;
+	--card-foreground: #fcecdf;
+	--popover: #2a1a24;
+	--popover-foreground: #fcecdf;
+	--primary: #ff7a33;
+	--primary-foreground: #2a0f02;
+	--secondary: #2a1a20;
+	--secondary-foreground: #fcecdf;
+	--muted: #2a1a20;
+	--muted-foreground: #d0b3a3;
+	--accent: #36222a;
+	--accent-foreground: #ffac63;
+	--destructive: #ff5640;
+	--destructive-foreground: #2a0603;
+	--border: rgb(255 200 175 / 0.13);
+	--input: rgb(255 200 175 / 0.2);
+	--ring: #ff7a33;
+	--radius: 0.35rem;
+}
+
+/* candy concession-stand light */
+[data-theme="strawberry"] {
+	color-scheme: light;
+	--ink: #ffe6ee;
+	--primary-bright: #ff4d8d;
+	--primary-deep: #b80049;
+	--signal: #2f9457;
+	--signal-deep: #237042;
+	--surface-2: #fff6f9;
+	--surface-3: #ffd8e4;
+	--success: #2f9457;
+	--warning: #e0801f;
+	--glow-primary: 0 0 0 1px rgb(232 3 95 / 0.22), 0 10px 28px -12px rgb(232 3 95 / 0.5);
+	--glow-signal: 0 0 0 1px rgb(47 148 87 / 0.22), 0 10px 28px -12px rgb(47 148 87 / 0.42);
+	--shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.9) inset, 0 16px 38px -20px rgb(140 14 62 / 0.4);
+	--hero-text-glow: 0 1px 1px rgb(140 14 62 / 0.18);
+	/* hero shader: candy-pink clouds that read on the pale pink page; green
+	   accent via multiply (screen is invisible on light) for cool variation. */
+	--hero-core-a: #f0327f;
+	--hero-core-b: #e85a96;
+	--hero-core-opacity: 0.74;
+	--hero-accent-a: var(--signal);
+	--hero-accent-b: var(--background);
+	--hero-accent-blend: multiply;
+	--hero-accent-opacity: 0.5;
+
+	--background: #fff0f5;
+	--foreground: #4a0f29;
+	--card: #fffafc;
+	--card-foreground: #4a0f29;
+	--popover: #fffdfe;
+	--popover-foreground: #4a0f29;
+	--primary: #e8035f;
+	--primary-foreground: #fff;
+	--secondary: #ffdbe7;
+	--secondary-foreground: #4a0f29;
+	--muted: #ffdce8;
+	--muted-foreground: #8c3a58;
+	--accent: #ffd5e2;
+	--accent-foreground: #b80049;
+	--destructive: #c8123f;
+	--destructive-foreground: #fff;
+	--border: rgb(140 14 62 / 0.16);
+	--input: rgb(140 14 62 / 0.26);
+	--ring: #e8035f;
+	--radius: 0.35rem;
+}
+
+/* sidebar + chart tokens (derived; mostly unused but kept resolvable) */
+:root {
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--card-foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--accent);
+	--sidebar-accent-foreground: var(--accent-foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
+	--chart-1: var(--primary);
+	--chart-2: var(--signal);
+	--chart-3: var(--success);
+	--chart-4: var(--warning);
+	--chart-5: var(--destructive);
+}
+
+@theme inline {
+	/* shadcn semantic colors */
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+
+	/* drive-in extras */
+	--color-ink: var(--ink);
+	--color-signal: var(--signal);
+	--color-signal-deep: var(--signal-deep);
+	--color-surface-2: var(--surface-2);
+	--color-surface-3: var(--surface-3);
+	--color-success: var(--success);
+	--color-warning: var(--warning);
+	--color-primary-bright: var(--primary-bright);
+	--color-primary-deep: var(--primary-deep);
+
+	/* glow shadows → named utilities (shadow-glow-*, text-shadow-glow-*),
+	   bridging the per-theme runtime tokens so they re-color with the theme */
+	--shadow-glow-primary: var(--glow-primary);
+	--shadow-glow-signal: var(--glow-signal);
+	--text-shadow-glow-primary: var(--text-glow-primary);
+
+	/* fonts */
+	--font-sans: var(--font-body);
+	--font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+	--font-body: "Hanken Grotesk", system-ui, sans-serif;
+	--font-mono: "Space Mono", ui-monospace, monospace;
+
+	/* radii */
+	--radius-sm: calc(var(--radius) - 2px);
+	--radius-md: var(--radius);
+	--radius-lg: calc(var(--radius) + 2px);
+	--radius-xl: calc(var(--radius) + 6px);
+	--font-heading: var(--font-display);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+
+	html {
+		background-color: var(--ink);
+		color: var(--foreground);
+		font-family: var(--font-body);
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+		scrollbar-color: var(--primary-deep) transparent;
+	}
+
+	body {
+		margin: 0;
+		min-height: 100vh;
+		@apply bg-background text-foreground font-sans;
+	}
+
+	h1,
+	h2,
+	h3,
+	.display {
+		font-family: var(--font-display);
+		font-weight: 400;
+		letter-spacing: 0.02em;
+		line-height: 0.95;
+		text-transform: uppercase;
+	}
+
+	a {
+		color: var(--signal);
+		text-decoration: none;
+		transition: color 0.15s ease;
+	}
+	a:hover {
+		color: var(--primary-bright);
+	}
+
+	::selection {
+		background: var(--primary);
+		color: var(--primary-foreground);
+	}
+
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	::-webkit-scrollbar-thumb {
+		background: var(--surface-3);
+		border-radius: 99px;
+		border: 2px solid transparent;
+		background-clip: padding-box;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--primary-deep);
+		background-clip: padding-box;
+	}
+
+	input,
+	textarea,
+	select,
+	button {
+		font-family: inherit;
+	}
+}
+
+@layer components {
+	/* Element-scoped scanlines — same CRT banding, but masked to the element's
+	   own glyphs instead of the whole viewport. The ::after duplicates the text
+	   (via data-text) and clips the scanline gradient to the letterforms, so the
+	   banding only darkens the lettering itself. Used on the hero title and the
+	   nav brand. Elements using this MUST set a matching data-text attribute. */
+	.ott-text-scanlines {
+		position: relative;
+	}
+	.ott-text-scanlines::after {
+		content: attr(data-text);
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			to bottom,
+			rgb(0 0 0 / 0) 0,
+			rgb(0 0 0 / 0) 2px,
+			rgb(0 0 0 / 0.55) 3px,
+			rgb(0 0 0 / 0) 4px
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+		text-shadow: none;
+		mix-blend-mode: multiply;
+	}
+
+	.ott-vignette::after {
+		content: "";
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background: radial-gradient(120% 120% at 50% 40%, transparent 55%, rgb(0 0 0 / 0.45) 100%);
+	}
+}
+
+@layer utilities {
+	.ticket-notch {
+		clip-path: polygon(
+			0 0,
+			calc(100% - 10px) 0,
+			100% 10px,
+			100% 100%,
+			10px 100%,
+			0 calc(100% - 10px)
+		);
+	}
+
+	.marquee-flicker {
+		animation: ott-flicker 6s infinite;
+	}
+	@keyframes ott-flicker {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		92% {
+			opacity: 1;
+		}
+		93% {
+			opacity: 0.55;
+		}
+		94% {
+			opacity: 1;
+		}
+		96% {
+			opacity: 0.7;
+		}
+		97% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes ott-fade-up {
+		from {
+			opacity: 0;
+			transform: translateY(14px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	.animate-fade-up {
+		animation: ott-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+
+	@keyframes ott-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.scrollbarBeGone {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.scrollbarBeGone::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+@utility label-mono {
+	font-family: var(--font-mono);
+	text-transform: uppercase;
+	letter-spacing: 0.22em;
+	font-size: 0.68rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.marquee-flicker {
+		animation: none !important;
+	}
+}

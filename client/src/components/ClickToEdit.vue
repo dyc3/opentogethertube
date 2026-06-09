@@ -1,12 +1,8 @@
 <template>
-	<div style="display: inline-flex">
+	<div class="inline-flex">
 		<div v-if="editing">
-			<v-text-field
-				variant="solo"
-				hide-details
-				density="compact"
-				single-line
-				class="editor"
+			<Input
+				class="editor h-8"
 				ref="editor"
 				v-model="valueDirty"
 				@keyup.enter="apply"
@@ -21,6 +17,7 @@
 </template>
 
 <script lang="ts" setup generic="T extends string | number">
+import { Input } from "@/components/ui/input";
 /**
  * Provides a value display that can be clicked to edit.
  */
@@ -28,7 +25,9 @@ import { ref, nextTick, type Ref } from "vue";
 
 const props = withDefaults(
 	defineProps<{
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		valueFormatter?: (value: number) => string;
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		valueParser?: (value: string) => number;
 	}>(),
 	{
@@ -43,8 +42,10 @@ const emit = defineEmits<{
 	change: [value: T];
 }>();
 
-const editor = ref<HTMLInputElement | undefined>();
+const editor = ref<{ $el?: HTMLInputElement } | undefined>();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const valueFormatter = ref(props.valueFormatter) as Ref<(value: number) => string>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const valueParser = ref(props.valueParser) as Ref<(value: string) => number>;
 
 const editing = ref(false);
@@ -63,7 +64,7 @@ async function activate() {
 	}
 	editing.value = true;
 	await nextTick();
-	editor.value?.focus();
+	editor.value?.$el?.focus();
 }
 
 function apply() {

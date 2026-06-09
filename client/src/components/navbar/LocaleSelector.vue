@@ -1,43 +1,35 @@
 <template>
-	<v-select
-		variant="solo"
-		style="margin-top: 5px; width: 100px"
-		item-title="text"
-		:items="locales"
-		v-model="locale"
-	/>
+	<Select v-model="locale">
+		<SelectTrigger size="sm" class="w-[72px]" :aria-label="$t('common.language')">
+			<SelectValue />
+		</SelectTrigger>
+		<SelectContent>
+			<SelectItem v-for="l in locales" :key="l.value" :value="l.value">
+				<span class="text-lg">{{ l.text }}</span>
+			</SelectItem>
+		</SelectContent>
+	</Select>
 </template>
 
 <script lang="ts" setup>
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { ref, watch } from "vue";
 import { loadLanguageAsync } from "@/i18n";
 import { useStore } from "@/store";
 
 const locales = [
-	{
-		text: "🇺🇸",
-		value: "en",
-	},
-	{
-		text: "🇩🇪",
-		value: "de",
-	},
-	{
-		text: "🇫🇷",
-		value: "fr",
-	},
-	{
-		text: "🇷🇺",
-		value: "ru",
-	},
-	{
-		text: "🇪🇸",
-		value: "es",
-	},
-	{
-		text: "🇧🇷",
-		value: "pt-br",
-	},
+	{ text: "🇺🇸", value: "en" },
+	{ text: "🇩🇪", value: "de" },
+	{ text: "🇫🇷", value: "fr" },
+	{ text: "🇷🇺", value: "ru" },
+	{ text: "🇪🇸", value: "es" },
+	{ text: "🇧🇷", value: "pt-br" },
 ];
 
 const store = useStore();

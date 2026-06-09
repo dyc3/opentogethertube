@@ -4,14 +4,13 @@
 			:class="{
 				'video-controls': true,
 				'in-video': mode === 'in-video',
-				'outside-video': mode === 'outside-video',
+				'outside-video relative rounded-b-md': mode === 'outside-video',
 				'hide': !controlsVisible,
 			}"
 		>
 			<VideoProgressSlider :current-position="sliderPosition" />
 			<div class="controls-row2">
 				<BasicControls :current-position="truePosition" />
-				<!-- eslint-disable-next-line vue/no-v-model-argument -->
 				<VolumeControl />
 				<TimestampDisplay :current-position="truePosition" data-cy="timestamp-display" />
 				<div class="grow"><!-- Spacer --></div>
@@ -54,8 +53,6 @@ withDefaults(
 <style lang="scss">
 @use "./media-controls.scss";
 
-$media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
-
 .grow {
 	flex-grow: 1;
 }
@@ -73,8 +70,8 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 
 		background: linear-gradient(
 			to top,
-			rgba($media-control-background, 0.65),
-			rgba($media-control-background, 0)
+			color-mix(in srgb, var(--ink) 78%, transparent),
+			color-mix(in srgb, var(--ink) 0%, transparent)
 		);
 		transition: all 0.2s;
 
@@ -86,8 +83,7 @@ $media-control-background: var(--v-theme-media-control-background, (0, 0, 0));
 	}
 
 	&.outside-video {
-		background: rgb($media-control-background);
-		border-radius: 0 0 10px 10px;
+		background: var(--ink);
 
 		&.hide {
 			opacity: 0;

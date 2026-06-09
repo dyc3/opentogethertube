@@ -1,33 +1,45 @@
 <template>
-	<v-menu offset-y v-if="store.state.user">
-		<template v-slot:activator="{ props }">
-			<v-btn
-				variant="text"
-				v-bind="props"
+	<DropdownMenu v-if="store.state.user">
+		<DropdownMenuTrigger as-child>
+			<Button
+				variant="ghost"
+				size="sm"
 				:key="store.state.user.username"
 				data-cy="user-logged-in"
 			>
+				<Icon :icon="mdiAccountCircle" class="size-4 text-signal" />
 				{{ store.state.user.username }}
-			</v-btn>
-		</template>
-		<v-list two-line max-width="400">
-			<v-list-item to="/account">
-				<v-list-item-title>{{ $t("nav.account") }}</v-list-item-title>
-			</v-list-item>
-			<v-list-item @click="goLoginDiscord" v-if="!store.state.user.discordLinked">
-				<v-list-item-title>{{ $t("nav.link-discord") }}</v-list-item-title>
-			</v-list-item>
-			<v-list-item @click="$emit('logout')">
-				<v-list-item-title>{{ $t("nav.logout") }}</v-list-item-title>
-			</v-list-item>
-		</v-list>
-	</v-menu>
-	<v-btn variant="text" @click="$emit('login')" data-cy="user-logged-out" v-else>
+			</Button>
+		</DropdownMenuTrigger>
+		<DropdownMenuContent align="end" class="w-52">
+			<DropdownMenuItem as-child>
+				<router-link to="/account">{{ $t("nav.account") }}</router-link>
+			</DropdownMenuItem>
+			<DropdownMenuItem v-if="!store.state.user.discordLinked" @click="goLoginDiscord">
+				{{ $t("nav.link-discord") }}
+			</DropdownMenuItem>
+			<DropdownMenuSeparator />
+			<DropdownMenuItem class="text-destructive" @click="$emit('logout')">
+				{{ $t("nav.logout") }}
+			</DropdownMenuItem>
+		</DropdownMenuContent>
+	</DropdownMenu>
+	<Button v-else variant="outline" size="sm" data-cy="user-logged-out" @click="$emit('login')">
 		{{ $t("nav.login") }}
-	</v-btn>
+	</Button>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Icon } from "@/components/ui/icon";
+import { mdiAccountCircle } from "@mdi/js";
 import { goLoginDiscord } from "@/util/discord";
 import { useStore } from "@/store";
 

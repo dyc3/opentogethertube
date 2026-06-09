@@ -14,7 +14,9 @@ Ody = "Ody"
 [files]
 extend-exclude = [
 	"server/tests/unit/fixtures",
+	"server/tests/unit/services/reddit.spec.ts",
 	"server/tests/unit/services/youtube.spec.ts",
+	"client/src/styles/fonts.css",
 	"client/src/locales",
 	"!client/src/locales/en.ts",
 	"deploy/nginx.prod.conf",

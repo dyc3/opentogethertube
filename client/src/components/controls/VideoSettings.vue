@@ -1,135 +1,129 @@
 <template>
-	<div class="video-settings-wrapper">
-		<v-btn
-			variant="text"
-			icon
-			class="media-control"
-			:aria-label="$t('room.player-settings')"
-			@click="toggleMenu"
-		>
-			<v-icon :icon="mdiCog" />
-			<v-tooltip activator="parent" location="bottom">
-				{{ $t("room.player-settings") }}
-			</v-tooltip>
-		</v-btn>
-
-		<v-container v-if="isMenuOpen" v-click-outside="closeMenu" class="settings-menu-container">
-			<div class="menu-container">
-				<transition name="menu-resize" mode="out-in" slim>
-					<!-- Found the following hack in Room.vue -->
-					<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
-					<!-- Main menu -->
-					<v-list
-						v-if="currentMenu === 'main'"
-						key="main"
-						class="menu-content"
-						min-width="300px"
+	<Popover v-model:open="isMenuOpen" @update:open="onOpenChange">
+		<Tooltip>
+			<TooltipTrigger as-child>
+				<PopoverTrigger as-child>
+					<Button
+						variant="ghost"
+						size="icon"
+						class="media-control"
+						:aria-label="$t('room.player-settings')"
 					>
-						<v-list-item
-							link
-							class="menu-item"
-							:disabled="!isCaptionsSupported"
-							:append-icon="mdiChevronRight"
-							:prepend-icon="mdiClosedCaptionOutline"
-							@click="navigateToMenu('subtitle')"
-						>
-							<div class="menu-item-content">
-								<span>{{ $t("room.subtitles") }}</span>
-								<span v-if="currentSubtitleDisplay" class="menu-item-value">
-									{{ currentSubtitleDisplay }}
-								</span>
-							</div>
-						</v-list-item>
+						<Icon :icon="mdiCog" class="size-5" />
+					</Button>
+				</PopoverTrigger>
+			</TooltipTrigger>
+			<TooltipContent side="bottom">{{ $t("room.player-settings") }}</TooltipContent>
+		</Tooltip>
 
-						<v-list-item
-							link
-							class="menu-item"
-							:disabled="!isQualitySupported"
-							:append-icon="mdiChevronRight"
-							:prepend-icon="mdiTune"
-							@click="navigateToMenu('quality')"
-						>
-							<div class="menu-item-content">
-								<span>{{ $t("room.quality") }}</span>
-								<span class="menu-item-value">
-									{{ currentQualityDisplay }}
-								</span>
-							</div>
-						</v-list-item>
-					</v-list>
-
-					<!-- Quality submenu -->
-					<v-list
-						v-else-if="currentMenu === 'quality'"
-						key="quality"
-						class="menu-content"
-						color="primary"
+		<PopoverContent side="top" align="center" class="w-auto min-w-[260px] p-1">
+			<Transition name="menu-resize" mode="out-in">
+				<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
+				<!-- Main menu -->
+				<div v-if="currentMenu === 'main'" key="main" class="menu-content">
+					<button
+						type="button"
+						class="menu-item"
+						:disabled="!isCaptionsSupported"
+						@click="navigateToMenu('subtitle')"
 					>
-						<v-list-item
-							link
-							class="menu-header"
-							min-width="150px"
-							:prepend-icon="mdiChevronLeft"
-							@click="navigateToMenu('main')"
-						>
-							{{ $t("room.quality") }}
-						</v-list-item>
+						<Icon :icon="mdiClosedCaptionOutline" class="size-5 shrink-0" />
+						<div class="menu-item-content">
+							<span>{{ $t("room.subtitles") }}</span>
+							<span v-if="currentSubtitleDisplay" class="menu-item-value">
+								{{ currentSubtitleDisplay }}
+							</span>
+						</div>
+						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
+					</button>
 
-						<v-list-item
-							v-if="qualities.isAutoQualitySupported.value"
-							link
-							:active="isAutoQualityActive"
-							@click="selectQuality(-1)"
-						>
-							{{ autoQualityDisplay }}
-						</v-list-item>
-
-						<v-list-item
-							v-for="(quality, idx) in qualities.videoTracks.value"
-							:key="idx"
-							link
-							:active="idx === qualities.currentVideoTrack.value"
-							@click="selectQuality(idx)"
-						>
-							{{ formatQuality(quality) }}
-						</v-list-item>
-					</v-list>
-
-					<!-- Subtitle submenu -->
-					<v-list
-						v-else-if="currentMenu === 'subtitle'"
-						key="subtitle"
-						class="menu-content"
-						color="primary"
+					<button
+						type="button"
+						class="menu-item"
+						:disabled="!isQualitySupported"
+						@click="navigateToMenu('quality')"
 					>
-						<v-list-item
-							link
-							class="menu-header"
-							min-width="200px"
-							:prepend-icon="mdiChevronLeft"
-							@click="navigateToMenu('main')"
-						>
-							{{ $t("room.subtitles") }}
-						</v-list-item>
+						<Icon :icon="mdiTune" class="size-5 shrink-0" />
+						<div class="menu-item-content">
+							<span>{{ $t("room.quality") }}</span>
+							<span class="menu-item-value">
+								{{ currentQualityDisplay }}
+							</span>
+						</div>
+						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
+					</button>
+				</div>
 
-						<v-list-item
-							v-for="(track, idx) in captions.captionsTracks.value"
-							:key="idx"
-							link
-							:active="isSubtitleTrackActive(idx)"
-							:append-icon="track.kind === 'captions' ? mdiClosedCaption : undefined"
-							@click="selectSubtitleTrack(idx)"
-						>
-							{{ formatCaption(track) }}
-						</v-list-item>
-					</v-list>
-				</transition>
-			</div>
-		</v-container>
-	</div>
+				<!-- Quality submenu -->
+				<div v-else-if="currentMenu === 'quality'" key="quality" class="menu-content">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
+						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
+						<span>{{ $t("room.quality") }}</span>
+					</button>
+
+					<button
+						v-if="qualities.isAutoQualitySupported.value"
+						type="button"
+						class="menu-item"
+						:class="{ 'menu-item-active': isAutoQualityActive }"
+						@click="selectQuality(-1)"
+					>
+						{{ autoQualityDisplay }}
+					</button>
+
+					<button
+						v-for="(quality, idx) in qualities.videoTracks.value"
+						:key="idx"
+						type="button"
+						class="menu-item"
+						:class="{ 'menu-item-active': idx === qualities.currentVideoTrack.value }"
+						@click="selectQuality(idx)"
+					>
+						{{ formatQuality(quality) }}
+					</button>
+				</div>
+
+				<!-- Subtitle submenu -->
+				<div v-else-if="currentMenu === 'subtitle'" key="subtitle" class="menu-content">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
+						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
+						<span>{{ $t("room.subtitles") }}</span>
+					</button>
+
+					<button
+						v-for="(track, idx) in captions.captionsTracks.value"
+						:key="idx"
+						type="button"
+						class="menu-item"
+						:class="{ 'menu-item-active': isSubtitleTrackActive(idx) }"
+						@click="selectSubtitleTrack(idx)"
+					>
+						<span class="menu-item-content">{{ formatCaption(track) }}</span>
+						<Icon
+							v-if="track.kind === 'captions'"
+							:icon="mdiClosedCaption"
+							class="size-5 shrink-0"
+						/>
+					</button>
+				</div>
+			</Transition>
+		</PopoverContent>
+	</Popover>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
 import {
@@ -225,9 +219,8 @@ function resetToMainMenu(): void {
 	currentMenu.value = "main";
 }
 
-function toggleMenu(): void {
-	isMenuOpen.value = !isMenuOpen.value;
-	if (!isMenuOpen.value) {
+function onOpenChange(open: boolean): void {
+	if (!open) {
 		resetToMainMenu();
 	}
 }
@@ -251,52 +244,58 @@ function selectSubtitleTrack(track: number): void {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./media-controls.scss";
-
-.video-settings-wrapper {
-	position: relative;
-}
-
-.settings-menu-container {
-	position: absolute;
-	bottom: media-controls.$video-controls-height;
-	right: -90px;
-	z-index: 9999;
-	background: media-controls.$menu-background;
-	border-radius: media-controls.$menu-radius;
-	padding: 0;
-	width: auto;
-	box-shadow: 0 4px 20px rgba(var(--v-theme-surface), 0.3);
-}
-
-.menu-container {
-	border-radius: 10px;
-	overflow: hidden;
+<style scoped>
+.media-control {
+	color: var(--foreground);
 }
 
 .menu-content {
 	width: 100%;
 	min-height: fit-content;
-	background: transparent;
+	display: flex;
+	flex-direction: column;
 }
 
 .menu-item {
-	&-content {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		width: 100%;
-		font-weight: 500;
-	}
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	padding: 0.5rem 0.65rem;
+	border-radius: var(--radius);
+	color: var(--foreground);
+	font-size: 0.875rem;
+	cursor: pointer;
+	text-align: left;
+	transition: background-color 0.15s ease;
+}
 
-	&-value {
-		color: rgba(var(--v-theme-on-surface), 0.6);
-		font-size: 0.875rem;
-		margin-left: 1rem;
-		font-weight: 400;
-	}
+.menu-item:hover:not(:disabled) {
+	background: var(--surface-2);
+}
+
+.menu-item:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.menu-item-active {
+	color: var(--primary);
+}
+
+.menu-item-content {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex: 1;
+	font-weight: 500;
+}
+
+.menu-item-value {
+	color: var(--muted-foreground);
+	font-size: 0.875rem;
+	margin-left: 1rem;
+	font-weight: 400;
 }
 
 .menu-header {
@@ -318,10 +317,6 @@ function selectSubtitleTrack(track: number): void {
 .menu-resize-leave-to {
 	opacity: 0;
 	max-height: 0;
-	padding-top: 0;
-	padding-bottom: 0;
-	margin-top: 0;
-	margin-bottom: 0;
 }
 
 .menu-resize-enter-to,

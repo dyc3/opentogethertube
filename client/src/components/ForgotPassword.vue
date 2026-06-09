@@ -1,46 +1,52 @@
 <template>
-	<a @click.prevent class="link text-primary">
-		{{ $t("login-form.change-password.forgot") }}
-
-		<v-dialog activator="parent" v-model="showForgotPassword" width="400">
-			<v-container>
-				<v-card>
-					<v-card-title>
-						{{ $t("login-form.change-password.forgot") }}
-					</v-card-title>
-					<v-form @submit="startPasswordReset">
-						<v-card-text>
-							{{ $t("login-form.change-password.prompt") }}
-							<v-text-field
-								:loading="isLoading"
-								:label="$t('login-form.email')"
-								v-model="email"
-							/>
-							<v-text-field
-								:loading="isLoading"
-								:label="$t('login-form.username')"
-								v-model="username"
-							/>
-						</v-card-text>
-						<v-card-actions>
-							<v-spacer />
-							<v-btn
-								type="submit"
-								color="primary"
-								@click.prevent="startPasswordReset"
-								:loading="isLoading"
-							>
-								{{ $t("login-form.change-password.reset") }}
-							</v-btn>
-						</v-card-actions>
-					</v-form>
-				</v-card>
-			</v-container>
-		</v-dialog>
-	</a>
+	<Dialog v-model:open="showForgotPassword">
+		<DialogTrigger as-child>
+			<a href="#" @click.prevent="showForgotPassword = true">
+				{{ $t("login-form.change-password.forgot") }}
+			</a>
+		</DialogTrigger>
+		<DialogContent class="max-w-md sm:max-w-md">
+			<DialogHeader>
+				<DialogTitle class="font-display text-2xl tracking-wide">
+					{{ $t("login-form.change-password.forgot") }}
+				</DialogTitle>
+			</DialogHeader>
+			<form class="flex flex-col gap-4" @submit.prevent="startPasswordReset">
+				<p class="text-sm text-muted-foreground">
+					{{ $t("login-form.change-password.prompt") }}
+				</p>
+				<Field>
+					<FieldLabel for="fp-email">{{ $t("login-form.email") }}</FieldLabel>
+					<Input id="fp-email" v-model="email" :disabled="isLoading" />
+				</Field>
+				<Field>
+					<FieldLabel for="fp-username">{{ $t("login-form.username") }}</FieldLabel>
+					<Input id="fp-username" v-model="username" :disabled="isLoading" />
+				</Field>
+				<DialogFooter>
+					<Button type="submit" :disabled="isLoading">
+						<Spinner v-if="isLoading" class="size-4" />
+						{{ $t("login-form.change-password.reset") }}
+					</Button>
+				</DialogFooter>
+			</form>
+		</DialogContent>
+	</Dialog>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { ref } from "vue";
 import type { OttResponseBody } from "ott-common/models/rest-api";
 import toast from "@/util/toast";

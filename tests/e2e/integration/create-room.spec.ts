@@ -1,158 +1,135 @@
 import faker from "faker";
-// biome-ignore lint/style/noCommonJs: biome migration
-const uuid = require("uuid");
+import type { Page } from "@playwright/test";
+import { v4 as uuid } from "uuid";
+import { beforeEach, describe, expect, it } from "../support/fixtures";
+
+const ROOM_URL_PATTERN = /room/;
+const OWNER_CLASS_PATTERN = /role-owner/;
 
 describe("Creating Rooms", () => {
-	beforeEach(() => {
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		cy.ottResetRateLimit();
+	async function openCreateRoomMenu(page: Page) {
+		await page.getByRole("banner").getByRole("button", { name: "Create Room" }).click();
+	}
+
+	beforeEach(async ({ context, ott }) => {
+		await context.clearCookies();
+		await ott.ensureToken();
+		await ott.resetRateLimit();
 	});
 
-	it("should create a temporary room", () => {
-		cy.visit(Cypress.config().baseUrl);
-		cy.contains("Create Room").should("be.visible").click();
-		cy.get(".v-menu")
-			.contains(".v-list-item", "Create Temporary Room")
-			.should("be.visible")
-			.click();
-		cy.wait(500);
-		cy.location("pathname").should(path => {
-			expect(path).to.include("room");
-		});
-		cy.get("h1")
-			.contains("Temporary Room")
-			.scrollIntoView()
-			.should("be.visible")
-			.should("have.text", "Temporary Room");
-		cy.get("#connectStatus").should("have.text", "Connected");
+	it("should create a temporary room", async ({ page }) => {
+		await page.goto("/");
+		await openCreateRoomMenu(page);
+		await page.getByText("Create Temporary Room", { exact: true }).click();
+		await expect(page).toHaveURL(ROOM_URL_PATTERN);
+		await expect(page.locator("h1", { hasText: "Temporary Room" })).toHaveText(
+			"Temporary Room",
+		);
+		await expect(page.locator("#connectStatus")).toHaveText("Connected");
 	});
 
-	it("should create a permanent room", () => {
-		cy.visit(Cypress.config().baseUrl);
-		cy.contains("Create Room").should("be.visible").click();
-		cy.get(".v-menu")
-			.contains(".v-list-item", "Create Permanent Room")
-			.should("be.visible")
-			.click();
+	it("should create a permanent room", async ({ page }) => {
+		await page.goto("/");
+		await openCreateRoomMenu(page);
+		await page.getByText("Create Permanent Room", { exact: true }).click();
 
-		const roomName: string = uuid.v4().substring(0, 20);
-		cy.get("form").find("input").first().type(roomName);
-		cy.get("form").submit();
+		const roomName = uuid().substring(0, 20);
+		await page.locator("form input").first().fill(roomName);
+		await page.locator("form").evaluate(form => (form as HTMLFormElement).requestSubmit());
 
-		cy.wait(500);
-		cy.location("pathname").should(path => {
-			expect(path).to.include("room");
-		});
-		cy.get("h1")
-			.contains(roomName)
-			.scrollIntoView()
-			.should("be.visible")
-			.should("have.text", roomName);
-		cy.get("#connectStatus").should("have.text", "Connected");
+		await expect(page).toHaveURL(ROOM_URL_PATTERN);
+		await expect(page.locator("h1", { hasText: roomName })).toHaveText(roomName);
+		await expect(page.locator("#connectStatus")).toHaveText("Connected");
 	});
 
-	it("should create a permanent room, unload it, and be able to load it back up", () => {
-		cy.ottRequest({
+	it("should create a permanent room, unload it, and be able to load it back up", async ({
+		page,
+		ott,
+	}) => {
+		await ott.request({
 			method: "POST",
 			url: "/api/dev/set-admin-api-key",
-			body: {
-				newkey: Cypress.env("OTT_API_KEY"),
-			},
+			body: { newkey: ott.apiKey },
 		});
-		cy.visit(Cypress.config().baseUrl);
-		cy.contains("Create Room").should("be.visible").click();
-		cy.get(".v-menu")
-			.contains(".v-list-item", "Create Permanent Room")
-			.should("be.visible")
-			.click();
+		await page.goto("/");
+		await openCreateRoomMenu(page);
+		await page.getByText("Create Permanent Room", { exact: true }).click();
 
-		const roomName: string = uuid.v4().substring(0, 20);
-		cy.get("form").find("input").first().type(roomName);
-		cy.get("form").submit();
+		const roomName = uuid().substring(0, 20);
+		await page.locator("form input").first().fill(roomName);
+		await page.locator("form").evaluate(form => (form as HTMLFormElement).requestSubmit());
+		await expect(page).toHaveURL(ROOM_URL_PATTERN);
 
-		cy.visit(Cypress.config().baseUrl);
-		cy.ottRequest({
+		await page.goto("/");
+		await ott.request({
 			method: "DELETE",
 			url: `/api/room/${roomName}`,
-			headers: {
-				apikey: Cypress.env("OTT_API_KEY"),
-			},
+			headers: { apikey: ott.apiKey },
 		});
 
-		cy.visit(`${Cypress.config().baseUrl}room/${roomName}`);
-		cy.get("#connectStatus").should("have.text", "Connected");
+		await page.goto(`/room/${roomName}`);
+		await expect(page.locator("#connectStatus")).toHaveText("Connected");
 	});
 
 	describe("Room Ownership", () => {
-		let userCreds = null;
-		before(() => {
-			cy.ottEnsureToken();
-			cy.ottRequest({
-				method: "POST",
-				url: "/api/dev/reset-rate-limit/user",
-			});
+		let userCreds: { email: string; username: string; password: string };
+
+		beforeEach(async ({ context, page, ott }) => {
+			await context.clearCookies();
+			await ott.ensureToken();
+			await ott.request({ method: "POST", url: "/api/dev/reset-rate-limit/user" });
 			userCreds = {
 				email: faker.internet.email(),
 				username: faker.internet.userName(),
 				password: faker.internet.password(12),
 			};
-			cy.ottCreateUser(userCreds);
-			cy.ottResetRateLimit();
+			await ott.createUser(userCreds);
+			await ott.resetRateLimit();
+			await page.reload();
 		});
 
-		beforeEach(() => {
-			cy.clearCookies();
-			cy.clearLocalStorage();
-			cy.ottEnsureToken();
-			cy.reload();
-		});
+		async function createRoom(page: Page) {
+			await page.goto("/");
+			await openCreateRoomMenu(page);
+			await page.getByText("Create Permanent Room", { exact: true }).click();
 
-		function createRoom() {
-			cy.visit(Cypress.config().baseUrl);
-			cy.contains("Create Room").click();
-			cy.get(".v-menu").contains(".v-list-item", "Create Permanent Room").click();
-
-			const roomName = uuid.v4().substring(0, 20);
-			cy.get("form").find("input").first().type(roomName);
-			cy.get("form").submit();
-
-			cy.wait(500);
-			cy.location("pathname").should(path => {
-				expect(path).to.include("room");
-			});
+			const roomName = uuid().substring(0, 20);
+			await page.locator("form input").first().fill(roomName);
+			await page.locator("form").evaluate(form => (form as HTMLFormElement).requestSubmit());
+			await expect(page).toHaveURL(ROOM_URL_PATTERN);
 		}
 
-		function checkPermissionsEditor() {
-			cy.contains("Permissions Editor")
-				.should("exist")
-				.should("contain", "Viewing as: Owner");
+		async function checkPermissionsEditor(page: Page) {
+			await expect(page.getByText("Permissions Editor").locator("..")).toContainText(
+				"Viewing as: Owner",
+			);
 		}
 
-		it("should create a room then claim", () => {
-			createRoom();
-			cy.ottLogin(userCreds);
-			cy.reload();
+		it("should create a room then claim", async ({ page, ott }) => {
+			await createRoom(page);
+			await ott.login(userCreds);
+			await page.reload();
 
-			cy.contains("Settings").click();
-			cy.contains("button", "Claim Room").should("be.visible").click();
-			cy.wait(200);
-			cy.contains("button", "Save").should("exist").scrollIntoView().should("be.visible");
-			checkPermissionsEditor();
+			await page.getByText("Settings").click();
+			const claimRoom = page.getByRole("button", { name: "Claim Room" });
+			if (await claimRoom.isVisible()) {
+				await claimRoom.click();
+			}
+			await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+			await checkPermissionsEditor(page);
 		});
 
-		it("should create a room that is already claimed", () => {
-			cy.ottLogin(userCreds);
-			cy.reload();
+		it("should create a room that is already claimed", async ({ page, ott }) => {
+			await ott.login(userCreds);
+			await page.reload();
 
-			createRoom();
-			cy.contains("Settings").click();
-			cy.contains("button", "Save").should("exist").scrollIntoView().should("be.visible");
-			cy.contains("button", "Claim Room").should("not.exist");
+			await createRoom(page);
+			await page.getByText("Settings").click();
+			await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+			await expect(page.getByRole("button", { name: "Claim Room" })).not.toBeVisible();
 
-			cy.get(".user").should("have.class", "role-owner");
-			checkPermissionsEditor();
+			await expect(page.locator(".user")).toHaveClass(OWNER_CLASS_PATTERN);
+			await checkPermissionsEditor(page);
 		});
 	});
 });

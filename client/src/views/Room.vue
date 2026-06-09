@@ -1,18 +1,16 @@
 <template>
 	<div>
 		<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
-		<v-container
-			fluid
-			:class="{
-				'room': true,
-				'fullscreen': store.state.fullscreen,
-				'layout-default': store.state.settings.roomLayout === 'default',
-				'layout-theater': store.state.settings.roomLayout === 'theater',
-			}"
+		<div
+			class="group/room p-4 max-xl:p-0 data-[fullscreen=true]:p-0 data-[layout=theater]:p-0"
+			:data-fullscreen="store.state.fullscreen"
+			:data-layout="store.state.settings.roomLayout"
 			v-if="!showDisconnectedOverlay"
 		>
-			<div class="room-header" v-if="!store.state.fullscreen">
-				<h1 class="room-title">
+			<div class="mx-2.5 flex flex-row items-center gap-2" v-if="!store.state.fullscreen">
+				<h1
+					class="relative pl-4 font-display text-foreground text-2xl before:absolute before:bottom-[0.1em] before:left-0 before:top-[0.1em] before:w-1 before:bg-primary before:shadow-[0_0_12px_var(--primary)] before:content-['']"
+				>
 					{{
 						store.state.room.title !== ""
 							? store.state.room.title
@@ -22,29 +20,43 @@
 					}}
 				</h1>
 				<ClientSettingsDialog />
-				<div class="grow"><!-- Spacer --></div>
-				<div class="room-status">
-					<v-btn
-						class="room-visibility-badge"
-						data-cy="room-visibility"
-						variant="plain"
-						size="default"
-						slim
-						:prepend-icon="roomVisibilityIcon"
-						@click="onVisibilityClick"
-					>
-						{{ roomVisibilityLabel }}
-						<v-tooltip activator="parent" location="top">
+				<div class="flex items-center text-sm font-medium uppercase ml-auto">
+					<Tooltip>
+						<TooltipTrigger as-child>
+							<Button
+								data-cy="room-visibility"
+								variant="ghost"
+								size="sm"
+								@click="onVisibilityClick"
+							>
+								<Icon :icon="roomVisibilityIcon" class="size-4" />
+								{{ roomVisibilityLabel }}
+							</Button>
+						</TooltipTrigger>
+						<TooltipContent side="top">
 							{{ $t("room.visibility-badge-label") }}
-						</v-tooltip>
-					</v-btn>
-					<v-icon :icon="mdiCircle" :color="connectionStatusColor" size="small" start />
-					<span id="connectStatus">{{ connectionStatus }}</span>
+						</TooltipContent>
+					</Tooltip>
+					<Icon
+						:icon="mdiCircle"
+						class="ml-2 size-3"
+						:class="
+							connectionStatusColor === 'success' ? 'text-success' : 'text-warning'
+						"
+					/>
+					<span id="connectStatus" class="ml-1 label-mono">{{ connectionStatus }}</span>
 				</div>
 			</div>
-			<div class="video-container">
-				<div class="video-subcontainer">
-					<div class="player-container" ref="playerContainer">
+			<div
+				class="grid w-full grid-cols-[1fr_auto] grid-rows-[minmax(400px,70vh)] max-lg:grid-cols-1 group-data-[fullscreen=true]/room:m-0 group-data-[fullscreen=true]/room:block group-data-[fullscreen=true]/room:h-screen group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:w-screen group-data-[fullscreen=true]/room:aspect-[inherit] group-data-[layout=theater]/room:grid-rows-[minmax(400px,85vh)]"
+			>
+				<div
+					class="relative z-31 flex h-full flex-col group-data-[fullscreen=true]/room:max-h-screen group-data-[fullscreen=true]/room:w-full! group-data-[fullscreen=true]/room:p-0 group-data-[layout=default]/room:w-4/5 group-data-[layout=default]/room:justify-self-center group-data-[layout=default]/room:max-xl:w-full"
+				>
+					<div
+						class="h-full w-full group-data-[fullscreen=true]/room:h-screen"
+						ref="playerContainer"
+					>
 						<OmniPlayer
 							:source="store.state.room.currentSource"
 							@apiready="onPlayerApiReady"
@@ -52,19 +64,25 @@
 							@paused="onPlaybackChange(false)"
 							@ready="onPlayerReady"
 						/>
-						<div id="mouse-event-swallower" :class="{ hide: controlsVisible }"></div>
-						<div class="in-video-chat" v-if="controlsMode === 'in-video'">
+						<div
+							id="mouse-event-swallower"
+							class="absolute top-0 h-full w-full"
+							:class="{ hidden: controlsVisible }"
+						></div>
+						<div
+							class="pointer-events-none absolute bottom-20 right-0 h-[70%] min-h-17.5 w-100 px-2.5 py-1.25 max-lg:w-62.5"
+							v-if="controlsMode === 'in-video'"
+						>
 							<Chat ref="chat" @link-click="setAddPreviewText" />
 						</div>
-						<div class="playback-blocked-prompt" v-if="mediaPlaybackBlocked">
-							<v-btn
-								:prepend-icon="mdiPlay"
-								size="x-large"
-								color="warning"
-								@click="onClickUnblockPlayback"
-							>
+						<div
+							class="absolute inset-0 z-200 flex items-center justify-center"
+							v-if="mediaPlaybackBlocked"
+						>
+							<Button size="xl" variant="default" @click="onClickUnblockPlayback">
+								<Icon :icon="mdiPlay" class="size-5" />
 								{{ $t("common.play") }}
-							</v-btn>
+							</Button>
 						</div>
 					</div>
 					<VideoControls
@@ -76,133 +94,142 @@
 					/>
 				</div>
 				<div
-					class="out-video-chat"
+					class="pointer-events-none h-75 min-h-25 w-100 px-2.5 py-1.25 max-lg:w-full"
 					v-if="controlsMode === 'outside-video' && !store.state.fullscreen"
 				>
-					<Chat ref="chat" @link-click="setAddPreviewText" />
+					<Chat ref="chat" always-visible @link-click="setAddPreviewText" />
 				</div>
 			</div>
-			<div class="banners">
+			<div class="my-2.5">
 				<RestoreQueue />
 				<VoteSkip />
 			</div>
-			<div class="under-video-grid">
-				<div class="under-video-tabs">
-					<v-tabs fixed-tabs v-model="queueTab" color="primary">
-						<v-tab>
-							<v-icon :icon="mdiFormatListBulleted" />
-							<span class="tab-text">{{ $t("room.tabs.queue") }}</span>
-							<v-chip size="x-small">
-								{{
-									store.state.room.queue.length <= 99
-										? $n(store.state.room.queue.length)
-										: "99+"
-								}}
-							</v-chip>
-						</v-tab>
-						<v-tab>
-							<v-icon :icon="mdiPlus" />
-							<span class="tab-text">{{ $t("common.add") }}</span>
-						</v-tab>
-						<v-tab>
-							<v-icon :icon="mdiWrench" />
-							<span class="tab-text">{{ $t("room.tabs.settings") }}</span>
-						</v-tab>
-					</v-tabs>
-					<v-window v-model="queueTab" class="queue-tab-content">
-						<v-window-item>
-							<VideoQueue @switchtab="queueTab = 1" />
-						</v-window-item>
-						<v-window-item>
-							<AddPreview ref="addpreview" />
-						</v-window-item>
-						<v-window-item>
-							<RoomSettingsForm ref="settings" />
-						</v-window-item>
-					</v-window>
+			<div class="flex w-full max-lg:flex-col">
+				<div class="w-3/5 grow max-lg:w-full">
+					<Tabs v-model="queueTab" class="overflow-visible">
+						<TabsList class="w-full">
+							<TabsTrigger value="queue" class="flex-1 gap-2">
+								<Icon :icon="mdiFormatListBulleted" class="size-4" />
+								<span class="mx-2 max-lg:hidden">{{ $t("room.tabs.queue") }}</span>
+								<Badge variant="secondary" class="ml-1">
+									{{
+										store.state.room.queue.length <= 99
+											? $n(store.state.room.queue.length)
+											: "99+"
+									}}
+								</Badge>
+							</TabsTrigger>
+							<TabsTrigger value="add" class="flex-1 gap-2">
+								<Icon :icon="mdiPlus" class="size-4" />
+								<span class="mx-2 max-lg:hidden">{{ $t("common.add") }}</span>
+							</TabsTrigger>
+							<TabsTrigger value="settings" class="flex-1 gap-2">
+								<Icon :icon="mdiWrench" class="size-4" />
+								<span class="mx-2 max-lg:hidden">{{
+									$t("room.tabs.settings")
+								}}</span>
+							</TabsTrigger>
+						</TabsList>
+
+						<TabsContentAnimatedGroup>
+							<TabsContentAnimated value="queue">
+								<VideoQueue @switchtab="queueTab = 'add'" />
+							</TabsContentAnimated>
+							<TabsContentAnimated value="add">
+								<AddPreview ref="addpreview" />
+							</TabsContentAnimated>
+							<TabsContentAnimated value="settings">
+								<RoomSettingsForm ref="settings" />
+							</TabsContentAnimated>
+						</TabsContentAnimatedGroup>
+					</Tabs>
 				</div>
-				<div class="user-invite-container">
-					<div v-if="debugMode" class="debug-container">
-						<v-card>
-							<v-card-title> Debug (prod: {{ production }}) </v-card-title>
-							<v-list-item>
-								Player status: {{ store.state.playerStatus }}
-							</v-list-item>
-							<v-list-item v-if="store.state.playerBufferPercent">
-								Buffered:
-								{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
-							</v-list-item>
-							<v-list-item
-								v-if="
-									store.state.playerBufferSpans &&
-									store.state.playerBufferSpans.length > 0
-								"
+				<div class="flex min-h-125 flex-col gap-2.5 px-2.5">
+					<div v-if="debugMode">
+						<Card>
+							<CardHeader>
+								<CardTitle>Debug (prod: {{ production }})</CardTitle>
+							</CardHeader>
+							<CardContent
+								class="flex flex-col gap-1 font-mono text-xs text-muted-foreground"
 							>
-								Buffered spans:
-								{{ store.state.playerBufferSpans.length }}
-								{{
-									Array.from(
-										{ length: store.state.playerBufferSpans.length },
-										(v, k) => k++,
-									)
-										.map(
-											i =>
-												`${i}: [${secondsToTimestamp(
-													store.state.playerBufferSpans?.start(i) ?? 0,
-												)} => ${secondsToTimestamp(
-													store.state.playerBufferSpans?.end(i) ?? 0,
-												)}]`,
+								<div>Player status: {{ store.state.playerStatus }}</div>
+								<div v-if="store.state.playerBufferPercent">
+									Buffered:
+									{{ Math.round(store.state.playerBufferPercent * 10000) / 100 }}%
+								</div>
+								<div
+									v-if="
+										store.state.playerBufferSpans &&
+										store.state.playerBufferSpans.length > 0
+									"
+								>
+									Buffered spans:
+									{{ store.state.playerBufferSpans.length }}
+									{{
+										Array.from(
+											{ length: store.state.playerBufferSpans.length },
+											(v, k) => k++,
 										)
-										.join(" ")
-								}}
-							</v-list-item>
-							<v-list-item>
-								<span>Is Mobile: {{ isMobile }}</span>
-							</v-list-item>
-							<v-list-item>
-								<span>Device Orientation: {{ orientation }}</span>
-							</v-list-item>
-							<v-list-item>
-								<span>
+											.map(
+												i =>
+													`${i}: [${secondsToTimestamp(
+														store.state.playerBufferSpans?.start(i) ??
+															0,
+													)} => ${secondsToTimestamp(
+														store.state.playerBufferSpans?.end(i) ?? 0,
+													)}]`,
+											)
+											.join(" ")
+									}}
+								</div>
+								<div>Is Mobile: {{ isMobile }}</div>
+								<div>Device Orientation: {{ orientation }}</div>
+								<div>
 									Video controls: timeoutId:
 									{{ videoControlsHideTimeout }} visible:
 									{{ controlsVisible }}
-								</span>
-							</v-list-item>
-							<v-list-item>
-								<v-btn @click="roomapi.kickMe()" :disabled="!isConnected">
-									{{ $t("room.kick-me") }}
-								</v-btn>
-								<v-btn @click="roomapi.kickMe(1000)" :disabled="!isConnected">
-									Disconnect Me
-								</v-btn>
-							</v-list-item>
-						</v-card>
+								</div>
+								<div class="mt-2 flex gap-2">
+									<Button
+										size="sm"
+										variant="outline"
+										@click="roomapi.kickMe()"
+										:disabled="!isConnected"
+									>
+										{{ $t("room.kick-me") }}
+									</Button>
+									<Button
+										size="sm"
+										variant="outline"
+										@click="roomapi.kickMe(1000)"
+										:disabled="!isConnected"
+									>
+										Disconnect Me
+									</Button>
+								</div>
+							</CardContent>
+						</Card>
 					</div>
 					<UserList :users="Array.from(store.state.users.users.values())" />
 					<ShareInvite />
 				</div>
 			</div>
-		</v-container>
-		<v-footer>
-			<v-container>
-				<v-row class="center-shit">
-					<router-link to="/privacypolicy" v-if="isOfficialSite()">
-						{{ $t("footer.privacy-policy") }}
-					</router-link>
-				</v-row>
-				<v-row class="center-shit">
-					{{ gitCommit }}
-				</v-row>
-			</v-container>
-		</v-footer>
-		<v-overlay
-			class="overlay-disconnected"
-			:model-value="showDisconnectedOverlay"
-			content-class="content"
-		>
-			<RoomDisconnected />
-		</v-overlay>
+		</div>
+		<footer class="border-t px-4 py-6 text-center" v-if="!store.state.fullscreen">
+			<p class="label-mono text-muted-foreground" v-if="isOfficialSite()">
+				<router-link to="/privacypolicy">{{ $t("footer.privacy-policy") }}</router-link>
+			</p>
+			<p class="mt-2 font-mono text-xs text-dim">{{ gitCommit }}</p>
+		</footer>
+		<Transition name="ott-overlay">
+			<div
+				v-if="showDisconnectedOverlay"
+				class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-sm"
+			>
+				<RoomDisconnected />
+			</div>
+		</Transition>
 		<ServerMessageHandler />
 		<WorkaroundPlaybackStatusUpdater />
 		<WorkaroundUserStateNotifier />
@@ -210,6 +237,18 @@
 </template>
 
 <script lang="ts">
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import {
+	Tabs,
+	TabsContentAnimated,
+	TabsContentAnimatedGroup,
+	TabsList,
+	TabsTrigger,
+} from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	mdiPlay,
 	mdiFormatListBulleted,
@@ -240,7 +279,6 @@ import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import UserList from "@/components/UserList.vue";
 import VideoQueue from "@/components/VideoQueue.vue";
-import { useGoTo } from "vuetify";
 import RoomSettingsForm from "@/components/RoomSettingsForm.vue";
 import ShareInvite from "@/components/ShareInvite.vue";
 import ClientSettingsDialog from "@/components/ClientSettingsDialog.vue";
@@ -268,6 +306,9 @@ import { isOfficialSite } from "@/util/misc";
 import { Visibility } from "ott-common/models/types";
 
 const VIDEO_CONTROLS_HIDE_TIMEOUT = 3000;
+const QUEUE_TABS = ["queue", "add", "settings"] as const;
+
+type QueueTab = (typeof QUEUE_TABS)[number];
 
 // biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
 export default defineComponent({
@@ -288,6 +329,21 @@ export default defineComponent({
 		WorkaroundUserStateNotifier,
 		RestoreQueue,
 		VoteSkip,
+		Badge,
+		Button,
+		Card,
+		CardHeader,
+		CardTitle,
+		CardContent,
+		Icon,
+		Tabs,
+		TabsContentAnimated,
+		TabsContentAnimatedGroup,
+		TabsList,
+		TabsTrigger,
+		Tooltip,
+		TooltipContent,
+		TooltipTrigger,
 	},
 	setup() {
 		const store = useStore();
@@ -594,10 +650,9 @@ export default defineComponent({
 			() => window.matchMedia("only screen and (max-width: 760px)").matches,
 		);
 		const orientation = useScreenOrientation();
-		const queueTab = ref(0);
+		const queueTab = ref<QueueTab>("queue");
 		const roomSettingsForm = ref<typeof RoomSettingsForm | null>(null);
 
-		const goTo = useGoTo();
 		onMounted(() => {
 			if (!orientation.isSupported.value) {
 				return;
@@ -611,10 +666,7 @@ export default defineComponent({
 					if (newOrientation.startsWith("landscape")) {
 						// this promise is rejected if the fullscreen request is denied
 						await document.documentElement.requestFullscreen();
-						goTo(0, {
-							duration: 250,
-							easing: "easeInOutCubic",
-						});
+						window.scrollTo({ top: 0, behavior: "smooth" });
 					} else {
 						document.exitFullscreen();
 					}
@@ -623,7 +675,7 @@ export default defineComponent({
 		});
 
 		watch(queueTab, async newTab => {
-			if (roomSettingsForm.value && newTab === 2) {
+			if (roomSettingsForm.value && newTab === "settings") {
 				await roomSettingsForm.value.loadRoomSettings();
 			}
 		});
@@ -632,7 +684,7 @@ export default defineComponent({
 
 		const addpreview = ref<typeof AddPreview | null>(null);
 		async function setAddPreviewText(text: string) {
-			queueTab.value = 1;
+			queueTab.value = "add";
 			await nextTick();
 			if (!addpreview.value) {
 				// HACK: the tab is not yet mounted, so we need to wait for it to be mounted
@@ -731,13 +783,13 @@ export default defineComponent({
 		});
 
 		async function onVisibilityClick() {
-			queueTab.value = 2;
+			queueTab.value = "settings";
 			await nextTick();
 			if (roomSettingsForm.value) {
 				await roomSettingsForm.value.loadRoomSettings();
 				await nextTick();
 				roomSettingsForm.value.openVisibilityMenu();
-				goTo(roomSettingsForm.value.$el);
+				roomSettingsForm.value.$el?.scrollIntoView({ behavior: "smooth" });
 			}
 		}
 
@@ -813,226 +865,3 @@ export default defineComponent({
 	},
 });
 </script>
-
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "../variables.scss";
-
-$video-player-max-height: 75vh;
-$video-player-max-height-theater: 90vh;
-$in-video-chat-width: 400px;
-$in-video-chat-width-small: 250px;
-
-.video-container {
-	display: grid;
-	grid-template-columns: 1fr auto;
-	grid-template-rows: minmax(400px, 70vh);
-	width: 100%;
-}
-
-.video-subcontainer {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-}
-
-.player-container {
-	width: 100%;
-	height: 100%;
-}
-
-.layout-default {
-	.video-subcontainer {
-		width: 80%;
-		justify-self: center;
-
-		@media (max-width: variables.$md-max) {
-			width: 100%;
-		}
-	}
-}
-
-.layout-theater {
-	padding: 0;
-
-	.video-container {
-		grid-template-rows: minmax(400px, 85vh);
-	}
-
-	.room-title {
-		font-size: 24px;
-	}
-}
-
-.fullscreen {
-	padding: 0;
-
-	.video-container {
-		display: block;
-		margin: 0;
-		height: 100vh;
-		max-height: 100vh;
-		aspect-ratio: inherit;
-		width: 100vw;
-	}
-
-	.video-subcontainer {
-		width: 100%;
-		max-height: 100vh;
-		padding: 0;
-	}
-
-	.player-container {
-		height: 100vh;
-	}
-}
-
-.in-video-chat {
-	padding: 5px 10px;
-
-	position: absolute;
-	bottom: variables.$video-controls-height;
-	right: 0;
-	width: $in-video-chat-width;
-	height: 70%;
-	min-height: 70px;
-	@media screen and (max-width: variables.$sm-max) {
-		width: $in-video-chat-width-small;
-	}
-	pointer-events: none;
-}
-
-.out-video-chat {
-	padding: 5px 10px;
-
-	width: $in-video-chat-width;
-	height: 300px;
-	min-height: 100px;
-	@media screen and (max-width: variables.$sm-max) {
-		width: $in-video-chat-width-small;
-	}
-	pointer-events: none;
-}
-
-#mouse-event-swallower {
-	position: absolute;
-	top: 0;
-	width: 100%;
-	height: 100%;
-
-	&.hide {
-		display: none;
-	}
-}
-
-.user-invite-container {
-	padding: 0 10px;
-	min-height: 500px;
-
-	> * {
-		margin-bottom: 10px;
-	}
-}
-
-.queue-tab-content {
-	// HACK: the save button in room settings is not sticky if overflow is not "visible"
-	overflow: visible;
-}
-
-.tab-text {
-	margin: 0 8px;
-
-	@media screen and (max-width: variables.$sm-max) {
-		display: none;
-	}
-}
-
-.playback-blocked-prompt {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: 200;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.flip-list-move {
-	transition: transform 0.5s;
-}
-.no-move {
-	transition: transform 0s;
-}
-
-.room {
-	@media (max-width: variables.$md-max) {
-		padding: 0;
-	}
-}
-
-.room-header {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	margin: 0 10px;
-	> * {
-		align-self: flex-end;
-	}
-}
-
-.overlay-disconnected {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 100%;
-
-	.content {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-		position: inherit;
-	}
-}
-
-.banners {
-	margin: 10px 0;
-}
-
-.grow {
-	flex-grow: 1;
-}
-
-.under-video-grid {
-	display: flex;
-	width: 100%;
-
-	@media screen and (max-width: variables.$sm-max) {
-		flex-direction: column;
-	}
-}
-
-.under-video-tabs {
-	flex-grow: 1;
-	width: 60%;
-
-	@media screen and (max-width: variables.$sm-max) {
-		width: 100%;
-	}
-}
-
-.room-status {
-	display: flex;
-	align-items: center;
-	text-transform: uppercase;
-	font-size: 14px;
-	font-weight: 500;
-}
-</style>

@@ -14,6 +14,8 @@ export function buildUrlForQueueItem(item: QueueItem): string {
 			return item.id;
 		case "hls":
 			return item.hls_url ?? item.id;
+		case "dash":
+			return item.dash_url ?? item.id;
 		default:
 			throw new Error(`Unknown service: ${item.service}`);
 	}

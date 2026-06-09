@@ -76,19 +76,18 @@ yarn test
 
 To run the e2e component test suite, run
 ```
-yarn run cy:run --component
+yarn test:component
 ```
 
 To run the e2e test suite, run
 ```
-yarn run cy:run
+yarn run test:e2e
 ```
 
 However, while you're developing, you'll probably want to run the tests in headed mode. To do this, run
 ```
-yarn run cy:open
+yarn run test:e2e:ui
 ```
-This works for both the component and e2e tests.
 
 ## How to run
 

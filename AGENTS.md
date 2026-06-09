@@ -56,10 +56,10 @@ yarn workspace ott-server test
 yarn workspace ott-client test
 yarn workspace ott-common test
 
-# E2E tests (Cypress)
-yarn cy:open           # Open Cypress UI (interactive)
-yarn cy:run            # Run E2E tests headless
-yarn cy:run:component  # Run component tests
+# E2E tests (Playwright)
+yarn test:e2e          # Run E2E tests headless
+yarn test:e2e:ui       # Open Playwright UI (interactive)
+yarn test:component    # Run component tests
 
 # Rust tests
 cargo test
@@ -142,13 +142,6 @@ yarn workspace ott-vis-datasource test
 -   Use ` anyhow` for error handling
 -   Prefer `async/await` over callbacks
 
-### Import Order
-
-1. Node.js built-ins (e.g., `node:url`, `node:http`)
-2. External dependencies (e.g., `axios`, `lodash`)
-3. Internal workspace packages (e.g., `ott-common/*`)
-4. Local project imports
-
 ### Naming Conventions
 
 -   Files: kebab-case (e.g., `room-manager.ts`)
@@ -164,10 +157,15 @@ yarn workspace ott-vis-datasource test
 -   Use Zod for runtime validation
 -   Prefer `await` over `.then()` chains
 
+### User Facing Strings
+
+- Never write user-facing strings directly in markup. Instead, add them to the localization files in `client/src/locales` and reference them using the localization utilities like `$t("key")`.
+- Only provide English strings, don't worry about translations unless explicitly asked.
+
 ## Testing Patterns
 
 -   **Unit Tests:** Use Vitest (TypeScript), built-in test runner (Rust)
--   **E2E Tests:** Use Cypress
+-   **E2E Tests:** Use Playwright
 -   **Integration Tests:** Use harness crate for Rust
 -   Test files: `*.spec.ts` or `*.test.ts`
 -   Place tests in `/tests/unit/` or `/tests/e2e/`

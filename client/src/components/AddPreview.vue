@@ -1,116 +1,114 @@
 <template>
 	<div class="video-add">
-		<v-row>
-			<v-sheet rounded width="100%" elevation="10" style="margin: 8px 0; padding: 5px 20px">
-				<v-textarea
-					clearable
-					auto-grow
-					variant="underlined"
+		<div class="search-sheet">
+			<div class="relative">
+				<Icon
+					:icon="mdiMagnify"
+					class="pointer-events-none absolute left-3 top-3 size-5 text-primary"
+				/>
+				<Textarea
 					rows="1"
-					:label="$t('add-preview.label')"
+					class="search-input pl-10 font-mono"
 					:placeholder="$t('add-preview.placeholder')"
 					v-model="inputAddPreview"
 					@keydown="onInputAddPreviewKeyDown"
 					@focus="onFocusHighlightText"
-					:loading="isLoadingAddPreview"
-					:prepend-inner-icon="mdiMagnify"
-					base-color="primary"
-					color="primary"
-					persistent-clear
 					data-cy="add-preview-input"
 				/>
-				<v-select
-					v-if="showAdapterSelector"
-					v-model="selectedAdapter"
-					:items="adapterOptions"
-					item-title="text"
-					item-value="value"
-					:label="$t('add-preview.adapter-selector.label')"
-					density="compact"
-					variant="outlined"
-					class="adapter-select"
-					data-cy="adapter-selector"
+				<Spinner
+					v-if="isLoadingAddPreview"
+					class="absolute right-3 top-3 size-5 text-primary"
 				/>
-			</v-sheet>
-		</v-row>
-		<v-row>
-			<v-container v-if="!production" class="test-videos-container">
-				<v-chip-group v-model="selectedTestVideo" column mandatory>
-					<v-row>
-						<v-col
-							v-for="(group, groupName) in testVideos"
-							:key="groupName"
-							cols="12"
-							sm="6"
-							md="4"
-							lg="3"
+			</div>
+			<div v-if="showAdapterSelector" class="adapter-select">
+				<span class="label-mono mb-1 block text-muted-foreground">
+					{{ $t("add-preview.adapter-selector.label") }}
+				</span>
+				<Select v-model="selectedAdapter" data-cy="adapter-selector">
+					<SelectTrigger class="w-full">
+						<SelectValue :placeholder="$t('add-preview.adapter-selector.auto')" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem
+							v-for="opt in adapterOptions"
+							:key="String(opt.value)"
+							:value="opt.value as unknown as string"
 						>
-							<div class="video-group-title">{{ groupName }}</div>
-							<v-chip
+							{{ opt.text }}
+						</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+		</div>
+
+		<div class="controls-row">
+			<div v-if="!production" class="test-videos-container">
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+					<div v-for="(group, groupName) in testVideos" :key="groupName">
+						<div class="video-group-title label-mono">{{ groupName }}</div>
+						<div class="flex flex-wrap gap-1.5">
+							<button
 								v-for="(v, idx) in group"
 								:key="`${groupName}-${idx}`"
-								:value="`${groupName}-${idx}`"
+								type="button"
+								class="test-chip"
+								:class="{
+									'test-chip--active':
+										selectedTestVideo === `${groupName}-${idx}`,
+								}"
 								@click="inputAddPreview = v[1]"
 								data-cy="test-video"
-								color="primary"
-								variant="outlined"
 							>
 								{{ v[0] }}
-							</v-chip>
-						</v-col>
-					</v-row>
-				</v-chip-group>
-			</v-container>
-			<v-btn
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<Button
 				v-if="videos.length > 1"
+				variant="marquee"
 				@click="addAllToQueue()"
-				:loading="isLoadingAddAll"
 				:disabled="isLoadingAddAll"
-				:prepend-icon="mdiPlus"
 			>
+				<Spinner v-if="isLoadingAddAll" class="size-4" />
+				<Icon v-else :icon="mdiPlus" class="size-4" />
 				{{ $t("add-preview.add-all") }}
-			</v-btn>
-		</v-row>
-		<v-row class="video-list" v-if="isLoadingAddPreview">
-			<v-progress-circular indeterminate />
-		</v-row>
-		<v-row class="video-list" v-if="!isLoadingAddPreview">
-			<div v-if="hasAddPreviewFailed">
+			</Button>
+		</div>
+
+		<div class="video-list" v-if="!isLoadingAddPreview">
+			<div v-if="hasAddPreviewFailed" class="text-sm text-destructive">
 				{{ videosLoadFailureText }}
 			</div>
-			<v-container
+			<div
 				v-if="
 					videos.length === 0 &&
 					inputAddPreview.length > 0 &&
 					!hasAddPreviewFailed &&
 					!isAddPreviewInputUrl
 				"
+				class="flex flex-col items-center gap-3 text-center"
 			>
-				<v-row>
-					<v-col>
-						{{ $t("add-preview.search-for", { search: inputAddPreview }) }}<br />
-						<v-btn
-							@click="requestAddPreviewExplicit"
-							data-cy="add-preview-manual-search"
-						>
-							{{ $t("common.search") }}
-						</v-btn>
-					</v-col>
-				</v-row>
-			</v-container>
-			<v-container v-else-if="inputAddPreview.length === 0">
-				<v-row style="justify-content: center">
-					<AddPreviewHelper @link-click="setAddPreviewText" />
-				</v-row>
-			</v-container>
-		</v-row>
+				<span class="text-muted-foreground">
+					{{ $t("add-preview.search-for", { search: inputAddPreview }) }}
+				</span>
+				<Button @click="requestAddPreviewExplicit" data-cy="add-preview-manual-search">
+					<Icon :icon="mdiMagnify" class="size-4" />
+					{{ $t("common.search") }}
+				</Button>
+			</div>
+			<div v-else-if="inputAddPreview.length === 0" class="flex justify-center">
+				<AddPreviewHelper @link-click="setAddPreviewText" />
+			</div>
+		</div>
 		<div v-if="highlightedAddPreviewItem">
 			<VideoQueueItem
 				:item="highlightedAddPreviewItem"
 				is-preview
 				style="margin-bottom: 20px"
 			/>
-			<h4>{{ $t("add-preview.playlist") }}</h4>
+			<h4 class="label-mono text-signal">{{ $t("add-preview.playlist") }}</h4>
 		</div>
 		<VideoQueueItem
 			v-for="(itemdata, index) in videos"
@@ -122,6 +120,17 @@
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
 import { mdiMagnify, mdiPlus } from "@mdi/js";
 import { ref, computed, watch, type Ref } from "vue";
 import { useRoute } from "vue-router";
@@ -409,37 +418,66 @@ function setAddPreviewText(text: string) {
 	min-height: 500px;
 }
 
+.search-sheet {
+	margin: 8px 0;
+	padding: 14px 16px;
+	background: var(--surface-2);
+	border: 1px solid var(--line-strong);
+	border-radius: 4px;
+	box-shadow: var(--shadow-panel);
+}
+
+.search-input {
+	min-height: 44px;
+}
+
+.controls-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 12px;
+	margin-top: 12px;
+}
+
 .video-list {
 	margin-top: 24px;
-	justify-content: center;
 }
 
 .test-videos-container {
+	flex: 1 1 100%;
 	margin-bottom: 12px;
-	padding: 12px;
-
-	:deep(.v-chip) {
-		cursor: pointer;
-		transition: all 0.2s ease;
-
-		&:hover {
-			transform: translateY(-2px);
-		}
-	}
+	padding: 4px 0;
 }
 
 .video-group-title {
-	font-weight: 600;
-	font-size: 0.875rem;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
 	margin-bottom: 8px;
-	color: rgb(var(--v-theme-primary));
-	opacity: 0.8;
+	color: var(--primary);
+}
+
+.test-chip {
+	cursor: pointer;
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	padding: 3px 8px;
+	border-radius: 3px;
+	border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+	color: var(--primary);
+	background: transparent;
+	transition: all 0.2s ease;
+
+	&:hover {
+		transform: translateY(-2px);
+		background: color-mix(in srgb, var(--primary) 12%, transparent);
+	}
+
+	&--active {
+		background: var(--primary);
+		color: var(--ink);
+	}
 }
 
 .adapter-select {
-	max-width: 200px;
+	max-width: 240px;
 	margin-top: 8px;
 }
 </style>

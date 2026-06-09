@@ -1,8 +1,6 @@
-@use 'vuetify/settings';
-
 $video-controls-height: 90px;
-$media-control-surface: rgb(var(--v-theme-media-control-surface));
-$menu-background: rgba(var(--v-theme-surface), 0.9);
+$media-control-surface: var(--foreground);
+$menu-background: color-mix(in srgb, var(--card) 92%, transparent);
 $menu-radius: 10px;
 
 .media-control {

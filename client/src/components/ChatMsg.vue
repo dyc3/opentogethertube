@@ -26,15 +26,13 @@ const emit = defineEmits<{
 }>();
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "../variables.scss";
-
+<style lang="scss" scoped>
 .message {
 	margin: 2px 0;
-	padding: 4px;
+	padding: 6px 8px;
 	opacity: 0;
 	transition: all 1s ease;
+	border-left: 2px solid transparent;
 
 	&:first-child {
 		margin-top: auto;
@@ -42,7 +40,9 @@ const emit = defineEmits<{
 
 	&.recent {
 		opacity: 1;
-		background: rgba(var(--v-theme-background), $alpha: 0.6);
+		background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+		border-left-color: color-mix(in srgb, var(--signal) 60%, transparent);
+		border-radius: 2px;
 	}
 
 	.from,
@@ -53,12 +53,21 @@ const emit = defineEmits<{
 		overflow-wrap: anywhere;
 	}
 
+	.text {
+		color: var(--foreground);
+	}
+
 	.from {
-		font-weight: bold;
+		font-family: var(--font-mono);
+		font-weight: 700;
+		font-size: 0.8em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--primary);
 		margin-left: 0;
 	}
 
-	@media screen and (max-width: variables.$sm-max) {
+	@media screen and (max-width: 600px) {
 		font-size: 0.8em;
 	}
 }

@@ -1,22 +1,36 @@
 <template>
-	<transition-group appear name="toast-list" tag="div" class="toast-list">
-		<div v-for="(t, index) in store.state.toast.notifications" :key="t.id" class="toast-item">
+	<transition-group
+		appear
+		tag="div"
+		class="pointer-events-none fixed bottom-0 right-0 z-1000 flex flex-col items-end p-0"
+		move-class="transition-all duration-[250ms] ease-in-out"
+		enter-active-class="transition-all duration-[250ms]"
+		leave-active-class="transition-all duration-[250ms]"
+		enter-from-class="translate-y-[50px] opacity-0"
+		leave-to-class="translate-y-[50px] opacity-0"
+	>
+		<div
+			v-for="(t, index) in store.state.toast.notifications"
+			:key="t.id"
+			class="pointer-events-auto"
+		>
 			<ToastNotification :toast="t" :number="index" />
 		</div>
-		<v-btn
-			block
-			color="primary"
+		<Button
+			variant="default"
+			class="pointer-events-auto mx-2 mb-2 w-full max-w-2xl"
 			key="closeall"
 			@click="closeAll"
 			v-if="store.state.toast.notifications.length > 1"
 			data-cy="toast-close-all"
 		>
 			{{ $t("common.close-all") }}
-		</v-btn>
+		</Button>
 	</transition-group>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
 import ToastNotification from "@/components/ToastNotification.vue";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -28,38 +42,3 @@ function closeAll() {
 	store.commit("toast/CLEAR_ALL_TOASTS");
 }
 </script>
-
-<style lang="scss" scoped>
-.toast-list {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	position: fixed;
-	padding: 0;
-	bottom: 0;
-	right: 0;
-	pointer-events: none;
-	z-index: 1000;
-
-	.toast,
-	button {
-		pointer-events: auto;
-	}
-}
-
-// define the animations for individual toasts
-.toast-list-move {
-	transition: all 0.25s ease;
-}
-
-.toast-list-enter-active,
-.toast-list-leave-active {
-	transition: all 0.25s;
-}
-.toast-list-enter,
-.toast-list-leave-to {
-	opacity: 0;
-	transform: translateY(50px);
-	// bottom: -50px;
-}
-</style>

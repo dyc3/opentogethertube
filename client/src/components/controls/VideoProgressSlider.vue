@@ -81,7 +81,7 @@ function sliderChange(value: number) {
 function getSliderProcesses(dotsPos: number[]) {
 	const processes: [number, number, { backgroundColor: string }][] = [];
 
-	const bufferedColor = "rgba(var(--v-theme-primary), 60%)";
+	const bufferedColor = "color-mix(in srgb, var(--primary) 60%, transparent)";
 	// show buffered spans
 	const bufferSpans = store.state.playerBufferSpans;
 	if (bufferSpans && store.state.room.currentSource && store.state.room.currentSource.length) {
@@ -102,11 +102,11 @@ function getSliderProcesses(dotsPos: number[]) {
 	processes.push([
 		0,
 		(seekPreviewPercent.value ?? 0) * 100,
-		{ backgroundColor: "rgba(var(--v-theme-secondary), 70%)" },
+		{ backgroundColor: "color-mix(in srgb, var(--signal) 70%, transparent)" },
 	]);
 
 	// show video progress
-	processes.push([0, dotsPos[0], { backgroundColor: "rgb(var(--v-theme-primary))" }]);
+	processes.push([0, dotsPos[0], { backgroundColor: "var(--primary)" }]);
 
 	// show sponsorblock segments
 	const colorMap = new Map([

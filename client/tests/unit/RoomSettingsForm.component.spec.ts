@@ -68,12 +68,12 @@ describe("RoomSettingsForm component", () => {
 		API.patch.mockResolvedValue({ data: { success: true } });
 	});
 
-	it("makes the submit container sticky", async () => {
+	it("renders the submit container", async () => {
 		const { wrapper } = mountRoomSettings();
 		await flush();
 		await flush();
 
-		expect(wrapper.find(".room-settings .submit").exists()).toBe(true);
+		expect(wrapper.find(".submit").exists()).toBe(true);
 	});
 
 	it("fills the form with data from the API", async () => {
@@ -81,11 +81,11 @@ describe("RoomSettingsForm component", () => {
 		await flush();
 		await flush();
 
+		expect((wrapper.get('[data-cy="input-title"]').element as HTMLInputElement).value).toBe(
+			"Foo",
+		);
 		expect(
-			(wrapper.get('[data-cy="input-title"] input').element as HTMLInputElement).value,
-		).toBe("Foo");
-		expect(
-			(wrapper.get('[data-cy="input-description"] input').element as HTMLInputElement).value,
+			(wrapper.get('[data-cy="input-description"]').element as HTMLInputElement).value,
 		).toBe("Bar");
 		expect(wrapper.get('[data-cy="select-visibility"]').text()).toContain("Public");
 		expect(wrapper.get('[data-cy="select-queueMode"]').text()).toContain("DJ");
@@ -96,7 +96,7 @@ describe("RoomSettingsForm component", () => {
 		const { wrapper } = mountRoomSettings();
 		await flush();
 
-		await wrapper.get('[data-cy="input-title"] input').setValue("Baz");
+		await wrapper.get('[data-cy="input-title"]').setValue("Baz");
 		await wrapper.get('[data-cy="save"]').trigger("click");
 		await flush();
 
@@ -107,19 +107,20 @@ describe("RoomSettingsForm component", () => {
 		const { wrapper } = mountRoomSettings(false);
 		await flush();
 
+		expect((wrapper.get('[data-cy="input-title"]').element as HTMLInputElement).disabled).toBe(
+			true,
+		);
 		expect(
-			(wrapper.get('[data-cy="input-title"] input').element as HTMLInputElement).disabled,
+			(wrapper.get('[data-cy="input-description"]').element as HTMLInputElement).disabled,
 		).toBe(true);
 		expect(
-			(wrapper.get('[data-cy="input-description"] input').element as HTMLInputElement)
-				.disabled,
+			(wrapper.get('[data-cy="select-visibility"]').element as HTMLButtonElement).disabled,
 		).toBe(true);
-		expect(wrapper.get('[data-cy="select-visibility"]').classes()).toContain(
-			"v-input--disabled",
-		);
-		expect(wrapper.get('[data-cy="select-queueMode"]').classes()).toContain(
-			"v-input--disabled",
-		);
-		expect(wrapper.get('[data-cy="input-auto-skip"]').classes()).toContain("v-input--disabled");
+		expect(
+			(wrapper.get('[data-cy="select-queueMode"]').element as HTMLButtonElement).disabled,
+		).toBe(true);
+		expect(
+			wrapper.get('[data-cy="input-auto-skip"] [role="checkbox"]').attributes("disabled"),
+		).toBe("");
 	});
 });

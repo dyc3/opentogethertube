@@ -1,28 +1,28 @@
 <template>
-	<v-sheet :color="color" class="toast" elevation="12" aria-live="polite">
-		<v-icon class="toast-icon" v-if="!!icon" :icon="icon" />
+	<div class="toast bg-card border rounded text-foreground" aria-live="polite">
+		<Icon v-if="!!icon" :icon="icon" class="ml-3 size-5 shrink-0" :class="colorClass" />
 		<span class="toast-content">
 			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
 		</span>
-		<div class="bar" :style="{ 'animation-duration': `${toast.duration}ms` }"></div>
-		<div class="toast-actions">
-			<v-btn variant="text" v-if="undoable" @click="undo">
+		<div
+			class="bar"
+			:class="barClass"
+			:style="{ 'animation-duration': `${toast.duration}ms` }"
+		></div>
+		<div class="ml-auto flex items-center">
+			<Button variant="ghost" size="sm" v-if="undoable" @click="undo">
 				{{ $t("common.undo") }}
-			</v-btn>
-			<v-btn
-				variant="text"
-				@click="close"
-				size="x-small"
-				icon
-				:aria-label="$t('common.close')"
-			>
-				<v-icon :icon="mdiClose" />
-			</v-btn>
+			</Button>
+			<Button variant="ghost" size="icon-sm" @click="close" :aria-label="$t('common.close')">
+				<Icon :icon="mdiClose" class="size-4" />
+			</Button>
 		</div>
-	</v-sheet>
+	</div>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { mdiClose, mdiCheckBold, mdiAlertCircle } from "@mdi/js";
 import { ref, toRefs, onMounted, onUnmounted, type Ref, computed } from "vue";
 import { type Toast, ToastStyle } from "@/models/toast";
@@ -52,15 +52,26 @@ onUnmounted(() => {
 	}
 });
 
-const color = computed(() => {
+const colorClass = computed(() => {
 	if (toast.value.style === ToastStyle.Success) {
-		return "success";
+		return "text-success";
 	} else if (toast.value.style === ToastStyle.Error) {
-		return "error";
+		return "text-destructive";
 	} else if (toast.value.style === ToastStyle.Important) {
-		return "warning";
+		return "text-warning";
 	}
-	return undefined;
+	return "text-signal";
+});
+
+const barClass = computed(() => {
+	if (toast.value.style === ToastStyle.Success) {
+		return "bg-success";
+	} else if (toast.value.style === ToastStyle.Error) {
+		return "bg-destructive";
+	} else if (toast.value.style === ToastStyle.Important) {
+		return "bg-warning";
+	}
+	return "bg-signal";
 });
 
 const icon = computed(() => {
@@ -105,22 +116,12 @@ function close() {
 }
 </script>
 
-<style lang="scss" scoped>
-$toast-height: 48px; // $snackbar-wrapper-min-height;
-$toast-height-multiline: 68px; // vuetify.$snackbar-multi-line-wrapper-min-height;
-$toast-min-width: 344px; // $snackbar-wrapper-min-width;
-$toast-max-width: 672px; // $snackbar-wrapper-max-width;
-$toast-margin: 8px; // vuetify.$snackbar-wrapper-margin;
-$toast-padding: 0; // vuetify.$snackbar-wrapper-padding;
-$toast-content-padding: 14px 16px;
-
+<style scoped>
 @keyframes toast_timer {
 	0% {
-		// transform: scaleX(1);
 		width: 100%;
 	}
 	100% {
-		// transform: scaleX(0);
 		width: 0;
 	}
 }
@@ -128,40 +129,29 @@ $toast-content-padding: 14px 16px;
 .toast {
 	position: relative;
 	display: inline-flex;
-	min-height: $toast-height;
-	margin: $toast-margin;
-	padding: $toast-padding;
-	min-width: $toast-min-width;
-	max-width: $toast-max-width;
+	min-height: 48px;
+	margin: 8px;
+	padding: 0;
+	min-width: 344px;
+	max-width: 672px;
 	align-items: center;
-	border-radius: 4px;
+	box-shadow: var(--shadow-panel);
+}
 
-	.toast-icon {
-		margin-left: 10px;
-	}
+.toast-content {
+	padding: 14px 16px;
+}
 
-	.toast-content {
-		padding: $toast-content-padding;
-	}
+.bar {
+	display: block;
+	position: absolute;
+	width: 100%;
+	height: 3px;
+	right: 0;
+	bottom: 0;
 
-	.toast-actions {
-		display: flex;
-		align-items: center;
-		margin-left: auto;
-	}
-
-	.bar {
-		display: block;
-		position: absolute;
-		width: 100%;
-		background: white;
-		height: 4px;
-		right: 0;
-		bottom: 0;
-
-		animation-name: toast_timer;
-		animation-timing-function: linear;
-		animation-fill-mode: forwards;
-	}
+	animation-name: toast_timer;
+	animation-timing-function: linear;
+	animation-fill-mode: forwards;
 }
 </style>

@@ -1,37 +1,44 @@
 import faker from "faker";
+import type { APIResponse, Page } from "@playwright/test";
+import { beforeEach, describe, expect, it } from "../support/fixtures";
+
+type OttApi = {
+	request(options: { method?: string; url: string }): Promise<APIResponse>;
+};
 
 describe("Account management", () => {
-	function loginThroughUi(user: string, password: string) {
-		cy.visit("/");
-		cy.contains("button", "Log In").click();
-		cy.get('[data-cy="login-user"]').click().type(user);
-		cy.get('[data-cy="login-password"] input').type(password);
-		cy.get('[data-cy="login-button"]').click();
+	async function loginThroughUi(page: Page, user: string, password: string) {
+		await page.goto("/");
+		await page.locator('[data-cy="user-logged-out"]').click();
+		await page.locator('[data-cy="login-user"]').fill(user);
+		await page.locator('[data-cy="login-password"]').fill(password);
+		await page.locator('[data-cy="login-button"]').click();
 	}
 
-	function visitAccount() {
-		cy.visit("/account");
-		cy.contains("h1", "Account").should("be.visible");
+	async function visitAccount(page: Page) {
+		await page.goto("/account");
+		await expect(page.getByRole("heading", { name: "Account" })).toBeVisible();
 	}
 
-	beforeEach(() => {
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		cy.ottResetRateLimit();
-		cy.ottRequest({
-			method: "POST",
-			url: "/api/dev/reset-rate-limit/user",
-		});
+	async function expectAccount(ott: OttApi, expected: Record<string, unknown>) {
+		const response = await ott.request({ method: "GET", url: "/api/user/account" });
+		await expect(await response.json()).toMatchObject(expected);
+	}
+
+	beforeEach(async ({ context, ott }) => {
+		await context.clearCookies();
+		await ott.ensureToken();
+		await ott.resetRateLimit();
+		await ott.request({ method: "POST", url: "/api/dev/reset-rate-limit/user" });
 	});
 
-	it("should redirect logged out users away from the account page", () => {
-		cy.visit("/account");
-		cy.url().should("eq", `${Cypress.config().baseUrl}`);
-		cy.get('[data-cy="user-logged-out"]').should("be.visible");
+	it("should redirect logged out users away from the account page", async ({ page }) => {
+		await page.goto("/account");
+		await expect(page).toHaveURL("/");
+		await expect(page.locator('[data-cy="user-logged-out"]')).toBeVisible();
 	});
 
-	it("should let a password-only account add an email", () => {
+	it("should let a password-only account add an email", async ({ page, ott }) => {
 		const userCreds = {
 			email: "",
 			username: faker.internet.userName(),
@@ -39,22 +46,19 @@ describe("Account management", () => {
 		};
 		const newEmail = faker.internet.email();
 
-		cy.ottCreateUser(userCreds);
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-email"] input').type(newEmail);
-		cy.get('[data-cy="account-save-email"]').should("not.be.disabled").click();
-		cy.get('[data-cy="account-email"] input').should("have.value", newEmail);
-		cy.reload();
-		cy.get('[data-cy="account-email"] input').should("have.value", newEmail);
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			email: newEmail,
-			username: userCreds.username,
-		});
+		await page.locator('[data-cy="account-email"]').fill(newEmail);
+		await page.locator('[data-cy="account-save-email"]').click();
+		await expect(page.locator('[data-cy="account-email"]')).toHaveValue(newEmail);
+		await page.reload();
+		await expect(page.locator('[data-cy="account-email"]')).toHaveValue(newEmail);
+		await expectAccount(ott, { email: newEmail, username: userCreds.username });
 	});
 
-	it("should let an account with an email change it", () => {
+	it("should let an account with an email change it", async ({ page, ott }) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
@@ -62,39 +66,33 @@ describe("Account management", () => {
 		};
 		const nextEmail = faker.internet.email();
 
-		cy.ottCreateUser(userCreds);
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-email"] input').clear().type(nextEmail);
-		cy.get('[data-cy="account-save-email"]').should("not.be.disabled").click();
-		cy.get('[data-cy="account-email"] input').should("have.value", nextEmail);
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			email: nextEmail,
-			username: userCreds.username,
-		});
+		await page.locator('[data-cy="account-email"]').fill(nextEmail);
+		await page.locator('[data-cy="account-save-email"]').click();
+		await expect(page.locator('[data-cy="account-email"]')).toHaveValue(nextEmail);
+		await expectAccount(ott, { email: nextEmail, username: userCreds.username });
 	});
 
-	it("should show a link button for accounts without Discord linked", () => {
+	it("should show a link button for accounts without Discord linked", async ({ page, ott }) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
 		};
 
-		cy.ottCreateUser(userCreds);
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-link-discord"]').should("be.visible");
-		cy.get('[data-cy="account-unlink-discord"]').should("not.exist");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			discordLinked: false,
-			username: userCreds.username,
-		});
+		await expect(page.locator('[data-cy="account-link-discord"]')).toBeVisible();
+		await expect(page.locator('[data-cy="account-unlink-discord"]')).toHaveCount(0);
+		await expectAccount(ott, { discordLinked: false, username: userCreds.username });
 	});
 
-	it("should reject changing an email to one already in use", () => {
+	it("should reject changing an email to one already in use", async ({ page, ott }) => {
 		const existingEmail = faker.internet.email();
 		const firstUser = {
 			email: faker.internet.email(),
@@ -107,94 +105,87 @@ describe("Account management", () => {
 			password: faker.internet.password(12),
 		};
 
-		cy.ottCreateUser(firstUser);
-		cy.ottCreateUser(secondUser);
-		cy.ottLogin({ user: firstUser.username, password: firstUser.password });
-		visitAccount();
+		await ott.createUser(firstUser);
+		await ott.createUser(secondUser);
+		await ott.login({ user: firstUser.username, password: firstUser.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-email"] input').clear().type(existingEmail);
-		cy.get('[data-cy="account-save-email"]').should("not.be.disabled").click();
-		cy.contains("Email is already associated with an account.").should("be.visible");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			email: firstUser.email,
-			username: firstUser.username,
-		});
+		await page.locator('[data-cy="account-email"]').fill(existingEmail);
+		await page.locator('[data-cy="account-save-email"]').click();
+		await expect(page.getByText("Email is already associated with an account.")).toBeVisible();
+		await expectAccount(ott, { email: firstUser.email, username: firstUser.username });
 	});
 
-	it("should let a social-only account add email and password, then log in with username/password", () => {
+	it("should let a social-only account add email and password, then log in with username/password", async ({
+		page,
+		ott,
+	}) => {
 		const username = faker.internet.userName();
 		const email = faker.internet.email();
 		const password = faker.internet.password(12);
 
-		cy.ottCreateSocialUser({ username });
-		cy.ottForceLogin(username);
-		visitAccount();
+		await ott.createSocialUser({ username });
+		await ott.forceLogin(username);
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-current-password"]').should("not.exist");
-		cy.get('[data-cy="account-email"] input').type(email);
-		cy.get('[data-cy="account-save-email"]').should("not.be.disabled").click();
-		cy.get('[data-cy="account-email"] input').should("have.value", email);
+		await expect(page.locator('[data-cy="account-current-password"]')).toHaveCount(0);
+		await page.locator('[data-cy="account-email"]').fill(email);
+		await page.locator('[data-cy="account-save-email"]').click();
+		await expect(page.locator('[data-cy="account-email"]')).toHaveValue(email);
 
-		cy.get('[data-cy="account-new-password"] input').type(password);
-		cy.get('[data-cy="account-new-password-confirm"] input').type(password);
-		cy.get('[data-cy="account-save-password"]').should("not.be.disabled").click();
-		cy.reload();
-		cy.get('[data-cy="account-current-password"] input').should("exist");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			email,
-			username,
-			hasPassword: true,
-			discordLinked: true,
-		});
+		await page.locator('[data-cy="account-new-password"]').fill(password);
+		await page.locator('[data-cy="account-new-password-confirm"]').fill(password);
+		await page.locator('[data-cy="account-save-password"]').click();
+		await page.reload();
+		await expect(page.locator('[data-cy="account-current-password"]')).toBeVisible();
+		await expectAccount(ott, { email, username, hasPassword: true, discordLinked: true });
 
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		loginThroughUi(username, password);
-		cy.get('[data-cy="user-logged-in"]').should("contain", username);
+		await page.context().clearCookies();
+		await ott.ensureToken();
+		await loginThroughUi(page, username, password);
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(username);
 	});
 
-	it("should disable unlinking Discord when no password is set", () => {
+	it("should disable unlinking Discord when no password is set", async ({ page, ott }) => {
 		const username = faker.internet.userName();
 
-		cy.ottCreateSocialUser({ username });
-		cy.ottForceLogin(username);
-		visitAccount();
+		await ott.createSocialUser({ username });
+		await ott.forceLogin(username);
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-unlink-discord"]').should("be.visible").should("be.disabled");
-		cy.contains("A password is required before you can unlink Discord.").should("be.visible");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			username,
-			discordLinked: true,
-			hasPassword: false,
-		});
+		await expect(page.locator('[data-cy="account-unlink-discord"]')).toBeVisible();
+		await expect(page.locator('[data-cy="account-unlink-discord"]')).toBeDisabled();
+		await expect(
+			page.getByText("A password is required before you can unlink Discord."),
+		).toBeVisible();
+		await expectAccount(ott, { username, discordLinked: true, hasPassword: false });
 	});
 
-	it("should let a password account unlink Discord", () => {
+	it("should let a password account unlink Discord", async ({ page, ott }) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
 			password: faker.internet.password(12),
 		};
 
-		cy.ottCreateUser(userCreds);
-		cy.ottSetDiscordLink({ username: userCreds.username });
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.setDiscordLink({ username: userCreds.username });
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-unlink-discord"]').should("be.visible").click();
-		cy.contains("Discord unlinked.").should("be.visible");
-		cy.get('[data-cy="account-link-discord"]').should("be.visible");
-		cy.get('[data-cy="account-unlink-discord"]').should("not.exist");
-		cy.get('[data-cy="user-logged-in"]').first().click();
-		cy.contains("Link Discord").should("be.visible");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
-			username: userCreds.username,
-			discordLinked: false,
-		});
+		await page.locator('[data-cy="account-unlink-discord"]').click();
+		await expect(page.getByText("Discord unlinked.")).toBeVisible();
+		await expect(page.locator('[data-cy="account-link-discord"]')).toBeVisible();
+		await expect(page.locator('[data-cy="account-unlink-discord"]')).toHaveCount(0);
+		await page.locator('[data-cy="user-logged-in"]').first().click();
+		await expect(page.getByRole("menuitem", { name: "Link Discord" })).toBeVisible();
+		await expectAccount(ott, { username: userCreds.username, discordLinked: false });
 	});
 
-	it("should reject the wrong current password before allowing a password change", () => {
+	it("should reject the wrong current password before allowing a password change", async ({
+		page,
+		ott,
+	}) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
@@ -202,29 +193,30 @@ describe("Account management", () => {
 		};
 		const nextPassword = faker.internet.password(14);
 
-		cy.ottCreateUser(userCreds);
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-current-password"] input').type("definitely-wrong-password");
-		cy.get('[data-cy="account-new-password"] input').type(nextPassword);
-		cy.get('[data-cy="account-new-password-confirm"] input').type(nextPassword);
-		cy.get('[data-cy="account-save-password"]').should("not.be.disabled").click();
-		cy.contains("Current password is incorrect.").should("be.visible");
-		cy.ottRequest({ method: "GET", url: "/api/user/account" }).its("body").should("include", {
+		await page
+			.locator('[data-cy="account-current-password"]')
+			.fill("definitely-wrong-password");
+		await page.locator('[data-cy="account-new-password"]').fill(nextPassword);
+		await page.locator('[data-cy="account-new-password-confirm"]').fill(nextPassword);
+		await page.locator('[data-cy="account-save-password"]').click();
+		await expect(page.getByText("Current password is incorrect.")).toBeVisible();
+		await expectAccount(ott, {
 			email: userCreds.email,
 			username: userCreds.username,
 			hasPassword: true,
 		});
 
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		loginThroughUi(userCreds.username, userCreds.password);
-		cy.get('[data-cy="user-logged-in"]').should("contain", userCreds.username);
+		await page.context().clearCookies();
+		await ott.ensureToken();
+		await loginThroughUi(page, userCreds.username, userCreds.password);
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(userCreds.username);
 	});
 
-	it("should let a local account change its password", () => {
+	it("should let a local account change its password", async ({ page, ott }) => {
 		const userCreds = {
 			email: faker.internet.email(),
 			username: faker.internet.userName(),
@@ -232,23 +224,22 @@ describe("Account management", () => {
 		};
 		const nextPassword = faker.internet.password(14);
 
-		cy.ottCreateUser(userCreds);
-		cy.ottLogin({ user: userCreds.username, password: userCreds.password });
-		visitAccount();
+		await ott.createUser(userCreds);
+		await ott.login({ user: userCreds.username, password: userCreds.password });
+		await visitAccount(page);
 
-		cy.get('[data-cy="account-current-password"] input').type(userCreds.password);
-		cy.get('[data-cy="account-new-password"] input').type(nextPassword);
-		cy.get('[data-cy="account-new-password-confirm"] input').type(nextPassword);
-		cy.get('[data-cy="account-save-password"]').should("not.be.disabled").click();
+		await page.locator('[data-cy="account-current-password"]').fill(userCreds.password);
+		await page.locator('[data-cy="account-new-password"]').fill(nextPassword);
+		await page.locator('[data-cy="account-new-password-confirm"]').fill(nextPassword);
+		await page.locator('[data-cy="account-save-password"]').click();
 
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		loginThroughUi(userCreds.username, userCreds.password);
-		cy.get('[data-cy="user-logged-in"]').should("not.exist");
+		await page.context().clearCookies();
+		await ott.ensureToken();
+		await loginThroughUi(page, userCreds.username, userCreds.password);
+		await expect(page.locator('[data-cy="user-logged-in"]')).toHaveCount(0);
 
-		cy.get('[data-cy="login-password"] input').clear().type(nextPassword);
-		cy.get('[data-cy="login-button"]').click();
-		cy.get('[data-cy="user-logged-in"]').should("contain", userCreds.username);
+		await page.locator('[data-cy="login-password"]').fill(nextPassword);
+		await page.locator('[data-cy="login-button"]').click();
+		await expect(page.locator('[data-cy="user-logged-in"]')).toContainText(userCreds.username);
 	});
 });

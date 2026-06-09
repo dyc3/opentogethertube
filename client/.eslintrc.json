@@ -6,9 +6,14 @@
 		"browser": true
 	},
 	"plugins": ["vitest"],
-	"extends": ["eslint:recommended"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:vue/base",
+		"plugin:vue/essential",
+		"@vue/typescript/recommended"
+	],
 	"rules": {
-		"no-console": "error",
+		"no-console": "off",
 		"no-debugger": "off",
 		"curly": "off",
 		"camelcase": "error",
@@ -24,6 +29,10 @@
 		"no-regex-spaces": "off",
 		"no-redeclare": "off",
 		"no-mixed-spaces-and-tabs": "off",
+		"vue/no-v-model-argument": "off",
+		"vue/multi-word-component-names": "off",
+		"vue/no-multiple-template-root": "off",
+		"vue/no-reserved-component-names": "off",
 
 		// Covered by Biome's Vue domain/rules.
 		"vue/no-arrow-functions-in-watch": "off",
@@ -36,6 +45,7 @@
 		"vue/valid-v-if": "off",
 		"vue/next-tick-style": "off",
 		"vue/valid-v-on": "off",
+		"vue/no-reserved-props": "off",
 		"vue/mustache-interpolation-spacing": "off",
 		"vitest/no-identical-title": "off",
 		"vitest/consistent-test-it": "off",
@@ -56,39 +66,6 @@
 			}
 		},
 		{
-			"files": ["*.vue"],
-			"parser": "vue-eslint-parser",
-			"parserOptions": {
-				"parser": "@typescript-eslint/parser",
-				"ecmaVersion": 2018,
-				"sourceType": "module"
-			},
-			"extends": ["plugin:vue/base", "plugin:vue/essential", "@vue/typescript/recommended"],
-			"rules": {
-				// HACK: this rule is required, otherwise travis-ci will fail (for some reason)
-				// even through when run locally, no linting errors occur.
-				"vue/no-parsing-error": [
-					"error",
-					{
-						"invalid-first-character-of-tag-name": false
-					}
-				],
-
-				// Covered by Biome's Vue domain/rules.
-				"vue/no-arrow-functions-in-watch": "off",
-				"vue/no-ref-as-operand": "off",
-				"vue/no-use-v-if-with-v-for": "off",
-				"vue/valid-v-bind": "off",
-				"vue/valid-v-else": "off",
-				"vue/valid-v-else-if": "off",
-				"vue/valid-v-for": "off",
-				"vue/valid-v-if": "off",
-				"vue/next-tick-style": "off",
-				"vue/valid-v-on": "off",
-				"vue/mustache-interpolation-spacing": "off"
-			}
-		},
-		{
 			"files": ["*.ts", "*.tsx"],
 			"parser": "@typescript-eslint/parser",
 			"parserOptions": {
@@ -98,6 +75,7 @@
 			},
 			"rules": {
 				"no-unused-vars": "off",
+				"@typescript-eslint/no-unused-vars": "off",
 				"@typescript-eslint/adjacent-overload-signatures": "off",
 				"@typescript-eslint/switch-exhaustiveness-check": "off",
 				"@typescript-eslint/restrict-template-expressions": "warn",

@@ -1,25 +1,32 @@
 <template>
-	<v-btn
-		variant="text"
-		icon
-		v-if="isBrowserSupported"
-		:disabled="!isVideoSupported"
-		class="media-control"
-		:aria-label="$t('room.pip')"
-		@click="togglePictureInPicture()"
-	>
-		<v-icon
-			:icon="
-				isActive ? mdiPictureInPictureBottomRight : mdiPictureInPictureBottomRightOutline
-			"
-		/>
-		<v-tooltip activator="parent" location="bottom">
-			{{ $t("room.pip") }}
-		</v-tooltip>
-	</v-btn>
+	<Tooltip v-if="isBrowserSupported">
+		<TooltipTrigger as-child>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="media-control"
+				:disabled="!isVideoSupported"
+				:aria-label="$t('room.pip')"
+				@click="togglePictureInPicture()"
+			>
+				<Icon
+					:icon="
+						isActive
+							? mdiPictureInPictureBottomRight
+							: mdiPictureInPictureBottomRightOutline
+					"
+					class="size-5"
+				/>
+			</Button>
+		</TooltipTrigger>
+		<TooltipContent side="bottom">{{ $t("room.pip") }}</TooltipContent>
+	</Tooltip>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { mdiPictureInPictureBottomRight, mdiPictureInPictureBottomRightOutline } from "@mdi/js";
 
@@ -119,7 +126,8 @@ async function togglePictureInPicture() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
-<style lang="scss">
-@use "./media-controls.scss";
+<style scoped>
+.media-control {
+	color: var(--foreground);
+}
 </style>

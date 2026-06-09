@@ -248,9 +248,7 @@ describe("VideoQueueItem component", () => {
 		await openMenu(wrapper);
 		(document.querySelector('[data-cy="menu-btn-edit-preview"]') as HTMLElement).click();
 		await flush();
-		const input = document.querySelector(
-			'[data-cy="edit-subtitle-url"] input',
-		) as HTMLInputElement;
+		const input = document.querySelector('[data-cy="edit-subtitle-url"]') as HTMLInputElement;
 		input.value = "not a url";
 		input.dispatchEvent(new Event("input", { bubbles: true }));
 		(document.querySelector('[data-cy="edit-save"]') as HTMLElement).click();

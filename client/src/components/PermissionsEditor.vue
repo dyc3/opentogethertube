@@ -1,53 +1,71 @@
 <template>
-	<v-container fluid>
-		{{ $t("permissions-editor.title") }}<br />
-		{{ $t("permissions-editor.text1") }}<br />
-		{{ $t("permissions-editor.text2") }}<br />
-		{{ $t("permissions-editor.viewing-as") }}: {{ $t(`roles.${currentRole}`) }}<br />
-		<v-table density="compact">
-			<thead>
-				<tr>
-					<th class="text-left" scope="col">{{ $t("permissions-editor.permission") }}</th>
-					<th class="text-left" scope="col">
-						{{ $t(`roles.${Role.UnregisteredUser}`) }}
-					</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${Role.RegisteredUser}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${Role.TrustedUser}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${Role.Moderator}`) }}</th>
-					<th class="text-left" scope="col">{{ $t(`roles.${Role.Administrator}`) }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="item in permissions" :key="item.name">
-					<th scope="row">{{ item.name }}</th>
-					<td v-for="r in 5" :key="r">
-						<v-checkbox
-							v-if="
-								r - 1 >= item.minRole &&
-								(currentRole > r - 1 || currentRole < 0) &&
-								r - 1 < 4 &&
-								granted(rolePerms[r - 1])
-							"
-							v-model="item[r - 1]"
-							:disabled="getLowestGranted(item) < r - 1"
-							color="primary"
-							@update:model-value="onCheckboxModified"
-							:data-cy="`perm-chk-${item.name}-${r - 1}`"
-						/>
-						<v-checkbox
-							v-else
-							v-model="item[r - 1]"
-							:disabled="true"
-							:data-cy="`perm-chk-${item.name}-${r - 1}`"
-						/>
-					</td>
-				</tr>
-			</tbody>
-		</v-table>
-	</v-container>
+	<div class="flex flex-col gap-4">
+		<div class="flex flex-col gap-1 text-sm text-muted-foreground">
+			<h3 class="font-display text-2xl tracking-wide text-foreground">
+				{{ $t("permissions-editor.title") }}
+			</h3>
+			<p>{{ $t("permissions-editor.text1") }}</p>
+			<p>{{ $t("permissions-editor.text2") }}</p>
+			<p class="label-mono text-primary">
+				{{ $t("permissions-editor.viewing-as") }}: {{ $t(`roles.${currentRole}`) }}
+			</p>
+		</div>
+		<div class="overflow-x-auto rounded-lg border">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead scope="col">{{ $t("permissions-editor.permission") }}</TableHead>
+						<TableHead scope="col">{{
+							$t(`roles.${Role.UnregisteredUser}`)
+						}}</TableHead>
+						<TableHead scope="col">{{ $t(`roles.${Role.RegisteredUser}`) }}</TableHead>
+						<TableHead scope="col">{{ $t(`roles.${Role.TrustedUser}`) }}</TableHead>
+						<TableHead scope="col">{{ $t(`roles.${Role.Moderator}`) }}</TableHead>
+						<TableHead scope="col">{{ $t(`roles.${Role.Administrator}`) }}</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					<TableRow v-for="item in permissions" :key="item.name">
+						<TableHead scope="row" class="font-mono text-xs whitespace-nowrap">
+							{{ item.name }}
+						</TableHead>
+						<TableCell v-for="r in 5" :key="r">
+							<Checkbox
+								v-if="
+									r - 1 >= item.minRole &&
+									(currentRole > r - 1 || currentRole < 0) &&
+									r - 1 < 4 &&
+									granted(rolePerms[r - 1])
+								"
+								v-model="item[r - 1]"
+								:disabled="getLowestGranted(item) < r - 1"
+								:data-cy="`perm-chk-${item.name}-${r - 1}`"
+								@update:model-value="onCheckboxModified"
+							/>
+							<Checkbox
+								v-else
+								v-model="item[r - 1]"
+								:disabled="true"
+								:data-cy="`perm-chk-${item.name}-${r - 1}`"
+							/>
+						</TableCell>
+					</TableRow>
+				</TableBody>
+			</Table>
+		</div>
+	</div>
 </template>
 
 <script lang="ts" setup>
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { ref, type Ref, toRefs, watch } from "vue";
 import _ from "lodash";
 import { PERMISSIONS, type Permission, Grants } from "ott-common/permissions";

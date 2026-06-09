@@ -1,97 +1,57 @@
-// import faker from "faker";
-// import uuid from "uuid";
-// import { QueueMode, Visibility } from "ott-common/models/types";
+import { afterEach, beforeEach, describe, expect, it } from "../support/fixtures";
 
 describe("Room settings", () => {
-	// let roomName;
-	// let userCreds;
-
-	// before(() => {
-	// 	userCreds = {
-	// 		email: faker.internet.email(),
-	// 		username: faker.internet.userName(),
-	// 		password: faker.internet.password(12),
-	// 	};
-	// 	cy.request("POST", "/api/user/register", userCreds);
-	// });
-
-	beforeEach(() => {
-		cy.clearCookies();
-		cy.clearLocalStorage();
-		cy.ottEnsureToken();
-		cy.ottResetRateLimit();
-		// cy.request("POST", "/api/user/login", userCreds);
-		// roomName = uuid.v4().substring(0, 20);
-		// cy.request("POST", "/api/room/create", { name: roomName, temporary: false });
-		// cy.visit(`/room/${roomName}`);
+	beforeEach(async ({ context, ott }) => {
+		await context.clearCookies();
+		await ott.ensureToken();
+		await ott.resetRateLimit();
 	});
 
 	describe("Simple settings in temporary rooms", () => {
-		beforeEach(() => {
-			cy.ottRequest({
-				method: "POST",
-				url: "/api/room/generate",
-			}).then(resp => {
-				// @ts-expect-error
-				const room = resp.body.room;
-				cy.visit(`/room/${room}`);
-				cy.intercept("GET", `/api/room/${room}`).as("getRoom");
-			});
-
-			cy.contains("Settings").click();
-			cy.wait("@getRoom");
-			cy.contains("button", "Save")
-				.should("exist")
-				.scrollIntoView()
-				.should("be.visible")
-				.should("be.disabled");
+		beforeEach(async ({ page, ott }) => {
+			const response = await ott.request({ method: "POST", url: "/api/room/generate" });
+			const body = await response.json();
+			const room = body.room as string;
+			await page.goto(`/room/${room}`);
+			const getRoom = page.waitForResponse(
+				resp =>
+					resp.url().includes(`/api/room/${room}`) && resp.request().method() === "GET",
+			);
+			await page.getByText("Settings").click();
+			await getRoom;
+			await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+			await expect(page.getByRole("button", { name: "Save" })).toBeDisabled();
 		});
 
-		it("should apply title", () => {
-			cy.get('[data-cy="input-title"] input').type("ligma");
-			cy.contains("button", "Save")
-				.should("exist")
-				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none")
-				.click();
-			cy.get(".room-title").scrollIntoView().should("have.text", "ligma");
+		afterEach(async ({ page }) => {
+			await expect(page.getByText("Settings applied")).toBeVisible();
 		});
 
-		it("should apply description", () => {
-			cy.get('[data-cy="input-description"] input').type("sugma");
-			cy.contains("button", "Save")
-				.should("exist")
-				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none")
-				.click();
+		it("should apply title", async ({ page }) => {
+			await page.locator('[data-cy="input-title"]').fill("ligma");
+			await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+			await page.getByRole("button", { name: "Save" }).click();
+			await expect(page.getByRole("heading", { name: "ligma" })).toBeVisible();
 		});
 
-		it("should apply visibility", () => {
-			cy.get("[data-cy=select-visibility]").click();
-			cy.contains("Public").click();
-			cy.contains("button", "Save")
-				.should("exist")
-				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none")
-				.click();
+		it("should apply description", async ({ page }) => {
+			await page.locator('[data-cy="input-description"]').fill("sugma");
+			await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+			await page.getByRole("button", { name: "Save" }).click();
 		});
 
-		it("should apply queue mode", () => {
-			cy.get("[data-cy=select-queueMode]").click();
-			cy.contains("Vote").click();
-			cy.contains("button", "Save")
-				.should("exist")
-				.should("be.visible")
-				.should("not.be.disabled")
-				.should("not.have.css", "pointer-events", "none")
-				.click();
+		it("should apply visibility", async ({ page }) => {
+			await page.locator("[data-cy=select-visibility]").click();
+			await page.getByText("Public", { exact: true }).click();
+			await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+			await page.getByRole("button", { name: "Save" }).click();
 		});
 
-		afterEach(() => {
-			cy.contains("Settings applied").should("be.visible");
+		it("should apply queue mode", async ({ page }) => {
+			await page.locator("[data-cy=select-queueMode]").click();
+			await page.getByText("Vote", { exact: true }).click();
+			await expect(page.getByRole("button", { name: "Save" })).toBeEnabled();
+			await page.getByRole("button", { name: "Save" }).click();
 		});
 	});
 });

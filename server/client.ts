@@ -92,7 +92,7 @@ export abstract class Client {
 	}
 
 	abstract sendRaw(msg: string): void;
-	abstract kick(code: OttWebsocketError): void;
+	abstract kick(code: number): void;
 
 	getClientInfo(): ClientInfo {
 		if (!this.session) {
@@ -160,9 +160,9 @@ export class DirectClient extends Client {
 		this.socket.send(msg);
 	}
 
-	kick(code: OttWebsocketError) {
+	kick(code: number) {
 		this.socket.close(code);
-		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] });
+		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] ?? String(code) });
 	}
 
 	ping() {
@@ -209,7 +209,7 @@ export class BalancerClient extends Client {
 		throw new Error("Not implemented");
 	}
 
-	kick(code: OttWebsocketError) {
+	kick(code: number) {
 		this.conn.send({
 			type: "kick",
 			payload: {
@@ -217,7 +217,7 @@ export class BalancerClient extends Client {
 				reason: code,
 			},
 		});
-		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] });
+		counterWebsocketCloseCodes.inc({ code: OttWebsocketError[code] ?? String(code) });
 		this.leave();
 	}
 }

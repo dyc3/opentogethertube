@@ -1,29 +1,28 @@
 <template>
-	<v-sheet class="video" hover>
+	<div class="video ticket-notch">
 		<div class="img-container">
-			<v-img
+			<img
 				:src="thumbnailSource"
-				:lazy-src="placeholderUrl"
-				aspect-ratio="1.8"
+				class="thumbnail"
+				loading="lazy"
 				@error="onThumbnailError"
+			/>
+			<span
+				class="drag-handle"
+				v-if="
+					!isPreview &&
+					store.state.room.queueMode !== QueueMode.Vote &&
+					granted('manage-queue.order')
+				"
 			>
-				<span
-					class="drag-handle"
-					v-if="
-						!isPreview &&
-						store.state.room.queueMode !== QueueMode.Vote &&
-						granted('manage-queue.order')
-					"
-				>
-					<v-icon :icon="mdiFormatAlignJustify" />
-				</span>
-				<span class="video-length">{{ videoLength }}</span>
-			</v-img>
+				<Icon :icon="mdiFormatAlignJustify" class="size-5" />
+			</span>
+			<span class="video-length font-mono">{{ videoLength }}</span>
 		</div>
 		<div class="meta-container">
 			<div>
-				<div class="video-title" no-gutters>{{ item.title }}</div>
-				<div class="description" no-gutters>{{ item.description }}</div>
+				<div class="video-title">{{ item.title }}</div>
+				<div class="description">{{ item.description }}</div>
 				<div v-if="item.service === 'googledrive'" class="experimental">
 					{{ $t("video-queue-item.experimental") }}
 				</div>
@@ -34,86 +33,111 @@
 		</div>
 		<div style="display: flex; justify-content: center; flex-direction: column">
 			<div class="button-container" v-if="!hideAllButtons">
-				<v-btn
+				<Button
 					class="button-with-icon"
+					:variant="voted ? 'destructive' : 'signal'"
+					size="sm"
 					@click="vote"
-					:loading="isLoadingVote"
-					:color="voted ? 'red' : 'green'"
+					:disabled="isLoadingVote"
 					v-if="!isPreview && store.state.room.queueMode === QueueMode.Vote"
 					data-cy="btn-vote"
 				>
-					<span>{{ votes }}</span>
-					<v-icon :icon="mdiThumbUp" />
-					<span class="vote-text">
-						{{ voted ? $t("common.unvote") : $t("common.vote") }}
-					</span>
-				</v-btn>
-				<v-btn
-					icon
-					variant="flat"
-					@click="playNow"
-					v-if="store.state.room.queueMode !== QueueMode.Vote"
-					:disabled="!granted('manage-queue.play-now')"
-					data-cy="btn-play-now"
-				>
-					<v-icon :icon="mdiPlay" />
-					<v-tooltip activator="parent" location="top">
-						<span>{{ $t("video.playnow-explanation") }}</span>
-					</v-tooltip>
-				</v-btn>
-				<v-btn
-					icon
-					variant="flat"
-					:loading="isLoadingAdd"
-					@click="addToQueue"
-					v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj"
-					data-cy="btn-add-to-queue"
-				>
-					<v-icon v-if="hasError" :icon="mdiExclamation" />
-					<v-icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" />
-					<v-icon v-else :icon="mdiPlus" />
-					<v-tooltip activator="parent" location="top">
-						<span>{{ $t("video.add-explanation") }}</span>
-					</v-tooltip>
-				</v-btn>
-				<v-btn
-					icon
-					variant="flat"
-					:loading="isLoadingAdd"
+					<Spinner v-if="isLoadingVote" class="size-4" />
+					<template v-else>
+						<span>{{ votes }}</span>
+						<Icon :icon="mdiThumbUp" class="size-4" />
+						<span class="vote-text">
+							{{ voted ? $t("common.unvote") : $t("common.vote") }}
+						</span>
+					</template>
+				</Button>
+				<Tooltip v-if="store.state.room.queueMode !== QueueMode.Vote">
+					<TooltipTrigger as-child>
+						<Button
+							variant="ghost"
+							size="icon"
+							@click="playNow"
+							:disabled="!granted('manage-queue.play-now')"
+							data-cy="btn-play-now"
+							:aria-label="$t('video.playnow')"
+						>
+							<Icon :icon="mdiPlay" class="size-5" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>{{ $t("video.playnow-explanation") }}</TooltipContent>
+				</Tooltip>
+				<Tooltip v-if="isPreview && store.state.room.queueMode !== QueueMode.Dj">
+					<TooltipTrigger as-child>
+						<Button
+							variant="ghost"
+							size="icon"
+							:disabled="isLoadingAdd"
+							@click="addToQueue"
+							data-cy="btn-add-to-queue"
+							:aria-label="$t('video.add-to-queue')"
+						>
+							<Spinner v-if="isLoadingAdd" class="size-4" />
+							<Icon
+								v-else-if="hasError"
+								:icon="mdiExclamation"
+								class="size-5 text-destructive"
+							/>
+							<Icon
+								v-else-if="hasBeenAdded"
+								:icon="mdiCheckBold"
+								class="size-5 text-success"
+							/>
+							<Icon v-else :icon="mdiPlus" class="size-5" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>{{ $t("video.add-explanation") }}</TooltipContent>
+				</Tooltip>
+				<Button
+					variant="ghost"
+					size="icon"
+					:disabled="isLoadingAdd"
 					v-if="!isPreview && store.state.room.queueMode !== QueueMode.Dj"
 					@click="removeFromQueue"
 					data-cy="btn-remove-from-queue"
+					:aria-label="$t('video.remove-from-queue')"
 				>
-					<v-icon v-if="hasError" :icon="mdiExclamation" />
-					<v-icon v-else :icon="mdiTrashCan" />
-				</v-btn>
-				<v-menu offset-y>
-					<template v-slot:activator="{ props: p }">
-						<v-btn icon variant="flat" v-bind="p" data-cy="btn-menu">
-							<v-icon :icon="mdiDotsVertical" />
-						</v-btn>
-					</template>
-					<v-list>
-						<v-list-item
-							class="button-with-icon"
+					<Spinner v-if="isLoadingAdd" class="size-4" />
+					<Icon
+						v-else-if="hasError"
+						:icon="mdiExclamation"
+						class="size-5 text-destructive"
+					/>
+					<Icon v-else :icon="mdiTrashCan" class="size-5" />
+				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger as-child>
+						<Button
+							variant="ghost"
+							size="icon"
+							data-cy="btn-menu"
+							:aria-label="$t('video.more-actions')"
+						>
+							<Icon :icon="mdiDotsVertical" class="size-5" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem
 							@click="playNow"
 							v-if="store.state.room.queueMode !== QueueMode.Vote"
 							:disabled="!granted('manage-queue.play-now')"
 							data-cy="menu-btn-play-now"
 						>
-							<v-icon :icon="mdiPlay" />
+							<Icon :icon="mdiPlay" class="size-4" />
 							<span>{{ $t("video.playnow") }}</span>
-						</v-list-item>
-						<v-list-item
-							class="button-with-icon"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							@click="showEditDialog = true"
 							data-cy="menu-btn-edit-preview"
 						>
-							<v-icon :icon="mdiPencil" />
+							<Icon :icon="mdiPencil" class="size-4" />
 							<span>{{ $t("video-queue-item.edit.tooltip") }}</span>
-						</v-list-item>
-						<v-list-item
-							class="button-with-icon"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							@click="moveToTop"
 							v-if="
 								!isPreview &&
@@ -122,76 +146,95 @@
 							"
 							data-cy="menu-btn-move-to-top"
 						>
-							<v-icon :icon="mdiSortDescending" />
+							<Icon :icon="mdiSortDescending" class="size-4" />
 							<span>{{ $t("video-queue-item.play-next") }}</span>
-						</v-list-item>
-						<v-list-item
-							class="button-with-icon"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							@click="moveToBottom"
 							v-if="!isPreview && store.state.room.queueMode !== QueueMode.Vote"
 							data-cy="menu-btn-move-to-bottom"
 						>
-							<v-icon :icon="mdiSortAscending" />
+							<Icon :icon="mdiSortAscending" class="size-4" />
 							<span>{{ $t("video-queue-item.play-last") }}</span>
-						</v-list-item>
-						<v-list-item
-							:loading="isLoadingAdd"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							v-if="isPreview && store.state.room.queueMode === QueueMode.Dj"
 							@click="addToQueue"
 							data-cy="menu-btn-add-to-queue"
 						>
-							<v-icon v-if="hasError" :icon="mdiExclamation" />
-							<v-icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" />
-							<v-icon v-else :icon="mdiPlus" />
+							<Icon v-if="hasError" :icon="mdiExclamation" class="size-4" />
+							<Icon v-else-if="hasBeenAdded" :icon="mdiCheckBold" class="size-4" />
+							<Icon v-else :icon="mdiPlus" class="size-4" />
 							<span>{{ $t("common.add") }}</span>
-						</v-list-item>
-						<v-list-item
-							class="button-with-icon"
+						</DropdownMenuItem>
+						<DropdownMenuItem
 							@click="removeFromQueue"
 							v-if="!isPreview && store.state.room.queueMode === QueueMode.Dj"
 							data-cy="menu-btn-remove-from-queue"
 						>
-							<v-icon :icon="mdiTrashCan" />
+							<Icon :icon="mdiTrashCan" class="size-4" />
 							<span>{{ $t("common.remove") }}</span>
-						</v-list-item>
-					</v-list>
-				</v-menu>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 		</div>
-		<v-dialog v-model="showEditDialog" max-width="480" data-cy="edit-preview-dialog">
-			<v-card>
-				<v-card-title>{{ $t("video-queue-item.edit.title") }}</v-card-title>
-				<v-card-text>
-					<v-text-field
+		<Dialog v-model:open="showEditDialog" data-cy="edit-preview-dialog">
+			<DialogContent class="max-w-[480px] sm:max-w-[480px]">
+				<DialogHeader>
+					<DialogTitle class="font-display text-2xl tracking-wide">
+						{{ $t("video-queue-item.edit.title") }}
+					</DialogTitle>
+				</DialogHeader>
+				<Field>
+					<FieldLabel for="edit-subtitle-url">
+						{{ $t("video-queue-item.edit.subtitle-url") }}
+					</FieldLabel>
+					<Input
+						id="edit-subtitle-url"
 						v-model="editedSubtitleUrl"
-						:label="$t('video-queue-item.edit.subtitle-url')"
-						variant="underlined"
-						clearable
+						class="font-mono"
 						:disabled="!['direct', 'googledrive'].includes(item.service)"
-						:hint="$t('video-queue-item.edit.subtitle-url-supported-services')"
-						:persistent-hint="true"
 						data-cy="edit-subtitle-url"
 					/>
-				</v-card-text>
-				<v-card-actions>
-					<v-spacer />
-					<v-btn @click="showEditDialog = false" data-cy="edit-cancel">{{
-						$t("common.cancel")
-					}}</v-btn>
-					<v-btn
-						color="primary"
-						:loading="isLoadingEdit"
-						@click="saveEdit"
-						data-cy="edit-save"
-						>{{ $t("common.save") }}</v-btn
-					>
-				</v-card-actions>
-			</v-card>
-		</v-dialog>
-	</v-sheet>
+					<FieldDescription>
+						{{ $t("video-queue-item.edit.subtitle-url-supported-services") }}
+					</FieldDescription>
+				</Field>
+				<DialogFooter>
+					<Button variant="ghost" @click="showEditDialog = false" data-cy="edit-cancel">
+						{{ $t("common.cancel") }}
+					</Button>
+					<Button :disabled="isLoadingEdit" @click="saveEdit" data-cy="edit-save">
+						<Spinner v-if="isLoadingEdit" class="size-4" />
+						{{ $t("common.save") }}
+					</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	</div>
 </template>
 
 <script lang="ts" setup>
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
 	mdiFormatAlignJustify,
 	mdiThumbUp,
@@ -429,7 +472,7 @@ watchEffect(() => {
 </script>
 
 <style lang="scss" scoped>
-@use "../variables.scss";
+$sm-max: 600px;
 
 .video {
 	display: flex;
@@ -440,6 +483,21 @@ watchEffect(() => {
 	width: 100%;
 	max-height: 111px;
 	margin-top: 8px;
+	padding: 4px;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-left: 3px solid var(--primary);
+	transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+	&:hover {
+		background: var(--surface-2);
+		border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+		box-shadow: var(--glow-primary);
+
+		.drag-handle {
+			opacity: 1;
+		}
+	}
 
 	> * {
 		display: flex;
@@ -448,6 +506,7 @@ watchEffect(() => {
 	.meta-container {
 		flex-grow: 1;
 		margin: 0 10px;
+		align-items: center;
 
 		> div {
 			flex-direction: column;
@@ -456,11 +515,27 @@ watchEffect(() => {
 		min-width: 20%;
 		width: 30%;
 
-		.video-title,
+		.video-title {
+			font-family: var(--font-display);
+			font-size: 1.4rem;
+			letter-spacing: 0.01em;
+			line-height: 1.1;
+			color: var(--foreground);
+			@media (max-width: $sm-max) {
+				font-size: 0.95rem;
+			}
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
 		.experimental {
-			font-size: 1.25rem;
-			@media (max-width: variables.$sm-max) {
-				font-size: 0.8rem;
+			font-size: 0.7rem;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			color: var(--warning, var(--primary));
+			@media (max-width: $sm-max) {
+				font-size: 0.6rem;
 			}
 			white-space: nowrap;
 			overflow: hidden;
@@ -469,97 +544,97 @@ watchEffect(() => {
 
 		.description {
 			flex-grow: 1;
-			font-size: 0.9rem;
+			font-size: 0.85rem;
+			color: var(--muted-foreground);
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 
-			@media (max-width: variables.$sm-max) {
+			@media (max-width: $sm-max) {
 				display: none;
 			}
 		}
 	}
 
 	.img-container {
+		position: relative;
 		width: 200px;
 		max-width: 200px;
-		@media (max-width: variables.$sm-max) {
+		overflow: hidden;
+		border-radius: 2px;
+		@media (max-width: $sm-max) {
 			max-width: 80px;
 		}
+	}
+
+	.thumbnail {
+		display: block;
+		width: 100%;
+		height: 100%;
+		aspect-ratio: 1.8;
+		object-fit: cover;
 	}
 
 	.button-container {
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
+		align-items: center;
 		flex-wrap: nowrap;
+		gap: 4px;
 
-		@media (max-width: variables.$sm-max) {
+		@media (max-width: $sm-max) {
 			.vote-text {
 				display: none;
 			}
-		}
-
-		> button {
-			margin: 0 5px;
 		}
 	}
 
 	.drag-handle {
 		position: absolute;
-		top: 50%;
-		transform: translateY(-50%);
+		top: 0;
+		left: 0;
+		display: flex;
+		align-items: center;
 		width: 40%;
-		height: 100.5%;
+		height: 100%;
+		padding-left: 10px;
+		color: var(--foreground);
 		background: linear-gradient(
 			90deg,
-			rgba(0, 0, 0, 0.8) 0%,
-			rgba(0, 0, 0, 0.7) 40%,
-			rgba(0, 0, 0, 0) 100%
+			color-mix(in srgb, var(--ink) 85%, transparent) 0%,
+			color-mix(in srgb, var(--ink) 70%, transparent) 40%,
+			transparent 100%
 		);
 		cursor: move;
-
 		opacity: 0;
-
-		transition: all 0.4s ease;
-
-		* {
-			position: absolute;
-			top: 50%;
-			left: 12px;
-			transform: translateY(-50%);
-		}
-	}
-
-	&:hover {
-		.drag-handle {
-			opacity: 1;
-		}
+		transition: opacity 0.4s ease;
+		z-index: 2;
 	}
 }
 
 .button-with-icon {
-	.v-icon {
-		font-size: 18px;
-		margin: 0 5px;
-	}
+	gap: 4px;
 }
 
 .video-length {
-	background: rgba(0, 0, 0, 0.8);
-	padding: 2px 5px;
+	background: color-mix(in srgb, var(--ink) 85%, transparent);
+	color: var(--foreground);
+	font-size: 0.7rem;
+	padding: 2px 6px;
 	border-top-left-radius: 3px;
 	position: absolute;
 	bottom: 0;
 	right: 0;
-	z-index: 1000;
+	z-index: 1;
 }
 
 .video-start-at {
-	font-size: 1rem;
-	@media (max-width: variables.$sm-max) {
-		font-size: 0.8rem;
+	font-size: 0.85rem;
+	@media (max-width: $sm-max) {
+		font-size: 0.75rem;
 	}
 	font-style: italic;
+	color: var(--muted-foreground);
 }
 </style>
