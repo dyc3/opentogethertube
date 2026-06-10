@@ -21,6 +21,8 @@ export default {
 		hide: "Ausblenden",
 		discard: "Verwerfen",
 		loading: "Laden...",
+		language: "Sprache",
+		"nav-menu": "Navigationsmenü",
 		view: "Ansicht",
 		restore: "Wiederherstellen",
 		success: "Erfolg",
@@ -41,6 +43,7 @@ export default {
 	},
 	landing: {
 		hero: {
+			eyebrow: "Jetzt läuft · Keine Anmeldung erforderlich",
 			title: "Gemeinsam genießen.",
 			description:
 				"Synchrone Wiedergabe in Echtzeit. Optionales Abstimmungssystem.\nDunkles Theme. Keine Anmeldung erforderlich. Alles Open Source.\nNoch nie war es so einfach, gemeinsam Videos anzuschauen.",
@@ -105,6 +108,7 @@ export default {
 		attribution: "Zuschreibung",
 	},
 	"not-found": {
+		eyebrow: "Fehler · 404",
 		title: "Seite nicht gefunden",
 		home: "@:nav.home",
 		browse: "@:landing.hero.btns.browse",
@@ -113,12 +117,14 @@ export default {
 		text: "Erstelle einen temporären Raum für Sie...",
 	},
 	attribution: {
+		eyebrow: "Danksagungen",
 		"sponsorblock-text": "Verwendet SponsorBlock-Daten von",
 	},
 	nav: {
 		home: "Startseite",
 		browse: "Durchsuchen",
 		"my-rooms": "Meine Räume",
+		account: "Konto",
 		faq: "FAQ",
 		bug: "Einen Fehler melden",
 		support: "Unterstütze mich!",
@@ -134,10 +140,43 @@ export default {
 		},
 	},
 	"my-rooms": {
+		"empty-eyebrow": "Ihre Liste ist leer",
+		"owned-eyebrow": "Im Besitz",
 		"confirm-delete":
 			'Raum "{name}" dauerhaft löschen? Dies kann nicht rückgängig gemacht werden.',
 	},
+	account: {
+		eyebrow: "Verwalten",
+		title: "Konto",
+		description: "Verwalten Sie die E-Mail-Adresse und das Passwort Ihres Kontos.",
+		details: "Kontodetails",
+		social: "Soziale Konten",
+		discord: "Discord",
+		linked: "Verknüpft",
+		"not-linked": "Nicht verknüpft",
+		"link-discord": "Discord verknüpfen",
+		"unlink-discord": "Discord-Verknüpfung aufheben",
+		"discord-unlinked": "Discord-Verknüpfung aufgehoben.",
+		"discord-unlink-requires-password": "Ein Passwort ist erforderlich, bevor Sie Discord trennen können.",
+		username: "Nutzername",
+		email: "E-Mail",
+		"no-email": "Noch keine E-Mail-Adresse hinzugefügt.",
+		"add-email": "E-Mail hinzufügen",
+		"change-email": "E-Mail ändern",
+		"save-email": "E-Mail speichern",
+		"add-password": "Passwort hinzufügen",
+		"change-password": "Passwort ändern",
+		"current-password": "Aktuelles Passwort",
+		"current-password-required": "Aktuelles Passwort ist erforderlich",
+		"save-password": "Passwort speichern",
+		"email-saved": "E-Mail aktualisiert.",
+		"password-saved": "Passwort aktualisiert.",
+		"save-failed": "Kontoänderungen konnten nicht gespeichert werden.",
+		"load-failed": "Konto konnte nicht geladen werden.",
+	},
 	"room-list": {
+		"empty-eyebrow": "Leeres Haus",
+		"browse-eyebrow": "Jetzt läuft",
 		"no-rooms": "Kein Raum im Moment...",
 		create: "@:nav.create.title",
 		"no-description": "Keine Beschreibung.",
@@ -157,6 +196,12 @@ export default {
 		subtitles: "Untertitel",
 		quality: "Qualität",
 		"playback-speed": "Wiedergabegeschwindigkeit",
+		"mute-volume": "Stummschalten",
+		"close-chat": "Chat schließen",
+		"open-chat": "Chat öffnen",
+		"scroll-chat-bottom": "Nach unten scrollen",
+		"shuffle-queue": "Warteschlange mischen",
+		"switch-layout": "Layout wechseln",
 		"default-layout": "Standard-Layout",
 		"theater-mode": "Theatermodus",
 		"con-status": {
@@ -171,6 +216,7 @@ export default {
 		users: {
 			title: "Nutzer",
 			set: "Geben Sie Ihren Nutzernamen ein",
+			"toggle-edit-name": "Namensbearbeitung umschalten",
 			empty: "Es scheint niemand sonst hier zu sein. Lade ein paar Freunde ein!",
 			you: "Du",
 			demote: "degradieren",
@@ -180,6 +226,8 @@ export default {
 	},
 	privacy: {
 		title: "@:footer.privacy-policy",
+		eyebrow: "Das Kleingedruckte",
+		contact: "Kontaktinformationen",
 	},
 	chat: {
 		title: "Chat",
@@ -192,6 +240,9 @@ export default {
 	},
 	video: {
 		"add-explanation": "Zur Warteschlange hinzufügen.",
+		"add-to-queue": "Zur Warteschlange hinzufügen",
+		"remove-from-queue": "Aus der Warteschlange entfernen",
+		"more-actions": "Weitere Aktionen",
 		playnow: "Jetzt abspielen",
 		"playnow-explanation":
 			"Dieses Video jetzt abspielen, wobei das aktuelle Video an den Anfang der Warteschlange gestellt wird.",
@@ -254,8 +305,15 @@ export default {
 		messages: {
 			"video-added": "Video hinzugefügt",
 			"video-removed": "Video entfernt",
+			"video-updated": "Video aktualisiert",
 		},
 		"start-at": "Starten bei {timestamp}",
+		edit: {
+			title: "Video bearbeiten",
+			"subtitle-url": "Untertitel-URL (.vtt)",
+			"subtitle-url-supported-services": "Unterstützte Dienste: direkt, googledrive",
+			tooltip: "Videoeinstellungen bearbeiten",
+		},
 	},
 	"room-settings": {
 		title: "@:create-room-form.title",
@@ -363,6 +421,7 @@ export default {
 			"in-use": "Bereits in Verwendung.",
 		},
 		"change-password": {
+			eyebrow: "Zurücksetzen",
 			title: "Passwort ändern",
 			success: "Passwort erfolgreich geändert.",
 			forgot: "Passwort vergessen?",
@@ -428,6 +487,7 @@ export default {
 			"Schlechtes API-Argument. Dies ist wahrscheinlich ein Bug, bitte melden Sie es.",
 	},
 	player: {
+		"peertube-player": "PeerTube-Player",
 		"buffer-warn": {
 			spans: "Sie haben noch nicht genug von dem Video gepuffert. Aktuelle Zeit-Bereiche gepuffert: {ranges}",
 		},
