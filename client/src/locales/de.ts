@@ -157,7 +157,8 @@ export default {
 		"link-discord": "Discord verknüpfen",
 		"unlink-discord": "Discord-Verknüpfung aufheben",
 		"discord-unlinked": "Discord-Verknüpfung aufgehoben.",
-		"discord-unlink-requires-password": "Ein Passwort ist erforderlich, bevor Sie Discord trennen können.",
+		"discord-unlink-requires-password":
+			"Ein Passwort ist erforderlich, bevor Sie Discord trennen können.",
 		username: "Nutzername",
 		email: "E-Mail",
 		"no-email": "Noch keine E-Mail-Adresse hinzugefügt.",
