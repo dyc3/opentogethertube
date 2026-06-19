@@ -2,6 +2,7 @@ import { getLogger } from "../logger.js";
 import express from "express";
 import { rateLimiter } from "../rate-limit.js";
 import roommanager from "../roommanager.js";
+import storage from "../storage.js";
 import { RoomRequestType } from "ott-common/models/messages.js";
 import usermanager from "../usermanager.js";
 import faker from "faker";
@@ -78,6 +79,24 @@ router.post("/room/:name/force-disconnect", (req, res) => {
 	const client = clientmanager.getClientByToken(req.token!, req.params.name);
 	client.kick(1000);
 	res.json({ success: true });
+});
+
+router.post("/room/:name/seed-prev-queue", async (req, res) => {
+	// Writes a fake previous queue straight to storage so tests can exercise the
+	// restore-queue prompt deterministically. The room must already exist and be
+	// unloaded, so reopening it loads this prevQueue from the database.
+	const count = Number(req.body.count ?? 1);
+	const prevQueue = Array.from({ length: count }, (_, i) => ({
+		service: "direct" as const,
+		id: `fake-video-${i}`,
+		title: `Fake Video ${i + 1}`,
+		description: `Fake video ${i + 1} for testing the restore queue dialog`,
+		length: 100,
+		thumbnail: "",
+		mime: "video/mp4",
+	}));
+	const ok = await storage.updateRoom({ name: req.params.name, prevQueue });
+	res.json({ success: ok });
 });
 
 router.post("/set-admin-api-key", (req, res) => {
