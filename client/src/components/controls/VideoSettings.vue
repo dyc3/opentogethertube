@@ -1,20 +1,15 @@
 <template>
 	<Popover v-model:open="isMenuOpen" @update:open="onOpenChange">
-		<Tooltip>
-			<TooltipTrigger as-child>
-				<PopoverTrigger as-child>
-					<Button
-						variant="ghost"
-						size="icon"
-						class="media-control"
-						:aria-label="$t('room.player-settings')"
-					>
-						<Icon :icon="mdiCog" class="size-5" />
-					</Button>
-				</PopoverTrigger>
-			</TooltipTrigger>
-			<TooltipContent side="bottom">{{ $t("room.player-settings") }}</TooltipContent>
-		</Tooltip>
+		<PopoverTrigger as-child>
+			<Button
+				variant="ghost"
+				size="icon"
+				class="media-control"
+				:aria-label="$t('room.player-settings')"
+			>
+				<Icon :icon="mdiCog" class="size-5" />
+			</Button>
+		</PopoverTrigger>
 
 		<PopoverContent side="top" align="center" class="w-auto min-w-[260px] p-1">
 			<Transition name="menu-resize" mode="out-in">
@@ -123,7 +118,6 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ref, computed } from "vue";
 import { useCaptions, useQualities } from "../composables";
 import {
