@@ -52,8 +52,8 @@ const VideoIdSchema = z.object({
 const QueueItemExtrasSchema = z.object({
 	// startAt: z.number().nonnegative().optional(),
 	// endAt: z.number().positive().optional(),
-	subtitleUrl: z.string().url().optional(),
-	// `null`/absent means no default subtitle; a URL selects that manifest track.
+	// `null`/absent means no default subtitle; a URL selects a manifest track or an
+	// external subtitle file.
 	defaultSubtitleTrack: z.string().url().nullable().optional(),
 });
 

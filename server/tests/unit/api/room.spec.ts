@@ -468,66 +468,6 @@ describe("Room API", () => {
 			}
 		});
 
-		it("should update a queue item's subtitleUrl", async () => {
-			await roommanager.createRoom({
-				name: "testqueue",
-				isTemporary: true,
-			});
-			const room = (await roommanager.getRoom("testqueue")).unwrap();
-			await room.queue.enqueue({ service: "direct", id: "foo" });
-
-			const resp = await request(app)
-				.patch("/api/room/testqueue/queue")
-				.auth(token, { type: "bearer" })
-				.set({ Authorization: "Bearer foobar" })
-				.send({
-					service: "direct",
-					id: "foo",
-					subtitleUrl: "https://example.com/subtitles.vtt",
-				})
-				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
-				.expect(200);
-
-			expect(resp.body.success).toEqual(true);
-
-			const updatedRoom = (await roommanager.getRoom("testqueue")).unwrap();
-			expect(updatedRoom.queue.items).toEqual(
-				expect.arrayContaining([
-					expect.objectContaining({
-						service: "direct",
-						id: "foo",
-						subtitleUrl: "https://example.com/subtitles.vtt",
-					}),
-				]),
-			);
-		});
-
-		it("should fail if the subtitleUrl does not end with .vtt", async () => {
-			await roommanager.createRoom({
-				name: "testqueue",
-				isTemporary: true,
-			});
-			const room = (await roommanager.getRoom("testqueue")).unwrap();
-			await room.queue.enqueue({ service: "direct", id: "foo" });
-
-			const resp = await request(app)
-				.patch("/api/room/testqueue/queue")
-				.auth(token, { type: "bearer" })
-				.set({ Authorization: "Bearer foobar" })
-				.send({
-					service: "direct",
-					id: "foo",
-					subtitleUrl: "https://example.com/subtitles.srt",
-				})
-				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
-				.expect(400);
-
-			expect(resp.body.success).toEqual(false);
-			expect(resp.body.error).toMatchObject({
-				name: "UnsupportedSubtitleType",
-			});
-		});
-
 		it("should update a queue item's defaultSubtitleTrack", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",
@@ -636,7 +576,7 @@ describe("Room API", () => {
 				.patch("/api/room/testqueue/queue")
 				.auth(token, { type: "bearer" })
 				.set({ Authorization: "Bearer foobar" })
-				.send({ service: "direct", id: "foo", subtitleUrl: 123 })
+				.send({ service: "direct", id: "foo", defaultSubtitleTrack: 123 })
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 

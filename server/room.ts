@@ -57,7 +57,6 @@ import {
 	ImpossiblePromotionException,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
-	UnsupportedSubtitleType,
 } from "./exceptions.js";
 import storage from "./storage.js";
 import tokens, { type SessionInfo } from "./auth/tokens.js";
@@ -1251,13 +1250,6 @@ export class Room implements RoomState {
 				this.log.error("video was undefined, which is bad");
 				throw new Error("video was undefined");
 			}
-			if (request.video.subtitleUrl) {
-				if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
-					this.log.error("subtitle URL does not end with .vtt");
-					throw new UnsupportedSubtitleType();
-				}
-				video.subtitleUrl = request.video.subtitleUrl;
-			}
 			if (request.video.defaultSubtitleTrack !== undefined) {
 				video.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
 			}
@@ -1299,12 +1291,6 @@ export class Room implements RoomState {
 		request: UpdateQueueItemRequest,
 		context: RoomRequestContext,
 	): Promise<void> {
-		if (
-			request.update.subtitleUrl !== undefined &&
-			!request.update.subtitleUrl.endsWith(".vtt")
-		) {
-			throw new UnsupportedSubtitleType();
-		}
 		await this.queue.update(request.video, request.update);
 		this.log.info(`Queue item updated: ${JSON.stringify(request.video)}`);
 		await this.publishRoomEvent(request, context);
@@ -1690,13 +1676,6 @@ export class Room implements RoomState {
 			videoToPlay = item;
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
-		}
-		if (request.video.subtitleUrl) {
-			if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
-				this.log.error("subtitle URL does not end with .vtt");
-				throw new UnsupportedSubtitleType();
-			}
-			videoToPlay.subtitleUrl = request.video.subtitleUrl;
 		}
 		if (request.video.defaultSubtitleTrack !== undefined) {
 			videoToPlay.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
