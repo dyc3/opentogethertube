@@ -42,13 +42,15 @@ Each source entry in the `sources` array is a JSON object with the following key
 Each text track entry in the `textTracks` array is a JSON object with the following keys:
 
 * `url`: A valid HTTPS URL that browsers can use to retrieve the track.
-* `contentType`: A string representing the MIME type of the track. Currently, the only supported MIME type is `text/vtt`.
+* `contentType`: A string representing the MIME type of the track. Supported values are:
+  * `text/vtt` for WebVTT tracks
+  * `text/x-ass` for Advanced SubStation Alpha (`.ass`) tracks (note: ASS has no officially registered MIME type, so `text/x-ass` is used by convention)
 * `name`: An optional string (max 20 characters) providing a display name for the text track.
 * `srclang`: A string (2-8 characters) indicating the language of the text track (e.g., `en`, `es`).
 * `default`: An optional boolean indicating whether this subtitle track should be enabled by default.
 
 **Important note regarding text tracks and CORS:**
-Browsers block requests for WebVTT tracks hosted on different domains than the current page by default. To make text tracks work cross-origin, your host needs to serve the VTT file with the `Access-Control-Allow-Origin` HTTP header.
+Browsers block requests for text tracks hosted on different domains than the current page by default. To make text tracks work cross-origin, your host needs to serve the subtitle file with the `Access-Control-Allow-Origin` HTTP header.
 
 ## Example
 
@@ -85,6 +87,12 @@ Browsers block requests for WebVTT tracks hosted on different domains than the c
       "contentType": "text/vtt",
       "name": "Español",
       "srclang": "es"
+    },
+    {
+      "url": "https://example.com/subtitles_de.ass",
+      "contentType": "text/x-ass",
+      "name": "Deutsch",
+      "srclang": "de"
     }
   ]
 }

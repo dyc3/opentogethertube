@@ -16,7 +16,7 @@
 			@error="onError"
 		>
 			<track
-				v-for="track in manifest?.textTracks ?? []"
+				v-for="track in vttTracks"
 				:key="track.url"
 				kind="subtitles"
 				:src="track.url"
@@ -31,11 +31,12 @@
 				default
 			/>
 		</video>
+		<div ref="assContainer" class="ass-container"></div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, ref, toRefs, watch } from "vue";
+import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
 import type {
@@ -44,7 +45,7 @@ import type {
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
+import { useAssOverlay, useCaptions, useMediaAudioBoost, useQualities } from "../composables";
 
 interface Props {
 	service: string;
@@ -61,6 +62,18 @@ const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
 const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
+const assContainer = ref<HTMLDivElement | undefined>();
+const vttTracks = computed(() => {
+	const tracks = manifest.value?.textTracks ?? [];
+	const vtt: typeof tracks = [];
+	for (const track of tracks) {
+		if (track.contentType === "text/vtt") {
+			vtt.push(track);
+		}
+	}
+	return vtt;
+});
+const assOverlay = useAssOverlay(videoElem, assContainer);
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -119,6 +132,33 @@ function isCaptionsSupported(): boolean {
 	return true;
 }
 
+function manifestTrack(idx: number) {
+	return manifest.value?.textTracks?.[idx];
+}
+
+/**
+ * Maps a manifest text track index to its index in the native videoElem.textTracks list,
+ * which only contains the VTT tracks. Returns -1 for non-VTT tracks.
+ */
+function nativeTrackIndex(manifestIdx: number): number {
+	const tracks = manifest.value?.textTracks ?? [];
+	if (tracks[manifestIdx]?.contentType !== "text/vtt") {
+		return -1;
+	}
+	return tracks.slice(0, manifestIdx).filter(t => t.contentType === "text/vtt").length;
+}
+
+/**
+ * Activate the ASS overlay for the given manifest track index, if it exists.
+ */
+function activateAssTrack(manifestIdx: number): Promise<void> {
+	const track = manifestTrack(manifestIdx);
+	if (!track) {
+		return Promise.resolve();
+	}
+	return assOverlay.load(track.url);
+}
+
 function setCaptionsEnabled(enabled: boolean): void {
 	if (!videoElem.value || captions.currentTrack.value === null) {
 		return;
@@ -132,9 +172,29 @@ function setCaptionsEnabled(enabled: boolean): void {
 	}
 	if (captions.currentTrack.value === -1) {
 		if (enabled) {
-			videoElem.value.textTracks[0].mode = "showing";
-			captions.currentTrack.value = 0;
+			setCaptionsTrack(0);
 		}
+		return;
+	}
+	if (videoMime.value === "application/json" && manifest.value) {
+		const track = manifestTrack(captions.currentTrack.value);
+		if (!track) {
+			console.warn(
+				"DirectPlayer: invalid captions track index:",
+				captions.currentTrack.value
+			);
+			return;
+		}
+		if (track.contentType === "text/x-ass") {
+			if (enabled) {
+				activateAssTrack(captions.currentTrack.value);
+			} else {
+				assOverlay.hide();
+			}
+			return;
+		}
+		const nativeIdx = nativeTrackIndex(captions.currentTrack.value);
+		videoElem.value.textTracks[nativeIdx].mode = enabled ? "showing" : "hidden";
 		return;
 	}
 	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
@@ -147,6 +207,9 @@ function setCaptionsEnabled(enabled: boolean): void {
 function isCaptionsEnabled(): boolean {
 	if (!videoElem.value) {
 		return false;
+	}
+	if (assOverlay.visible.value) {
+		return true;
 	}
 	return Array.from(videoElem.value.textTracks).find(t => t.mode === "showing") !== undefined;
 }
@@ -181,6 +244,24 @@ function setCaptionsTrack(track: number): void {
 		return;
 	}
 	console.log("DirectPlayer: setCaptionsTrack:", track);
+	if (videoMime.value === "application/json" && manifest.value) {
+		const selected = manifestTrack(track);
+		if (!selected) {
+			console.warn("DirectPlayer: invalid captions track index:", track);
+			return;
+		}
+		const nativeIdx = nativeTrackIndex(track);
+		for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+			videoElem.value.textTracks[i].mode = i === nativeIdx ? "showing" : "hidden";
+		}
+		if (selected.contentType === "text/x-ass") {
+			activateAssTrack(track);
+		} else {
+			assOverlay.hide();
+		}
+		captions.currentTrack.value = track;
+		return;
+	}
 	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
 		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
 	}
@@ -268,6 +349,7 @@ async function loadVideoSource() {
 	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
 		videoElem.value.textTracks[i].mode = "hidden";
 	}
+	assOverlay.destroy();
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
 
@@ -305,8 +387,12 @@ async function loadVideoSource() {
 		captions.currentTrack.value = defaultTrackIdx;
 		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
 		if (defaultTrackIdx !== -1) {
-			await nextTick();
-			videoElem.value.textTracks[defaultTrackIdx].mode = "showing";
+			if (manifestTrack(defaultTrackIdx)?.contentType === "text/x-ass") {
+				await activateAssTrack(defaultTrackIdx);
+			} else {
+				await nextTick();
+				videoElem.value.textTracks[nativeTrackIndex(defaultTrackIdx)].mode = "showing";
+			}
 		}
 	} else {
 		videoElem.value.src = videoUrl.value;
@@ -421,6 +507,15 @@ defineExpose({
 	max-height: 100%;
 	width: 100%;
 	height: 100%;
+	position: relative;
+}
+
+.direct .ass-container {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	overflow: hidden;
 }
 
 .direct video {
