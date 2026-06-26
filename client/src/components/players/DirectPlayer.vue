@@ -22,7 +22,6 @@
 				:src="track.url"
 				:srclang="track.srclang"
 				:label="track.name"
-				:default="track.default"
 			/>
 			<track
 				v-if="subtitleUrl && videoMime !== 'application/json'"
@@ -55,7 +54,7 @@ interface Props {
 	subtitleUrl?: string;
 	/**
 	 * URL of the manifest text track to select by default for all viewers.
-	 * `""` means no subtitles by default, `null`/`undefined` means use the manifest's default flag.
+	 * `null`/`undefined` means no subtitles are shown by default.
 	 */
 	defaultTrack?: string | null;
 }
@@ -384,21 +383,14 @@ async function loadVideoSource() {
 		qualities.currentVideoTrack.value = 0;
 
 		captions.captionsTracks.value = getCaptionsTracks();
-		// The browser adds newly inserted <track> elements in "disabled" mode initially,
-		// the default attribute causes them to become "showing" asynchronously.
-		// To reflect this in the UI correctly, now the default track index is read directly
-		// from the manifest data, and we explicitly set its mode to "showing"
-		// A per-queue-item override (set via the Edit Video dialog) takes precedence over the
-		// manifest's own default flag. `""` means "no subtitles", a URL selects that track,
-		// `null`/`undefined` falls back to the manifest's default flag.
-		let defaultTrackIdx: number;
-		if (defaultTrack.value === "") {
-			defaultTrackIdx = -1;
-		} else if (defaultTrack.value) {
+		// The per-queue-item default subtitle track (set via the Edit Video dialog) selects
+		// which track to show by default. A URL selects that manifest track; `null`/`undefined`
+		// means no subtitles. Newly inserted <track> elements start "disabled", so we
+		// explicitly set the chosen track's mode to "showing" below.
+		let defaultTrackIdx = -1;
+		if (defaultTrack.value) {
 			defaultTrackIdx =
 				manifest.value.textTracks?.findIndex(t => t.url === defaultTrack.value) ?? -1;
-		} else {
-			defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
 		}
 		captions.currentTrack.value = defaultTrackIdx;
 		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;

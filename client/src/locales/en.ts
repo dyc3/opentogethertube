@@ -307,9 +307,7 @@ export default {
 			"default-subtitle-track": "Default subtitle track",
 			"default-subtitle-track-hint":
 				"Initial track for all viewers; each viewer can change it in the player.",
-			"manifest-default": "Manifest default",
 			"no-subtitles": "None",
-			"manifest-load-failed": "Couldn't load track list from manifest",
 			tooltip: "Edit video settings",
 		},
 	},
