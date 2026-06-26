@@ -67,17 +67,6 @@ const manifest = ref<CustomMediaManifest | null>(null);
 const assContainer = ref<HTMLDivElement | undefined>();
 
 /**
- * Infer the subtitle format of an external (non-manifest) track from its URL so
- * external `.vtt`/`.ass` files go through the same rendering paths as the tracks
- * declared by a manifest.
- */
-function inferSubtitleContentType(url: string): CustomMediaTextTrack["contentType"] {
-	const path = url.split("?")[0].split("#")[0];
-	const ext = path.split(".").pop()?.toLowerCase();
-	return ext === "ass" || ext === "ssa" ? "text/x-ass" : "text/vtt";
-}
-
-/**
  * The available text tracks, unified across source types. Manifest items declare
  * their tracks; for other items the single `defaultTrack` external subtitle (if
  * any) is the only track.
@@ -87,10 +76,17 @@ const textTracks = computed<CustomMediaTextTrack[]>(() => {
 		return manifest.value?.textTracks ?? [];
 	}
 	if (defaultTrack.value) {
+		// Infer the subtitle format of the external (non-manifest) track from its
+		// URL so external `.vtt`/`.ass` files go through the same rendering paths as
+		// the tracks declared by a manifest.
+		const path = defaultTrack.value.split("?")[0].split("#")[0];
+		const ext = path.split(".").pop()?.toLowerCase();
+		const contentType: CustomMediaTextTrack["contentType"] =
+			ext === "ass" || ext === "ssa" ? "text/x-ass" : "text/vtt";
 		return [
 			{
 				url: defaultTrack.value,
-				contentType: inferSubtitleContentType(defaultTrack.value),
+				contentType,
 				srclang: "und",
 				default: true,
 			},
