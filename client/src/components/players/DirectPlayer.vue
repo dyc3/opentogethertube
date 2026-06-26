@@ -23,12 +23,6 @@
 				:srclang="track.srclang"
 				:label="track.name"
 			/>
-			<track
-				v-if="subtitleUrl && videoMime !== 'application/json'"
-				:src="subtitleUrl"
-				kind="subtitles"
-				default
-			/>
 		</video>
 		<div ref="assContainer" class="ass-container"></div>
 	</div>
@@ -37,7 +31,10 @@
 <script lang="ts" setup>
 import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
-import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
+import type {
+	CustomMediaManifest,
+	CustomMediaTextTrack,
+} from "ott-common/models/zod-schemas.js";
 import type {
 	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
@@ -51,32 +48,59 @@ interface Props {
 	videoUrl: string;
 	videoMime: string;
 	thumbnail?: string;
-	subtitleUrl?: string;
 	/**
-	 * URL of the manifest text track to select by default for all viewers.
-	 * `null`/`undefined` means no subtitles are shown by default.
+	 * URL of the subtitle track to select by default for all viewers. For manifest
+	 * items it must be one of the manifest's text tracks; for other items it is the
+	 * URL of an external subtitle file. `null`/`undefined` means no subtitles are
+	 * shown by default.
 	 */
 	defaultTrack?: string | null;
 }
 
 const props = defineProps<Props>();
-const { videoUrl, videoMime, thumbnail, subtitleUrl, defaultTrack } = toRefs(props);
+const { videoUrl, videoMime, thumbnail, defaultTrack } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
 const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
 const assContainer = ref<HTMLDivElement | undefined>();
-const vttTracks = computed(() => {
-	const tracks = manifest.value?.textTracks ?? [];
-	const vtt: typeof tracks = [];
-	for (const track of tracks) {
-		if (track.contentType === "text/vtt") {
-			vtt.push(track);
-		}
+
+/**
+ * Infer the subtitle format of an external (non-manifest) track from its URL so
+ * external `.vtt`/`.ass` files go through the same rendering paths as the tracks
+ * declared by a manifest.
+ */
+function inferSubtitleContentType(url: string): CustomMediaTextTrack["contentType"] {
+	const path = url.split("?")[0].split("#")[0];
+	const ext = path.split(".").pop()?.toLowerCase();
+	return ext === "ass" || ext === "ssa" ? "text/x-ass" : "text/vtt";
+}
+
+/**
+ * The available text tracks, unified across source types. Manifest items declare
+ * their tracks; for other items the single `defaultTrack` external subtitle (if
+ * any) is the only track.
+ */
+const textTracks = computed<CustomMediaTextTrack[]>(() => {
+	if (videoMime.value === "application/json") {
+		return manifest.value?.textTracks ?? [];
 	}
-	return vtt;
+	if (defaultTrack.value) {
+		return [
+			{
+				url: defaultTrack.value,
+				contentType: inferSubtitleContentType(defaultTrack.value),
+				srclang: "und",
+				default: true,
+			},
+		];
+	}
+	return [];
 });
+const vttTracks = computed(() =>
+	textTracks.value.filter(track => track.contentType === "text/vtt")
+);
 const assOverlay = useAssOverlay(videoElem, assContainer);
 
 const emit = defineEmits<{
@@ -136,27 +160,27 @@ function isCaptionsSupported(): boolean {
 	return true;
 }
 
-function manifestTrack(idx: number) {
-	return manifest.value?.textTracks?.[idx];
+function textTrack(idx: number) {
+	return textTracks.value[idx];
 }
 
 /**
- * Maps a manifest text track index to its index in the native videoElem.textTracks list,
+ * Maps a text track index to its index in the native videoElem.textTracks list,
  * which only contains the VTT tracks. Returns -1 for non-VTT tracks.
  */
-function nativeTrackIndex(manifestIdx: number): number {
-	const tracks = manifest.value?.textTracks ?? [];
-	if (tracks[manifestIdx]?.contentType !== "text/vtt") {
+function nativeTrackIndex(idx: number): number {
+	const tracks = textTracks.value;
+	if (tracks[idx]?.contentType !== "text/vtt") {
 		return -1;
 	}
-	return tracks.slice(0, manifestIdx).filter(t => t.contentType === "text/vtt").length;
+	return tracks.slice(0, idx).filter(t => t.contentType === "text/vtt").length;
 }
 
 /**
- * Activate the ASS overlay for the given manifest track index, if it exists.
+ * Activate the ASS overlay for the given text track index, if it exists.
  */
-function activateAssTrack(manifestIdx: number): Promise<void> {
-	const track = manifestTrack(manifestIdx);
+function activateAssTrack(idx: number): Promise<void> {
+	const track = textTrack(idx);
 	if (!track) {
 		return Promise.resolve();
 	}
@@ -167,11 +191,7 @@ function setCaptionsEnabled(enabled: boolean): void {
 	if (!videoElem.value || captions.currentTrack.value === null) {
 		return;
 	}
-	if (
-		videoMime.value !== "application/json" &&
-		!manifest.value?.textTracks &&
-		!subtitleUrl.value
-	) {
+	if (textTracks.value.length === 0) {
 		return;
 	}
 	if (captions.currentTrack.value === -1) {
@@ -180,32 +200,21 @@ function setCaptionsEnabled(enabled: boolean): void {
 		}
 		return;
 	}
-	if (videoMime.value === "application/json" && manifest.value) {
-		const track = manifestTrack(captions.currentTrack.value);
-		if (!track) {
-			console.warn(
-				"DirectPlayer: invalid captions track index:",
-				captions.currentTrack.value
-			);
-			return;
-		}
-		if (track.contentType === "text/x-ass") {
-			if (enabled) {
-				activateAssTrack(captions.currentTrack.value);
-			} else {
-				assOverlay.hide();
-			}
-			return;
-		}
-		const nativeIdx = nativeTrackIndex(captions.currentTrack.value);
-		videoElem.value.textTracks[nativeIdx].mode = enabled ? "showing" : "hidden";
-		return;
-	}
-	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
+	const track = textTrack(captions.currentTrack.value);
+	if (!track) {
 		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
 		return;
 	}
-	videoElem.value.textTracks[captions.currentTrack.value].mode = enabled ? "showing" : "hidden";
+	if (track.contentType === "text/x-ass") {
+		if (enabled) {
+			activateAssTrack(captions.currentTrack.value);
+		} else {
+			assOverlay.hide();
+		}
+		return;
+	}
+	const nativeIdx = nativeTrackIndex(captions.currentTrack.value);
+	videoElem.value.textTracks[nativeIdx].mode = enabled ? "showing" : "hidden";
 }
 
 function isCaptionsEnabled(): boolean {
@@ -222,24 +231,12 @@ function getCaptionsTracks(): CaptionTrack[] {
 	if (!videoElem.value) {
 		return [];
 	}
-	if (videoMime.value === "application/json") {
-		if (!manifest.value) {
-			return [];
-		}
-	} else {
-		return subtitleUrl.value ? [{ kind: "subtitles", default: true }] : [];
-	}
-
-	const tracks: CaptionTrack[] = [];
-	for (const track of manifest.value.textTracks ?? []) {
-		tracks.push({
-			kind: "subtitles",
-			label: track.name ?? undefined,
-			srclang: track.srclang,
-			default: track.default,
-		});
-	}
-	return tracks;
+	return textTracks.value.map(track => ({
+		kind: "subtitles",
+		label: track.name ?? undefined,
+		srclang: track.srclang,
+		default: track.default,
+	}));
 }
 
 function setCaptionsTrack(track: number): void {
@@ -248,26 +245,19 @@ function setCaptionsTrack(track: number): void {
 		return;
 	}
 	console.log("DirectPlayer: setCaptionsTrack:", track);
-	if (videoMime.value === "application/json" && manifest.value) {
-		const selected = manifestTrack(track);
-		if (!selected) {
-			console.warn("DirectPlayer: invalid captions track index:", track);
-			return;
-		}
-		const nativeIdx = nativeTrackIndex(track);
-		for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-			videoElem.value.textTracks[i].mode = i === nativeIdx ? "showing" : "hidden";
-		}
-		if (selected.contentType === "text/x-ass") {
-			activateAssTrack(track);
-		} else {
-			assOverlay.hide();
-		}
-		captions.currentTrack.value = track;
+	const selected = textTrack(track);
+	if (!selected) {
+		console.warn("DirectPlayer: invalid captions track index:", track);
 		return;
 	}
+	const nativeIdx = nativeTrackIndex(track);
 	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
+		videoElem.value.textTracks[i].mode = i === nativeIdx ? "showing" : "hidden";
+	}
+	if (selected.contentType === "text/x-ass") {
+		activateAssTrack(track);
+	} else {
+		assOverlay.hide();
 	}
 	captions.currentTrack.value = track;
 }
@@ -381,43 +371,33 @@ async function loadVideoSource() {
 
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = 0;
-
-		captions.captionsTracks.value = getCaptionsTracks();
-		// The per-queue-item default subtitle track (set via the Edit Video dialog) selects
-		// which track to show by default. A URL selects that manifest track; `null`/`undefined`
-		// means no subtitles. Newly inserted <track> elements start "disabled", so we
-		// explicitly set the chosen track's mode to "showing" below.
-		let defaultTrackIdx = -1;
-		if (defaultTrack.value) {
-			defaultTrackIdx =
-				manifest.value.textTracks?.findIndex(t => t.url === defaultTrack.value) ?? -1;
-		}
-		captions.currentTrack.value = defaultTrackIdx;
-		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
-		if (defaultTrackIdx !== -1) {
-			if (manifestTrack(defaultTrackIdx)?.contentType === "text/x-ass") {
-				// Fire-and-forget: the overlay builds itself once the video's
-				// dimensions are known, so it must not block load()/play() below.
-				activateAssTrack(defaultTrackIdx);
-			} else {
-				await nextTick();
-				videoElem.value.textTracks[nativeTrackIndex(defaultTrackIdx)].mode = "showing";
-			}
-		}
 	} else {
 		videoElem.value.src = videoUrl.value;
 
 		qualities.videoTracks.value = [];
 		qualities.currentVideoTrack.value = -1;
+	}
 
-		if (subtitleUrl.value) {
-			captions.captionsTracks.value = [{ kind: "subtitles", default: true }];
-			captions.currentTrack.value = 0;
-			captions.isCaptionsEnabled.value = true;
+	// The default subtitle track (set via the Edit Video dialog) selects which track
+	// to show by default, the same way for manifest tracks and external subtitle
+	// files. A URL selects that track; `null`/`undefined` means no subtitles. Newly
+	// inserted <track> elements start "disabled", so we explicitly set the chosen
+	// track's mode to "showing" below.
+	captions.captionsTracks.value = getCaptionsTracks();
+	let defaultTrackIdx = -1;
+	if (defaultTrack.value) {
+		defaultTrackIdx = textTracks.value.findIndex(t => t.url === defaultTrack.value);
+	}
+	captions.currentTrack.value = defaultTrackIdx;
+	captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
+	if (defaultTrackIdx !== -1) {
+		if (textTrack(defaultTrackIdx)?.contentType === "text/x-ass") {
+			// Fire-and-forget: the overlay builds itself once the video's
+			// dimensions are known, so it must not block load()/play() below.
+			activateAssTrack(defaultTrackIdx);
 		} else {
-			captions.captionsTracks.value = [];
-			captions.currentTrack.value = -1;
-			captions.isCaptionsEnabled.value = false;
+			await nextTick();
+			videoElem.value.textTracks[nativeTrackIndex(defaultTrackIdx)].mode = "showing";
 		}
 	}
 
@@ -479,8 +459,8 @@ onMounted(() => {
 	loadVideoSource();
 });
 
-watch([videoUrl, subtitleUrl], () => {
-	console.log("DirectPlayer: videoUrl or subtitleUrl changed");
+watch([videoUrl, defaultTrack], () => {
+	console.log("DirectPlayer: videoUrl or defaultTrack changed");
 	loadVideoSource();
 });
 

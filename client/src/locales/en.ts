@@ -302,7 +302,7 @@ export default {
 		"start-at": "Start at {timestamp}",
 		edit: {
 			title: "Edit video",
-			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url": "Subtitle URL (.vtt, .ass)",
 			"subtitle-url-supported-services": "Supported services: direct, googledrive",
 			"default-subtitle-track": "Default subtitle track",
 			"default-subtitle-track-hint":
