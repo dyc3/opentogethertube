@@ -1258,6 +1258,9 @@ export class Room implements RoomState {
 				}
 				video.subtitleUrl = request.video.subtitleUrl;
 			}
+			if (request.video.defaultSubtitleTrack !== undefined) {
+				video.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
+			}
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			this.prevQueue = null;
@@ -1694,6 +1697,9 @@ export class Room implements RoomState {
 				throw new UnsupportedSubtitleType();
 			}
 			videoToPlay.subtitleUrl = request.video.subtitleUrl;
+		}
+		if (request.video.defaultSubtitleTrack !== undefined) {
+			videoToPlay.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
 		}
 		if (this.currentSource) {
 			this.currentSource.startAt = this.realPlaybackPosition;

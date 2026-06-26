@@ -186,7 +186,42 @@
 						{{ $t("video-queue-item.edit.title") }}
 					</DialogTitle>
 				</DialogHeader>
-				<Field>
+				<Field v-if="isManifestItem">
+					<FieldLabel for="edit-default-subtitle-track">
+						{{ $t("video-queue-item.edit.default-subtitle-track") }}
+					</FieldLabel>
+					<Spinner v-if="isLoadingManifest" class="size-4" />
+					<FieldDescription v-else-if="manifestError">
+						{{ $t("video-queue-item.edit.manifest-load-failed") }}
+					</FieldDescription>
+					<Select v-else v-model="editedDefaultTrack">
+						<SelectTrigger
+							id="edit-default-subtitle-track"
+							data-cy="edit-default-subtitle-track"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem :value="TRACK_MANIFEST_DEFAULT">
+								{{ $t("video-queue-item.edit.manifest-default") }}
+							</SelectItem>
+							<SelectItem :value="TRACK_NONE">
+								{{ $t("video-queue-item.edit.no-subtitles") }}
+							</SelectItem>
+							<SelectItem
+								v-for="track in manifestTracks"
+								:key="track.url"
+								:value="track.url"
+							>
+								{{ formatTrackLabel(track) }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+					<FieldDescription v-if="!manifestError">
+						{{ $t("video-queue-item.edit.default-subtitle-track-hint") }}
+					</FieldDescription>
+				</Field>
+				<Field v-else>
 					<FieldLabel for="edit-subtitle-url">
 						{{ $t("video-queue-item.edit.subtitle-url") }}
 					</FieldLabel>
@@ -233,6 +268,13 @@ import {
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -253,6 +295,7 @@ import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import type { QueueItem, VideoAdd } from "ott-common/models/video";
+import type { CustomMediaManifest, CustomMediaTextTrack } from "ott-common/models/zod-schemas";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -291,6 +334,60 @@ const hasError = ref(false);
 const voted = ref(false);
 const showEditDialog = ref(false);
 const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl);
+
+// Sentinel values for the default subtitle track select. `null`/absent on the queue
+// item means "use the manifest's default flag", `""` means "no subtitles".
+const TRACK_MANIFEST_DEFAULT = "\0manifest-default";
+const TRACK_NONE = "\0none";
+const isManifestItem = computed(() => item.value.mime === "application/json");
+const editedDefaultTrack = ref(TRACK_MANIFEST_DEFAULT);
+const manifestTracks = ref<CustomMediaTextTrack[]>([]);
+const manifestError = ref(false);
+const isLoadingManifest = ref(false);
+
+function trackToSelectValue(track: string | null | undefined): string {
+	if (track === null || track === undefined) {
+		return TRACK_MANIFEST_DEFAULT;
+	}
+	if (track === "") {
+		return TRACK_NONE;
+	}
+	return track;
+}
+
+function selectValueToTrack(value: string): string | null {
+	if (value === TRACK_MANIFEST_DEFAULT) {
+		return null;
+	}
+	if (value === TRACK_NONE) {
+		return "";
+	}
+	return value;
+}
+
+function formatTrackLabel(track: CustomMediaTextTrack): string {
+	const name = track.name ?? track.srclang;
+	const format = track.contentType === "text/x-ass" ? "ASS" : "VTT";
+	return `${name} [${track.srclang}] (${format})`;
+}
+
+async function loadManifestTracks() {
+	isLoadingManifest.value = true;
+	manifestError.value = false;
+	try {
+		const response = await fetch(item.value.src_url ?? item.value.id);
+		if (!response.ok) {
+			throw new Error(`failed to fetch manifest: ${response.status}`);
+		}
+		const manifest = (await response.json()) as CustomMediaManifest;
+		manifestTracks.value = manifest.textTracks ?? [];
+	} catch (e) {
+		console.error("VideoQueueItem: failed to load manifest tracks:", e);
+		manifestError.value = true;
+		manifestTracks.value = [];
+	}
+	isLoadingManifest.value = false;
+}
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -320,27 +417,38 @@ function updateHasBeenAdded() {
 }
 
 function getPostData(): VideoAdd {
-	const data = {
+	const data: VideoAdd = {
 		service: item.value.service,
 		id: item.value.id,
-		// Use `item.value.subtitleUrl` for preview since editedSubtitleUrl might have been edited but not saved
+		// Use `item.value.*` for preview since the edited refs might not be saved yet
 		subtitleUrl:
 			(props.isPreview ? item.value.subtitleUrl : editedSubtitleUrl.value) ?? undefined,
+		defaultSubtitleTrack: props.isPreview
+			? item.value.defaultSubtitleTrack
+			: selectValueToTrack(editedDefaultTrack.value),
 	};
 	return data;
 }
 
-// Ensure that the editedSubtitleUrl is reflected to the current subtitle URL after a failed update request
+// Ensure that the edited values reflect the current item state when the dialog opens
 watch(showEditDialog, open => {
-	if (!props.isPreview && open) {
+	if (!open) {
+		return;
+	}
+	if (!props.isPreview) {
 		editedSubtitleUrl.value = item.value.subtitleUrl ?? "";
+	}
+	editedDefaultTrack.value = trackToSelectValue(item.value.defaultSubtitleTrack);
+	if (isManifestItem.value) {
+		loadManifestTracks();
 	}
 });
 
 async function saveEdit() {
 	if (props.isPreview) {
-		// Update the subtitle URL for playNow()
+		// Update the subtitle settings for playNow()
 		item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
+		item.value.defaultSubtitleTrack = selectValueToTrack(editedDefaultTrack.value);
 		showEditDialog.value = false;
 	} else {
 		isLoadingEdit.value = true;

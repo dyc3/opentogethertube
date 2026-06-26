@@ -53,10 +53,15 @@ interface Props {
 	videoMime: string;
 	thumbnail?: string;
 	subtitleUrl?: string;
+	/**
+	 * URL of the manifest text track to select by default for all viewers.
+	 * `""` means no subtitles by default, `null`/`undefined` means use the manifest's default flag.
+	 */
+	defaultTrack?: string | null;
 }
 
 const props = defineProps<Props>();
-const { videoUrl, videoMime, thumbnail, subtitleUrl } = toRefs(props);
+const { videoUrl, videoMime, thumbnail, subtitleUrl, defaultTrack } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
@@ -383,7 +388,18 @@ async function loadVideoSource() {
 		// the default attribute causes them to become "showing" asynchronously.
 		// To reflect this in the UI correctly, now the default track index is read directly
 		// from the manifest data, and we explicitly set its mode to "showing"
-		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
+		// A per-queue-item override (set via the Edit Video dialog) takes precedence over the
+		// manifest's own default flag. `""` means "no subtitles", a URL selects that track,
+		// `null`/`undefined` falls back to the manifest's default flag.
+		let defaultTrackIdx: number;
+		if (defaultTrack.value === "") {
+			defaultTrackIdx = -1;
+		} else if (defaultTrack.value) {
+			defaultTrackIdx =
+				manifest.value.textTracks?.findIndex(t => t.url === defaultTrack.value) ?? -1;
+		} else {
+			defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
+		}
 		captions.currentTrack.value = defaultTrackIdx;
 		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
 		if (defaultTrackIdx !== -1) {

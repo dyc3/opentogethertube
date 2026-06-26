@@ -304,6 +304,12 @@ export default {
 			title: "Edit video",
 			"subtitle-url": "Subtitle URL (.vtt)",
 			"subtitle-url-supported-services": "Supported services: direct, googledrive",
+			"default-subtitle-track": "Default subtitle track",
+			"default-subtitle-track-hint":
+				"Initial track for all viewers; each viewer can change it in the player.",
+			"manifest-default": "Manifest default",
+			"no-subtitles": "None",
+			"manifest-load-failed": "Couldn't load track list from manifest",
 			tooltip: "Edit video settings",
 		},
 	},

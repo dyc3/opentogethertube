@@ -283,6 +283,27 @@ describe("Room", () => {
 				});
 			});
 
+			it("should preserve defaultSubtitleTrack from PlayNowRequest", async () => {
+				const defaultSubtitleTrack = "https://example.com/track.de.ass";
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.PlayNowRequest,
+						video: {
+							...videoToPlay,
+							defaultSubtitleTrack,
+						},
+					},
+					{ token: user.token },
+				);
+
+				expect(room.currentSource).toEqual({
+					...videoToPlay,
+					defaultSubtitleTrack,
+				});
+			});
+
 			it("should reject non-vtt subtitleUrl for PlayNowRequest", async () => {
 				await expect(
 					room.processUnauthorizedRequest(
@@ -328,6 +349,28 @@ describe("Room", () => {
 				expect(room.queue.items[0]).toEqual({
 					...videoToAdd,
 					subtitleUrl,
+				});
+			});
+
+			it("should add video with defaultSubtitleTrack to queue", async () => {
+				const defaultSubtitleTrack = "https://example.com/track.de.ass";
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.AddRequest,
+						video: {
+							...videoToAdd,
+							defaultSubtitleTrack,
+						},
+					},
+					{ token: user.token },
+				);
+
+				expect(room.queue).toHaveLength(1);
+				expect(room.queue.items[0]).toEqual({
+					...videoToAdd,
+					defaultSubtitleTrack,
 				});
 			});
 
