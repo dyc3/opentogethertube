@@ -396,7 +396,9 @@ async function loadVideoSource() {
 		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
 		if (defaultTrackIdx !== -1) {
 			if (manifestTrack(defaultTrackIdx)?.contentType === "text/x-ass") {
-				await activateAssTrack(defaultTrackIdx);
+				// Fire-and-forget: the overlay builds itself once the video's
+				// dimensions are known, so it must not block load()/play() below.
+				activateAssTrack(defaultTrackIdx);
 			} else {
 				await nextTick();
 				videoElem.value.textTracks[nativeTrackIndex(defaultTrackIdx)].mode = "showing";
