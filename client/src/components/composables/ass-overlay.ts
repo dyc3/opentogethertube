@@ -4,14 +4,21 @@ import ASS from "assjs";
 /**
  * Manages an assjs subtitle overlay rendered on top of an HTML5 video element.
  *
- * assjs only recomputes its subtitle box when the video element's box size
- * changes (via its own internal ResizeObserver). It does NOT recompute when the
- * video's intrinsic resolution becomes known (metadata load) or changes (quality
- * switch). Since the video element here is always sized 100%x100%, constructing
- * the instance before metadata is available leaves the box positioned as if the
- * video filled the whole container (no letterboxing). We fix this by forcing a
- * recompute on the video element's "resize" event, which fires exactly when the
- * intrinsic dimensions first appear and whenever they change.
+ * assjs derives its reference resolution (`layoutRes`) exactly once, in its
+ * constructor, from the ASS file's `LayoutResX/Y` and then falls back to
+ * `video.videoWidth`/`videoHeight`, and finally to the element's *displayed*
+ * pixel size (`clientWidth`/`clientHeight`). It only ever recomputes the
+ * subtitle box afterwards (via its own ResizeObserver on the video element) —
+ * it never revisits `layoutRes`.
+ *
+ * That means if the overlay is constructed before the video's metadata has
+ * loaded (so `videoWidth` is still 0), assjs scales the subtitles against the
+ * player's current display size — whose aspect ratio is usually wrong — and
+ * nothing ever corrects it. This is why subtitles looked mis-scaled right after
+ * queuing a video but were fine after a reload: a reload serves the video from
+ * cache, so it reports its dimensions before the (small, fast) ASS fetch
+ * completes. We avoid the race entirely by waiting for the intrinsic dimensions
+ * to be known before constructing the instance.
  *
  * Overlapping loads are disambiguated by a monotonic `loadSeq`: each load claims
  * an id and applies its result only if still the latest, so a slow earlier fetch
@@ -27,49 +34,45 @@ export function useAssOverlay(
 	// Monotonic load id, bumped per load() and on teardown.
 	let loadSeq = 0;
 	const visible = ref(false);
-	let containerObserver: ResizeObserver | null = null;
+	// Cleanup for a pending waitForDimensions() listener, so teardown can cancel it.
+	let cancelWait: (() => void) | null = null;
 
 	/**
-	 * Force assjs to recompute its subtitle box. assjs has no public resize() —
-	 * the resize logic lives in a private `#resize` only invoked by its internal
-	 * ResizeObserver and by the `resampling` setter. That setter early-returns
-	 * when the value is unchanged (`if (r === this.#resampling) return;`), so we
-	 * toggle to another valid mode and back: each write actually changes the
-	 * value, triggering an internal recompute, and the final mode is unchanged.
+	 * Resolve once the video's intrinsic dimensions are known. assjs reads them in
+	 * its constructor to size its coordinate system, so constructing before they're
+	 * available bakes in a scale based on the element's display size instead.
 	 */
-	function recompute(): void {
-		if (!instance) {
-			throw new Error("useAssOverlay: recompute() called with no active overlay");
+	function waitForDimensions(video: HTMLVideoElement): Promise<void> {
+		if (video.videoWidth > 0 && video.videoHeight > 0) {
+			return Promise.resolve();
 		}
-		const mode = instance.resampling;
-		instance.resampling = mode === "video_height" ? "video_width" : "video_height";
-		instance.resampling = mode;
-	}
-
-	function attachResize(video: HTMLVideoElement, box: HTMLElement): void {
-		video.addEventListener("resize", recompute);
-		// loadedmetadata fires when intrinsic dimensions become known; it may arrive
-		// before the ASS fetch completes, so we re-run recompute here too.
-		video.addEventListener("loadedmetadata", recompute);
-		containerObserver = new ResizeObserver(() => {
-			if (instance) recompute();
+		return new Promise<void>(resolve => {
+			const cleanup = (): void => {
+				video.removeEventListener("loadedmetadata", onReady);
+				video.removeEventListener("resize", onReady);
+				cancelWait = null;
+			};
+			const onReady = (): void => {
+				if (video.videoWidth > 0 && video.videoHeight > 0) {
+					cleanup();
+					resolve();
+				}
+			};
+			// loadedmetadata fires when intrinsic dimensions first become known;
+			// resize covers a source/quality switch that changes them.
+			video.addEventListener("loadedmetadata", onReady);
+			video.addEventListener("resize", onReady);
+			// Let teardown abort the wait; the seq check in fetchAndCreate then bails.
+			cancelWait = () => {
+				cleanup();
+				resolve();
+			};
 		});
-		containerObserver.observe(box);
-	}
-
-	function detachResize(video: HTMLVideoElement): void {
-		video.removeEventListener("resize", recompute);
-		video.removeEventListener("loadedmetadata", recompute);
-		containerObserver?.disconnect();
-		containerObserver = null;
 	}
 
 	function destroy(): void {
 		loadSeq++; // invalidate any in-flight load
-
-		if (videoElement.value) {
-			detachResize(videoElement.value);
-		}
+		cancelWait?.();
 		instance?.destroy();
 		instance = null;
 		currentUrl = null;
@@ -93,12 +96,15 @@ export function useAssOverlay(
 				console.warn("useAssOverlay: discarding stale ASS load for", url);
 				return;
 			}
+			// Don't build the overlay until the video resolution is known, or assjs
+			// will lock its subtitle scale to the element's display size.
+			await waitForDimensions(video);
+			if (seq !== loadSeq) {
+				console.warn("useAssOverlay: discarding stale ASS load for", url);
+				return;
+			}
 			instance = new ASS(content, video, { container: box });
 			visible.value = true;
-			attachResize(video, box);
-			// Defer recompute to the next animation frame so the browser has
-			// finished layout before assjs reads the video's bounding rect.
-			requestAnimationFrame(recompute);
 		} catch (e) {
 			if (seq !== loadSeq) {
 				console.info("useAssOverlay: ignoring superseded ASS load failure for", url);
