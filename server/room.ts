@@ -1250,9 +1250,7 @@ export class Room implements RoomState {
 				this.log.error("video was undefined, which is bad");
 				throw new Error("video was undefined");
 			}
-			if (request.video.defaultSubtitleTrack !== undefined) {
-				video.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
-			}
+			video.defaultSubtitleTrack = request.video.defaultSubtitleTrack ?? null;
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
 			this.prevQueue = null;
@@ -1261,12 +1259,20 @@ export class Room implements RoomState {
 		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
+			// Per-item default subtitle track, keyed by service+id so it survives the
+			// dedupe splice below (which shifts indices). Matches the single-add path.
+			const subtitleByKey = new Map(
+				request.videos.map(v => [`${v.service}:${v.id}`, v.defaultSubtitleTrack ?? null]),
+			);
+
 			for (let i = 0; i < videos.length; i++) {
 				const video = videos[i];
 				if (video === undefined) {
 					this.log.error("video was undefined, which is bad");
 					throw new Error("video was undefined");
 				}
+				video.defaultSubtitleTrack =
+					subtitleByKey.get(`${video.service}:${video.id}`) ?? null;
 				if (this.isVideoInQueue(video)) {
 					videos.splice(i--, 1);
 				}
@@ -1677,9 +1683,7 @@ export class Room implements RoomState {
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
-		if (request.video.defaultSubtitleTrack !== undefined) {
-			videoToPlay.defaultSubtitleTrack = request.video.defaultSubtitleTrack;
-		}
+		videoToPlay.defaultSubtitleTrack = request.video.defaultSubtitleTrack ?? null;
 		if (this.currentSource) {
 			this.currentSource.startAt = this.realPlaybackPosition;
 			await this.queue.pushTop(this.currentSource);

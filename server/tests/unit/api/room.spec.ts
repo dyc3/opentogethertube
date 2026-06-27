@@ -502,7 +502,7 @@ describe("Room API", () => {
 			);
 		});
 
-		it("should allow clearing defaultSubtitleTrack with null", async () => {
+		it("should clear defaultSubtitleTrack to null", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",
 				isTemporary: true,

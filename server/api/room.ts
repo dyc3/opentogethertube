@@ -438,8 +438,7 @@ const addToQueue: RequestHandler<
 			video: {
 				service: body.service,
 				id: body.id,
-				defaultSubtitleTrack:
-					"defaultSubtitleTrack" in body ? body.defaultSubtitleTrack : undefined,
+				defaultSubtitleTrack: body.defaultSubtitleTrack,
 			},
 		};
 	}
@@ -485,14 +484,10 @@ const updateQueueItem: RequestHandler<
 		return;
 	}
 	const room = (await roommanager.getRoom(req.params.name)).unwrap();
-	const update: UpdateQueueItemRequest["update"] = {};
-	if ("defaultSubtitleTrack" in body) {
-		update.defaultSubtitleTrack = body.defaultSubtitleTrack;
-	}
 	const roomRequest: UpdateQueueItemRequest = {
 		type: RoomRequestType.UpdateQueueItemRequest,
 		video: { service: body.service, id: body.id },
-		update,
+		update: { defaultSubtitleTrack: body.defaultSubtitleTrack },
 	};
 	await room.processUnauthorizedRequest(roomRequest, { token: req.token! });
 	res.json({

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { CustomMediaManifestSchema } from "../../models/zod-schemas.js";
+import {
+	CustomMediaManifestSchema,
+	OttApiRequestUpdateQueueItemSchema,
+} from "../../models/zod-schemas.js";
 
 function buildManifest(textTracks?: unknown[]) {
 	return {
@@ -80,6 +83,39 @@ describe("CustomMediaManifestSchema", () => {
 				},
 			]),
 		);
+		expect(result.success).toBe(false);
+	});
+});
+
+describe("defaultSubtitleTrack normalization", () => {
+	function parse(input: Record<string, unknown>) {
+		return OttApiRequestUpdateQueueItemSchema.parse({
+			service: "direct",
+			id: "foo",
+			...input,
+		});
+	}
+
+	it.each([
+		["absent", {}],
+		["null", { defaultSubtitleTrack: null }],
+		["empty string", { defaultSubtitleTrack: "" }],
+	])("normalizes %s to null", (_label, input) => {
+		expect(parse(input).defaultSubtitleTrack).toBeNull();
+	});
+
+	it("passes a valid URL through unchanged", () => {
+		expect(parse({ defaultSubtitleTrack: "https://example.com/subs.ass" }).defaultSubtitleTrack).toEqual(
+			"https://example.com/subs.ass",
+		);
+	});
+
+	it("rejects a non-URL, non-empty string", () => {
+		const result = OttApiRequestUpdateQueueItemSchema.safeParse({
+			service: "direct",
+			id: "foo",
+			defaultSubtitleTrack: "not a url",
+		});
 		expect(result.success).toBe(false);
 	});
 });

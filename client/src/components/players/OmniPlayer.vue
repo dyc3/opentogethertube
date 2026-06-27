@@ -114,7 +114,7 @@
 				:video-url="source.src_url ?? source.id"
 				:video-mime="source.mime!"
 				:thumbnail="source.thumbnail"
-				:default-track="source.defaultSubtitleTrack"
+				:default-subtitle-track="source.defaultSubtitleTrack"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"

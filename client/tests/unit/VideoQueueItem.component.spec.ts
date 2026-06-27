@@ -159,7 +159,7 @@ describe("VideoQueueItem component", () => {
 		expect(API.post).toHaveBeenCalledWith("/room/foo/queue", {
 			service: "youtube",
 			id: "1",
-			defaultSubtitleTrack: undefined,
+			defaultSubtitleTrack: null,
 		});
 	});
 

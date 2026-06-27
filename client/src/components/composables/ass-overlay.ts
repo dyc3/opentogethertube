@@ -5,20 +5,13 @@ import ASS from "assjs";
  * Manages an assjs subtitle overlay rendered on top of an HTML5 video element.
  *
  * assjs derives its reference resolution (`layoutRes`) exactly once, in its
- * constructor, from the ASS file's `LayoutResX/Y` and then falls back to
- * `video.videoWidth`/`videoHeight`, and finally to the element's *displayed*
- * pixel size (`clientWidth`/`clientHeight`). It only ever recomputes the
- * subtitle box afterwards (via its own ResizeObserver on the video element) —
- * it never revisits `layoutRes`.
- *
- * That means if the overlay is constructed before the video's metadata has
- * loaded (so `videoWidth` is still 0), assjs scales the subtitles against the
- * player's current display size — whose aspect ratio is usually wrong — and
- * nothing ever corrects it. This is why subtitles looked mis-scaled right after
- * queuing a video but were fine after a reload: a reload serves the video from
- * cache, so it reports its dimensions before the (small, fast) ASS fetch
- * completes. We avoid the race entirely by waiting for the intrinsic dimensions
- * to be known before constructing the instance.
+ * constructor — from the ASS file's `LayoutResX/Y`, else `video.videoWidth/Height`,
+ * else the element's *displayed* pixel size — and never revisits it (it only
+ * recomputes the subtitle box afterwards via its own ResizeObserver). So
+ * constructing before the video's metadata has loaded (while `videoWidth` is 0)
+ * locks the subtitles to the element's display aspect ratio, with nothing to
+ * correct it later. We avoid the race by waiting for the intrinsic dimensions to be
+ * known before constructing the instance.
  *
  * Overlapping loads are disambiguated by a monotonic `loadSeq`: each load claims
  * an id and applies its result only if still the latest, so a slow earlier fetch
@@ -38,9 +31,8 @@ export function useAssOverlay(
 	let cancelWait: (() => void) | null = null;
 
 	/**
-	 * Resolve once the video's intrinsic dimensions are known. assjs reads them in
-	 * its constructor to size its coordinate system, so constructing before they're
-	 * available bakes in a scale based on the element's display size instead.
+	 * Resolve once the video's intrinsic dimensions are known (see the module note
+	 * above on why assjs must be constructed only after that).
 	 */
 	function waitForDimensions(video: HTMLVideoElement): Promise<void> {
 		if (video.videoWidth > 0 && video.videoHeight > 0) {
