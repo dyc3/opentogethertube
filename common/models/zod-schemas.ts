@@ -1,6 +1,7 @@
 import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants.js";
 import { BehaviorOption, Role } from "ott-common/models/types.js";
 import { Visibility, QueueMode } from "ott-common/models/types.js";
+import { normalizeSubtitleTrack } from "ott-common/subtitle.js";
 import { z } from "zod";
 
 // These strings are not allowed to be used as room names.
@@ -52,15 +53,12 @@ const VideoIdSchema = z.object({
 const QueueItemExtrasSchema = z.object({
 	// startAt: z.number().nonnegative().optional(),
 	// endAt: z.number().positive().optional(),
-	// `null` means "no default subtitle"; a URL selects a manifest track or an
-	// external subtitle file. ""/absent are accepted for convenience and normalized
-	// to `null` so there is a single canonical "no subtitles" value.
 	defaultSubtitleTrack: z
 		.string()
 		.url()
 		.or(z.literal(""))
 		.nullish()
-		.transform(value => value || null),
+		.transform(normalizeSubtitleTrack),
 });
 
 const VideoAddSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);

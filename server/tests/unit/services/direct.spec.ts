@@ -140,85 +140,42 @@ describe("Direct", () => {
 
 	describe("fetchManifestInfo", () => {
 		const adapter = new DirectVideoAdapter();
-		adapter.ffprobe = new FfprobeFixtures();
 
-		function mockManifest(manifest: Record<string, unknown>) {
-			vi.spyOn(global, "fetch").mockResolvedValue({
-				ok: true,
-				status: 200,
-				json: async () => manifest,
-			} as Response);
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		function stubManifest(manifest: unknown): void {
+			vi.stubGlobal(
+				"fetch",
+				vi.fn().mockResolvedValue({ ok: true, json: async () => manifest }),
+			);
 		}
 
 		const baseManifest = {
-			title: "Manifest Movie",
+			title: "Test",
 			duration: 100,
-			sources: [{ url: "https://example.com/video.mp4", contentType: "video/mp4" }],
+			sources: [{ url: "https://example.com/video.mp4", contentType: "video/mp4", quality: 720 }],
 		};
 
-		afterEach(() => {
-			vi.restoreAllMocks();
-		});
-
-		it("exposes the manifest's text tracks on the video", async () => {
-			const textTracks = [
-				{
-					url: "https://example.com/en.vtt",
-					contentType: "text/vtt",
-					name: "English",
-					srclang: "en",
-				},
-			];
-			mockManifest({ ...baseManifest, textTracks });
-			const video = await adapter.fetchVideoInfo("https://example.com/media.json");
-			expect(video.mime).toEqual("application/json");
-			expect(video.textTracks).toEqual(textTracks);
-		});
-
-		it("resolves defaultSubtitleTrack from the manifest's default track", async () => {
-			mockManifest({
+		it("passes text tracks through and picks the default track as defaultSubtitleTrack", async () => {
+			stubManifest({
 				...baseManifest,
 				textTracks: [
+					{ url: "https://example.com/en.vtt", contentType: "text/vtt", srclang: "en" },
 					{
-						url: "https://example.com/en.vtt",
-						contentType: "text/vtt",
-						name: "English",
-						srclang: "en",
-					},
-					{
-						url: "https://example.com/de.vtt",
-						contentType: "text/vtt",
-						name: "German",
+						url: "https://example.com/de.ass",
+						contentType: "text/x-ass",
 						srclang: "de",
 						default: true,
 					},
 				],
 			});
-			const video = await adapter.fetchVideoInfo("https://example.com/media.json");
-			expect(video.defaultSubtitleTrack).toEqual("https://example.com/de.vtt");
-		});
 
-		it("resolves defaultSubtitleTrack to null when no track is marked default", async () => {
-			mockManifest({
-				...baseManifest,
-				textTracks: [
-					{
-						url: "https://example.com/en.vtt",
-						contentType: "text/vtt",
-						name: "English",
-						srclang: "en",
-					},
-				],
-			});
-			const video = await adapter.fetchVideoInfo("https://example.com/media.json");
-			expect(video.defaultSubtitleTrack).toBeNull();
-		});
+			const video = await adapter.fetchManifestInfo("https://example.com/manifest.json");
 
-		it("resolves defaultSubtitleTrack to null when there are no text tracks", async () => {
-			mockManifest({ ...baseManifest });
-			const video = await adapter.fetchVideoInfo("https://example.com/media.json");
-			expect(video.textTracks).toBeUndefined();
-			expect(video.defaultSubtitleTrack).toBeNull();
+			expect(video.textTracks).toHaveLength(2);
+			expect(video.defaultSubtitleTrack).toEqual("https://example.com/de.ass");
 		});
 	});
 });

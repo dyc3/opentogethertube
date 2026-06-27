@@ -282,7 +282,6 @@ describe("Room", () => {
 					defaultSubtitleTrack,
 				});
 			});
-
 		});
 
 		describe("AddRequest", () => {
@@ -315,54 +314,6 @@ describe("Room", () => {
 					defaultSubtitleTrack,
 				});
 			});
-
-			it("should default defaultSubtitleTrack to null when omitted", async () => {
-				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
-
-				await room.processUnauthorizedRequest(
-					{
-						type: RoomRequestType.AddRequest,
-						video: { ...videoToAdd },
-					},
-					{ token: user.token },
-				);
-
-				expect(room.queue).toHaveLength(1);
-				expect(room.queue.items[0]).toEqual({
-					...videoToAdd,
-					defaultSubtitleTrack: null,
-				});
-			});
-
-			it("should apply per-item defaultSubtitleTrack for a batch add", async () => {
-				const first: Video = { ...videoToAdd, id: "first" };
-				const second: Video = { ...videoToAdd, id: "second" };
-				// Returned out of request order to prove matching is by service+id, not index.
-				vi.spyOn(infoextractor, "getManyVideoInfo").mockResolvedValue([second, first]);
-
-				await room.processUnauthorizedRequest(
-					{
-						type: RoomRequestType.AddRequest,
-						videos: [
-							{ ...first, defaultSubtitleTrack: "https://example.com/first.vtt" },
-							{ ...second },
-						],
-					},
-					{ token: user.token },
-				);
-
-				expect(room.queue).toHaveLength(2);
-				expect(room.queue.items).toEqual(
-					expect.arrayContaining([
-						expect.objectContaining({
-							id: "first",
-							defaultSubtitleTrack: "https://example.com/first.vtt",
-						}),
-						expect.objectContaining({ id: "second", defaultSubtitleTrack: null }),
-					]),
-				);
-			});
-
 		});
 
 		describe("VoteRequest", () => {

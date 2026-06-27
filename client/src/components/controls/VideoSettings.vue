@@ -257,8 +257,6 @@ function selectSubtitleTrack(track: number): void {
 .menu-scroll {
 	display: flex;
 	flex-direction: column;
-	/* Cap the list height so a large number of tracks doesn't overflow the
-	   viewport. The list scrolls instead, keeping the back-header in view. */
 	max-height: min(50vh, 320px);
 	overflow-y: auto;
 	overscroll-behavior: contain;

@@ -42,18 +42,13 @@ import type {
 	MediaPlayerWithQuality,
 } from "../composables";
 import { useAssOverlay, useCaptions, useMediaAudioBoost, useQualities } from "../composables";
+import { externalSubtitleAsTextTrack } from "ott-common/subtitle";
 
 interface Props {
 	service: string;
 	videoUrl: string;
 	videoMime: string;
 	thumbnail?: string;
-	/**
-	 * URL of the subtitle track to select by default for all viewers. For manifest
-	 * items it must be one of the manifest's text tracks; for other items it is the
-	 * URL of an external subtitle file. `null`/`undefined` means no subtitles are
-	 * shown by default.
-	 */
 	defaultSubtitleTrack?: string | null;
 }
 
@@ -66,31 +61,13 @@ const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
 const assContainer = ref<HTMLDivElement | undefined>();
 
-/**
- * The available text tracks, unified across source types. Manifest items declare
- * their tracks; for other items the single `defaultSubtitleTrack` external subtitle
- * (if any) is the only track.
- */
+// Note: this list includes ASS tracks, which have no <track> DOM element (see nativeTrackFor).
 const textTracks = computed<CustomMediaTextTrack[]>(() => {
 	if (videoMime.value === "application/json") {
 		return manifest.value?.textTracks ?? [];
 	}
 	if (defaultSubtitleTrack.value) {
-		// Infer the subtitle format of the external (non-manifest) track from its
-		// URL so external `.vtt`/`.ass` files go through the same rendering paths as
-		// the tracks declared by a manifest.
-		const path = defaultSubtitleTrack.value.split("?")[0].split("#")[0];
-		const ext = path.split(".").pop()?.toLowerCase();
-		const contentType: CustomMediaTextTrack["contentType"] =
-			ext === "ass" || ext === "ssa" ? "text/x-ass" : "text/vtt";
-		return [
-			{
-				url: defaultSubtitleTrack.value,
-				contentType,
-				srclang: "und",
-				default: true,
-			},
-		];
+		return [externalSubtitleAsTextTrack(defaultSubtitleTrack.value)];
 	}
 	return [];
 });
@@ -160,26 +137,27 @@ function textTrackAt(idx: number) {
 	return textTracks.value[idx];
 }
 
-/**
- * Resolves the native TextTrack backing a VTT track url. Only VTT tracks are
- * rendered as <track> elements, so ASS (and unknown) urls return undefined.
- * Keying off the <track src> avoids mapping unified indices onto the VTT-only
- * native list.
- */
+// captions.currentTrack indexes the logical `textTracks` list (which includes ASS tracks),
+// but `videoElem.textTracks` only contains the VTT <track> DOM elements. Those two index
+// spaces diverge whenever an ASS track is present, so native tracks are resolved by URL
+// rather than by index.
 function nativeTrackFor(url: string): TextTrack | undefined {
 	const el = videoElem.value?.querySelector<HTMLTrackElement>(`track[src="${CSS.escape(url)}"]`);
 	return el?.track ?? undefined;
 }
 
-/**
- * Activate the ASS overlay for the given text track index, if it exists.
- */
-function activateAssTrack(idx: number): Promise<void> {
+async function activateAssTrack(idx: number): Promise<void> {
 	const track = textTrackAt(idx);
 	if (!track) {
-		return Promise.resolve();
+		return;
 	}
-	return assOverlay.load(track.url);
+	const shown = await assOverlay.load(track.url);
+	// Guard against a newer selection: only reflect "no captions" if this track is still
+	// the current one, so a rapid switch isn't clobbered.
+	if (!shown && captions.currentTrack.value === idx) {
+		captions.currentTrack.value = -1;
+		captions.isCaptionsEnabled.value = false;
+	}
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
@@ -376,11 +354,6 @@ async function loadVideoSource() {
 		qualities.currentVideoTrack.value = -1;
 	}
 
-	// The default subtitle track (set via the Edit Video dialog) selects which track
-	// to show by default, the same way for manifest tracks and external subtitle
-	// files. A URL selects that track; `null`/`undefined` means no subtitles. Newly
-	// inserted <track> elements start "disabled", so we explicitly set the chosen
-	// track's mode to "showing" below.
 	captions.captionsTracks.value = getCaptionsTracks();
 	let defaultTrackIdx = -1;
 	if (defaultSubtitleTrack.value) {
@@ -390,14 +363,15 @@ async function loadVideoSource() {
 	captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
 	if (defaultTrackIdx !== -1) {
 		if (textTrackAt(defaultTrackIdx)?.contentType === "text/x-ass") {
-			// Fire-and-forget: the overlay builds itself once the video's
-			// dimensions are known, so it must not block load()/play() below.
 			activateAssTrack(defaultTrackIdx);
 		} else {
 			await nextTick();
-			const native = nativeTrackFor(textTrackAt(defaultTrackIdx).url);
+			const url = textTrackAt(defaultTrackIdx).url;
+			const native = nativeTrackFor(url);
 			if (native) {
 				native.mode = "showing";
+			} else {
+				console.warn("DirectPlayer: default subtitle track element not found:", url);
 			}
 		}
 	}

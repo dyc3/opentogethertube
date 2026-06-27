@@ -1259,8 +1259,6 @@ export class Room implements RoomState {
 		} else if (request.videos) {
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
-			// Per-item default subtitle track, keyed by service+id so it survives the
-			// dedupe splice below (which shifts indices). Matches the single-add path.
 			const subtitleByKey = new Map(
 				request.videos.map(v => [`${v.service}:${v.id}`, v.defaultSubtitleTrack ?? null]),
 			);
