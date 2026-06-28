@@ -4,21 +4,33 @@ export function normalizeSubtitleTrack(value: string | null | undefined): string
 	return value || null;
 }
 
-/**
- * Guesses the content type from the URL extension, defaulting to `text/vtt`. The default is
- * intentionally permissive: the server does not validate external subtitle URLs, so an
- * unsupported file fails to render in the browser rather than being rejected.
- */
-export function inferSubtitleContentType(url: string): CustomMediaTextTrack["contentType"] {
+function subtitleUrlExtension(url: string): string | undefined {
 	const path = url.split("?")[0].split("#")[0];
-	const ext = path.split(".").pop()?.toLowerCase();
-	return ext === "ass" || ext === "ssa" ? "text/x-ass" : "text/vtt";
+	return path.split(".").pop()?.toLowerCase();
+}
+
+export function inferSubtitleContentTypeOrNull(
+	url: string,
+): CustomMediaTextTrack["contentType"] | null {
+	const ext = subtitleUrlExtension(url);
+	if (ext === "ass" || ext === "ssa") {
+		return "text/x-ass";
+	}
+	if (ext === "vtt") {
+		return "text/vtt";
+	}
+	return null;
 }
 
 export function externalSubtitleAsTextTrack(url: string): CustomMediaTextTrack {
+	const contentType = inferSubtitleContentTypeOrNull(url);
+	if (!contentType) {
+		// Callers only reach here with a server-validated url, so this is a programming error.
+		throw new Error(`Cannot build a text track for unsupported subtitle url: ${url}`);
+	}
 	return {
 		url,
-		contentType: inferSubtitleContentType(url),
+		contentType,
 		srclang: "und",
 		default: true,
 	};

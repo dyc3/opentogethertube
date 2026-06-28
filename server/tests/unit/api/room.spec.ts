@@ -528,6 +528,32 @@ describe("Room API", () => {
 			});
 		});
 
+		it("should fail if defaultSubtitleTrack is an unsupported subtitle format", async () => {
+			await roommanager.createRoom({
+				name: "testqueue",
+				isTemporary: true,
+			});
+			const room = (await roommanager.getRoom("testqueue")).unwrap();
+			await room.queue.enqueue({ service: "direct", id: "foo" });
+
+			const resp = await request(app)
+				.patch("/api/room/testqueue/queue")
+				.auth(token, { type: "bearer" })
+				.set({ Authorization: "Bearer foobar" })
+				.send({
+					service: "direct",
+					id: "foo",
+					defaultSubtitleTrack: "https://example.com/subtitles.srt",
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(400);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "UnsupportedSubtitleType",
+			});
+		});
+
 		it("should fail if the request body is invalid", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",

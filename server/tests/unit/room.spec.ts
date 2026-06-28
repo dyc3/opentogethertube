@@ -282,6 +282,23 @@ describe("Room", () => {
 					defaultSubtitleTrack,
 				});
 			});
+
+			it("should reject an unsupported defaultSubtitleTrack for PlayNowRequest", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
+				await expect(
+					room.processUnauthorizedRequest(
+						{
+							type: RoomRequestType.PlayNowRequest,
+							video: {
+								...videoToPlay,
+								defaultSubtitleTrack: "https://example.com/subtitles.srt",
+							},
+						},
+						{ token: user.token },
+					),
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
+			});
 		});
 
 		describe("AddRequest", () => {
@@ -313,6 +330,23 @@ describe("Room", () => {
 					...videoToAdd,
 					defaultSubtitleTrack,
 				});
+			});
+
+			it("should reject an unsupported defaultSubtitleTrack for AddRequest", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
+
+				await expect(
+					room.processUnauthorizedRequest(
+						{
+							type: RoomRequestType.AddRequest,
+							video: {
+								...videoToAdd,
+								defaultSubtitleTrack: "https://example.com/subtitles.srt",
+							},
+						},
+						{ token: user.token },
+					),
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
 			});
 		});
 

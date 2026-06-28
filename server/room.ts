@@ -55,9 +55,11 @@ import { replacer } from "ott-common/serialize.js";
 import {
 	ClientNotFoundInRoomException,
 	ImpossiblePromotionException,
+	UnsupportedSubtitleType,
 	VideoAlreadyQueuedException,
 	VideoNotFoundException,
 } from "./exceptions.js";
+import { inferSubtitleContentTypeOrNull } from "ott-common/subtitle.js";
 import storage from "./storage.js";
 import tokens, { type SessionInfo } from "./auth/tokens.js";
 import { OttException } from "ott-common/exceptions.js";
@@ -219,6 +221,16 @@ export type RoomStatePersistable = Omit<
 	| "voteCounts"
 	| "votesToSkip"
 >;
+
+/**
+ * Rejects an external subtitle url whose format we can't render. `null`/`undefined`/empty (i.e.
+ * "no subtitles") is always allowed; this only guards non-empty urls.
+ */
+function assertSupportedSubtitleTrack(url: string | null | undefined): void {
+	if (url && inferSubtitleContentTypeOrNull(url) === null) {
+		throw new UnsupportedSubtitleType();
+	}
+}
 
 export class Room implements RoomState {
 	_name = "";
@@ -1250,6 +1262,7 @@ export class Room implements RoomState {
 				this.log.error("video was undefined, which is bad");
 				throw new Error("video was undefined");
 			}
+			assertSupportedSubtitleTrack(request.video.defaultSubtitleTrack);
 			video.defaultSubtitleTrack = request.video.defaultSubtitleTrack ?? null;
 			this.queue.enqueue(video);
 			this.log.info(`Video added: ${JSON.stringify(request.video)}`);
@@ -1257,6 +1270,9 @@ export class Room implements RoomState {
 			await this.publishRoomEvent(request, context, { video });
 			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
+			for (const v of request.videos) {
+				assertSupportedSubtitleTrack(v.defaultSubtitleTrack);
+			}
 			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
 
 			const subtitleByKey = new Map(
@@ -1295,6 +1311,7 @@ export class Room implements RoomState {
 		request: UpdateQueueItemRequest,
 		context: RoomRequestContext,
 	): Promise<void> {
+		assertSupportedSubtitleTrack(request.update.defaultSubtitleTrack);
 		await this.queue.update(request.video, request.update);
 		this.log.info(`Queue item updated: ${JSON.stringify(request.video)}`);
 		await this.publishRoomEvent(request, context);
@@ -1681,6 +1698,7 @@ export class Room implements RoomState {
 		} else {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
+		assertSupportedSubtitleTrack(request.video.defaultSubtitleTrack);
 		videoToPlay.defaultSubtitleTrack = request.video.defaultSubtitleTrack ?? null;
 		if (this.currentSource) {
 			this.currentSource.startAt = this.realPlaybackPosition;

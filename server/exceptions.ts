@@ -261,6 +261,14 @@ export class UnsupportedVideoType extends OttException {
 	}
 }
 
+export class UnsupportedSubtitleType extends OttException {
+	name = "UnsupportedSubtitleType";
+
+	constructor() {
+		super("Subtitle URL must be a .vtt, .ass, or .ssa file");
+	}
+}
+
 export class ClientNotFoundInRoomException extends OttException {
 	name = "ClientNotFoundInRoomException";
 
