@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, ref, toRefs, watch } from "vue";
+import { computed, onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type {
 	CustomMediaManifest,
@@ -61,7 +61,6 @@ const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
 const assContainer = ref<HTMLDivElement | undefined>();
 
-// Note: this list includes ASS tracks, which have no <track> DOM element (see nativeTrackFor).
 const textTracks = computed<CustomMediaTextTrack[]>(() => {
 	if (videoMime.value === "application/json") {
 		return manifest.value?.textTracks ?? [];
@@ -75,6 +74,8 @@ const vttTracks = computed(() =>
 	textTracks.value.filter(track => track.contentType === "text/vtt")
 );
 const assOverlay = useAssOverlay(videoElem, assContainer);
+// -1 = none. Whether the selected track is shown is gated separately by captions.isCaptionsEnabled.
+const selectedTrack = ref(-1);
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -133,79 +134,48 @@ function isCaptionsSupported(): boolean {
 	return true;
 }
 
-function textTrackAt(idx: number) {
-	return textTracks.value[idx];
+function clearRendering(): void {
+	if (videoElem.value) {
+		for (const native of Array.from(videoElem.value.textTracks)) {
+			native.mode = "hidden";
+		}
+	}
+	assOverlay.destroy();
 }
 
-// captions.currentTrack indexes the logical `textTracks` list (which includes ASS tracks),
-// but `videoElem.textTracks` only contains the VTT <track> DOM elements. Those two index
-// spaces diverge whenever an ASS track is present, so native tracks are resolved by URL
-// rather than by index.
-function nativeTrackFor(url: string): TextTrack | undefined {
-	const el = videoElem.value?.querySelector<HTMLTrackElement>(`track[src="${CSS.escape(url)}"]`);
-	return el?.track ?? undefined;
-}
-
-async function activateAssTrack(idx: number): Promise<void> {
-	const track = textTrackAt(idx);
+function applyCaptions(): void {
+	clearRendering();
+	if (!captions.isCaptionsEnabled.value) {
+		return;
+	}
+	const track = textTracks.value[selectedTrack.value];
 	if (!track) {
 		return;
 	}
-	const shown = await assOverlay.load(track.url);
-	// Guard against a newer selection: only reflect "no captions" if this track is still
-	// the current one, so a rapid switch isn't clobbered.
-	if (!shown && captions.currentTrack.value === idx) {
-		captions.currentTrack.value = -1;
-		captions.isCaptionsEnabled.value = false;
+	switch (track.contentType) {
+		case "text/x-ass":
+			assOverlay.load(track.url);
+			break;
+		case "text/vtt": {
+			const el = videoElem.value?.querySelector<HTMLTrackElement>(
+				`track[src="${CSS.escape(track.url)}"]`
+			);
+			if (el?.track) {
+				el.track.mode = "showing";
+			} else {
+				console.warn("DirectPlayer: subtitle track element not found:", track.url);
+			}
+			break;
+		}
+		default:
+			console.warn("DirectPlayer: unsupported subtitle content type:", track.contentType);
 	}
 }
 
-function setCaptionsEnabled(enabled: boolean): void {
-	if (!videoElem.value || captions.currentTrack.value === null) {
-		return;
-	}
-	if (textTracks.value.length === 0) {
-		return;
-	}
-	if (captions.currentTrack.value === -1) {
-		if (enabled) {
-			setCaptionsTrack(0);
-		}
-		return;
-	}
-	const track = textTrackAt(captions.currentTrack.value);
-	if (!track) {
-		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
-		return;
-	}
-	if (track.contentType === "text/x-ass") {
-		if (enabled) {
-			activateAssTrack(captions.currentTrack.value);
-		} else {
-			assOverlay.hide();
-		}
-		return;
-	}
-	const native = nativeTrackFor(track.url);
-	if (native) {
-		native.mode = enabled ? "showing" : "hidden";
-	}
-}
-
-function isCaptionsEnabled(): boolean {
-	if (!videoElem.value) {
-		return false;
-	}
-	if (assOverlay.visible.value) {
-		return true;
-	}
-	return Array.from(videoElem.value.textTracks).find(t => t.mode === "showing") !== undefined;
-}
+// flush: "post" ensures the <track> DOM elements are present before we look them up by URL.
+watch([selectedTrack, captions.isCaptionsEnabled], applyCaptions, { flush: "post" });
 
 function getCaptionsTracks(): CaptionTrack[] {
-	if (!videoElem.value) {
-		return [];
-	}
 	return textTracks.value.map(track => ({
 		kind: "subtitles",
 		label: track.name ?? undefined,
@@ -215,26 +185,7 @@ function getCaptionsTracks(): CaptionTrack[] {
 }
 
 function setCaptionsTrack(track: number): void {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	console.log("DirectPlayer: setCaptionsTrack:", track);
-	const selected = textTrackAt(track);
-	if (!selected) {
-		console.warn("DirectPlayer: invalid captions track index:", track);
-		return;
-	}
-	const selectedNative =
-		selected.contentType === "text/vtt" ? nativeTrackFor(selected.url) : undefined;
-	for (const native of Array.from(videoElem.value.textTracks)) {
-		native.mode = native === selectedNative ? "showing" : "hidden";
-	}
-	if (selected.contentType === "text/x-ass") {
-		activateAssTrack(track);
-	} else {
-		assOverlay.hide();
-	}
+	selectedTrack.value = track;
 	captions.currentTrack.value = track;
 }
 
@@ -315,11 +266,10 @@ async function loadVideoSource() {
 		console.error("player not ready");
 		return;
 	}
-	// Fix for captions from previous video still showing after source change
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = "hidden";
-	}
-	assOverlay.destroy();
+	// Reset to "no track" so captions from the previous video stop showing, and so the seed below
+	// always represents a change (re-rendering even if the new default lands on the same index).
+	clearRendering();
+	selectedTrack.value = -1;
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
 
@@ -355,33 +305,18 @@ async function loadVideoSource() {
 	}
 
 	captions.captionsTracks.value = getCaptionsTracks();
-	let defaultTrackIdx = -1;
-	if (defaultSubtitleTrack.value) {
-		defaultTrackIdx = textTracks.value.findIndex(t => t.url === defaultSubtitleTrack.value);
-	}
-	captions.currentTrack.value = defaultTrackIdx;
-	captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
-	if (defaultTrackIdx !== -1) {
-		if (textTrackAt(defaultTrackIdx)?.contentType === "text/x-ass") {
-			activateAssTrack(defaultTrackIdx);
-		} else {
-			await nextTick();
-			const url = textTrackAt(defaultTrackIdx).url;
-			const native = nativeTrackFor(url);
-			if (native) {
-				native.mode = "showing";
-			} else {
-				console.warn("DirectPlayer: default subtitle track element not found:", url);
-			}
-		}
-	}
+	const defaultTrackIdx = defaultSubtitleTrack.value
+		? textTracks.value.findIndex(t => t.url === defaultSubtitleTrack.value)
+		: -1;
+	const hasDefault = defaultTrackIdx >= 0;
+	setCaptionsTrack(hasDefault ? defaultTrackIdx : 0);
+	captions.isCaptionsEnabled.value = hasDefault;
 
 	videoElem.value.poster = thumbnail.value ?? "";
 	videoElem.value.load();
 	// this is needed to get the player to keep playing after the previous video has ended
 	videoElem.value.play();
 
-	console.log("DirectPlayer: current subtitle track:", captions.currentTrack.value);
 	console.log("DirectPlayer: current video track:", qualities.currentVideoTrack.value);
 
 	emit("apiready");
@@ -446,8 +381,10 @@ defineExpose({
 	getPosition,
 	setPosition,
 	isCaptionsSupported,
-	setCaptionsEnabled,
-	isCaptionsEnabled,
+	setCaptionsEnabled: (enabled: boolean) => {
+		captions.isCaptionsEnabled.value = enabled;
+	},
+	isCaptionsEnabled: () => captions.isCaptionsEnabled.value,
 	getCaptionsTracks,
 	setCaptionsTrack,
 	isQualitySupported,
