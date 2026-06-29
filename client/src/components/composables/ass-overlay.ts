@@ -1,5 +1,16 @@
 import { onBeforeUnmount, type Ref, ref } from "vue";
 import ASS from "assjs";
+import { i18n } from "@/i18n";
+import toast from "@/util/toast";
+import { ToastStyle } from "@/models/toast";
+
+function notifySubtitleLoadFailed(): void {
+	toast.add({
+		style: ToastStyle.Error,
+		content: i18n.global.t("room.subtitle-load-failed"),
+		duration: 6000,
+	});
+}
 
 export function useAssOverlay(
 	videoElement: Ref<HTMLVideoElement | undefined>,
@@ -82,6 +93,14 @@ export function useAssOverlay(
 				return false;
 			}
 			console.error("useAssOverlay: failed to load ASS subtitles:", url, e);
+			if (e instanceof TypeError) {
+				console.error(
+					"useAssOverlay: could not load subtitles from url. This could be a CORS issue. see docs/custom-media-format.md",
+					url,
+					e,
+				);
+			}
+			notifySubtitleLoadFailed();
 			currentUrl = null;
 			return false;
 		}

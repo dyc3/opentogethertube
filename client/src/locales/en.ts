@@ -192,6 +192,7 @@ export default {
 		pip: "Picture in Picture",
 		"player-settings": "Player settings",
 		subtitles: "Subtitles/CC",
+		"subtitle-load-failed": "Subtitle track could not be loaded",
 		quality: "Quality",
 		"playback-speed": "Playback speed",
 		"mute-volume": "Mute",
