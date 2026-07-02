@@ -187,7 +187,9 @@ export async function unloadRoom(
 		room = rooms[idx];
 	}
 	const roomName = room.name;
-	log.info(`Unloading room: ${roomName}`);
+	log.info(
+		`Unloading room: ${roomName} (reason: ${reason}, preserveRedis: ${opts.preserveRedis}, users: ${room.users.length}, temporary room: ${room.isTemporary}, queue length: ${room.queue.length})`,
+	);
 	if (reason !== UnloadReason.Commanded) {
 		await room.onBeforeUnload();
 	}
