@@ -870,8 +870,20 @@ pub async fn dispatch_monolith_message(
                     add_or_sync_room_ctx(&ctx, msg.room, *monolith_id, msg.load_epoch).await?;
                 }
                 MsgM2B::Unloaded(msg) => {
-                    info!(monolith_id = %monolith_id, room = %msg.name, "room unloaded");
                     let mut ctx_write = ctx.write().await;
+                    let balancer_room_users = ctx_write
+                        .clients
+                        .values()
+                        .filter(|client| client.room == msg.name)
+                        .count();
+                    let balancer_room_locator = ctx_write.rooms_to_monoliths.get(&msg.name);
+                    info!(
+                        monolith_id = %monolith_id,
+                        room = %msg.name,
+                        balancer_room_users,
+                        balancer_room_locator = ?balancer_room_locator,
+                        "room unloaded"
+                    );
                     ctx_write.remove_room(&msg.name, *monolith_id)?;
                 }
                 MsgM2B::Gossip(msg) => {
@@ -907,6 +919,7 @@ pub async fn dispatch_monolith_message(
                     }
 
                     for room in to_remove {
+                        info!(room_name = ?room, "removing room from gossip");
                         let _ = ctx.write().await.remove_room(&room, *monolith_id);
                     }
                 }
