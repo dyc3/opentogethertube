@@ -759,7 +759,7 @@ export class Room implements RoomState {
 
 		if (
 			this.users.length > 0 &&
-			this._keepAlivePing.add(conf.get("room.unload_after") * 0.9, "second").isBefore(dayjs())
+			this._keepAlivePing.add(conf.get("room.unload_after") * 0.5, "second").isBefore(dayjs())
 		) {
 			this._keepAlivePing = dayjs();
 			await redisClient.expire(`room:${this.name}`, conf.get("room.expire_after"));

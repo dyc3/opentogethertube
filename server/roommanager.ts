@@ -190,6 +190,16 @@ export async function unloadRoom(
 	log.info(
 		`Unloading room: ${roomName} (reason: ${reason}, preserveRedis: ${opts.preserveRedis}, users: ${room.users.length}, temporary room: ${room.isTemporary}, queue length: ${room.queue.length})`,
 	);
+
+	// sanity check: don't unload a room that has users in it and the reason is Keepalive
+	if (reason === UnloadReason.Keepalive && room.users.length > 0) {
+		// room conflict resolution is resolved by the balancer, and the monolith will receive a Commanded reason if that is the case.
+		log.warn(
+			`Attempted to unload room ${room.name} with users present (reason: Keepalive). Refusing because this is likely a bug.`,
+		);
+		return;
+	}
+
 	if (reason !== UnloadReason.Commanded) {
 		await room.onBeforeUnload();
 	}
