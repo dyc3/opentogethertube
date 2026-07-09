@@ -1,6 +1,7 @@
 import { ALL_VIDEO_SERVICES, ROOM_NAME_REGEX } from "ott-common/constants.js";
 import { BehaviorOption, Role } from "ott-common/models/types.js";
 import { Visibility, QueueMode } from "ott-common/models/types.js";
+import { normalizeSubtitleTrack } from "ott-common/subtitle.js";
 import { z } from "zod";
 
 // These strings are not allowed to be used as room names.
@@ -52,7 +53,12 @@ const VideoIdSchema = z.object({
 const QueueItemExtrasSchema = z.object({
 	// startAt: z.number().nonnegative().optional(),
 	// endAt: z.number().positive().optional(),
-	subtitleUrl: z.string().url().optional(),
+	defaultSubtitleTrack: z
+		.string()
+		.url()
+		.or(z.literal(""))
+		.nullish()
+		.transform(normalizeSubtitleTrack),
 });
 
 const VideoAddSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);
@@ -169,9 +175,11 @@ const CustomMediaSourceSchema = z.object({
 // 		.startsWith("audio", "contentType must be an audio MIME type"),
 // });
 
-const CustomMediaTextTrackSchema = z.object({
+export const CustomMediaTextTrackSchema = z.object({
 	url: z.string().url("text track url must be a valid URL"),
-	contentType: z.literal("text/vtt", { invalid_type_error: "contentType must be text/vtt" }),
+	contentType: z.enum(["text/vtt", "text/x-ass"], {
+		errorMap: () => ({ message: "contentType must be one of: text/vtt, text/x-ass" }),
+	}),
 	name: z
 		.string()
 		.min(1, "name must not be empty")
@@ -202,3 +210,4 @@ export const CustomMediaManifestSchema = z.object({
 });
 
 export type CustomMediaManifest = z.infer<typeof CustomMediaManifestSchema>;
+export type CustomMediaTextTrack = z.infer<typeof CustomMediaTextTrackSchema>;

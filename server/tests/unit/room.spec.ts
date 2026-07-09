@@ -262,8 +262,8 @@ describe("Room", () => {
 				expect(room.playbackPosition).toEqual(0);
 			});
 
-			it("should preserve subtitleUrl from PlayNowRequest", async () => {
-				const subtitleUrl = "https://example.com/subtitles.vtt";
+			it("should preserve defaultSubtitleTrack from PlayNowRequest", async () => {
+				const defaultSubtitleTrack = "https://example.com/track.de.ass";
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 
 				await room.processUnauthorizedRequest(
@@ -271,7 +271,7 @@ describe("Room", () => {
 						type: RoomRequestType.PlayNowRequest,
 						video: {
 							...videoToPlay,
-							subtitleUrl,
+							defaultSubtitleTrack,
 						},
 					},
 					{ token: user.token },
@@ -279,23 +279,25 @@ describe("Room", () => {
 
 				expect(room.currentSource).toEqual({
 					...videoToPlay,
-					subtitleUrl,
+					defaultSubtitleTrack,
 				});
 			});
 
-			it("should reject non-vtt subtitleUrl for PlayNowRequest", async () => {
+			it("should reject an unsupported defaultSubtitleTrack for PlayNowRequest", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
 				await expect(
 					room.processUnauthorizedRequest(
 						{
 							type: RoomRequestType.PlayNowRequest,
 							video: {
 								...videoToPlay,
-								subtitleUrl: "https://example.com/subtitles.srt",
+								defaultSubtitleTrack: "https://example.com/subtitles.srt",
 							},
 						},
 						{ token: user.token },
 					),
-				).rejects.toThrow("Subtitle URL must end with .vtt");
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
 			});
 		});
 
@@ -308,9 +310,8 @@ describe("Room", () => {
 				thumbnail: "test",
 				length: 10,
 			};
-			const subtitleUrl = "https://example.com/subtitles.vtt";
-
-			it("should add video with subtitleUrl to queue", async () => {
+			it("should add video with defaultSubtitleTrack to queue", async () => {
+				const defaultSubtitleTrack = "https://example.com/track.de.ass";
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
 
 				await room.processUnauthorizedRequest(
@@ -318,7 +319,7 @@ describe("Room", () => {
 						type: RoomRequestType.AddRequest,
 						video: {
 							...videoToAdd,
-							subtitleUrl,
+							defaultSubtitleTrack,
 						},
 					},
 					{ token: user.token },
@@ -327,11 +328,11 @@ describe("Room", () => {
 				expect(room.queue).toHaveLength(1);
 				expect(room.queue.items[0]).toEqual({
 					...videoToAdd,
-					subtitleUrl,
+					defaultSubtitleTrack,
 				});
 			});
 
-			it("should reject non-vtt subtitleUrl for AddRequest", async () => {
+			it("should reject an unsupported defaultSubtitleTrack for AddRequest", async () => {
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
 
 				await expect(
@@ -340,12 +341,12 @@ describe("Room", () => {
 							type: RoomRequestType.AddRequest,
 							video: {
 								...videoToAdd,
-								subtitleUrl: "https://example.com/subtitles.srt",
+								defaultSubtitleTrack: "https://example.com/subtitles.srt",
 							},
 						},
 						{ token: user.token },
 					),
-				).rejects.toThrow("Subtitle URL must end with .vtt");
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
 			});
 		});
 

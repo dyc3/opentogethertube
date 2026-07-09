@@ -686,10 +686,16 @@ components:
         id:
           type: string
           example: dQw4w9WgXcQ
-        subtitleUrl:
+        defaultSubtitleTrack:
           type: string
           format: uri
-          description: URL to a WebVTT subtitle file.
+          nullable: true
+          description: >-
+            URL of the subtitle track to show by default. For custom media
+            manifest items this must be one of the manifest's text tracks; for
+            other items it is the URL of an external subtitle file (.vtt or
+            .ass). `null` means no subtitles; an empty string and an absent
+            field are accepted and treated the same as `null`.
       required:
         - service
         - id

@@ -16,6 +16,8 @@ OpenTogetherTube is a real-time video synchronization web application. It uses a
 
 ## Build & Development Commands
 
+> **Note:** yarn is prefered. But if that doesn't work in your sandbox, use bun instead.
+
 **Build:**
 
 ```bash
@@ -62,7 +64,7 @@ yarn test:e2e:ui       # Open Playwright UI (interactive)
 yarn test:component    # Run component tests
 
 # Rust tests
-cargo test
+cargo test                # requires ipv6
 cargo test -p ott-balancer
 ```
 

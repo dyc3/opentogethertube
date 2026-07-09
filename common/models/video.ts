@@ -1,4 +1,5 @@
 import type { ALL_VIDEO_SERVICES } from "../constants.js";
+import type { CustomMediaTextTrack } from "./zod-schemas.js";
 
 export type VideoService = (typeof ALL_VIDEO_SERVICES)[number];
 
@@ -17,14 +18,21 @@ export interface VideoMetadata {
 	hls_url?: string;
 	dash_url?: string;
 	src_url?: string;
-	subtitleUrl?: string;
+	textTracks?: CustomMediaTextTrack[];
+	/**
+	 * URL of the subtitle track to show by default. The field is overloaded by item type:
+	 * for custom media manifest items (mime `application/json`) it must equal one of
+	 * `textTracks[].url`; for other (direct) items it is an arbitrary external subtitle URL
+	 * and is the only subtitle source. `null` and an absent field both mean "no subtitle".
+	 */
+	defaultSubtitleTrack?: string | null;
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
 export interface QueueItemExtras {
 	startAt?: number;
 	endAt?: number;
-	subtitleUrl?: string;
+	defaultSubtitleTrack?: string | null;
 }
 
 export type VideoAdd = VideoId & QueueItemExtras;

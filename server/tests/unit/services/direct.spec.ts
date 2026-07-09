@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import DirectVideoAdapter from "../../../services/direct.js";
 import { FfprobeStrategy } from "../../../ffprobe.js";
 import fs from "node:fs";
@@ -135,6 +135,47 @@ describe("Direct", () => {
 				title: "Foo: The Movie",
 				length: 69420,
 			});
+		});
+	});
+
+	describe("fetchManifestInfo", () => {
+		const adapter = new DirectVideoAdapter();
+
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		function stubManifest(manifest: unknown): void {
+			vi.stubGlobal(
+				"fetch",
+				vi.fn().mockResolvedValue({ ok: true, json: async () => manifest }),
+			);
+		}
+
+		const baseManifest = {
+			title: "Test",
+			duration: 100,
+			sources: [{ url: "https://example.com/video.mp4", contentType: "video/mp4", quality: 720 }],
+		};
+
+		it("passes text tracks through and picks the default track as defaultSubtitleTrack", async () => {
+			stubManifest({
+				...baseManifest,
+				textTracks: [
+					{ url: "https://example.com/en.vtt", contentType: "text/vtt", srclang: "en" },
+					{
+						url: "https://example.com/de.ass",
+						contentType: "text/x-ass",
+						srclang: "de",
+						default: true,
+					},
+				],
+			});
+
+			const video = await adapter.fetchManifestInfo("https://example.com/manifest.json");
+
+			expect(video.textTracks).toHaveLength(2);
+			expect(video.defaultSubtitleTrack).toEqual("https://example.com/de.ass");
 		});
 	});
 });

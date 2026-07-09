@@ -468,7 +468,7 @@ describe("Room API", () => {
 			}
 		});
 
-		it("should update a queue item's subtitleUrl", async () => {
+		it("should update a queue item's defaultSubtitleTrack", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",
 				isTemporary: true,
@@ -483,7 +483,7 @@ describe("Room API", () => {
 				.send({
 					service: "direct",
 					id: "foo",
-					subtitleUrl: "https://example.com/subtitles.vtt",
+					defaultSubtitleTrack: "https://example.com/track.de.ass",
 				})
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(200);
@@ -496,13 +496,13 @@ describe("Room API", () => {
 					expect.objectContaining({
 						service: "direct",
 						id: "foo",
-						subtitleUrl: "https://example.com/subtitles.vtt",
+						defaultSubtitleTrack: "https://example.com/track.de.ass",
 					}),
 				]),
 			);
 		});
 
-		it("should fail if the subtitleUrl does not end with .vtt", async () => {
+		it("should fail if defaultSubtitleTrack is not a valid URL", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",
 				isTemporary: true,
@@ -517,7 +517,33 @@ describe("Room API", () => {
 				.send({
 					service: "direct",
 					id: "foo",
-					subtitleUrl: "https://example.com/subtitles.srt",
+					defaultSubtitleTrack: "not a url",
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(400);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "ZodValidationError",
+			});
+		});
+
+		it("should fail if defaultSubtitleTrack is an unsupported subtitle format", async () => {
+			await roommanager.createRoom({
+				name: "testqueue",
+				isTemporary: true,
+			});
+			const room = (await roommanager.getRoom("testqueue")).unwrap();
+			await room.queue.enqueue({ service: "direct", id: "foo" });
+
+			const resp = await request(app)
+				.patch("/api/room/testqueue/queue")
+				.auth(token, { type: "bearer" })
+				.set({ Authorization: "Bearer foobar" })
+				.send({
+					service: "direct",
+					id: "foo",
+					defaultSubtitleTrack: "https://example.com/subtitles.srt",
 				})
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
@@ -538,7 +564,7 @@ describe("Room API", () => {
 				.patch("/api/room/testqueue/queue")
 				.auth(token, { type: "bearer" })
 				.set({ Authorization: "Bearer foobar" })
-				.send({ service: "direct", id: "foo", subtitleUrl: 123 })
+				.send({ service: "direct", id: "foo", defaultSubtitleTrack: 123 })
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 

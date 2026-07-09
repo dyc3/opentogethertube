@@ -140,7 +140,7 @@ export class VideoQueue extends Dirtyable {
 		});
 	}
 
-	/** Update queue item extras (e.g. subtitleUrl) for a video already in the queue. */
+	/** Update queue item extras (e.g. defaultSubtitleTrack) for a video already in the queue. */
 	async update(video: VideoId, patch: Partial<QueueItemExtras>): Promise<void> {
 		return this.lock.protect(() => {
 			const matchIdx = this.findIndex(video);

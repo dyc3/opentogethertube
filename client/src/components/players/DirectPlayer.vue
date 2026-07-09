@@ -16,51 +16,66 @@
 			@error="onError"
 		>
 			<track
-				v-for="track in manifest?.textTracks ?? []"
+				v-for="track in vttTracks"
 				:key="track.url"
 				kind="subtitles"
 				:src="track.url"
 				:srclang="track.srclang"
 				:label="track.name"
-				:default="track.default"
-			/>
-			<track
-				v-if="subtitleUrl && videoMime !== 'application/json'"
-				:src="subtitleUrl"
-				kind="subtitles"
-				default
 			/>
 		</video>
+		<div ref="assContainer" class="ass-container"></div>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, ref, toRefs, watch } from "vue";
+import { computed, onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
-import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
+import type {
+	CustomMediaManifest,
+	CustomMediaTextTrack,
+} from "ott-common/models/zod-schemas.js";
 import type {
 	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
 	MediaPlayerWithPlaybackRate,
 	MediaPlayerWithQuality,
 } from "../composables";
-import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
+import { useAssOverlay, useCaptions, useMediaAudioBoost, useQualities } from "../composables";
+import { externalSubtitleAsTextTrack } from "ott-common/subtitle";
 
 interface Props {
 	service: string;
 	videoUrl: string;
 	videoMime: string;
 	thumbnail?: string;
-	subtitleUrl?: string;
+	defaultSubtitleTrack?: string | null;
 }
 
 const props = defineProps<Props>();
-const { videoUrl, videoMime, thumbnail, subtitleUrl } = toRefs(props);
+const { videoUrl, videoMime, thumbnail, defaultSubtitleTrack } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
 const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
+const assContainer = ref<HTMLDivElement | undefined>();
+
+const textTracks = computed<CustomMediaTextTrack[]>(() => {
+	if (videoMime.value === "application/json") {
+		return manifest.value?.textTracks ?? [];
+	}
+	if (defaultSubtitleTrack.value) {
+		return [externalSubtitleAsTextTrack(defaultSubtitleTrack.value)];
+	}
+	return [];
+});
+const vttTracks = computed(() =>
+	textTracks.value.filter(track => track.contentType === "text/vtt")
+);
+const assOverlay = useAssOverlay(videoElem, assContainer);
+// -1 = none. Whether the selected track is shown is gated separately by captions.isCaptionsEnabled.
+const selectedTrack = ref(-1);
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -119,71 +134,58 @@ function isCaptionsSupported(): boolean {
 	return true;
 }
 
-function setCaptionsEnabled(enabled: boolean): void {
-	if (!videoElem.value || captions.currentTrack.value === null) {
-		return;
-	}
-	if (
-		videoMime.value !== "application/json" &&
-		!manifest.value?.textTracks &&
-		!subtitleUrl.value
-	) {
-		return;
-	}
-	if (captions.currentTrack.value === -1) {
-		if (enabled) {
-			videoElem.value.textTracks[0].mode = "showing";
-			captions.currentTrack.value = 0;
+function clearRendering(): void {
+	if (videoElem.value) {
+		for (const native of Array.from(videoElem.value.textTracks)) {
+			native.mode = "hidden";
 		}
-		return;
 	}
-	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
-		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
-		return;
-	}
-	videoElem.value.textTracks[captions.currentTrack.value].mode = enabled ? "showing" : "hidden";
+	assOverlay.destroy();
 }
 
-function isCaptionsEnabled(): boolean {
-	if (!videoElem.value) {
-		return false;
+function applyCaptions(): void {
+	clearRendering();
+	if (!captions.isCaptionsEnabled.value) {
+		return;
 	}
-	return Array.from(videoElem.value.textTracks).find(t => t.mode === "showing") !== undefined;
+	const track = textTracks.value[selectedTrack.value];
+	if (!track) {
+		return;
+	}
+	switch (track.contentType) {
+		case "text/x-ass":
+			assOverlay.load(track.url);
+			break;
+		case "text/vtt": {
+			const el = videoElem.value?.querySelector<HTMLTrackElement>(
+				`track[src="${CSS.escape(track.url)}"]`
+			);
+			if (el?.track) {
+				el.track.mode = "showing";
+			} else {
+				console.warn("DirectPlayer: subtitle track element not found:", track.url);
+			}
+			break;
+		}
+		default:
+			console.warn("DirectPlayer: unsupported subtitle content type:", track.contentType);
+	}
 }
+
+// flush: "post" ensures the <track> DOM elements are present before we look them up by URL.
+watch([selectedTrack, captions.isCaptionsEnabled], applyCaptions, { flush: "post" });
 
 function getCaptionsTracks(): CaptionTrack[] {
-	if (!videoElem.value) {
-		return [];
-	}
-	if (videoMime.value === "application/json") {
-		if (!manifest.value) {
-			return [];
-		}
-	} else {
-		return subtitleUrl.value ? [{ kind: "subtitles", default: true }] : [];
-	}
-
-	const tracks: CaptionTrack[] = [];
-	for (const track of manifest.value.textTracks ?? []) {
-		tracks.push({
-			kind: "subtitles",
-			label: track.name ?? undefined,
-			srclang: track.srclang,
-			default: track.default,
-		});
-	}
-	return tracks;
+	return textTracks.value.map(track => ({
+		kind: "subtitles",
+		label: track.name ?? undefined,
+		srclang: track.srclang,
+		default: track.default,
+	}));
 }
 
 function setCaptionsTrack(track: number): void {
-	if (!videoElem.value) {
-		console.error("player not ready");
-		return;
-	}
-	console.log("DirectPlayer: setCaptionsTrack:", track);
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
-	}
+	selectedTrack.value = track;
 	captions.currentTrack.value = track;
 }
 
@@ -264,10 +266,10 @@ async function loadVideoSource() {
 		console.error("player not ready");
 		return;
 	}
-	// Fix for captions from previous video still showing after source change
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = "hidden";
-	}
+	// Reset to "no track" so captions from the previous video stop showing, and so the seed below
+	// always represents a change (re-rendering even if the new default lands on the same index).
+	clearRendering();
+	selectedTrack.value = -1;
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
 
@@ -295,42 +297,26 @@ async function loadVideoSource() {
 
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = 0;
-
-		captions.captionsTracks.value = getCaptionsTracks();
-		// The browser adds newly inserted <track> elements in "disabled" mode initially,
-		// the default attribute causes them to become "showing" asynchronously.
-		// To reflect this in the UI correctly, now the default track index is read directly
-		// from the manifest data, and we explicitly set its mode to "showing"
-		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
-		captions.currentTrack.value = defaultTrackIdx;
-		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
-		if (defaultTrackIdx !== -1) {
-			await nextTick();
-			videoElem.value.textTracks[defaultTrackIdx].mode = "showing";
-		}
 	} else {
 		videoElem.value.src = videoUrl.value;
 
 		qualities.videoTracks.value = [];
 		qualities.currentVideoTrack.value = -1;
-
-		if (subtitleUrl.value) {
-			captions.captionsTracks.value = [{ kind: "subtitles", default: true }];
-			captions.currentTrack.value = 0;
-			captions.isCaptionsEnabled.value = true;
-		} else {
-			captions.captionsTracks.value = [];
-			captions.currentTrack.value = -1;
-			captions.isCaptionsEnabled.value = false;
-		}
 	}
+
+	captions.captionsTracks.value = getCaptionsTracks();
+	const defaultTrackIdx = defaultSubtitleTrack.value
+		? textTracks.value.findIndex(t => t.url === defaultSubtitleTrack.value)
+		: -1;
+	const hasDefault = defaultTrackIdx >= 0;
+	setCaptionsTrack(hasDefault ? defaultTrackIdx : 0);
+	captions.isCaptionsEnabled.value = hasDefault;
 
 	videoElem.value.poster = thumbnail.value ?? "";
 	videoElem.value.load();
 	// this is needed to get the player to keep playing after the previous video has ended
 	videoElem.value.play();
 
-	console.log("DirectPlayer: current subtitle track:", captions.currentTrack.value);
 	console.log("DirectPlayer: current video track:", qualities.currentVideoTrack.value);
 
 	emit("apiready");
@@ -383,8 +369,8 @@ onMounted(() => {
 	loadVideoSource();
 });
 
-watch([videoUrl, subtitleUrl], () => {
-	console.log("DirectPlayer: videoUrl or subtitleUrl changed");
+watch([videoUrl, defaultSubtitleTrack], () => {
+	console.log("DirectPlayer: videoUrl or defaultSubtitleTrack changed");
 	loadVideoSource();
 });
 
@@ -395,8 +381,10 @@ defineExpose({
 	getPosition,
 	setPosition,
 	isCaptionsSupported,
-	setCaptionsEnabled,
-	isCaptionsEnabled,
+	setCaptionsEnabled: (enabled: boolean) => {
+		captions.isCaptionsEnabled.value = enabled;
+	},
+	isCaptionsEnabled: () => captions.isCaptionsEnabled.value,
 	getCaptionsTracks,
 	setCaptionsTrack,
 	isQualitySupported,
@@ -421,6 +409,15 @@ defineExpose({
 	max-height: 100%;
 	width: 100%;
 	height: 100%;
+	position: relative;
+}
+
+.direct .ass-container {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	overflow: hidden;
 }
 
 .direct video {

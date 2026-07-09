@@ -192,6 +192,7 @@ export default {
 		pip: "Picture in Picture",
 		"player-settings": "Player settings",
 		subtitles: "Subtitles/CC",
+		"subtitle-load-failed": "Subtitle track could not be loaded",
 		quality: "Quality",
 		"playback-speed": "Playback speed",
 		"mute-volume": "Mute",
@@ -302,8 +303,12 @@ export default {
 		"start-at": "Start at {timestamp}",
 		edit: {
 			title: "Edit video",
-			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url": "Subtitle URL (.vtt, .ass)",
 			"subtitle-url-supported-services": "Supported services: direct, googledrive",
+			"default-subtitle-track": "Default subtitle track",
+			"default-subtitle-track-hint":
+				"Initial track for all viewers; each viewer can change it in the player.",
+			"no-subtitles": "None",
 			tooltip: "Edit video settings",
 		},
 	},

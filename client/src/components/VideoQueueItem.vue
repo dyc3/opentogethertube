@@ -186,13 +186,42 @@
 						{{ $t("video-queue-item.edit.title") }}
 					</DialogTitle>
 				</DialogHeader>
-				<Field>
+				<Field v-if="isManifestItem">
+					<FieldLabel for="edit-default-subtitle-track">
+						{{ $t("video-queue-item.edit.default-subtitle-track") }}
+					</FieldLabel>
+					<Select v-model="editedDefaultTrack">
+						<SelectTrigger
+							id="edit-default-subtitle-track"
+							data-cy="edit-default-subtitle-track"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem :value="null">
+								{{ $t("video-queue-item.edit.no-subtitles") }}
+							</SelectItem>
+							<SelectItem
+								v-for="track in manifestTracks"
+								:key="track.url"
+								:value="track.url"
+							>
+								{{ formatTrackLabel(track) }}
+							</SelectItem>
+						</SelectContent>
+					</Select>
+					<FieldDescription>
+						{{ $t("video-queue-item.edit.default-subtitle-track-hint") }}
+					</FieldDescription>
+				</Field>
+				<Field v-else>
 					<FieldLabel for="edit-subtitle-url">
 						{{ $t("video-queue-item.edit.subtitle-url") }}
 					</FieldLabel>
 					<Input
 						id="edit-subtitle-url"
-						v-model="editedSubtitleUrl"
+						:model-value="editedDefaultTrack ?? ''"
+						@update:model-value="setExternalSubtitleUrl(String($event))"
 						class="font-mono"
 						:disabled="!['direct', 'googledrive'].includes(item.service)"
 						data-cy="edit-subtitle-url"
@@ -233,6 +262,13 @@ import {
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -253,6 +289,8 @@ import { API } from "@/common-http";
 import { secondsToTimestamp } from "@/util/timestamp";
 import { ToastStyle } from "@/models/toast";
 import type { QueueItem, VideoAdd } from "ott-common/models/video";
+import type { CustomMediaTextTrack } from "ott-common/models/zod-schemas";
+import { normalizeSubtitleTrack } from "ott-common/subtitle";
 import { QueueMode } from "ott-common/models/types";
 import { useStore } from "@/store";
 import toast from "@/util/toast";
@@ -290,7 +328,22 @@ const thumbnailHasError = ref(false);
 const hasError = ref(false);
 const voted = ref(false);
 const showEditDialog = ref(false);
-const editedSubtitleUrl = props.isPreview ? ref("") : ref(item.value.subtitleUrl);
+const editedDefaultTrack = ref<string | null>(
+	props.isPreview ? null : item.value.defaultSubtitleTrack ?? null,
+);
+function setExternalSubtitleUrl(value: string): void {
+	editedDefaultTrack.value = normalizeSubtitleTrack(value);
+}
+
+const isManifestItem = computed(() => item.value.mime === "application/json");
+const manifestTracks = computed<CustomMediaTextTrack[]>(() => item.value.textTracks ?? []);
+
+function formatTrackLabel(track: CustomMediaTextTrack): string {
+	const name = track.name ?? track.srclang;
+	const format = track.contentType === "text/x-ass" ? "ASS" : "VTT";
+	return `${name} [${track.srclang}] (${format})`;
+}
+
 const videoLength = computed(() => secondsToTimestamp(item.value?.length ?? 0));
 const videoStartAt = computed(() => secondsToTimestamp(item.value?.startAt ?? 0));
 const thumbnailSource = computed(() => {
@@ -320,27 +373,24 @@ function updateHasBeenAdded() {
 }
 
 function getPostData(): VideoAdd {
-	const data = {
+	const data: VideoAdd = {
 		service: item.value.service,
 		id: item.value.id,
-		// Use `item.value.subtitleUrl` for preview since editedSubtitleUrl might have been edited but not saved
-		subtitleUrl:
-			(props.isPreview ? item.value.subtitleUrl : editedSubtitleUrl.value) ?? undefined,
+		defaultSubtitleTrack:
+			(props.isPreview ? item.value.defaultSubtitleTrack : editedDefaultTrack.value) ?? null,
 	};
 	return data;
 }
 
-// Ensure that the editedSubtitleUrl is reflected to the current subtitle URL after a failed update request
 watch(showEditDialog, open => {
-	if (!props.isPreview && open) {
-		editedSubtitleUrl.value = item.value.subtitleUrl ?? "";
+	if (open && !props.isPreview) {
+		editedDefaultTrack.value = item.value.defaultSubtitleTrack ?? null;
 	}
 });
 
 async function saveEdit() {
 	if (props.isPreview) {
-		// Update the subtitle URL for playNow()
-		item.value.subtitleUrl = editedSubtitleUrl.value ?? undefined;
+		item.value.defaultSubtitleTrack = editedDefaultTrack.value;
 		showEditDialog.value = false;
 	} else {
 		isLoadingEdit.value = true;

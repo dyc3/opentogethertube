@@ -6,6 +6,7 @@ node_modules
 /ts-out
 /target
 .eslintcache
+bun.lock
 
 # Playwright test artifacts
 /test-results/
