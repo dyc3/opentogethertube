@@ -298,7 +298,7 @@ async function loadVideoSource() {
 
 		captions.captionsTracks.value = getCaptionsTracks();
 		if ((manifest.value.textTracks ?? []).length > 0) {
-			// Wait for all text tracks are inserted
+			// Wait for all text tracks to be inserted
 			await nextTick();
 		}
 		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
