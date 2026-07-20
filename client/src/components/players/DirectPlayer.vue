@@ -297,17 +297,13 @@ async function loadVideoSource() {
 		qualities.currentVideoTrack.value = 0;
 
 		captions.captionsTracks.value = getCaptionsTracks();
-		// The browser adds newly inserted <track> elements in "disabled" mode initially,
-		// the default attribute causes them to become "showing" asynchronously.
-		// To reflect this in the UI correctly, now the default track index is read directly
-		// from the manifest data, and we explicitly set its mode to "showing"
+		if ((manifest.value.textTracks ?? []).length > 0) {
+			// Wait for all text tracks are inserted
+			await nextTick();
+		}
 		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
 		captions.currentTrack.value = defaultTrackIdx;
 		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
-		if (defaultTrackIdx !== -1) {
-			await nextTick();
-			videoElem.value.textTracks[defaultTrackIdx].mode = "showing";
-		}
 	} else {
 		videoElem.value.src = videoUrl.value;
 
