@@ -78,7 +78,15 @@ interface YoutubePlayerApi {
 
 interface Props {
 	videoId: string;
+	/** When true, show YouTube's native control bar and forward user-driven native input as user-* events. */
+	nativeControls?: boolean;
 }
+
+/** How close in time a YT state change must be to a programmatic call to be considered an echo of it. */
+const ECHO_WINDOW_MS = 1000;
+/** How far the polled position must jump to be considered a native seek rather than normal playback drift. */
+const SEEK_JUMP_THRESHOLD = 0.75;
+const SEEK_POLL_INTERVAL_MS = 250;
 
 /**
  * Component that manages youtube's iframe player (and all of the woes that come with it), and provides the common OTT player interface.
@@ -92,7 +100,9 @@ interface Props {
 
 defineOptions({ name: "YoutubePlayer" });
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+	nativeControls: false,
+});
 const emit = defineEmits<{
 	"apiready": [];
 	"ended": [];
@@ -102,6 +112,12 @@ const emit = defineEmits<{
 	"ready": [];
 	"error": [];
 	"buffer-progress": [progress: number];
+	/** The user played the video using YouTube's native control bar (nativeControls mode only). */
+	"user-play": [];
+	/** The user paused the video using YouTube's native control bar (nativeControls mode only). */
+	"user-pause": [];
+	/** The user seeked using YouTube's native control bar (nativeControls mode only). */
+	"user-seek": [position: number];
 }>();
 
 const isDev = import.meta.env.DEV;
@@ -116,6 +132,14 @@ const queuedPlaying = ref<boolean | null>(null);
 const queuedVolume = ref<number | null>(null);
 const captionsEnabled = ref(false);
 const isCaptionsLoaded = ref(false);
+
+// Echo cancellation for native controls: track our own programmatic play/pause/seek calls
+// so that the resulting YT events aren't mistaken for user-driven native input and re-forwarded.
+const lastProgrammaticPlayPause = ref<{ state: boolean; at: number } | null>(null);
+const lastProgrammaticSeek = ref<{ target: number; at: number } | null>(null);
+const seekPollInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const lastKnownPosition = ref<number | null>(null);
+const lastKnownPositionAt = ref<number | null>(null);
 
 const debugData = computed(() => ({
 	YoutubeState: youtubeState.value,
@@ -143,7 +167,9 @@ onMounted(async () => {
 			playerVars: {
 				autoplay: 0,
 				enablejsapi: 1,
-				controls: 0,
+				controls: props.nativeControls ? 1 : 0,
+				// native keyboard shortcuts are kept disabled to avoid double-handling with OTT's
+				// own keyboard shortcuts; native mouse control bar is what we want, not native keyboard.
 				disablekb: 1,
 				// required for iOS
 				playsinline: 1,
@@ -157,11 +183,19 @@ onMounted(async () => {
 	}
 
 	fitToContainer();
+
+	if (props.nativeControls) {
+		seekPollInterval.value = setInterval(pollForNativeSeek, SEEK_POLL_INTERVAL_MS);
+	}
 });
 
 onBeforeUnmount(() => {
 	resizeObserver.value?.disconnect();
 	resizeObserver.value = null;
+	if (seekPollInterval.value) {
+		clearInterval(seekPollInterval.value);
+		seekPollInterval.value = null;
+	}
 	player.value?.destroy?.();
 	player.value = null;
 });
@@ -184,6 +218,7 @@ function play(): Promise<void> {
 		queuedPlaying.value = true;
 		return Promise.resolve();
 	}
+	lastProgrammaticPlayPause.value = { state: true, at: Date.now() };
 	player.value.playVideo();
 	return Promise.resolve();
 }
@@ -193,6 +228,7 @@ function pause(): void {
 		queuedPlaying.value = false;
 		return;
 	}
+	lastProgrammaticPlayPause.value = { state: false, at: Date.now() };
 	player.value.pauseVideo();
 }
 
@@ -208,6 +244,7 @@ function setPosition(position: number): void {
 		queuedSeek.value = position;
 		return;
 	}
+	lastProgrammaticSeek.value = { target: position, at: Date.now() };
 	player.value.seekTo(position);
 }
 
@@ -319,8 +356,10 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 		emit("ended");
 	} else if (event.data === YOUTUBE_STATUS_PLAYING) {
 		emit("playing");
+		emitUserPlayPauseIfNotEcho(true);
 	} else if (event.data === YOUTUBE_STATUS_PAUSED) {
 		emit("paused");
+		emitUserPlayPauseIfNotEcho(false);
 	} else if (event.data === YOUTUBE_STATUS_BUFFERING) {
 		emit("buffering");
 	} else if (event.data === YOUTUBE_STATUS_CUED) {
@@ -329,10 +368,12 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 
 	if (event.data === YOUTUBE_STATUS_PLAYING || event.data === YOUTUBE_STATUS_PAUSED) {
 		if (queuedSeek.value !== null) {
+			lastProgrammaticSeek.value = { target: queuedSeek.value, at: Date.now() };
 			player.value.seekTo(queuedSeek.value);
 			queuedSeek.value = null;
 		}
 		if (queuedPlaying.value !== null) {
+			lastProgrammaticPlayPause.value = { state: queuedPlaying.value, at: Date.now() };
 			if (queuedPlaying.value) {
 				player.value.playVideo();
 			} else {
@@ -351,6 +392,66 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 
 function onError(): void {
 	emit("error");
+}
+
+/**
+ * Emit `user-play`/`user-pause` unless this state change is an echo of a play/pause we
+ * triggered ourselves (via `play()`/`pause()`, or the queued-play flush above).
+ */
+function emitUserPlayPauseIfNotEcho(state: boolean): void {
+	if (!props.nativeControls) {
+		return;
+	}
+	const last = lastProgrammaticPlayPause.value;
+	if (last && last.state === state && Date.now() - last.at < ECHO_WINDOW_MS) {
+		return;
+	}
+	emit(state ? "user-play" : "user-pause");
+}
+
+/**
+ * Poll the player's position to detect native seeks. YouTube's IFrame API has no seek event,
+ * so we infer a seek from a sudden jump between expected and actual position, and swallow the
+ * jump if it matches a seek we triggered ourselves (via `setPosition()`).
+ */
+function pollForNativeSeek(): void {
+	if (!player.value) {
+		return;
+	}
+	const now = Date.now();
+	const actual = player.value.getCurrentTime();
+
+	if (lastKnownPosition.value === null || lastKnownPositionAt.value === null) {
+		lastKnownPosition.value = actual;
+		lastKnownPositionAt.value = now;
+		return;
+	}
+
+	const elapsed = (now - lastKnownPositionAt.value) / 1000;
+	const expected =
+		youtubeState.value === YOUTUBE_STATUS_PLAYING
+			? lastKnownPosition.value + elapsed
+			: lastKnownPosition.value;
+	const jump = Math.abs(actual - expected);
+
+	lastKnownPosition.value = actual;
+	lastKnownPositionAt.value = now;
+
+	if (jump <= SEEK_JUMP_THRESHOLD) {
+		return;
+	}
+
+	const lastSeek = lastProgrammaticSeek.value;
+	if (
+		lastSeek &&
+		Date.now() - lastSeek.at < ECHO_WINDOW_MS &&
+		Math.abs(actual - lastSeek.target) <= SEEK_JUMP_THRESHOLD
+	) {
+		// echo of our own seek
+		return;
+	}
+
+	emit("user-seek", actual);
 }
 
 function fitToContainer(): void {
