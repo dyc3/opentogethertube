@@ -63,11 +63,14 @@
 							@playing="onPlaybackChange(true)"
 							@paused="onPlaybackChange(false)"
 							@ready="onPlayerReady"
+							@user-play="onUserPlay"
+							@user-pause="onUserPause"
+							@user-seek="onUserSeek"
 						/>
 						<div
 							id="mouse-event-swallower"
 							class="absolute top-0 h-full w-full"
-							:class="{ hidden: controlsVisible }"
+							:class="{ hidden: controlsVisible || nativeControls }"
 						></div>
 						<div
 							class="pointer-events-none absolute bottom-20 right-0 h-[70%] min-h-17.5 w-100 px-2.5 py-1.25 max-lg:w-62.5"
@@ -396,6 +399,8 @@ export default defineComponent({
 		const controlsMode = computed(() =>
 			currentSource.value?.service === "youtube" ? "outside-video" : "in-video",
 		);
+		// YouTube's native control bar is shown in place of OTT's own play/pause/seek controls.
+		const nativeControls = computed(() => currentSource.value?.service === "youtube");
 
 		// actively calculate the current position of the video
 		const truePosition = ref(0);
@@ -435,6 +440,11 @@ export default defineComponent({
 
 		watch(truePosition, async newPosition => {
 			if (!player.isPlayerPresent()) {
+				return;
+			}
+			// Don't yank the player back to the (stale) authoritative position while we're
+			// waiting for the server to confirm a seek the user just made via native controls.
+			if (pendingNativeSeek.value) {
 				return;
 			}
 			const currentTime = player.getPosition();
@@ -519,6 +529,26 @@ export default defineComponent({
 
 		async function onSyncMsg(msg: ServerMessageSync) {
 			rewriteUrlToRoomName();
+			if (
+				pendingPlaybackConfirm.value &&
+				msg.isPlaying !== undefined &&
+				msg.isPlaying === pendingPlaybackConfirm.value.target
+			) {
+				// The server accepted our forwarded native play/pause request.
+				if (pendingPlaybackConfirmTimeout) {
+					clearTimeout(pendingPlaybackConfirmTimeout);
+					pendingPlaybackConfirmTimeout = null;
+				}
+				pendingPlaybackConfirm.value = null;
+			}
+			if (pendingNativeSeek.value && msg.playbackPosition !== undefined) {
+				// The server accepted our forwarded native seek request.
+				if (pendingNativeSeekTimeout) {
+					clearTimeout(pendingNativeSeekTimeout);
+					pendingNativeSeekTimeout = null;
+				}
+				pendingNativeSeek.value = false;
+			}
 			if (msg.isPlaying !== undefined && !mediaPlaybackBlocked.value) {
 				await applyIsPlaying(msg.isPlaying);
 			}
@@ -555,6 +585,13 @@ export default defineComponent({
 			connection.removeMessageHandler("sync", onSyncMsg);
 			connection.disconnect();
 
+			if (pendingNativeSeekTimeout) {
+				clearTimeout(pendingNativeSeekTimeout);
+			}
+			if (pendingPlaybackConfirmTimeout) {
+				clearTimeout(pendingPlaybackConfirmTimeout);
+			}
+
 			if (roomCreatedUnsub) {
 				roomCreatedUnsub();
 			}
@@ -581,6 +618,63 @@ export default defineComponent({
 		// Indicates that starting playback is blocked by the browser. This usually means that the user needs
 		// to interact with the page before playback can start. This is because browsers block autoplaying videos.
 		const mediaPlaybackBlocked = ref(false);
+
+		// Tracks a native-control seek/play/pause that was forwarded to the server but not yet
+		// confirmed by a sync message. Used to avoid the position/playback reconcilers fighting
+		// the user during the request round-trip, and to self-correct if the server rejects it
+		// (e.g. due to lacking permission).
+		const NATIVE_SEEK_CONFIRM_TIMEOUT = 1500;
+		const NATIVE_PLAYBACK_CONFIRM_TIMEOUT = 1000;
+		const pendingNativeSeek = ref(false);
+		let pendingNativeSeekTimeout: ReturnType<typeof setTimeout> | null = null;
+		const pendingPlaybackConfirm: Ref<{ target: boolean } | null> = ref(null);
+		let pendingPlaybackConfirmTimeout: ReturnType<typeof setTimeout> | null = null;
+
+		function onUserPlay() {
+			if (store.state.room.isPlaying) {
+				return;
+			}
+			roomapi.play();
+			startPlaybackConfirmWindow(true);
+		}
+
+		function onUserPause() {
+			if (!store.state.room.isPlaying) {
+				return;
+			}
+			roomapi.pause();
+			startPlaybackConfirmWindow(false);
+		}
+
+		function onUserSeek(position: number) {
+			roomapi.seek(_.clamp(position, 0, store.state.room.currentSource?.length ?? 0));
+			startSeekConfirmWindow();
+		}
+
+		function startSeekConfirmWindow() {
+			pendingNativeSeek.value = true;
+			if (pendingNativeSeekTimeout) {
+				clearTimeout(pendingNativeSeekTimeout);
+			}
+			pendingNativeSeekTimeout = setTimeout(() => {
+				// The server didn't confirm in time (likely rejected, e.g. missing permission).
+				// Let the normal position reconciler snap the player back to the authoritative position.
+				pendingNativeSeek.value = false;
+			}, NATIVE_SEEK_CONFIRM_TIMEOUT);
+		}
+
+		function startPlaybackConfirmWindow(target: boolean) {
+			pendingPlaybackConfirm.value = { target };
+			if (pendingPlaybackConfirmTimeout) {
+				clearTimeout(pendingPlaybackConfirmTimeout);
+			}
+			pendingPlaybackConfirmTimeout = setTimeout(() => {
+				// The server didn't confirm in time (likely rejected, e.g. missing permission).
+				// Revert the player to the authoritative state.
+				pendingPlaybackConfirm.value = null;
+				applyIsPlaying(store.state.room.isPlaying);
+			}, NATIVE_PLAYBACK_CONFIRM_TIMEOUT);
+		}
 
 		async function applyIsPlaying(playing: boolean): Promise<void> {
 			await waitForPlayer();
@@ -621,6 +715,11 @@ export default defineComponent({
 				activateVideoControls();
 			}
 			if (changeTo === store.state.room.isPlaying) {
+				return;
+			}
+			if (nativeControls.value) {
+				// In native-controls mode, player-originated play/pause is forwarded to the
+				// server via `onUserPlay`/`onUserPause` instead of being reverted here.
 				return;
 			}
 
@@ -817,6 +916,7 @@ export default defineComponent({
 			controlsVisible,
 			videoControlsHideTimeout,
 			controlsMode,
+			nativeControls,
 
 			truePosition,
 			sliderPosition,
@@ -832,6 +932,9 @@ export default defineComponent({
 			onPlayerApiReady,
 			onPlayerReady,
 			onPlaybackChange,
+			onUserPlay,
+			onUserPause,
+			onUserSeek,
 			isCaptionsSupported,
 			getCaptionsTracks,
 
