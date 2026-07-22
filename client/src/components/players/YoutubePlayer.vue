@@ -434,7 +434,7 @@ function pollForNativeSeek(): void {
 	const elapsed = (now - lastKnownPositionAt.value) / 1000;
 	const expected =
 		youtubeState.value === YOUTUBE_STATUS_PLAYING
-			? lastKnownPosition.value + elapsed
+			? lastKnownPosition.value + elapsed * player.value.getPlaybackRate()
 			: lastKnownPosition.value;
 	const jump = Math.abs(actual - expected);
 
