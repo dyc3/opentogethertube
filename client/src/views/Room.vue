@@ -541,13 +541,20 @@ export default defineComponent({
 				}
 				pendingPlaybackConfirm.value = null;
 			}
-			if (pendingNativeSeek.value && msg.playbackPosition !== undefined) {
+			if (
+				pendingNativeSeek.value &&
+				msg.playbackPosition !== undefined &&
+				pendingSeekTarget.value !== null &&
+				Math.abs(msg.playbackPosition - pendingSeekTarget.value) <=
+					NATIVE_SEEK_CONFIRM_THRESHOLD
+			) {
 				// The server accepted our forwarded native seek request.
 				if (pendingNativeSeekTimeout) {
 					clearTimeout(pendingNativeSeekTimeout);
 					pendingNativeSeekTimeout = null;
 				}
 				pendingNativeSeek.value = false;
+				pendingSeekTarget.value = null;
 			}
 			if (msg.isPlaying !== undefined && !mediaPlaybackBlocked.value) {
 				await applyIsPlaying(msg.isPlaying);
@@ -625,7 +632,9 @@ export default defineComponent({
 		// (e.g. due to lacking permission).
 		const NATIVE_SEEK_CONFIRM_TIMEOUT = 1500;
 		const NATIVE_PLAYBACK_CONFIRM_TIMEOUT = 1000;
+		const NATIVE_SEEK_CONFIRM_THRESHOLD = 1;
 		const pendingNativeSeek = ref(false);
+		const pendingSeekTarget: Ref<number | null> = ref(null);
 		let pendingNativeSeekTimeout: ReturnType<typeof setTimeout> | null = null;
 		const pendingPlaybackConfirm: Ref<{ target: boolean } | null> = ref(null);
 		let pendingPlaybackConfirmTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -649,12 +658,14 @@ export default defineComponent({
 		}
 
 		function onUserSeek(position: number) {
-			roomapi.seek(_.clamp(position, 0, store.state.room.currentSource?.length ?? 0));
-			startSeekConfirmWindow();
+			const target = _.clamp(position, 0, store.state.room.currentSource?.length ?? 0);
+			roomapi.seek(target);
+			startSeekConfirmWindow(target);
 		}
 
-		function startSeekConfirmWindow() {
+		function startSeekConfirmWindow(target: number) {
 			pendingNativeSeek.value = true;
+			pendingSeekTarget.value = target;
 			if (pendingNativeSeekTimeout) {
 				clearTimeout(pendingNativeSeekTimeout);
 			}
@@ -662,6 +673,7 @@ export default defineComponent({
 				// The server didn't confirm in time (likely rejected, e.g. missing permission).
 				// Let the normal position reconciler snap the player back to the authoritative position.
 				pendingNativeSeek.value = false;
+				pendingSeekTarget.value = null;
 			}, NATIVE_SEEK_CONFIRM_TIMEOUT);
 		}
 
