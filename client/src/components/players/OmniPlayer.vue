@@ -46,6 +46,7 @@
 				v-if="!!source && source.service === 'youtube'"
 				ref="player"
 				:video-id="source.id"
+				:native-controls="true"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"
@@ -54,6 +55,9 @@
 				@buffering="onBuffering"
 				@error="onError"
 				@buffer-progress="onBufferProgress"
+				@user-play="onUserPlay"
+				@user-pause="onUserPause"
+				@user-seek="onUserSeek"
 			/>
 			<VimeoPlayer
 				v-else-if="!!source && source.service === 'vimeo'"
@@ -193,7 +197,17 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering", "error"]);
+const emit = defineEmits([
+	"apiready",
+	"playing",
+	"paused",
+	"ready",
+	"buffering",
+	"error",
+	"user-play",
+	"user-pause",
+	"user-seek",
+]);
 
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
@@ -373,6 +387,18 @@ function onPaused() {
 function onBuffering() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
 	emit("buffering");
+}
+
+function onUserPlay() {
+	emit("user-play");
+}
+
+function onUserPause() {
+	emit("user-pause");
+}
+
+function onUserSeek(position: number) {
+	emit("user-seek", position);
 }
 
 const currentPlaybackError = ref<MediaPlayerError | null>(null);
