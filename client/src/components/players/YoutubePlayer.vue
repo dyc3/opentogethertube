@@ -210,6 +210,10 @@ watch(
 		player.value.loadVideoById(videoId);
 		isCaptionsLoaded.value = false;
 		captionsEnabled.value = false;
+		// the new video starts at a different position than the old one; re-baseline instead
+		// of letting pollForNativeSeek() see this as a native seek on the next tick.
+		lastKnownPosition.value = null;
+		lastKnownPositionAt.value = null;
 	},
 );
 

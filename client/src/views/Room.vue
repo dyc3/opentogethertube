@@ -631,7 +631,8 @@ export default defineComponent({
 		let pendingPlaybackConfirmTimeout: ReturnType<typeof setTimeout> | null = null;
 
 		function onUserPlay() {
-			if (store.state.room.isPlaying) {
+			const knownPlaying = pendingPlaybackConfirm.value?.target ?? store.state.room.isPlaying;
+			if (knownPlaying) {
 				return;
 			}
 			roomapi.play();
@@ -639,7 +640,8 @@ export default defineComponent({
 		}
 
 		function onUserPause() {
-			if (!store.state.room.isPlaying) {
+			const knownPlaying = pendingPlaybackConfirm.value?.target ?? store.state.room.isPlaying;
+			if (!knownPlaying) {
 				return;
 			}
 			roomapi.pause();
