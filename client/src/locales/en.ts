@@ -440,6 +440,9 @@ export default {
 		"sfx-volume": "Sound Effect Volume",
 		"room-settings": "Default Room Settings",
 		"enable-adapter-selector": "Show adapter selector (advanced)",
+		"native-youtube-controls": "Use YouTube's native control bar",
+		"native-youtube-controls-hint":
+			"Playback is still controlled by OpenTogetherTube. Use YouTube's control bar only to change quality, audio track, or subtitles.",
 	},
 	"connect-overlay": {
 		title: "Disconnected",

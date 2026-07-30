@@ -123,6 +123,21 @@
 						{{ $t("client-settings.enable-adapter-selector") }}
 					</Label>
 				</div>
+
+				<Field>
+					<div class="flex items-center gap-2">
+						<Checkbox
+							id="cs-native-yt-controls"
+							v-model="settings.nativeYoutubeControls"
+						/>
+						<Label for="cs-native-yt-controls" class="cursor-pointer">
+							{{ $t("client-settings.native-youtube-controls") }}
+						</Label>
+					</div>
+					<FieldDescription>
+						{{ $t("client-settings.native-youtube-controls-hint") }}
+					</FieldDescription>
+				</Field>
 			</div>
 
 			<Separator />
