@@ -298,7 +298,19 @@ function onBalancerDisconnect(conn: BalancerConnection) {
 	}
 }
 
-async function onBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
+function onBalancerMessage(conn: BalancerConnection, message: MsgB2M): void {
+	void handleBalancerMessageSafely(conn, message);
+}
+
+async function handleBalancerMessageSafely(conn: BalancerConnection, message: MsgB2M) {
+	try {
+		await handleBalancerMessage(conn, message);
+	} catch (error) {
+		log.error(`Failed to handle ${message.type} message from balancer ${conn.id}: ${error}`);
+	}
+}
+
+async function handleBalancerMessage(conn: BalancerConnection, message: MsgB2M) {
 	log.silly(`balancer message: ${JSON.stringify(message)}`);
 
 	/**

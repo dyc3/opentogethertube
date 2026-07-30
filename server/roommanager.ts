@@ -182,6 +182,10 @@ export async function unloadRoom(
 			}
 		}
 		if (idx < 0) {
+			if (reason === UnloadReason.Commanded) {
+				log.warn(`Ignoring commanded unload for room that is not loaded: ${room}`);
+				return;
+			}
 			throw new RoomNotFoundException(room);
 		}
 		room = rooms[idx];

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager.js";
 import { Room as DbRoom, loadModels } from "../../models/index.js";
 import { Room, type RoomStateFromRedis } from "../../room.js";
-import { QueueMode, Role, Visibility } from "ott-common/models/types.js";
+import { BehaviorOption, QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import dayjs from "dayjs";
 import { RoomNotFoundException } from "../../exceptions.js";
 import storage from "../../storage.js";
@@ -123,7 +123,6 @@ describe("Room manager", () => {
 
 				room.prevQueue = [{ service: "direct", id: "foo" }];
 				room.queue = new VideoQueue([]);
-				room.currentSource = null;
 
 				await room.sync();
 
@@ -162,6 +161,68 @@ describe("Room manager", () => {
 			const loaded = (await roommanager.getRoom(roomName)).unwrap();
 			expect(loaded.queue.items).toEqual([{ service: "direct", id: "video" }]);
 		});
+
+		it("should recover the current queue from the database after abrupt loss", async () => {
+			const roomName = "test-abrupt-room-loss";
+			try {
+				await roommanager.createRoom({
+					name: roomName,
+					isTemporary: false,
+					restoreQueueBehavior: BehaviorOption.Always,
+				});
+				const room = (await roommanager.getRoom(roomName)).unwrap();
+				room.currentSource = { service: "direct", id: "video1" };
+				room.queue = new VideoQueue([
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+				]);
+				await room.sync();
+				const saved = await DbRoom.findOne({ where: { name: roomName } });
+				expect(saved?.prevQueue).toEqual([
+					{ service: "direct", id: "video1", startAt: 0 },
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+				]);
+
+				// Simulate an abrupt monolith loss after its Redis snapshot has expired.
+				roommanager.clearRooms();
+				await redisClient.del(`room:${roomName}`);
+				const loaded = (await roommanager.getRoom(roomName)).unwrap();
+				await loaded.update();
+				expect(loaded.currentSource).toEqual({
+					service: "direct",
+					id: "video1",
+					startAt: 0,
+				});
+				expect(loaded.queue.items).toEqual([
+					{ service: "direct", id: "video2" },
+					{ service: "direct", id: "video3" },
+				]);
+			} finally {
+				await redisClient.del(`room:${roomName}`);
+				await DbRoom.destroy({ where: { name: roomName } });
+			}
+		});
+
+		it("should clear the database recovery queue when the current queue is emptied", async () => {
+			const roomName = "test-empty-recovery-queue";
+			try {
+				await roommanager.createRoom({ name: roomName, isTemporary: false });
+				const room = (await roommanager.getRoom(roomName)).unwrap();
+				await room.queue.enqueue({ service: "direct", id: "video" });
+				await room.sync();
+				expect((await DbRoom.findOne({ where: { name: roomName } }))?.prevQueue).toEqual([
+					{ service: "direct", id: "video" },
+				]);
+
+				await room.queue.dequeue();
+				await room.sync();
+				expect((await DbRoom.findOne({ where: { name: roomName } }))?.prevQueue).toBeNull();
+			} finally {
+				await redisClient.del(`room:${roomName}`);
+				await DbRoom.destroy({ where: { name: roomName } });
+			}
+		});
 	});
 
 	it("should not load the room if it is not already loaded in memory", async () => {
@@ -179,5 +240,16 @@ describe("Room manager", () => {
 		expect(result2.ok).toEqual(true);
 		expect(getRoomByNameSpy).not.toHaveBeenCalled();
 		getRoomByNameSpy.mockRestore();
+	});
+
+	it("should ignore a duplicate commanded unload", async () => {
+		const roomName = "test-duplicate-commanded-unload";
+		await roommanager.createRoom({ name: roomName, isTemporary: true });
+
+		await roommanager.unloadRoom(roomName, UnloadReason.Commanded);
+
+		await expect(
+			roommanager.unloadRoom(roomName, UnloadReason.Commanded),
+		).resolves.toBeUndefined();
 	});
 });

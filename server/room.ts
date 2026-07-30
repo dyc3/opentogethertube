@@ -857,6 +857,17 @@ export class Room implements RoomState {
 
 	saveStateToRedisDebounced = _.debounce(this.saveStateToRedis, 5000);
 
+	private buildPreviousQueue(): QueueItem[] | null {
+		const prevQueue = [...this.queue.items];
+		if (this.currentSource) {
+			prevQueue.unshift({
+				...this.currentSource,
+				startAt: this.realPlaybackPosition,
+			});
+		}
+		return prevQueue.length > 0 ? prevQueue : null;
+	}
+
 	public async sync(): Promise<void> {
 		if (this._dirty.size === 0) {
 			return;
@@ -868,12 +879,11 @@ export class Room implements RoomState {
 			action: "sync",
 		};
 
+		const dirtyProps = Array.from(this._dirty);
 		const state: RoomStateSyncable = this.syncableState();
-		const isAnyDirtyStorable = Array.from(this._dirty).some(prop =>
-			storableProps.includes(prop as any),
-		);
+		const isAnyDirtyStorable = dirtyProps.some(prop => storableProps.includes(prop as any));
 
-		msg = Object.assign(msg, _.pick(state, Array.from(this._dirty)));
+		msg = Object.assign(msg, _.pick(state, dirtyProps));
 		if (isAnyDirtyStorable) {
 			await this.saveStateToRedisDebounced();
 		}
@@ -893,8 +903,15 @@ export class Room implements RoomState {
 			"grants",
 			"userRoles",
 			"owner",
-			"prevQueue",
 		);
+		if (
+			!this.isTemporary &&
+			(dirtyProps.includes("queue") || dirtyProps.includes("currentSource"))
+		) {
+			settings.prevQueue = this.buildPreviousQueue();
+		} else if (dirtyProps.includes("prevQueue")) {
+			settings.prevQueue = this.prevQueue;
+		}
 		if (!_.isEmpty(settings)) {
 			await storage.updateRoom({
 				...settings,
@@ -919,17 +936,9 @@ export class Room implements RoomState {
 		await this.saveStateToRedisDebounced.flush();
 
 		if (!this.isTemporary) {
-			const prevQueue = this.queue.items;
-			if (this.currentSource) {
-				prevQueue.unshift({
-					...this.currentSource,
-					startAt: this.realPlaybackPosition,
-				});
-			}
-
 			await storage.updateRoom({
 				name: this.name,
-				prevQueue: prevQueue.length > 0 ? prevQueue : null,
+				prevQueue: this.buildPreviousQueue(),
 			});
 		}
 	}

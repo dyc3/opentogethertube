@@ -278,4 +278,37 @@ describe("BalancerManager", () => {
 		await new Promise(resolve => setTimeout(resolve, 100));
 		expect((await roommanager.getRoom("foo", { mustAlreadyBeLoaded: true })).ok).toEqual(false);
 	});
+
+	it("should contain balancer message handler failures and process later messages", async () => {
+		const roomName = "balancer-handler-failure";
+		const mock = new BalancerConnectionMock();
+		await Promise.all([balancerManager.addBalancerConnection(mock), mock.emitInit()]);
+		await roommanager.createRoom({ name: roomName, isTemporary: true });
+		const unloadSpy = vi
+			.spyOn(roommanager, "unloadRoom")
+			.mockRejectedValueOnce(new Error("handler failure"));
+
+		try {
+			mock.emit("message", {
+				type: "unload",
+				payload: { room: roomName },
+			});
+			await new Promise(resolve => setTimeout(resolve, 0));
+			mock.emit("message", {
+				type: "unload",
+				payload: { room: roomName },
+			});
+			await new Promise(resolve => setTimeout(resolve, 100));
+
+			expect((await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true })).ok).toEqual(
+				false,
+			);
+		} finally {
+			unloadSpy.mockRestore();
+			const room = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
+			if (room.ok) {
+				await roommanager.unloadRoom(roomName, UnloadReason.Admin);
+			}
+		}
+	});
 });
