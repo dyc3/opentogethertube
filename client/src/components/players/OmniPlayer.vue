@@ -58,6 +58,7 @@
 				@buffer-progress="onBufferProgress"
 				@user-volume-change="onUserVolumeChange"
 				@user-mute-change="onUserMuteChange"
+				@native-rate-change="onNativeRateChange"
 			/>
 			<VimeoPlayer
 				v-else-if="!!source && source.service === 'vimeo'"
@@ -378,6 +379,18 @@ function onPaused() {
 function onBuffering() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
 	emit("buffering");
+}
+
+// Playback rate stays OTT-controlled: if YouTube's native rate diverges from the room's rate
+// (e.g. the user picked a speed from the native bar's menu), snap it back.
+function onNativeRateChange(rate: number) {
+	if (
+		rate !== store.state.room.playbackSpeed &&
+		player.value &&
+		implementsPlaybackRate(player.value)
+	) {
+		player.value.setPlaybackRate(store.state.room.playbackSpeed);
+	}
 }
 
 // Volume/mute stay client-local (not room-synced), so these just update the shared

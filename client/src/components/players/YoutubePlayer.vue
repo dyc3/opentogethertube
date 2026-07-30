@@ -40,6 +40,7 @@ interface YoutubeSdk {
 				onReady: () => void;
 				onStateChange: (event: YoutubeStateChangeEvent) => void;
 				onError: () => void;
+				onPlaybackRateChange: () => void;
 			};
 			playerVars: Record<string, number>;
 		},
@@ -117,6 +118,10 @@ const emit = defineEmits<{
 	"user-volume-change": [volume: number];
 	/** The user toggled mute using YouTube's native control bar (nativeControls mode only). */
 	"user-mute-change": [muted: boolean];
+	/** YouTube's own playback rate changed, possibly via its native control bar (nativeControls
+	 * mode only). Playback rate stays OTT-controlled, so the caller is expected to correct this
+	 * back to the room's rate. */
+	"native-rate-change": [rate: number];
 }>();
 
 const isDev = import.meta.env.DEV;
@@ -165,6 +170,7 @@ onMounted(async () => {
 				onReady,
 				onStateChange,
 				onError,
+				onPlaybackRateChange,
 			},
 			playerVars: {
 				autoplay: 0,
@@ -412,6 +418,18 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 
 function onError(): void {
 	emit("error");
+}
+
+/**
+ * YouTube fires this for both programmatic and native-control rate changes (e.g. picking a
+ * speed from the native bar's menu). Playback rate stays OTT-controlled, so this just reports
+ * the new rate; the caller is expected to override it back to the room's rate if they differ.
+ */
+function onPlaybackRateChange(): void {
+	if (!props.nativeControls || !player.value) {
+		return;
+	}
+	emit("native-rate-change", player.value.getPlaybackRate());
 }
 
 /**
