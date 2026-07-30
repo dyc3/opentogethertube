@@ -179,6 +179,8 @@ onMounted(async () => {
 				// native keyboard shortcuts are kept disabled to avoid double-handling with OTT's
 				// own keyboard shortcuts; native mouse control bar is what we want, not native keyboard.
 				disablekb: 1,
+				// OTT has its own fullscreen handling; the native fullscreen button would bypass it.
+				fs: 0,
 				// required for iOS
 				playsinline: 1,
 			},
