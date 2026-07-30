@@ -627,13 +627,21 @@ export default defineComponent({
 			await applyIsPlaying(store.state.room.isPlaying);
 		}
 		function onPlayerReady() {
-			if (currentSource.value?.service === "vimeo") {
-				onPlayerReadyVimeo();
+			if (
+				currentSource.value?.service === "vimeo" ||
+				currentSource.value?.service === "youtube"
+			) {
+				onPlayerReadyApplyRoomState();
 			}
 			isIframeBasedPlayer.value = !!playerContainer.value?.querySelector("iframe");
 			console.log("isIframeBasedPlayer:", isIframeBasedPlayer.value);
 		}
-		async function onPlayerReadyVimeo() {
+		// Iframe-based players can (re)enter the ready state without having the room's current
+		// position/play state applied yet (e.g. YouTube's native-controls toggle remounts the
+		// player, landing it cued at position 0). Re-apply both here rather than waiting for the
+		// timestamp watcher, which never fires while the room is paused.
+		async function onPlayerReadyApplyRoomState() {
+			player?.setPosition(truePosition.value);
 			await applyIsPlaying(store.state.room.isPlaying);
 		}
 

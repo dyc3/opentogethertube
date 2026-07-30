@@ -77,6 +77,7 @@ interface YoutubePlayerApi {
 	getPlaybackRate: () => number;
 	setPlaybackRate: (rate: number) => void;
 	loadVideoById: (videoId: string) => void;
+	cueVideoById: (videoId: string) => void;
 	getVideoLoadedFraction: () => number;
 	setSize: (width: string, height: string) => void;
 }
@@ -373,7 +374,10 @@ function onReady(): void {
 	}
 	isApiReady.value = true;
 	emit("apiready");
-	player.value.loadVideoById(props.videoId);
+	// cueVideoById (not loadVideoById) so a fresh/remounted player doesn't start playing from 0
+	// before the room's actual position and play state have been applied. See onStateChange's
+	// CUED handling below, and Room.vue's onPlayerReady, which re-applies both once this settles.
+	player.value.cueVideoById(props.videoId);
 	setCaptionsEnabled(captions.isCaptionsEnabled.value);
 }
 
@@ -394,7 +398,11 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 		emit("ready");
 	}
 
-	if (event.data === YOUTUBE_STATUS_PLAYING || event.data === YOUTUBE_STATUS_PAUSED) {
+	if (
+		event.data === YOUTUBE_STATUS_PLAYING ||
+		event.data === YOUTUBE_STATUS_PAUSED ||
+		event.data === YOUTUBE_STATUS_CUED
+	) {
 		// HACK: YouTube can restore captions after playback or seeking without onApiChange.
 		restoreCaptionsPreference();
 		if (queuedSeek.value !== null) {
