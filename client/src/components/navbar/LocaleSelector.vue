@@ -30,6 +30,7 @@ const locales = [
 	{ text: "🇷🇺", value: "ru" },
 	{ text: "🇪🇸", value: "es" },
 	{ text: "🇧🇷", value: "pt-br" },
+	{ text: "🇮🇹", value: "it" },
 ];
 
 const store = useStore();
