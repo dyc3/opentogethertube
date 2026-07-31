@@ -226,7 +226,7 @@ import logoUrl from "@/assets/logo.svg";
 import { useStore } from "@/store";
 import LocaleSelector from "@/components/navbar/LocaleSelector.vue";
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 const App = defineComponent({
 	name: "app",
 	components: {
@@ -341,7 +341,7 @@ const App = defineComponent({
 	},
 });
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 export default App;
 </script>
 

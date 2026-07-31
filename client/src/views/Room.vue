@@ -310,7 +310,7 @@ const QUEUE_TABS = ["queue", "add", "settings"] as const;
 
 type QueueTab = (typeof QUEUE_TABS)[number];
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 export default defineComponent({
 	name: "room",
 	components: {

@@ -93,12 +93,13 @@ describe("treeutils", () => {
 			[-10, 0, -5, 10],
 		],
 	];
-	it.each(
-		flipBoundingBoxHTestCases,
-	)("should flip bounding box", (input: BoundingBox, expected: BoundingBox) => {
-		const got = flipBoundingBoxH(input);
-		expect(got).toEqual(expected);
-	});
+	it.each(flipBoundingBoxHTestCases)(
+		"should flip bounding box",
+		(input: BoundingBox, expected: BoundingBox) => {
+			const got = flipBoundingBoxH(input);
+			expect(got).toEqual(expected);
+		},
+	);
 
 	it("should correctly assign client ids", () => {
 		const monoliths: Monolith[] = [

@@ -11,7 +11,7 @@
 import { defineComponent } from "vue";
 
 /** A component to help watch values from video players. */
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 const DebugPlayerWatcher = defineComponent({
 	name: "DebugPlayerWatcher",
 	props: {
@@ -19,7 +19,7 @@ const DebugPlayerWatcher = defineComponent({
 	},
 });
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 export default DebugPlayerWatcher;
 </script>
 

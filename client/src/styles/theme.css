@@ -14,26 +14,30 @@
  */
 
 /* dark: variant applies inside any of our dark themes */
-@custom-variant dark (&:is(
-	[data-theme="dark"] *,
-	[data-theme="deepred"] *,
-	[data-theme="deepblue"] *,
-	[data-theme="greenslate"] *,
-	[data-theme="ultraviolet"] *,
-	[data-theme="sunset"] *,
-	[data-theme="dark"],
-	[data-theme="deepred"],
-	[data-theme="deepblue"],
-	[data-theme="greenslate"],
-	[data-theme="ultraviolet"],
-	[data-theme="sunset"]
-));
-@custom-variant light (&:is(
-	[data-theme="light"] *,
-	[data-theme="strawberry"] *,
-	[data-theme="light"],
-	[data-theme="strawberry"]
-));
+@custom-variant dark (
+	&:is(
+		[data-theme="dark"] *,
+		[data-theme="deepred"] *,
+		[data-theme="deepblue"] *,
+		[data-theme="greenslate"] *,
+		[data-theme="ultraviolet"] *,
+		[data-theme="sunset"] *,
+		[data-theme="dark"],
+		[data-theme="deepred"],
+		[data-theme="deepblue"],
+		[data-theme="greenslate"],
+		[data-theme="ultraviolet"],
+		[data-theme="sunset"]
+	)
+);
+@custom-variant light (
+	&:is(
+		[data-theme="light"] *,
+		[data-theme="strawberry"] *,
+		[data-theme="light"],
+		[data-theme="strawberry"]
+	)
+);
 
 /*
  * Reka UI state variants used by the shadcn-vue "nova" components.
@@ -45,11 +49,9 @@
 @custom-variant data-closed (&:is([data-state="closed"], [data-closed]));
 @custom-variant data-active (&:is([data-state="active"], [data-active]));
 @custom-variant data-checked (&:is([data-state="checked"], [data-state="on"], [data-checked]));
-@custom-variant data-unchecked (&:is(
-	[data-state="unchecked"],
-	[data-state="off"],
-	[data-unchecked]
-));
+@custom-variant data-unchecked (
+	&:is([data-state="unchecked"], [data-state="off"], [data-unchecked])
+);
 @custom-variant data-horizontal (&[data-orientation="horizontal"]);
 @custom-variant data-vertical (&[data-orientation="vertical"]);
 @custom-variant data-disabled (&:is([data-disabled], [data-state="disabled"]));

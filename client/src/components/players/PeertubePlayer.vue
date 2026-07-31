@@ -14,7 +14,7 @@ import { PeerTubePlayer as Peertube } from "@peertube/embed-api";
 // CURRENTLY SOMEWHAT BROKEN
 // does not respect position syncing for some reason.
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 const PeertubePlayer = defineComponent({
 	name: "PeertubePlayer",
 	props: {
@@ -119,6 +119,6 @@ const PeertubePlayer = defineComponent({
 	},
 });
 
-// biome-ignore lint/nursery/noVueOptionsApi: TODO: convert to setup
+// biome-ignore lint/style/noVueOptionsApi: TODO: convert to setup
 export default PeertubePlayer;
 </script>
