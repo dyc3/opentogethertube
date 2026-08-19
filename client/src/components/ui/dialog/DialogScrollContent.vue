@@ -51,7 +51,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 				<DialogClose
 					class="absolute top-4 right-4 p-0.5 transition-colors rounded-md hover:bg-secondary"
 				>
-					<XIcon class="w-4 h-4" />
+					<XIcon class="size-4" />
 					<span class="sr-only">{{ $t("common.close") }}</span>
 				</DialogClose>
 			</DialogContent>

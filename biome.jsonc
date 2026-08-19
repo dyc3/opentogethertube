@@ -243,6 +243,10 @@
 			"formatter": { "enabled": false },
 			"javascript": { "formatter": { "enabled": false } },
 			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
+		},
+		{
+			"includes": ["client/src/components/ui/field/FieldDescription.vue"],
+			"linter": { "rules": { "nursery": { "useTailwindShorthandClasses": "off" } } }
 		}
 	],
 	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }

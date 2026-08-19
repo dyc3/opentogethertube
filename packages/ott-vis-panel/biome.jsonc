@@ -10,7 +10,8 @@
 			"correctness": {
 				// we have to do some fucked up things to make d3 play nice with react
 				"useExhaustiveDependencies": "off"
-			}
+			},
+			"nursery": { "useTailwindShorthandClasses": "off" }
 		}
 	},
 	"javascript": {
