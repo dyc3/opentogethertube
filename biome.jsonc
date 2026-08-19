@@ -79,7 +79,8 @@
 				"useVueNextTickPromise": "error",
 				"noVueVOnNumberValues": "error",
 				"noIdenticalTestTitle": "error",
-				"useConsistentTestIt": "error"
+				"useConsistentTestIt": "error",
+				"useTailwindShorthandClasses": "error"
 			},
 			"performance": {
 				"useTopLevelRegex": "error",
