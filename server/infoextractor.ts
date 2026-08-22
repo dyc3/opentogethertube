@@ -28,6 +28,7 @@ import PlutoAdapter from "./services/pluto.js";
 import DashVideoAdapter from "./services/dash.js";
 import InvidiousAdapter from "./services/invidious.js";
 import OdyseeAdapter from "./services/odysee.js";
+import JellyfinAdapter from "./services/jellyfin.js";
 
 const log = getLogger("infoextract");
 
@@ -74,6 +75,9 @@ export async function initExtractor() {
 	}
 	if (enabled.includes("peertube")) {
 		adapters.push(new PeertubeAdapter());
+	}
+	if (enabled.includes("jellyfin")) {
+		adapters.push(new JellyfinAdapter());
 	}
 	if (enabled.includes("direct")) {
 		adapters.push(new DirectVideoAdapter());

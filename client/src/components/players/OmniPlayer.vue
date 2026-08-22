@@ -70,7 +70,10 @@
 			<HlsPlayer
 				v-else-if="
 					!!source &&
-					(['hls', 'reddit', 'tubi', 'pluto'].includes(source.service) ||
+					(['hls', 'reddit', 'tubi', 'pluto', 'jellyfin'].includes(source.service) ||
+						(source.service === 'direct' &&
+							(source.mime?.includes('application/vnd.apple.mpegurl') ||
+								source.mime?.includes('application/x-mpegURL'))) ||
 						(source.service === 'odysee' &&
 							(source.mime?.includes('application/vnd.apple.mpegurl') ||
 								source.mime?.includes('application/x-mpegURL'))))
@@ -78,6 +81,8 @@
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
+				:service="source.service"
+				:available-subtitles="source.availableSubtitles"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"

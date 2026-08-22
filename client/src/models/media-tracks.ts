@@ -1,7 +1,8 @@
 export interface VideoTrack {
-	label?: number;
+	label?: number | string;
 	width: number;
 	height: number;
+	bitrate?: number;
 }
 
 export interface CaptionTrack {
