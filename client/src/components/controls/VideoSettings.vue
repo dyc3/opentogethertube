@@ -60,26 +60,28 @@
 						<span>{{ $t("room.quality") }}</span>
 					</button>
 
-					<button
-						v-if="qualities.isAutoQualitySupported.value"
-						type="button"
-						class="menu-item"
-						:class="{ 'menu-item-active': isAutoQualityActive }"
-						@click="selectQuality(-1)"
-					>
-						{{ autoQualityDisplay }}
-					</button>
+					<div class="menu-scroll">
+						<button
+							v-if="qualities.isAutoQualitySupported.value"
+							type="button"
+							class="menu-item"
+							:class="{ 'menu-item-active': isAutoQualityActive }"
+							@click="selectQuality(-1)"
+						>
+							{{ autoQualityDisplay }}
+						</button>
 
-					<button
-						v-for="(quality, idx) in qualities.videoTracks.value"
-						:key="idx"
-						type="button"
-						class="menu-item"
-						:class="{ 'menu-item-active': idx === qualities.currentVideoTrack.value }"
-						@click="selectQuality(idx)"
-					>
-						{{ formatQuality(quality) }}
-					</button>
+						<button
+							v-for="(quality, idx) in qualities.videoTracks.value"
+							:key="idx"
+							type="button"
+							class="menu-item"
+							:class="{ 'menu-item-active': idx === qualities.currentVideoTrack.value }"
+							@click="selectQuality(idx)"
+						>
+							{{ formatQuality(quality) }}
+						</button>
+					</div>
 				</div>
 
 				<!-- Subtitle submenu -->
@@ -93,21 +95,23 @@
 						<span>{{ $t("room.subtitles") }}</span>
 					</button>
 
-					<button
-						v-for="(track, idx) in captions.captionsTracks.value"
-						:key="idx"
-						type="button"
-						class="menu-item"
-						:class="{ 'menu-item-active': isSubtitleTrackActive(idx) }"
-						@click="selectSubtitleTrack(idx)"
-					>
-						<span class="menu-item-content">{{ formatCaption(track) }}</span>
-						<Icon
-							v-if="track.kind === 'captions'"
-							:icon="mdiClosedCaption"
-							class="size-5 shrink-0"
-						/>
-					</button>
+					<div class="menu-scroll">
+						<button
+							v-for="(track, idx) in captions.captionsTracks.value"
+							:key="idx"
+							type="button"
+							class="menu-item"
+							:class="{ 'menu-item-active': isSubtitleTrackActive(idx) }"
+							@click="selectSubtitleTrack(idx)"
+						>
+							<span class="menu-item-content">{{ formatCaption(track) }}</span>
+							<Icon
+								v-if="track.kind === 'captions'"
+								:icon="mdiClosedCaption"
+								class="size-5 shrink-0"
+							/>
+						</button>
+					</div>
 				</div>
 			</Transition>
 		</PopoverContent>
@@ -248,6 +252,14 @@ function selectSubtitleTrack(track: number): void {
 	min-height: fit-content;
 	display: flex;
 	flex-direction: column;
+}
+
+.menu-scroll {
+	display: flex;
+	flex-direction: column;
+	max-height: min(50vh, 320px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 
 .menu-item {

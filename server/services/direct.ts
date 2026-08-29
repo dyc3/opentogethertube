@@ -134,6 +134,8 @@ export default class DirectVideoAdapter extends ServiceAdapter {
 			length: Math.ceil(manifest.duration),
 			thumbnail: manifest.thumbnail,
 			mime: "application/json",
+			textTracks: manifest.textTracks,
+			subtitleUrl: manifest.textTracks?.find(t => t.default)?.url ?? null,
 		};
 	}
 

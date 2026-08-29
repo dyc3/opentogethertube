@@ -159,7 +159,7 @@ describe("VideoQueueItem component", () => {
 		expect(API.post).toHaveBeenCalledWith("/room/foo/queue", {
 			service: "youtube",
 			id: "1",
-			subtitleUrl: undefined,
+			subtitleUrl: null,
 		});
 	});
 
@@ -197,7 +197,7 @@ describe("VideoQueueItem component", () => {
 		await flush();
 
 		expect(API.delete).toHaveBeenCalledWith("/room/foo/queue", {
-			data: { service: "youtube", id: "1", subtitleUrl: undefined },
+			data: { service: "youtube", id: "1", subtitleUrl: null },
 		});
 	});
 

@@ -263,7 +263,7 @@ describe("Room", () => {
 			});
 
 			it("should preserve subtitleUrl from PlayNowRequest", async () => {
-				const subtitleUrl = "https://example.com/subtitles.vtt";
+				const subtitleUrl = "https://example.com/track.de.ass";
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
 
 				await room.processUnauthorizedRequest(
@@ -283,7 +283,9 @@ describe("Room", () => {
 				});
 			});
 
-			it("should reject non-vtt subtitleUrl for PlayNowRequest", async () => {
+			it("should reject an unsupported subtitleUrl for PlayNowRequest", async () => {
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
 				await expect(
 					room.processUnauthorizedRequest(
 						{
@@ -295,7 +297,7 @@ describe("Room", () => {
 						},
 						{ token: user.token },
 					),
-				).rejects.toThrow("Subtitle URL must end with .vtt");
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
 			});
 		});
 
@@ -308,9 +310,8 @@ describe("Room", () => {
 				thumbnail: "test",
 				length: 10,
 			};
-			const subtitleUrl = "https://example.com/subtitles.vtt";
-
 			it("should add video with subtitleUrl to queue", async () => {
+				const subtitleUrl = "https://example.com/track.de.ass";
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
 
 				await room.processUnauthorizedRequest(
@@ -331,7 +332,7 @@ describe("Room", () => {
 				});
 			});
 
-			it("should reject non-vtt subtitleUrl for AddRequest", async () => {
+			it("should reject an unsupported subtitleUrl for AddRequest", async () => {
 				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
 
 				await expect(
@@ -345,7 +346,7 @@ describe("Room", () => {
 						},
 						{ token: user.token },
 					),
-				).rejects.toThrow("Subtitle URL must end with .vtt");
+				).rejects.toThrow("Subtitle URL must be a .vtt, .ass, or .ssa file");
 			});
 		});
 

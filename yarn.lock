@@ -7880,6 +7880,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"assjs@npm:^0.1.7":
+  version: 0.1.7
+  resolution: "assjs@npm:0.1.7"
+  checksum: 10c0/3a7a1f00c6b66982d62ac6a9d0dae91ff9b5f39f8a0de951f5ab20e3c32ccc21880a778181747d776590312a65f044a20109753895c52b0880854cf5701ec7d8
+  languageName: node
+  linkType: hard
+
 "astral-regex@npm:^2.0.0":
   version: 2.0.0
   resolution: "astral-regex@npm:2.0.0"
@@ -16552,6 +16559,7 @@ __metadata:
     "@vue/eslint-config-typescript": "npm:^11.0.3"
     "@vue/test-utils": "npm:2.2.1"
     "@vueuse/core": "npm:^14.3.0"
+    assjs: "npm:^0.1.7"
     axios: "npm:1.13.5"
     class-variance-authority: "npm:^0.7.1"
     clsx: "npm:^2.1.1"

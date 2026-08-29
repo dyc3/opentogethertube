@@ -1,4 +1,5 @@
 import type { ALL_VIDEO_SERVICES } from "../constants.js";
+import type { CustomMediaTextTrack } from "./zod-schemas.js";
 
 export type VideoService = (typeof ALL_VIDEO_SERVICES)[number];
 
@@ -17,14 +18,16 @@ export interface VideoMetadata {
 	hls_url?: string;
 	dash_url?: string;
 	src_url?: string;
-	subtitleUrl?: string;
+	textTracks?: CustomMediaTextTrack[];
+	subtitleUrl?: string | null;
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
 export interface QueueItemExtras {
 	startAt?: number;
 	endAt?: number;
-	subtitleUrl?: string;
+	/** Kept as `subtitleUrl` for persistence compat — this field is stored by name in Redis and the DB `prevQueue` column. */
+	subtitleUrl?: string | null;
 }
 
 export type VideoAdd = VideoId & QueueItemExtras;
