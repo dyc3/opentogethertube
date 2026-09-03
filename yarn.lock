@@ -16591,7 +16591,7 @@ __metadata:
     sequelize-cli: "npm:^6.6.0"
     sponsorblock-api: "npm:^0.2.2"
     sqlite3: "npm:5.1.5"
-    toml: "npm:^3.0.0"
+    toml: "npm:^4.2.0"
     ts-essentials: "npm:^9.3.0"
     ts-node: "npm:^10.9.1"
     tslib: "npm:^2.4.1"
@@ -20885,10 +20885,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"toml@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "toml@npm:3.0.0"
-  checksum: 10c0/8d7ed3e700ca602e5419fca343e1c595eb7aa177745141f0761a5b20874b58ee5c878cd045c408da9d130cb2b611c639912210ba96ce2f78e443569aa8060c18
+"toml@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "toml@npm:4.2.0"
+  checksum: 10c0/c110fd3fd5f69d9edcd46ee9468f104462dbbdcf33b85d3a240dfb488bc29bbd8e0f9b4bbae7243ccc734ff708161b062ed1f4a3280f2df9439139506dc71ab2
   languageName: node
   linkType: hard
 
