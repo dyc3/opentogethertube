@@ -37,7 +37,9 @@ const addPreview: RequestHandler<
 
 		res.setHeader(
 			"Cache-Control",
-			`public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`,
+			result.cacheDuration > 0
+				? `public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
+				: "no-store",
 		);
 
 		res.json({
