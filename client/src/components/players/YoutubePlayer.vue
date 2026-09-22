@@ -64,6 +64,7 @@ interface YoutubePlayerApi {
 	setVolume: (volume: number) => void;
 	loadModule: (module: string) => void;
 	unloadModule: (module: string) => void;
+	getOptions: () => string[];
 	getOption: (module: "captions", option: "tracklist") => YoutubeCaptionTrack[] | undefined;
 	setOption: (module: "captions", option: "reload", value: boolean) => void;
 	setOption: (module: "captions", option: "fontSize", value: number) => void;
@@ -238,7 +239,8 @@ function setCaptionsEnabled(value: boolean): void {
 		loadCaptionsIfNeeded();
 		player.value.loadModule("captions");
 		player.value.setOption("captions", "fontSize", 0);
-	} else {
+	} else if (player.value.getOptions().includes("captions")) {
+		// Unloading emits onApiChange; skip the unload when its callback reports no module.
 		player.value.unloadModule("captions");
 	}
 	captionsEnabled.value = value;

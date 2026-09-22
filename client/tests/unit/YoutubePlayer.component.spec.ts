@@ -13,21 +13,39 @@ describe("YouTube captions", () => {
 		onStateChange: (event: { data: number }) => void;
 	};
 	let visible: boolean;
+	let captionsModuleLoaded: boolean;
+	let pendingApiChanges: number;
 	let wrapper: VueWrapper;
 	const captions = useCaptions();
 
 	// YouTube can restore captions on playback transitions without onApiChange.
 	const transition = (data: number) => {
 		visible = true;
+		captionsModuleLoaded = true;
 		events.onStateChange({ data });
+	};
+	const flushApiChanges = () => {
+		for (let i = 0; pendingApiChanges > 0; i++) {
+			if (i === 10) {
+				throw new Error("Caption module callbacks did not settle");
+			}
+			pendingApiChanges--;
+			events.onApiChange();
+		}
 	};
 	const api = {
 		loadModule: vi.fn(() => {
 			visible = true;
+			captionsModuleLoaded = true;
+			pendingApiChanges++;
 		}),
 		unloadModule: vi.fn(() => {
 			visible = false;
+			captionsModuleLoaded = false;
+			// Do not assume repeated unloads suppress the documented API-change callback.
+			pendingApiChanges++;
 		}),
+		getOptions: vi.fn(() => (captionsModuleLoaded ? ["captions"] : [])),
 		setOption: vi.fn(),
 		getOption: vi.fn(() => []),
 		loadVideoById: vi.fn(),
@@ -44,6 +62,8 @@ describe("YouTube captions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		visible = true;
+		captionsModuleLoaded = true;
+		pendingApiChanges = 0;
 		captions.isCaptionsEnabled.value = false;
 		captions.currentTrack.value = null;
 		captions.captionsTracks.value = [];
@@ -76,6 +96,7 @@ describe("YouTube captions", () => {
 		if (ready) {
 			events.onReady();
 			events.onApiChange();
+			flushApiChanges();
 		}
 		return wrapper.vm.$.exposed as unknown as {
 			setCaptionsEnabled: (enabled: boolean) => void;
@@ -182,8 +203,27 @@ describe("YouTube captions", () => {
 		captions.isCaptionsEnabled.value = false;
 		player.setCaptionsEnabled(false);
 		visible = true;
+		captionsModuleLoaded = true;
 		events.onApiChange();
+		flushApiChanges();
 		expect(visible).toBe(false);
+	});
+
+	it("settles after unloading captions and handles a later silent restoration", async () => {
+		const player = await mountPlayer();
+		expect(api.unloadModule).toHaveBeenCalledTimes(1);
+		expect(api.getOptions()).toEqual([]);
+
+		events.onApiChange();
+		player.setCaptionsEnabled(false);
+		flushApiChanges();
+		expect(api.unloadModule).toHaveBeenCalledTimes(1);
+
+		await player.play();
+		flushApiChanges();
+		expect(api.unloadModule).toHaveBeenCalledTimes(2);
+		expect(visible).toBe(false);
+		expect(player.isCaptionsEnabled()).toBe(false);
 	});
 
 	it("does not reload captions when turning them off", async () => {
