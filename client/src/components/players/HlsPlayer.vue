@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 import Hls from "hls.js";
-import { computed, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type {
 	MediaPlayerWithAudioBoost,
@@ -29,13 +29,6 @@ import type {
 } from "../composables";
 import { useCaptions, useMediaAudioBoost, useQualities } from "../composables";
 import type { MediaPlayerError } from "../composables/media-player";
-
-const JELLYFIN_BITRATE_PROFILES: VideoTrack[] = [
-	{ label: "3 Mbps", width: 0, height: 0, bitrate: 3_000_000 },
-	{ label: "1.5 Mbps", width: 0, height: 0, bitrate: 1_500_000 },
-	{ label: "720 kbps", width: 0, height: 0, bitrate: 700_000 },
-	{ label: "420 kbps", width: 0, height: 0, bitrate: 420_000 },
-];
 
 interface Props {
 	videoUrl: string;
@@ -48,15 +41,13 @@ const props = withDefaults(defineProps<Props>(), {
 	service: "",
 	availableSubtitles: () => [],
 });
-const { videoUrl, thumbnail, service } = toRefs(props);
+const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const qualities = useQualities();
 const audioBoost = useMediaAudioBoost(videoElem);
 const currentUrl = ref(props.videoUrl);
 let hls: Hls | undefined;
-
-const isJellyfin = computed(() => service.value === "jellyfin");
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -174,12 +165,17 @@ function setCaptionsTrack(track: number): void {
 }
 
 function addExternalSubtitleTracks(): void {
-	if (!videoElem.value || !props.availableSubtitles || props.availableSubtitles.length === 0) {
+	if (!videoElem.value) {
 		return;
 	}
+	// Always clear tracks from the previous video first, even when the new
+	// video has no subtitles, otherwise stale tracks linger in the selector.
 	const existingTracks = videoElem.value.querySelectorAll("track");
 	for (const track of existingTracks) {
 		track.remove();
+	}
+	if (!props.availableSubtitles || props.availableSubtitles.length === 0) {
+		return;
 	}
 	for (const sub of props.availableSubtitles) {
 		const track = document.createElement("track");
@@ -215,31 +211,7 @@ function getVideoTracks(): VideoTrack[] {
 	}));
 }
 
-function setJellyfinBitrate(bitrate: number | null): void {
-	const url = new URL(videoUrl.value);
-	if (bitrate === null) {
-		url.searchParams.delete("VideoBitrate");
-	} else {
-		url.searchParams.set("VideoBitrate", String(bitrate));
-	}
-	currentUrl.value = url.toString();
-	loadVideoSource();
-}
-
 function setVideoTrack(track: number): void {
-	if (isJellyfin.value) {
-		if (track === -1) {
-			setJellyfinBitrate(null);
-		} else {
-			const profile = JELLYFIN_BITRATE_PROFILES[track];
-			if (profile) {
-				setJellyfinBitrate(profile.bitrate ?? null);
-			}
-		}
-		qualities.currentVideoTrack.value = track;
-		return;
-	}
-
 	if (!hls) {
 		console.error("player not ready");
 		return;
@@ -361,35 +333,14 @@ function loadVideoSource() {
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
 
-		if (isJellyfin.value) {
-			qualities.videoTracks.value = JELLYFIN_BITRATE_PROFILES;
-			qualities.isAutoQualitySupported.value = true;
-
-			const url = new URL(currentUrl.value);
-			const bitrateParam = url.searchParams.get("VideoBitrate");
-			if (bitrateParam) {
-				const bitrate = parseInt(bitrateParam, 10);
-				const idx = JELLYFIN_BITRATE_PROFILES.findIndex(p => p.bitrate === bitrate);
-				qualities.currentVideoTrack.value = idx >= 0 ? idx : -1;
-				qualities.currentActiveQuality.value = idx >= 0 ? idx : null;
-			} else {
-				qualities.currentVideoTrack.value = -1;
-				qualities.currentActiveQuality.value = null;
-			}
-		} else {
-			qualities.videoTracks.value = getVideoTracks();
-			qualities.currentVideoTrack.value = hls?.autoLevelEnabled
-				? -1
-				: hls?.currentLevel || -1;
-			qualities.currentActiveQuality.value = getCurrentActiveQuality();
-		}
+		qualities.videoTracks.value = getVideoTracks();
+		qualities.currentVideoTrack.value = hls?.autoLevelEnabled ? -1 : hls?.currentLevel || -1;
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 	});
 
 	hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
 		console.info("HlsPlayer: hls.js level switched:", data);
-		if (!isJellyfin.value) {
-			qualities.currentActiveQuality.value = getCurrentActiveQuality();
-		}
+		qualities.currentActiveQuality.value = getCurrentActiveQuality();
 	});
 
 	hls.on(Hls.Events.SUBTITLE_TRACK_LOADED, (_, data) => {
