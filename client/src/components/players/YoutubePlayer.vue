@@ -40,6 +40,7 @@ interface YoutubeSdk {
 				onReady: () => void;
 				onStateChange: (event: YoutubeStateChangeEvent) => void;
 				onError: () => void;
+				onPlaybackRateChange: () => void;
 			};
 			playerVars: Record<string, number>;
 		},
@@ -62,6 +63,9 @@ interface YoutubePlayerApi {
 	getCurrentTime: () => number;
 	seekTo: (position: number) => void;
 	setVolume: (volume: number) => void;
+	getVolume: () => number;
+	isMuted: () => boolean;
+	unMute: () => void;
 	loadModule: (module: string) => void;
 	unloadModule: (module: string) => void;
 	getOptions: () => string[];
@@ -73,13 +77,19 @@ interface YoutubePlayerApi {
 	getPlaybackRate: () => number;
 	setPlaybackRate: (rate: number) => void;
 	loadVideoById: (videoId: string) => void;
+	cueVideoById: (videoId: string) => void;
 	getVideoLoadedFraction: () => number;
 	setSize: (width: string, height: string) => void;
 }
 
 interface Props {
 	videoId: string;
+	/** When true, show YouTube's native control bar. Volume/mute changes made through it are
+	 * forwarded as user-* events; playback (play/pause/seek/rate) stays OTT-controlled. */
+	nativeControls?: boolean;
 }
+
+const NATIVE_POLL_INTERVAL_MS = 250;
 
 /**
  * Component that manages youtube's iframe player (and all of the woes that come with it), and provides the common OTT player interface.
@@ -93,7 +103,9 @@ interface Props {
 
 defineOptions({ name: "YoutubePlayer" });
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+	nativeControls: false,
+});
 const emit = defineEmits<{
 	"apiready": [];
 	"ended": [];
@@ -103,6 +115,14 @@ const emit = defineEmits<{
 	"ready": [];
 	"error": [];
 	"buffer-progress": [progress: number];
+	/** The user changed volume using YouTube's native control bar (nativeControls mode only). */
+	"user-volume-change": [volume: number];
+	/** The user toggled mute using YouTube's native control bar (nativeControls mode only). */
+	"user-mute-change": [muted: boolean];
+	/** YouTube's own playback rate changed, possibly via its native control bar (nativeControls
+	 * mode only). Playback rate stays OTT-controlled, so the caller is expected to correct this
+	 * back to the room's rate. */
+	"native-rate-change": [rate: number];
 }>();
 
 const isDev = import.meta.env.DEV;
@@ -119,6 +139,15 @@ const queuedVolume = ref<number | null>(null);
 const captionsEnabled = ref(false);
 const isApiReady = ref(false);
 const isCaptionsLoaded = ref(false);
+
+// YouTube's IFrame API has no volume/mute change events, so native volume/mute control has to
+// be polled. Volume/mute are the only bits of native input that get forwarded (see the module
+// docblock for why) — comparing against the *last observed* value, rather than modeling our own
+// intent, is enough to avoid an echo: a readback of our own setVolume() equals what we already
+// observed and emits nothing.
+const nativePollInterval = ref<ReturnType<typeof setInterval> | null>(null);
+const lastObservedVolume = ref<number | null>(null);
+const lastObservedMuted = ref<boolean | null>(null);
 
 const debugData = computed(() => ({
 	YoutubeState: youtubeState.value,
@@ -142,12 +171,17 @@ onMounted(async () => {
 				onReady,
 				onStateChange,
 				onError,
+				onPlaybackRateChange,
 			},
 			playerVars: {
 				autoplay: 0,
 				enablejsapi: 1,
-				controls: 0,
+				controls: props.nativeControls ? 1 : 0,
+				// native keyboard shortcuts are kept disabled to avoid double-handling with OTT's
+				// own keyboard shortcuts; native mouse control bar is what we want, not native keyboard.
 				disablekb: 1,
+				// OTT has its own fullscreen handling; the native fullscreen button would bypass it.
+				fs: 0,
 				// required for iOS
 				playsinline: 1,
 			},
@@ -160,11 +194,19 @@ onMounted(async () => {
 	}
 
 	fitToContainer();
+
+	if (props.nativeControls) {
+		nativePollInterval.value = setInterval(pollNativeVolume, NATIVE_POLL_INTERVAL_MS);
+	}
 });
 
 onBeforeUnmount(() => {
 	resizeObserver.value?.disconnect();
 	resizeObserver.value = null;
+	if (nativePollInterval.value) {
+		clearInterval(nativePollInterval.value);
+		nativePollInterval.value = null;
+	}
 	player.value?.destroy?.();
 	player.value = null;
 	isApiReady.value = false;
@@ -180,6 +222,10 @@ watch(
 		isCaptionsLoaded.value = false;
 		captionsEnabled.value = false;
 		player.value.loadVideoById(videoId);
+		// the new video can reset volume/mute; don't mistake that for user input. The next
+		// pollNativeVolume() re-baselines from whatever the player reports.
+		lastObservedVolume.value = null;
+		lastObservedMuted.value = null;
 	},
 );
 
@@ -221,6 +267,13 @@ function setVolume(volume: number): void {
 		return;
 	}
 	player.value.setVolume(volume);
+	// OTT models mute as volume 0, but YouTube keeps a separate muted flag; without this,
+	// setting volume back up after a native mute would leave the video silent.
+	if (volume > 0) {
+		player.value.unMute();
+	}
+	lastObservedVolume.value = Math.round(volume);
+	lastObservedMuted.value = player.value.isMuted();
 }
 
 function isCaptionsSupported(): boolean {
@@ -321,7 +374,10 @@ function onReady(): void {
 	}
 	isApiReady.value = true;
 	emit("apiready");
-	player.value.loadVideoById(props.videoId);
+	// cueVideoById (not loadVideoById) so a fresh/remounted player doesn't start playing from 0
+	// before the room's actual position and play state have been applied. See onStateChange's
+	// CUED handling below, and Room.vue's onPlayerReady, which re-applies both once this settles.
+	player.value.cueVideoById(props.videoId);
 	setCaptionsEnabled(captions.isCaptionsEnabled.value);
 }
 
@@ -342,7 +398,11 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 		emit("ready");
 	}
 
-	if (event.data === YOUTUBE_STATUS_PLAYING || event.data === YOUTUBE_STATUS_PAUSED) {
+	if (
+		event.data === YOUTUBE_STATUS_PLAYING ||
+		event.data === YOUTUBE_STATUS_PAUSED ||
+		event.data === YOUTUBE_STATUS_CUED
+	) {
 		// HACK: YouTube can restore captions after playback or seeking without onApiChange.
 		restoreCaptionsPreference();
 		if (queuedSeek.value !== null) {
@@ -368,6 +428,38 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 
 function onError(): void {
 	emit("error");
+}
+
+/**
+ * YouTube fires this for both programmatic and native-control rate changes (e.g. picking a
+ * speed from the native bar's menu). Playback rate stays OTT-controlled, so this just reports
+ * the new rate; the caller is expected to override it back to the room's rate if they differ.
+ */
+function onPlaybackRateChange(): void {
+	if (!props.nativeControls || !player.value) {
+		return;
+	}
+	emit("native-rate-change", player.value.getPlaybackRate());
+}
+
+/**
+ * YouTube's IFrame API has no volume/mute change events, so native volume/mute control (the
+ * one bit of native input that stays synced both ways) has to be polled.
+ */
+function pollNativeVolume(): void {
+	if (!props.nativeControls || !player.value) {
+		return;
+	}
+	const volume = Math.round(player.value.getVolume());
+	const muted = player.value.isMuted();
+	if (lastObservedVolume.value !== null && volume !== lastObservedVolume.value) {
+		emit("user-volume-change", volume);
+	}
+	if (lastObservedMuted.value !== null && muted !== lastObservedMuted.value) {
+		emit("user-mute-change", muted);
+	}
+	lastObservedVolume.value = volume;
+	lastObservedMuted.value = muted;
 }
 
 function fitToContainer(): void {

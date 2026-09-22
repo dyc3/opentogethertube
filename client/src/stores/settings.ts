@@ -12,6 +12,7 @@ export interface SettingsState {
 	sfxVolume: number;
 	defaultRoomSettings?: DefaultRoomSettings;
 	enableAdapterSelector: boolean;
+	nativeYoutubeControls: boolean;
 }
 
 export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
@@ -46,6 +47,7 @@ export const settingsModule: Module<SettingsState, unknown> = {
 		sfxEnabled: true,
 		sfxVolume: 0.8,
 		enableAdapterSelector: false,
+		nativeYoutubeControls: false,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {

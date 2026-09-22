@@ -44,8 +44,10 @@
 		<Suspense>
 			<YoutubePlayer
 				v-if="!!source && source.service === 'youtube'"
+				:key="`yt-${nativeYoutubeControls}`"
 				ref="player"
 				:video-id="source.id"
+				:native-controls="nativeYoutubeControls"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"
@@ -54,6 +56,9 @@
 				@buffering="onBuffering"
 				@error="onError"
 				@buffer-progress="onBufferProgress"
+				@user-volume-change="onUserVolumeChange"
+				@user-mute-change="onUserMuteChange"
+				@native-rate-change="onNativeRateChange"
 			/>
 			<VimeoPlayer
 				v-else-if="!!source && source.service === 'vimeo'"
@@ -242,6 +247,7 @@ function isQualitySupported() {
 const volume = useVolume();
 const captions = useCaptions();
 const qualities = useQualities();
+const nativeYoutubeControls = computed(() => store.state.settings.nativeYoutubeControls);
 watch(
 	() => store.state.settings.audioBoost,
 	v => {
@@ -373,6 +379,28 @@ function onPaused() {
 function onBuffering() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.buffering);
 	emit("buffering");
+}
+
+// Playback rate stays OTT-controlled: if YouTube's native rate diverges from the room's rate
+// (e.g. the user picked a speed from the native bar's menu), snap it back.
+function onNativeRateChange(rate: number) {
+	if (
+		rate !== store.state.room.playbackSpeed &&
+		player.value &&
+		implementsPlaybackRate(player.value)
+	) {
+		player.value.setPlaybackRate(store.state.room.playbackSpeed);
+	}
+}
+
+// Volume/mute stay client-local (not room-synced), so these just update the shared
+// useVolume() state instead of re-emitting like the other user-* handlers above.
+function onUserVolumeChange(newVolume: number) {
+	volume.volume.value = newVolume;
+}
+
+function onUserMuteChange(muted: boolean) {
+	volume.isMuted.value = muted;
 }
 
 const currentPlaybackError = ref<MediaPlayerError | null>(null);
