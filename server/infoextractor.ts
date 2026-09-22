@@ -13,6 +13,7 @@ import {
 	UnsupportedServiceException,
 	InvalidAddPreviewInputException,
 	FeatureDisabledException,
+	MissingMetadataException,
 } from "./exceptions.js";
 import { getLogger } from "./logger.js";
 import { redisClient } from "./redisclient.js";
@@ -252,9 +253,14 @@ export default {
 		}
 	},
 
-	async getManyVideoInfo(videoIds: VideoId[]): Promise<Video[]> {
+	async getManyVideoInfo(
+		videoIds: VideoId[],
+		{ requireAny = false }: { requireAny?: boolean } = {},
+	): Promise<{ videos: Video[]; complete: boolean }> {
 		counterMethodsInvoked.labels({ method: "getManyVideoInfo" }).inc();
 
+		let hasResolvedVideo = false;
+		let complete = true;
 		const grouped = _.groupBy(videoIds, "service");
 		const results = await Promise.all(
 			Object.entries(grouped).map(async ([service, serviceVideos]) => {
@@ -272,11 +278,20 @@ export default {
 					}))
 					.filter(request => request.missingInfo.length > 0);
 
+				if (cachedVideos.length > requests.length) {
+					hasResolvedVideo = true;
+				}
 				if (requests.length === 0 && adapter.isCacheSafe) {
 					return cachedVideos;
 				}
 
 				const fetchedVideos = await adapter.fetchManyVideoInfo(requests);
+				if (requests.some(req => !fetchedVideos.some(video => video.id === req.id))) {
+					complete = false;
+				}
+				if (fetchedVideos.some(video => serviceVideos.some(req => req.id === video.id))) {
+					hasResolvedVideo = true;
+				}
 				const finalResults = cachedVideos.map(video => {
 					const fetchedVideo = fetchedVideos.find(v => v.id === video.id);
 					if (fetchedVideo) {
@@ -289,6 +304,13 @@ export default {
 			}),
 		);
 
+		// Failed batch lookups leave ID-only records, so result length cannot detect total failure.
+		if (requireAny && !hasResolvedVideo) {
+			throw new MissingMetadataException(
+				"Failed to fetch any requested videos. Try again later.",
+			);
+		}
+
 		const flattened = results.flat();
 		// type cast should be safe here because find should always be able to find a video.
 		const result = videoIds
@@ -300,7 +322,7 @@ export default {
 				return adapter.isCacheSafe;
 			}),
 		);
-		return result;
+		return { videos: result, complete };
 	},
 
 	/**
@@ -355,7 +377,11 @@ export default {
 				};
 			});
 
-			results = await this.getManyVideoInfo(videoIds);
+			const batch = await this.getManyVideoInfo(videoIds, { requireAny: true });
+			results = batch.videos;
+			if (!batch.complete) {
+				cacheDuration = 0;
+			}
 		} else if (this.isURL(query)) {
 			const adapter = forceAdapter
 				? this.getServiceAdapter(forceAdapter)
@@ -400,12 +426,12 @@ export default {
 						resolvedResults.push(video);
 					}
 				}
-				const completeResults = await this.getManyVideoInfo(resolvedResults);
-				return new AddPreview(completeResults, cacheDuration);
+				const { videos } = await this.getManyVideoInfo(resolvedResults);
+				return new AddPreview(videos, cacheDuration);
 			} else {
 				const videos = fetchResults.videos;
 				const completeResults: BulkVideoResult = {
-					videos: await this.getManyVideoInfo(videos),
+					videos: (await this.getManyVideoInfo(videos)).videos,
 					highlighted: fetchResults.highlighted
 						? await this.getVideoInfo(
 								fetchResults.highlighted.service,
@@ -441,7 +467,7 @@ export default {
 			log.info("Using cached results for search");
 			const completeResults = await this.getManyVideoInfo(cachedResults);
 			counterMediaSearches.labels({ cached: "cached" }).inc();
-			return completeResults;
+			return completeResults.videos;
 		}
 
 		const adapter = this.getServiceAdapter(service);
@@ -449,7 +475,7 @@ export default {
 		const completeResults = await this.getManyVideoInfo(searchResults);
 		this.cacheSearchResults(service, query, searchResults);
 		counterMediaSearches.labels({ cached: "uncached" }).inc();
-		return completeResults;
+		return completeResults.videos;
 	},
 };
 

@@ -1273,7 +1273,7 @@ export class Room implements RoomState {
 			await this.publishRoomEvent(request, context, { video });
 			counterMediaQueued.labels({ service: video.service }).inc();
 		} else if (request.videos) {
-			const videos: Video[] = await InfoExtract.getManyVideoInfo(request.videos);
+			const { videos } = await InfoExtract.getManyVideoInfo(request.videos);
 
 			for (let i = 0; i < videos.length; i++) {
 				const video = videos[i];
