@@ -11,7 +11,11 @@
 			</Button>
 		</PopoverTrigger>
 
-		<PopoverContent side="top" align="center" class="w-auto min-w-[260px] p-1">
+		<PopoverContent
+			side="top"
+			align="center"
+			class="w-auto min-w-[260px] max-h-[50vh] p-1 overflow-y-auto overscroll-contain"
+		>
 			<Transition name="menu-resize" mode="out-in">
 				<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
 				<!-- Main menu -->
@@ -166,6 +170,9 @@ function formatCaption(track: CaptionTrack): string {
 }
 
 function formatQuality(videoTrack: VideoTrack): string {
+	if (typeof videoTrack.label === "string") {
+		return videoTrack.label;
+	}
 	const resolution = videoTrack.label ?? getFriendlyResolutionLabel(videoTrack);
 	return `${resolution}p`;
 }
@@ -176,8 +183,16 @@ const autoQualityDisplay = computed(() => {
 		qualities.videoTracks.value.length > 0 &&
 		qualities.currentActiveQuality.value !== null;
 
+	if (!hasActiveQuality) {
+		return "Auto";
+	}
+
 	const currentQuality = qualities.videoTracks.value[qualities.currentActiveQuality.value!];
-	return hasActiveQuality ? `Auto (${formatQuality(currentQuality)})` : "Auto";
+	if (!currentQuality) {
+		return "Auto";
+	}
+
+	return `Auto (${formatQuality(currentQuality)})`;
 });
 
 const currentQualityDisplay = computed(() => {

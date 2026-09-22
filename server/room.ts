@@ -1261,7 +1261,7 @@ export class Room implements RoomState {
 				throw new Error("video was undefined");
 			}
 			if (request.video.subtitleUrl) {
-				if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
+				if (request.video.subtitleUrl.split("?")[0].split(".").pop() !== "vtt") {
 					this.log.error("subtitle URL does not end with .vtt");
 					throw new UnsupportedSubtitleType();
 				}
@@ -1690,7 +1690,7 @@ export class Room implements RoomState {
 			this.grants.check(context.role, "manage-queue.add");
 		}
 
-		let videoToPlay: Video;
+		let videoToPlay: QueueItem;
 		if (alreadyInQueue) {
 			const [_, item] = await this.queue.evict(request.video);
 			videoToPlay = item;
@@ -1698,7 +1698,7 @@ export class Room implements RoomState {
 			videoToPlay = await InfoExtract.getVideoInfo(request.video.service, request.video.id);
 		}
 		if (request.video.subtitleUrl) {
-			if (request.video.subtitleUrl.split(".").pop() !== "vtt") {
+			if (request.video.subtitleUrl.split("?")[0].split(".").pop() !== "vtt") {
 				this.log.error("subtitle URL does not end with .vtt");
 				throw new UnsupportedSubtitleType();
 			}
@@ -1710,7 +1710,7 @@ export class Room implements RoomState {
 		}
 		this.currentSource = videoToPlay;
 		this.markDirty("queue");
-		this.playbackPosition = 0;
+		this.playbackPosition = videoToPlay.startAt ?? 0;
 		this._playbackStart = dayjs();
 		this.videoSegments = [];
 		if (this.autoSkipSegmentCategories.length > 0) {

@@ -63,6 +63,7 @@ const addPreview: RequestHandler<
 			err.name === "VideoNotFoundException" ||
 			err.name === "FfprobeTimeoutError" ||
 			err.name === "OdyseeUnavailableVideo" ||
+			err.name === "JellyfinApiKeyException" ||
 			err.name === "OttException"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);

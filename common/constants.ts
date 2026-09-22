@@ -16,6 +16,7 @@ export const ALL_VIDEO_SERVICES = [
 	"pluto",
 	"invidious",
 	"odysee",
+	"jellyfin",
 ] as const;
 export const ALL_SKIP_CATEGORIES: Category[] = [
 	"sponsor",

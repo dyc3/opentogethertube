@@ -33,14 +33,20 @@ import type { MediaPlayerError } from "../composables/media-player";
 interface Props {
 	videoUrl: string;
 	thumbnail?: string;
+	service?: string;
+	availableSubtitles?: Array<{ url: string; label?: string; language?: string }>;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+	service: "",
+	availableSubtitles: () => [],
+});
 const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
 const qualities = useQualities();
 const audioBoost = useMediaAudioBoost(videoElem);
+const currentUrl = ref(props.videoUrl);
 let hls: Hls | undefined;
 
 const emit = defineEmits<{
@@ -100,50 +106,86 @@ function isCaptionsSupported(): boolean {
 }
 
 function setCaptionsEnabled(enabled: boolean): void {
-	if (!hls) {
+	if (!videoElem.value) {
 		return;
 	}
-	if (enabled) {
-		hls.subtitleTrack = captions.currentTrack.value || 0;
-	} else {
-		hls.subtitleTrack = -1;
+	const tracks = videoElem.value.textTracks;
+	for (let i = 0; i < tracks.length; i++) {
+		tracks[i].mode = enabled
+			? i === captions.currentTrack.value
+				? "showing"
+				: "hidden"
+			: "hidden";
 	}
 }
 
 function isCaptionsEnabled(): boolean {
-	if (!hls) {
+	if (!videoElem.value) {
 		return false;
 	}
-	return hls.subtitleTrack !== -1;
+	const tracks = videoElem.value.textTracks;
+	for (let i = 0; i < tracks.length; i++) {
+		if (tracks[i].mode === "showing") {
+			return true;
+		}
+	}
+	return false;
 }
 
 function getCaptionsTracks(): CaptionTrack[] {
-	console.log("HlsPlayer: getCaptionsTracks:", hls?.subtitleTracks);
-	if (!hls) {
-		console.error("player not ready");
+	if (!videoElem.value) {
 		return [];
 	}
-	if (!hls.subtitleTracks || hls.subtitleTracks.length === 0) {
-		console.log("HlsPlayer: no captions tracks available");
+	const tracks = videoElem.value.textTracks;
+	if (!tracks || tracks.length === 0) {
 		return [];
 	}
-	const tracks: CaptionTrack[] = hls.subtitleTracks.map(track => ({
-		// hls.js should return either `SUBTITLES` or `CLOSED-CAPTIONS`
-		kind: track.type === "SUBTITLES" ? "subtitles" : "captions",
-		label: track.name || undefined,
-		srclang: track.lang || undefined,
-		default: track.default,
-	}));
-	return tracks;
+	const result: CaptionTrack[] = [];
+	for (let i = 0; i < tracks.length; i++) {
+		const t = tracks[i];
+		result.push({
+			kind: t.kind === "subtitles" ? "subtitles" : "captions",
+			label: t.label || undefined,
+			srclang: t.language || undefined,
+			default: false,
+		});
+	}
+	return result;
 }
 
 function setCaptionsTrack(track: number): void {
-	if (!hls) {
-		console.error("HlsPlayer: player not ready");
+	if (!videoElem.value) {
 		return;
 	}
-	console.log("HlsPlayer: setCaptionsTrack:", track);
-	hls.subtitleTrack = track;
+	const tracks = videoElem.value.textTracks;
+	for (let i = 0; i < tracks.length; i++) {
+		tracks[i].mode = i === track ? "showing" : "hidden";
+	}
+	captions.currentTrack.value = track;
+}
+
+function addExternalSubtitleTracks(): void {
+	if (!videoElem.value) {
+		return;
+	}
+	// Always clear tracks from the previous video first, even when the new
+	// video has no subtitles, otherwise stale tracks linger in the selector.
+	const existingTracks = videoElem.value.querySelectorAll("track");
+	for (const track of existingTracks) {
+		track.remove();
+	}
+	if (!props.availableSubtitles || props.availableSubtitles.length === 0) {
+		return;
+	}
+	for (const sub of props.availableSubtitles) {
+		const track = document.createElement("track");
+		track.kind = "subtitles";
+		track.label = sub.label ?? `Subtitle ${sub.language ?? "und"}`;
+		track.srclang = sub.language ?? "und";
+		track.src = sub.url;
+		videoElem.value.appendChild(track);
+	}
+	console.log("HlsPlayer: added external subtitle tracks:", props.availableSubtitles.length);
 }
 
 function isQualitySupported(): boolean {
@@ -185,10 +227,6 @@ function setVideoTrack(track: number): void {
 		return;
 	}
 
-	// hls.currentLevel immediately switches to the specified quality level.
-	// hls.loadLevel switches to the new quality level
-	// hls.nextLevel switches to the new quality level and eventually flush already buffered next fragments.
-	// To smoothly switch quality levels, let's use nextLevel.
 	hls.nextLevel = track;
 	console.log("HlsPlayer: setting HLS.js video track:", track);
 }
@@ -229,7 +267,7 @@ function setAudioBoost(boost: number): void {
 }
 
 function loadVideoSource() {
-	console.log("HlsPlayer: loading video source:", videoUrl.value);
+	console.log("HlsPlayer: loading video source:", currentUrl.value);
 
 	if (!videoElem.value) {
 		console.error("video element not ready");
@@ -237,22 +275,48 @@ function loadVideoSource() {
 	}
 	audioBoost.resetFailedSetup();
 
-	hls?.destroy();
-	hls = undefined;
+	if (hls) {
+		hls.destroy();
+		hls = undefined;
+	}
+
+	const ms = videoElem.value.mediaSource;
+	if (ms) {
+		for (let i = 0; i < ms.sourceBuffers.length; i++) {
+			const sb = ms.sourceBuffers[i];
+			if (sb.updating) {
+				sb.abort();
+			}
+			if (sb.buffered.length > 0) {
+				sb.remove(sb.buffered.start(0), sb.buffered.end(sb.buffered.length - 1));
+			}
+		}
+	}
+
+	captions.captionsTracks.value = [];
+	captions.isCaptionsEnabled.value = false;
+	captions.currentTrack.value = null;
 
 	hls = new Hls();
 
-	hls.loadSource(videoUrl.value);
+	hls.loadSource(currentUrl.value);
 	hls.attachMedia(videoElem.value);
 
 	hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
 		console.info("HlsPlayer: hls.js manifest parsed", data);
 		emit("ready");
+
+		addExternalSubtitleTracks();
+		captions.captionsTracks.value = getCaptionsTracks();
 	});
 
 	hls.on(Hls.Events.ERROR, (event, data) => {
 		console.error("HlsPlayer: hls.js error:", event, data);
 		console.error("HlsPlayer: hls.js inner error:", data.error);
+		if (data.details === Hls.ErrorDetails.BUFFER_FULL_ERROR) {
+			console.warn("HlsPlayer: buffer full, skipping");
+			return;
+		}
 		if (data.fatal) {
 			console.error("HlsPlayer: hls.js fatal error:", data);
 			const errorEvent: MediaPlayerError = {
@@ -268,13 +332,10 @@ function loadVideoSource() {
 
 		captions.captionsTracks.value = getCaptionsTracks();
 		captions.isCaptionsEnabled.value = isCaptionsEnabled();
-		captions.currentTrack.value = hls?.subtitleTrack || 0;
-		console.log("HlsPlayer: current subtitle track:", hls?.subtitleTrack);
 
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = hls?.autoLevelEnabled ? -1 : hls?.currentLevel || -1;
 		qualities.currentActiveQuality.value = getCurrentActiveQuality();
-		console.log("HlsPlayer: current video track:", qualities.currentVideoTrack.value);
 	});
 
 	hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
@@ -340,6 +401,7 @@ onBeforeUnmount(() => {
 
 watch(videoUrl, () => {
 	console.log("HlsPlayer: videoUrl changed");
+	currentUrl.value = videoUrl.value;
 	loadVideoSource();
 });
 
