@@ -64,6 +64,7 @@ interface YoutubePlayerApi {
 	setVolume: (volume: number) => void;
 	loadModule: (module: string) => void;
 	unloadModule: (module: string) => void;
+	getOptions: () => string[];
 	getOption: (module: "captions", option: "tracklist") => YoutubeCaptionTrack[] | undefined;
 	setOption: (module: "captions", option: "reload", value: boolean) => void;
 	setOption: (module: "captions", option: "fontSize", value: number) => void;
@@ -114,7 +115,9 @@ const youtubeState = ref<YoutubeStatus | null>(null);
 const queuedSeek = ref<number | null>(null);
 const queuedPlaying = ref<boolean | null>(null);
 const queuedVolume = ref<number | null>(null);
+// Tracks the last caption setting applied to YouTube, not a pending request.
 const captionsEnabled = ref(false);
+const isApiReady = ref(false);
 const isCaptionsLoaded = ref(false);
 
 const debugData = computed(() => ({
@@ -164,6 +167,7 @@ onBeforeUnmount(() => {
 	resizeObserver.value = null;
 	player.value?.destroy?.();
 	player.value = null;
+	isApiReady.value = false;
 });
 
 watch(
@@ -173,9 +177,9 @@ watch(
 			return;
 		}
 		emit("buffering");
-		player.value.loadVideoById(videoId);
 		isCaptionsLoaded.value = false;
 		captionsEnabled.value = false;
+		player.value.loadVideoById(videoId);
 	},
 );
 
@@ -228,14 +232,15 @@ function isCaptionsEnabled(): boolean {
 }
 
 function setCaptionsEnabled(value: boolean): void {
-	if (!player.value) {
+	if (!player.value || !isApiReady.value) {
 		return;
 	}
-	loadCaptionsIfNeeded();
 	if (value) {
+		loadCaptionsIfNeeded();
 		player.value.loadModule("captions");
 		player.value.setOption("captions", "fontSize", 0);
-	} else {
+	} else if (player.value.getOptions().includes("captions")) {
+		// Unloading emits onApiChange; skip the unload when its callback reports no module.
 		player.value.unloadModule("captions");
 	}
 	captionsEnabled.value = value;
@@ -300,14 +305,24 @@ function setPlaybackRate(rate: number): void {
 function onApiChange(): void {
 	console.debug("youtube: onApiChange");
 	captions.captionsTracks.value = getCaptionsTracks();
+	restoreCaptionsPreference();
+}
+
+function restoreCaptionsPreference(): void {
+	// Always enforce off; apply on once per video to avoid reloading the module on every event.
+	if (!captions.isCaptionsEnabled.value || !captionsEnabled.value) {
+		setCaptionsEnabled(captions.isCaptionsEnabled.value);
+	}
 }
 
 function onReady(): void {
 	if (!player.value) {
 		return;
 	}
+	isApiReady.value = true;
 	emit("apiready");
 	player.value.loadVideoById(props.videoId);
+	setCaptionsEnabled(captions.isCaptionsEnabled.value);
 }
 
 function onStateChange(event: YoutubeStateChangeEvent): void {
@@ -328,6 +343,8 @@ function onStateChange(event: YoutubeStateChangeEvent): void {
 	}
 
 	if (event.data === YOUTUBE_STATUS_PLAYING || event.data === YOUTUBE_STATUS_PAUSED) {
+		// HACK: YouTube can restore captions after playback or seeking without onApiChange.
+		restoreCaptionsPreference();
 		if (queuedSeek.value !== null) {
 			player.value.seekTo(queuedSeek.value);
 			queuedSeek.value = null;
