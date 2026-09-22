@@ -1690,7 +1690,7 @@ export class Room implements RoomState {
 			this.grants.check(context.role, "manage-queue.add");
 		}
 
-		let videoToPlay: Video;
+		let videoToPlay: QueueItem;
 		if (alreadyInQueue) {
 			const [_, item] = await this.queue.evict(request.video);
 			videoToPlay = item;
@@ -1710,7 +1710,7 @@ export class Room implements RoomState {
 		}
 		this.currentSource = videoToPlay;
 		this.markDirty("queue");
-		this.playbackPosition = 0;
+		this.playbackPosition = videoToPlay.startAt ?? 0;
 		this._playbackStart = dayjs();
 		this.videoSegments = [];
 		if (this.autoSkipSegmentCategories.length > 0) {

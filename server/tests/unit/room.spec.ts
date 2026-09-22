@@ -15,7 +15,7 @@ import { RoomRequestType } from "ott-common/models/messages.js";
 import { type AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
 import { Room, RoomUser } from "../../room.js";
 import infoextractor from "../../infoextractor.js";
-import type { Video, VideoId } from "ott-common/models/video.js";
+import type { QueueItem, Video, VideoId } from "ott-common/models/video.js";
 import permissions from "ott-common/permissions.js";
 import _ from "lodash";
 import { VideoQueue } from "../../videoqueue.js";
@@ -260,6 +260,26 @@ describe("Room", () => {
 				);
 				expect(room.currentSource).toEqual(videoToPlay);
 				expect(room.playbackPosition).toEqual(0);
+			});
+
+			it("should resume from the queued video's saved position", async () => {
+				const queuedVideo: QueueItem = { ...videoToPlay, startAt: 125 };
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+				room.currentSource = {
+					service: "direct",
+					id: "asdf123",
+				};
+				room.playbackPosition = 10;
+				room.queue = new VideoQueue([queuedVideo]);
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.PlayNowRequest,
+						video: queuedVideo,
+					},
+					{ token: user.token },
+				);
+				expect(room.currentSource).toEqual(queuedVideo);
+				expect(room.playbackPosition).toEqual(125);
 			});
 
 			it("should preserve subtitleUrl from PlayNowRequest", async () => {
