@@ -49,6 +49,7 @@ describe("YouTube captions", () => {
 		setOption: vi.fn(),
 		getOption: vi.fn(() => []),
 		loadVideoById: vi.fn(),
+		cueVideoById: vi.fn(),
 		playVideo: vi.fn(() => transition(1)),
 		pauseVideo: vi.fn(() => transition(2)),
 		seekTo: vi.fn(() => transition(2)),
