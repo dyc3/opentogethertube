@@ -171,7 +171,9 @@ const CustomMediaSourceSchema = z.object({
 
 const CustomMediaTextTrackSchema = z.object({
 	url: z.string().url("text track url must be a valid URL"),
-	contentType: z.literal("text/vtt", { invalid_type_error: "contentType must be text/vtt" }),
+	contentType: z.enum(["text/vtt", "text/x-ssa"], {
+		invalid_type_error: "contentType must be text/vtt or text/x-ssa",
+	}),
 	name: z
 		.string()
 		.min(1, "name must not be empty")

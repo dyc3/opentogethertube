@@ -1,0 +1,21 @@
+{
+	"title": "libass ASS feature test",
+	"duration": 1800,
+	"live": false,
+	"sources": [
+		{
+			"url": "https://remotion.media/video-30m.mp4",
+			"contentType": "video/mp4",
+			"quality": 1080
+		}
+	],
+	"textTracks": [
+		{
+			"url": "https://jassub.pages.dev/subtitles/test.ass",
+			"contentType": "text/x-ssa",
+			"srclang": "en",
+			"name": "English",
+			"default": true
+		}
+	]
+}
