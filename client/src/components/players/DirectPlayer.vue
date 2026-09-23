@@ -16,7 +16,7 @@
 			@error="onError"
 		>
 			<track
-				v-for="track in manifest?.textTracks ?? []"
+				v-for="track in vttSources"
 				:key="track.url"
 				kind="subtitles"
 				:src="track.url"
@@ -24,20 +24,20 @@
 				:label="track.name"
 				:default="track.default"
 			/>
-			<track
-				v-if="subtitleUrl && videoMime !== 'application/json'"
-				:src="subtitleUrl"
-				kind="subtitles"
-				default
-			/>
 		</video>
+		<canvas ref="subtitleCanvas" v-show="assVisible" class="jassub-canvas" />
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, ref, toRefs, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
+import JASSUB from "jassub";
+import jassubWorkerUrl from "jassub/dist/worker/worker.js?url";
+import jassubWasmUrl from "jassub/dist/wasm/jassub-worker.wasm?url";
+import jassubModernWasmUrl from "jassub/dist/wasm/jassub-worker-modern.wasm?url";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import type { CustomMediaManifest } from "ott-common/models/zod-schemas.js";
+import { getSubtitleFormatFromUrl, type SubtitleFormat } from "ott-common/subtitles.js";
 import type {
 	MediaPlayerWithAudioBoost,
 	MediaPlayerWithCaptions,
@@ -54,13 +54,139 @@ interface Props {
 	subtitleUrl?: string;
 }
 
+interface SubtitleSource {
+	url: string;
+	format: SubtitleFormat;
+	name?: string;
+	srclang?: string;
+	default?: boolean;
+}
+
 const props = defineProps<Props>();
 const { videoUrl, videoMime, thumbnail, subtitleUrl } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
+const subtitleCanvas = ref<HTMLCanvasElement | undefined>();
+const assVisible = ref(false);
 const captions = useCaptions();
 const audioBoost = useMediaAudioBoost(videoElem);
 const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
+
+// unifies manifest text tracks and the single legacy subtitleUrl prop into one indexable list,
+// used to render native <track> elements (vtt) and to drive the jassub renderer (ass)
+const subtitleSources = computed<SubtitleSource[]>(() => {
+	if (videoMime.value === "application/json") {
+		return (manifest.value?.textTracks ?? []).map(track => ({
+			url: track.url,
+			format: track.contentType === "text/x-ssa" ? "ass" : "vtt",
+			name: track.name,
+			srclang: track.srclang,
+			default: track.default,
+		}));
+	}
+	if (!subtitleUrl.value) {
+		return [];
+	}
+	return [
+		{
+			url: subtitleUrl.value,
+			format: getSubtitleFormatFromUrl(subtitleUrl.value) ?? "vtt",
+			default: true,
+		},
+	];
+});
+const vttSources = computed(() => subtitleSources.value.filter(t => t.format === "vtt"));
+
+// maps an index into subtitleSources to the corresponding index in videoElem.textTracks,
+// counting only the vtt entries that precede it (ass tracks don't get a native <track>)
+function nativeTrackIndex(sourceIndex: number): number {
+	let count = 0;
+	for (let i = 0; i < sourceIndex; i++) {
+		if (subtitleSources.value[i]?.format === "vtt") {
+			count++;
+		}
+	}
+	return count;
+}
+
+// created lazily on first ASS use, then kept alive for the component's lifetime: its canvas
+// can only be transferred to the worker once, so VTT<->ASS toggles and ASS->ASS track changes
+// reuse this instance instead of tearing it down and rebuilding a new worker
+let jassubInstance: JASSUB | null = null;
+
+function destroyJassub() {
+	const inst = jassubInstance;
+	jassubInstance = null;
+	assVisible.value = false;
+	if (inst) {
+		inst.destroy().catch(e => {
+			console.error("DirectPlayer: error destroying jassub:", e);
+		});
+	}
+}
+
+// every track change is chained onto this promise, so switches always run in the order they
+// were requested and the last one wins, instead of racing on the async jassub calls below
+let trackQueue: Promise<void> = Promise.resolve();
+
+function applyActiveTrack(idx: number, enabled: boolean): Promise<void> {
+	// caught here (not left to the caller) so a failed switch doesn't reject the shared chain
+	// and skip every switch queued after it
+	trackQueue = trackQueue
+		.then(() => doApplyTrack(idx, enabled))
+		.catch(e => {
+			console.error("DirectPlayer: failed to apply subtitle track:", e);
+		});
+	return trackQueue;
+}
+
+async function doApplyTrack(idx: number, enabled: boolean) {
+	const source = idx >= 0 ? subtitleSources.value[idx] : undefined;
+
+	if (videoElem.value) {
+		for (let i = 0; i < videoElem.value.textTracks.length; i++) {
+			videoElem.value.textTracks[i].mode = "hidden";
+		}
+	}
+
+	if (source?.format === "ass" && enabled) {
+		if (!videoElem.value || !subtitleCanvas.value) {
+			return;
+		}
+		if (!jassubInstance) {
+			jassubInstance = new JASSUB({
+				video: videoElem.value,
+				canvas: subtitleCanvas.value,
+				subUrl: source.url,
+				workerUrl: jassubWorkerUrl,
+				wasmUrl: jassubWasmUrl,
+				modernWasmUrl: jassubModernWasmUrl,
+				// fall back to remote font queries so styles using fonts not installed
+				// locally (e.g. CJK/decorative fonts) still render instead of falling
+				// back to the default font
+				queryFonts: "localandremote",
+			});
+			await jassubInstance.ready;
+		} else {
+			await jassubInstance.ready;
+			await jassubInstance.renderer.setTrackByUrl(source.url);
+		}
+		assVisible.value = true;
+		return;
+	}
+
+	assVisible.value = false;
+	if (jassubInstance) {
+		await jassubInstance.ready;
+		jassubInstance.renderer.freeTrack();
+	}
+	if (source?.format === "vtt" && enabled && videoElem.value) {
+		const track = videoElem.value.textTracks[nativeTrackIndex(idx)];
+		if (track) {
+			track.mode = "showing";
+		}
+	}
+}
 
 const emit = defineEmits<{
 	"apiready": [];
@@ -123,56 +249,41 @@ function setCaptionsEnabled(enabled: boolean): void {
 	if (!videoElem.value || captions.currentTrack.value === null) {
 		return;
 	}
-	if (
-		videoMime.value !== "application/json" &&
-		!manifest.value?.textTracks &&
-		!subtitleUrl.value
-	) {
+	if (subtitleSources.value.length === 0) {
 		return;
 	}
-	if (captions.currentTrack.value === -1) {
-		if (enabled) {
-			videoElem.value.textTracks[0].mode = "showing";
-			captions.currentTrack.value = 0;
+	let idx = captions.currentTrack.value;
+	if (idx === -1) {
+		if (!enabled) {
+			return;
 		}
+		idx = 0;
+		captions.currentTrack.value = 0;
+	}
+	if (idx >= subtitleSources.value.length) {
+		console.warn("DirectPlayer: invalid captions track index:", idx);
 		return;
 	}
-	if (captions.currentTrack.value >= videoElem.value.textTracks.length) {
-		console.warn("DirectPlayer: invalid captions track index:", captions.currentTrack.value);
-		return;
-	}
-	videoElem.value.textTracks[captions.currentTrack.value].mode = enabled ? "showing" : "hidden";
+	applyActiveTrack(idx, enabled);
 }
 
 function isCaptionsEnabled(): boolean {
 	if (!videoElem.value) {
 		return false;
 	}
+	if (assVisible.value) {
+		return true;
+	}
 	return Array.from(videoElem.value.textTracks).find(t => t.mode === "showing") !== undefined;
 }
 
 function getCaptionsTracks(): CaptionTrack[] {
-	if (!videoElem.value) {
-		return [];
-	}
-	if (videoMime.value === "application/json") {
-		if (!manifest.value) {
-			return [];
-		}
-	} else {
-		return subtitleUrl.value ? [{ kind: "subtitles", default: true }] : [];
-	}
-
-	const tracks: CaptionTrack[] = [];
-	for (const track of manifest.value.textTracks ?? []) {
-		tracks.push({
-			kind: "subtitles",
-			label: track.name ?? undefined,
-			srclang: track.srclang,
-			default: track.default,
-		});
-	}
-	return tracks;
+	return subtitleSources.value.map(track => ({
+		kind: "subtitles",
+		label: track.name,
+		srclang: track.srclang,
+		default: track.default,
+	}));
 }
 
 function setCaptionsTrack(track: number): void {
@@ -181,10 +292,8 @@ function setCaptionsTrack(track: number): void {
 		return;
 	}
 	console.log("DirectPlayer: setCaptionsTrack:", track);
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = i === track ? "showing" : "hidden";
-	}
 	captions.currentTrack.value = track;
+	applyActiveTrack(track, true);
 }
 
 function isQualitySupported(): boolean {
@@ -264,10 +373,10 @@ async function loadVideoSource() {
 		console.error("player not ready");
 		return;
 	}
-	// Fix for captions from previous video still showing after source change
-	for (let i = 0; i < videoElem.value.textTracks.length; i++) {
-		videoElem.value.textTracks[i].mode = "hidden";
-	}
+	// Fix for captions from previous video still showing after source change; queued so it
+	// runs after any switch already in flight, and blocks the new default track below from
+	// jumping ahead of it
+	await applyActiveTrack(-1, false);
 	audioBoost.resetFailedSetup();
 	manifest.value = null;
 
@@ -295,30 +404,23 @@ async function loadVideoSource() {
 
 		qualities.videoTracks.value = getVideoTracks();
 		qualities.currentVideoTrack.value = 0;
-
-		captions.captionsTracks.value = getCaptionsTracks();
-		if ((manifest.value.textTracks ?? []).length > 0) {
-			// Wait for all text tracks to be inserted
-			await nextTick();
-		}
-		const defaultTrackIdx = manifest.value.textTracks?.findIndex(t => t.default) ?? -1;
-		captions.currentTrack.value = defaultTrackIdx;
-		captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
 	} else {
 		videoElem.value.src = videoUrl.value;
 
 		qualities.videoTracks.value = [];
 		qualities.currentVideoTrack.value = -1;
+	}
 
-		if (subtitleUrl.value) {
-			captions.captionsTracks.value = [{ kind: "subtitles", default: true }];
-			captions.currentTrack.value = 0;
-			captions.isCaptionsEnabled.value = true;
-		} else {
-			captions.captionsTracks.value = [];
-			captions.currentTrack.value = -1;
-			captions.isCaptionsEnabled.value = false;
-		}
+	if (subtitleSources.value.length > 0) {
+		// Wait for all vtt <track> elements to be inserted
+		await nextTick();
+	}
+	captions.captionsTracks.value = getCaptionsTracks();
+	const defaultTrackIdx = subtitleSources.value.findIndex(t => t.default);
+	captions.currentTrack.value = defaultTrackIdx;
+	captions.isCaptionsEnabled.value = defaultTrackIdx !== -1;
+	if (defaultTrackIdx !== -1) {
+		await applyActiveTrack(defaultTrackIdx, true);
 	}
 
 	videoElem.value.poster = thumbnail.value ?? "";
@@ -379,6 +481,10 @@ onMounted(() => {
 	loadVideoSource();
 });
 
+onBeforeUnmount(() => {
+	destroyJassub();
+});
+
 watch([videoUrl, subtitleUrl], () => {
 	console.log("DirectPlayer: videoUrl or subtitleUrl changed");
 	loadVideoSource();
@@ -410,6 +516,7 @@ defineExpose({
 <!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
 <style lang="scss">
 .direct {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -425,5 +532,10 @@ defineExpose({
 	height: 100%;
 	object-fit: contain;
 	object-position: 50% 50%;
+}
+
+.direct .jassub-canvas {
+	position: absolute;
+	pointer-events: none;
 }
 </style>
