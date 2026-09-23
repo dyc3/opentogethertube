@@ -72,17 +72,30 @@ const audioBoost = useMediaAudioBoost(videoElem);
 const qualities = useQualities();
 const manifest = ref<CustomMediaManifest | null>(null);
 
+// kept outside subtitleSources's computed() factory to dodge a noVueRefAsOperand false
+// positive: biome's nursery rule flags property access on nested callback params when the
+// callback lives directly inside a computed(), mistaking plain manifest data for a ref
+function textTracksToSubtitleSources(
+	tracks: NonNullable<CustomMediaManifest["textTracks"]>,
+): SubtitleSource[] {
+	return tracks.map(track => ({
+		url: track.url,
+		format: track.contentType === "text/x-ssa" ? "ass" : "vtt",
+		name: track.name,
+		srclang: track.srclang,
+		default: track.default,
+	}));
+}
+
+function isVttSource(track: SubtitleSource): boolean {
+	return track.format === "vtt";
+}
+
 // unifies manifest text tracks and the single legacy subtitleUrl prop into one indexable list,
 // used to render native <track> elements (vtt) and to drive the jassub renderer (ass)
 const subtitleSources = computed<SubtitleSource[]>(() => {
 	if (videoMime.value === "application/json") {
-		return (manifest.value?.textTracks ?? []).map(track => ({
-			url: track.url,
-			format: track.contentType === "text/x-ssa" ? "ass" : "vtt",
-			name: track.name,
-			srclang: track.srclang,
-			default: track.default,
-		}));
+		return textTracksToSubtitleSources(manifest.value?.textTracks ?? []);
 	}
 	if (!subtitleUrl.value) {
 		return [];
@@ -95,7 +108,7 @@ const subtitleSources = computed<SubtitleSource[]>(() => {
 		},
 	];
 });
-const vttSources = computed(() => subtitleSources.value.filter(t => t.format === "vtt"));
+const vttSources = computed(() => subtitleSources.value.filter(isVttSource));
 
 // maps an index into subtitleSources to the corresponding index in videoElem.textTracks,
 // counting only the vtt entries that precede it (ass tracks don't get a native <track>)
