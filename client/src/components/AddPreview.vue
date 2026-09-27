@@ -181,6 +181,10 @@ const testVideos: Record<string, Array<[string, string]>> = import.meta.env.DEV
 					"test direct 2 (manifest)",
 					"https://cdn.jsdelivr.net/gh/dyc3/opentogethertube@master/tests/assets/custom_manifest.json",
 				],
+				[
+					"test direct 3 (manifest, ass subtitle)",
+					"https://cdn.jsdelivr.net/gh/dyc3/opentogethertube@master/tests/assets/custom_manifest_ass.json",
+				],
 			],
 			HLS: [
 				[
