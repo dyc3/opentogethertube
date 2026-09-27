@@ -9,8 +9,8 @@ export class User
 	implements UserAccountAttributes
 {
 	declare id: number;
-	public declare readonly createdAt: Date;
-	public declare readonly updatedAt: Date;
+	declare public readonly createdAt: Date;
+	declare public readonly updatedAt: Date;
 	declare username: string;
 	declare email: string | null;
 	declare salt: Buffer | null;

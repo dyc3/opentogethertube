@@ -20,8 +20,8 @@ export class CachedVideo
 	implements CachedVideoAttributes
 {
 	declare id: number;
-	public declare readonly createdAt: Date;
-	public declare readonly updatedAt: Date;
+	declare public readonly createdAt: Date;
+	declare public readonly updatedAt: Date;
 	declare service: VideoService;
 	declare serviceId: string;
 	declare title?: string;
