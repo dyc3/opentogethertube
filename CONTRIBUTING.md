@@ -24,28 +24,34 @@ The Monolith refers to the node.js server that serves the client and handles all
 
 1. Clone this repo.
 2. In a terminal, navigate to the `opentogethertube` folder and run
+
 ```
 corepack enable
 yarn set version stable
 yarn
 ```
+
 3. Next you need to set up your configuration. Start by copying the example
-config in the `env` folder to a new file called `development.toml`
+   config in the `env` folder to a new file called `development.toml`
+
 ```
 cp env/example.toml env/development.toml
 ```
+
 4. Add API keys to `env/development.toml` (optional):
-   1. Create a new project on [Google Cloud](https://console.cloud.google.com)
-   2. Add "YouTube Data API v3" and "Google Drive API" to the project
-   3. Obtain a YouTube API key (optional)
-   4. Obtain a Google Drive API key (optional)
-      - _Not necessary if you don't plan to stream videos from Google Drive, which you probably shouldn't do anyway because Google doesn't like that._
-   5. Open `env/development.toml` and put in the appropriate api keys.
-5.  Initialize your local databases.
+    1. Create a new project on [Google Cloud](https://console.cloud.google.com)
+    2. Add "YouTube Data API v3" and "Google Drive API" to the project
+    3. Obtain a YouTube API key (optional)
+    4. Obtain a Google Drive API key (optional)
+        - _Not necessary if you don't plan to stream videos from Google Drive, which you probably shouldn't do anyway because Google doesn't like that._
+    5. Open `env/development.toml` and put in the appropriate api keys.
+5. Initialize your local databases.
+
 ```
-yarn workspace ott-server run sequelize-cli db:migrate
+yarn db:migrate
 ```
-6.   Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts. Make sure it's running.
+
+6.  Install [redis](https://redis.io). This is used to store room state and user sessions across server restarts. Make sure it's running.
 
 ### Setting up using devcontainer
 
@@ -57,34 +63,50 @@ You can use docker and the provided devcontainer config `.devcontainer/devcontai
 4. Open the command palette <kbd>Ctrl+Shift+P</kbd> and run `Dev Containers: Reopen in Container`
 5. Follow the steps from the previous section from step 3
 
+## Changing the database schema
+
+The schema is defined twice, once per database: `server/database/schema/postgres.ts` and `server/database/schema/sqlite.ts`. Change both, then generate the migrations with [drizzle-kit](https://orm.drizzle.team/docs/kit-overview):
+
+```
+yarn db:generate
+```
+
+This writes a new SQL migration and snapshot for each database to `server/database/migrations/`. Review the generated SQL and commit it along with the schema change. Don't edit a migration after it has been merged, write a new one instead.
+
 ## Testing
 
 Make sure your test sqlite database is up to date by running this command. You should only need to do this once, or if you change the database schema with a migration.
+
 ```
-NODE_ENV=test yarn workspace ott-server run sequelize-cli db:migrate
+NODE_ENV=test yarn db:migrate
 ```
 
 To run the linter, run
+
 ```
 yarn lint
 ```
 
 To run the unit test suite, run
+
 ```
 yarn test
 ```
 
 To run the e2e component test suite, run
+
 ```
 yarn test:component
 ```
 
 To run the e2e test suite, run
+
 ```
 yarn run test:e2e
 ```
 
 However, while you're developing, you'll probably want to run the tests in headed mode. To do this, run
+
 ```
 yarn run test:e2e:ui
 ```
@@ -93,11 +115,15 @@ yarn run test:e2e:ui
 
 This project has 2 main components: the client and the server. You can run
 both of them simultaneously using the command
+
 #### Linux / Mac
+
 ```
 yarn run dev
 ```
+
 #### Windows
+
 ```
 yarn run dev-windows
 ```

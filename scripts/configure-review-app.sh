@@ -27,4 +27,4 @@ if [[ $(heroku addons -a "$REVIEW_APP" | grep -v "No add-ons for app" | wc -l) =
 	heroku addons:wait -a "$REVIEW_APP"
 fi
 
-heroku run -a "$REVIEW_APP" "sequelize db:migrate --url \$DATABASE_URL"
+heroku run -a "$REVIEW_APP" "NODE_ENV=production yarn db:migrate"

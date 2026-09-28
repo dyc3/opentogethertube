@@ -265,7 +265,7 @@ describe("User API", () => {
 				.expect(200);
 			const cookies = loginResp.header["set-cookie"];
 
-			await forcedUser.update({ email: null });
+			await Object.assign(forcedUser, { email: null }).save();
 
 			await request(app)
 				.patch("/api/user/account")
@@ -308,7 +308,7 @@ describe("User API", () => {
 				.expect(200);
 			const cookies = loginResp.header["set-cookie"];
 
-			await testUser.update({ email: "test@example.com" });
+			await Object.assign(testUser, { email: "test@example.com" }).save();
 
 			await request(app)
 				.patch("/api/user/account")
@@ -344,7 +344,7 @@ describe("User API", () => {
 		});
 
 		it("should add a password to a social-only account", async () => {
-			await socialUser.update({ email: null, hash: null, salt: null });
+			await Object.assign(socialUser, { email: null, hash: null, salt: null }).save();
 
 			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
 			const socialToken = socialTokenResp.body.token;
@@ -382,7 +382,7 @@ describe("User API", () => {
 		});
 
 		it("should add email and password to a social-only account and allow username login", async () => {
-			await socialUser.update({ email: null, hash: null, salt: null });
+			await Object.assign(socialUser, { email: null, hash: null, salt: null }).save();
 
 			const socialTokenResp = await request(app).get("/api/auth/grant").expect(200);
 			const socialToken = socialTokenResp.body.token;
@@ -394,7 +394,7 @@ describe("User API", () => {
 				.expect(200);
 			const cookies = loginResp.header["set-cookie"];
 
-			await socialUser.update({ username: "social user account" });
+			await Object.assign(socialUser, { username: "social user account" }).save();
 
 			await request(app)
 				.patch("/api/user/account")

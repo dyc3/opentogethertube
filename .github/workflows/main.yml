@@ -97,7 +97,7 @@ jobs:
       - run: command -v corepack || npm install --global corepack@latest
       - run: corepack enable
       - run: yarn install --immutable
-      - run: yarn workspace ott-server run sequelize db:migrate
+      - run: yarn db:migrate
         env:
           NODE_ENV: test
       - run: yarn run build

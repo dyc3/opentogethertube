@@ -7,7 +7,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { Strategy as BearerStrategy } from "passport-http-bearer";
 import { metricsMiddleware } from "./metrics.js";
-import { loadModels, sequelize } from "./models/index.js";
+import { initDb } from "./database/client.js";
 import { buildApiRouter } from "./api.js";
 import { buildClients, redisClient, registerRedisMetrics } from "./redisclient.js";
 import usermanager from "./usermanager.js";
@@ -62,7 +62,7 @@ export async function main() {
 	const rateLimitEnabled = conf.get("rate_limit.enabled");
 	log.info(`Rate limiting enabled: ${rateLimitEnabled}`);
 
-	loadModels();
+	const db = initDb();
 	await buildClients();
 	buildRateLimiter();
 
@@ -71,7 +71,9 @@ export async function main() {
 		conf.get("db.mode") !== "sqlite" &&
 		conf.get("db.metrics")
 	) {
-		setupPostgresMetricsCollection(sequelize);
+		if (db.dialect === "postgres") {
+			setupPostgresMetricsCollection(db.pool);
+		}
 	}
 
 	process.on("SIGINT", shutdown);

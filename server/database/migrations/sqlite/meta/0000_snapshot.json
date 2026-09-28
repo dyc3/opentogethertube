@@ -1,0 +1,323 @@
+{
+	"version": "6",
+	"dialect": "sqlite",
+	"id": "e7b9c99b-15d7-41e7-83c2-edbef3d76020",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"tables": {
+		"CachedVideos": {
+			"name": "CachedVideos",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"service": {
+					"name": "service",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"serviceId": {
+					"name": "serviceId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"thumbnail": {
+					"name": "thumbnail",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"length": {
+					"name": "length",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"mime": {
+					"name": "mime",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"cachedvideo_service_serviceId": {
+					"name": "cachedvideo_service_serviceId",
+					"columns": ["service", "serviceId"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"Rooms": {
+			"name": "Rooms",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'Room'"
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "''"
+				},
+				"visibility": {
+					"name": "visibility",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'public'"
+				},
+				"queueMode": {
+					"name": "queueMode",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'manual'"
+				},
+				"ownerId": {
+					"name": "ownerId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"permissions": {
+					"name": "permissions",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"role-admin": {
+					"name": "role-admin",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"role-mod": {
+					"name": "role-mod",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"role-trusted": {
+					"name": "role-trusted",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"autoSkipSegmentCategories": {
+					"name": "autoSkipSegmentCategories",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'[\"sponsor\",\"intro\",\"outro\",\"interaction\",\"selfpromo\",\"music_offtopic\",\"preview\"]'"
+				},
+				"prevQueue": {
+					"name": "prevQueue",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"restoreQueueBehavior": {
+					"name": "restoreQueueBehavior",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 1
+				},
+				"enableVoteSkip": {
+					"name": "enableVoteSkip",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"Rooms_name_unique": {
+					"name": "Rooms_name_unique",
+					"columns": ["name"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		},
+		"Users": {
+			"name": "Users",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"username": {
+					"name": "username",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"email": {
+					"name": "email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"salt": {
+					"name": "salt",
+					"type": "blob",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"hash": {
+					"name": "hash",
+					"type": "blob",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"discordId": {
+					"name": "discordId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "datetime",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"Users_username_unique": {
+					"name": "Users_username_unique",
+					"columns": ["username"],
+					"isUnique": true
+				},
+				"Users_email_unique": {
+					"name": "Users_email_unique",
+					"columns": ["email"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {}
+		}
+	},
+	"views": {},
+	"enums": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"internal": {
+		"indexes": {}
+	}
+}

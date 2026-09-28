@@ -70,8 +70,10 @@ cargo test -p ott-balancer
 
 ```bash
 yarn db:migrate        # Run migrations
-yarn db:migrate:undo   # Undo last migration
+yarn db:generate       # Generate migrations after changing server/database/schema/*.ts
 ```
+
+The schema is defined separately for PostgreSQL and SQLite in `server/database/schema/`. Change both files, then run `yarn db:generate`. Never hand-write or edit migration SQL.
 
 ## Load Balancer (Rust)
 

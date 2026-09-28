@@ -1,0 +1,320 @@
+{
+	"id": "845b63c6-6c12-4509-bd44-b0db6cf91d31",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.CachedVideos": {
+			"name": "CachedVideos",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"service": {
+					"name": "service",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"serviceId": {
+					"name": "serviceId",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"title": {
+					"name": "title",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"thumbnail": {
+					"name": "thumbnail",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"length": {
+					"name": "length",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"mime": {
+					"name": "mime",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"cachedvideo_service_serviceId": {
+					"name": "cachedvideo_service_serviceId",
+					"columns": [
+						{
+							"expression": "service",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "serviceId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"unique_service_serviceId": {
+					"name": "unique_service_serviceId",
+					"nullsNotDistinct": false,
+					"columns": ["service", "serviceId"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Rooms": {
+			"name": "Rooms",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"title": {
+					"name": "title",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'Room'"
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "''"
+				},
+				"visibility": {
+					"name": "visibility",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'public'"
+				},
+				"queueMode": {
+					"name": "queueMode",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'manual'"
+				},
+				"ownerId": {
+					"name": "ownerId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"permissions": {
+					"name": "permissions",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"role-admin": {
+					"name": "role-admin",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"role-mod": {
+					"name": "role-mod",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"role-trusted": {
+					"name": "role-trusted",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"autoSkipSegmentCategories": {
+					"name": "autoSkipSegmentCategories",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'[\"sponsor\",\"intro\",\"outro\",\"interaction\",\"selfpromo\",\"music_offtopic\",\"preview\"]'::jsonb"
+				},
+				"prevQueue": {
+					"name": "prevQueue",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"restoreQueueBehavior": {
+					"name": "restoreQueueBehavior",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 1
+				},
+				"enableVoteSkip": {
+					"name": "enableVoteSkip",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"Rooms_name_key": {
+					"name": "Rooms_name_key",
+					"nullsNotDistinct": false,
+					"columns": ["name"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Users": {
+			"name": "Users",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "serial",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"username": {
+					"name": "username",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"email": {
+					"name": "email",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"salt": {
+					"name": "salt",
+					"type": "bytea",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"hash": {
+					"name": "hash",
+					"type": "bytea",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"discordId": {
+					"name": "discordId",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"Users_username_key": {
+					"name": "Users_username_key",
+					"nullsNotDistinct": false,
+					"columns": ["username"]
+				},
+				"Users_email_key": {
+					"name": "Users_email_key",
+					"nullsNotDistinct": false,
+					"columns": ["email"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}
