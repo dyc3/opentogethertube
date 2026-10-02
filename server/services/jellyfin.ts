@@ -93,10 +93,6 @@ interface JellyfinMediaSource {
 	MediaStreams: JellyfinMediaStream[];
 }
 
-// Subtitle codecs Jellyfin can convert to VTT for external delivery.
-// Image-based formats (pgs, dvbsub, dvdsub) cannot be converted.
-const CONVERTIBLE_SUBTITLE_CODECS = ["srt", "subrip", "ass", "ssa", "vtt"];
-
 interface JellyfinPlaybackInfo {
 	MediaSources: JellyfinMediaSource[];
 }
@@ -731,13 +727,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 	}
 
 	private isDeliverableSubtitle(stream: JellyfinMediaStream): boolean {
-		if (!stream.IsTextSubtitleStream || !stream.SupportsExternalStream) {
-			return false;
-		}
-		if (!stream.Codec) {
-			return true;
-		}
-		return CONVERTIBLE_SUBTITLE_CODECS.includes(stream.Codec.toLowerCase());
+		return !!(stream.IsTextSubtitleStream && stream.SupportsExternalStream);
 	}
 
 	private constructTitle(item: JellyfinItem): string {
