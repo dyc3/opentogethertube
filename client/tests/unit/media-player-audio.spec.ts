@@ -171,4 +171,142 @@ describe("Audio Tracks Composable & JellyfinPlayer", () => {
 		expect(API.post).not.toHaveBeenCalled();
 		wrapper.unmount();
 	});
+
+	it("JellyfinPlayer setAudioTrack ignores stale response if newer track request was initiated", async () => {
+		let resolveTrack2!: (val: unknown) => void;
+		const track2Promise = new Promise(resolve => {
+			resolveTrack2 = resolve;
+		});
+
+		vi.mocked(API.post).mockImplementation(async (_url, body: unknown) => {
+			const b = body as { audioStreamIndex: number };
+			if (b.audioStreamIndex === 2) {
+				await track2Promise;
+				return {
+					data: {
+						success: true,
+						// eslint-disable-next-line camelcase
+						hls_url:
+							"https://my.jellyfin.com/Videos/123/master.m3u8?AudioStreamIndex=2",
+						playbackType: "hls",
+					},
+				};
+			}
+			return {
+				data: {
+					success: true,
+					// eslint-disable-next-line camelcase
+					hls_url: "https://my.jellyfin.com/Videos/123/master.m3u8?AudioStreamIndex=3",
+					playbackType: "hls",
+				},
+			};
+		});
+
+		const wrapper = TestParent({
+			videoUrl: "https://my.jellyfin.com/Videos/123/master.m3u8",
+			videoId: "https://my.jellyfin.com::item123::key123",
+			availableAudioTracks: [
+				{ index: 1, label: "English", language: "eng", isDefault: true },
+				{ index: 2, label: "Spanish", language: "spa" },
+				{ index: 3, label: "Japanese", language: "jpn" },
+			],
+		});
+
+		const player = wrapper.vm.playerRef;
+
+		// Request track 2 (pending)
+		const req2 = player.setAudioTrack(2);
+		// Immediately request track 3 (completes first)
+		const req3 = player.setAudioTrack(3);
+		await req3;
+
+		expect(player.getCurrentAudioTrack()).toBe(3);
+
+		// Now let track 2 finish
+		resolveTrack2(true);
+		await req2;
+
+		// Track 2 should be discarded; current track remains 3
+		expect(player.getCurrentAudioTrack()).toBe(3);
+		wrapper.unmount();
+	});
+
+	it("JellyfinPlayer setAudioTrack ignores response if videoId changes while request is in-flight", async () => {
+		let resolveTrack2!: (val: unknown) => void;
+		const track2Promise = new Promise(resolve => {
+			resolveTrack2 = resolve;
+		});
+
+		vi.mocked(API.post).mockImplementation(async () => {
+			await track2Promise;
+			return {
+				data: {
+					success: true,
+					// eslint-disable-next-line camelcase
+					hls_url: "https://my.jellyfin.com/Videos/123/master.m3u8?AudioStreamIndex=2",
+					playbackType: "hls",
+				},
+			};
+		});
+
+		const wrapper = TestParent({
+			videoUrl: "https://my.jellyfin.com/Videos/123/master.m3u8",
+			videoId: "https://my.jellyfin.com::item123::key123",
+			availableAudioTracks: [
+				{ index: 1, label: "English", language: "eng", isDefault: true },
+				{ index: 2, label: "Spanish", language: "spa" },
+			],
+		});
+
+		const player = wrapper.vm.playerRef;
+		const req = player.setAudioTrack(2);
+
+		// Video changes while request is in flight
+		await wrapper.setProps({
+			videoId: "https://my.jellyfin.com::item456::key456",
+			videoUrl: "https://my.jellyfin.com/Videos/456/master.m3u8",
+		});
+
+		resolveTrack2(true);
+		await req;
+
+		// Should not set track 2 for the old video
+		expect(player.getCurrentAudioTrack()).not.toBe(2);
+		wrapper.unmount();
+	});
+
+	it("JellyfinPlayer setAudioTrack ignores response if component unmounts while in-flight", async () => {
+		let resolveTrack2!: (val: unknown) => void;
+		const track2Promise = new Promise(resolve => {
+			resolveTrack2 = resolve;
+		});
+
+		vi.mocked(API.post).mockImplementation(async () => {
+			await track2Promise;
+			return {
+				data: {
+					success: true,
+					// eslint-disable-next-line camelcase
+					hls_url: "https://my.jellyfin.com/Videos/123/master.m3u8?AudioStreamIndex=2",
+					playbackType: "hls",
+				},
+			};
+		});
+
+		const wrapper = TestParent({
+			videoUrl: "https://my.jellyfin.com/Videos/123/master.m3u8",
+			videoId: "https://my.jellyfin.com::item123::key123",
+			availableAudioTracks: [
+				{ index: 1, label: "English", language: "eng", isDefault: true },
+				{ index: 2, label: "Spanish", language: "spa" },
+			],
+		});
+
+		const player = wrapper.vm.playerRef;
+		const req = player.setAudioTrack(2);
+
+		wrapper.unmount();
+		resolveTrack2(true);
+		await req;
+	});
 });

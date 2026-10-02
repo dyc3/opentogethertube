@@ -337,6 +337,18 @@ watch(playbackRate.playbackRate, v => {
 watchEffect(() => {
 	playbackRate.playbackRate.value = store.state.room.playbackSpeed;
 });
+function syncAudioTracks() {
+	if (player.value && implementsAudio(player.value)) {
+		audio.isAudioSupported.value = player.value.isAudioSupported();
+		audio.audioTracks.value = player.value.getAudioTracks();
+		audio.currentAudioTrack.value = player.value.getCurrentAudioTrack();
+	} else {
+		audio.isAudioSupported.value = false;
+		audio.audioTracks.value = [];
+		audio.currentAudioTrack.value = null;
+	}
+}
+
 // Clear error state when source changes
 watch(
 	() => props.source,
@@ -349,6 +361,7 @@ watch(
 			if (currentPlaybackError.value) {
 				currentPlaybackError.value = null;
 			}
+			syncAudioTracks();
 		}
 	},
 );
@@ -387,20 +400,13 @@ async function onApiReady() {
 		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
 		player.value.setPlaybackRate(playbackRate.playbackRate.value);
 	}
-	if (implementsAudio(player.value)) {
-		audio.isAudioSupported.value = player.value.isAudioSupported();
-		audio.audioTracks.value = player.value.getAudioTracks();
-		audio.currentAudioTrack.value = player.value.getCurrentAudioTrack();
-	} else {
-		audio.isAudioSupported.value = false;
-		audio.audioTracks.value = [];
-		audio.currentAudioTrack.value = null;
-	}
+	syncAudioTracks();
 	emit("apiready");
 }
 
 function onReady() {
 	store.commit("PLAYBACK_STATUS", PlayerStatus.ready);
+	syncAudioTracks();
 	emit("ready");
 }
 

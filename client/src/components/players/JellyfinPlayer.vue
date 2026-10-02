@@ -55,6 +55,7 @@ const audioBoost = useMediaAudioBoost(videoElem);
 const currentUrl = ref(props.videoUrl);
 const currentAudioTrackIndex = ref<number | null>(null);
 let hls: Hls | undefined;
+let currentRequestId = 0;
 
 const route = useRoute();
 const store = useStore();
@@ -278,6 +279,8 @@ async function setAudioTrack(index: number): Promise<void> {
 		return;
 	}
 
+	const requestId = ++currentRequestId;
+	const targetVideoId = props.videoId;
 	const savedTime = getPosition();
 	const wasPlaying = videoElem.value ? !videoElem.value.paused : false;
 
@@ -286,10 +289,14 @@ async function setAudioTrack(index: number): Promise<void> {
 			`/room/${roomName}/refresh-stream`,
 			{
 				service: "jellyfin",
-				id: props.videoId,
+				id: targetVideoId,
 				audioStreamIndex: index,
 			},
 		);
+
+		if (requestId !== currentRequestId || props.videoId !== targetVideoId) {
+			return;
+		}
 
 		if (resp.data && resp.data.success && resp.data.hls_url) {
 			currentUrl.value = resp.data.hls_url;
@@ -300,7 +307,9 @@ async function setAudioTrack(index: number): Promise<void> {
 			}
 		}
 	} catch (e) {
-		console.error("JellyfinPlayer: failed to refresh stream with audio track", index, e);
+		if (requestId === currentRequestId) {
+			console.error("JellyfinPlayer: failed to refresh stream with audio track", index, e);
+		}
 	}
 }
 
@@ -434,6 +443,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+	currentRequestId++;
 	hls?.stopLoad();
 	hls?.detachMedia();
 	hls?.destroy();
@@ -441,10 +451,18 @@ onBeforeUnmount(() => {
 });
 
 watch(videoUrl, () => {
+	currentRequestId++;
 	currentUrl.value = videoUrl.value;
 	initAudioTrack();
 	loadVideoSource();
 });
+
+watch(
+	() => props.videoId,
+	() => {
+		currentRequestId++;
+	},
+);
 
 watch(
 	() => props.availableAudioTracks,

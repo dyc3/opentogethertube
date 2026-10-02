@@ -7,6 +7,7 @@ import { BadApiArgumentException } from "../exceptions.js";
 import InfoExtract from "../infoextractor.js";
 import { consumeRateLimitPoints } from "../rate-limit.js";
 import { counterHttpErrors } from "../metrics.js";
+import { sanitizeLogInput } from "../util/index.js";
 
 const router = express.Router();
 const log = getLogger("api/data");
@@ -28,7 +29,7 @@ const addPreview: RequestHandler<
 		return;
 	}
 	try {
-		log.info(`Getting queue add preview for ${req.query.input}`);
+		log.info(`Getting queue add preview for ${sanitizeLogInput(req.query.input)}`);
 		const result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
 			conf.get("add_preview.search.provider"),

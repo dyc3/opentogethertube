@@ -57,8 +57,10 @@ import { randomUUID } from "node:crypto";
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { ServiceAdapter, type VideoRequest } from "../serviceadapter.js";
+import { redisClient } from "../redisclient.js";
 import {
 	BadApiArgumentException,
+	InvalidVideoIdException,
 	JellyfinApiKeyException,
 	ServiceLinkParseException,
 } from "../exceptions.js";
@@ -71,6 +73,7 @@ const JELLYFIN_HLS_URL_REGEX = /\/Videos\/[^/]+\/(?:master|main)\.m3u8/;
 const JELLYFIN_ID_PARAM_REGEX = /[?&]id=([^&#]+)/;
 const TRAILING_SLASHES_REGEX = /\/+$/;
 const LEADING_SLASH_REGEX = /^\//;
+const IPV4_REGEX = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
 const COMPOUND_ID_SEPARATOR = "::";
 
 interface JellyfinMediaStream {
@@ -107,7 +110,7 @@ interface JellyfinItem {
 	ParentIndexNumber?: number;
 	SeriesName?: string;
 	ParentId?: string;
-	Images?: { Primary?: string };
+	ImageTags?: { Primary?: string };
 }
 
 interface JellyfinUser {
@@ -145,18 +148,87 @@ export default class JellyfinAdapter extends ServiceAdapter {
 	}
 
 	async initialize(): Promise<void> {
-		this.allowedHosts = conf.get("info_extractor.jellyfin.instances");
+		const configured = conf.get("info_extractor.jellyfin.instances");
+		this.allowedHosts = Array.isArray(configured)
+			? configured.map((h: string) => h.toLowerCase())
+			: [];
+	}
+
+	setAllowedHosts(hosts: string[]): void {
+		this.allowedHosts = hosts.map(h => h.toLowerCase());
+	}
+
+	private isPrivateOrLocalHost(hostname: string): boolean {
+		const lower = hostname.toLowerCase();
+		if (
+			lower === "localhost" ||
+			lower.endsWith(".localhost") ||
+			lower.endsWith(".local") ||
+			lower === "0.0.0.0" ||
+			lower === "::1" ||
+			lower === "[::1]"
+		) {
+			return true;
+		}
+
+		const ipv4Match = IPV4_REGEX.exec(lower);
+		if (ipv4Match) {
+			const b0 = Number.parseInt(ipv4Match[1], 10);
+			const b1 = Number.parseInt(ipv4Match[2], 10);
+			if (b0 === 127) {
+				return true;
+			}
+			if (b0 === 169 && b1 === 254) {
+				return true;
+			}
+			if (b0 === 0) {
+				return true;
+			}
+		}
+
+		if (lower.startsWith("fe80:")) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private validateDestination(serverOrigin: string): void {
+		let url: URL;
+		try {
+			url = new URL(serverOrigin);
+		} catch {
+			throw new BadApiArgumentException("id", "Invalid server origin URL");
+		}
+
+		if (url.protocol !== "http:" && url.protocol !== "https:") {
+			throw new BadApiArgumentException("id", "Server origin must use HTTP or HTTPS");
+		}
+
+		if (this.allowedHosts.length > 0) {
+			const hostLower = url.host.toLowerCase();
+			const hostnameLower = url.hostname.toLowerCase();
+			if (
+				!this.allowedHosts.includes(hostnameLower) &&
+				!this.allowedHosts.includes(hostLower)
+			) {
+				throw new BadApiArgumentException(
+					"id",
+					`Host '${url.host}' is not in the allowed Jellyfin instances`,
+				);
+			}
+		} else if (this.isPrivateOrLocalHost(url.hostname)) {
+			throw new BadApiArgumentException(
+				"id",
+				`Requests to internal or loopback host '${url.hostname}' are not permitted`,
+			);
+		}
 	}
 
 	canHandleURL(link: string): boolean {
 		try {
 			const url = new URL(link);
-			if (!url.protocol.startsWith("http")) {
-				return false;
-			}
-			if (this.allowedHosts.length > 0 && !this.allowedHosts.includes(url.host)) {
-				return false;
-			}
+			this.validateDestination(url.origin);
 			return (
 				JELLYFIN_WEB_URL_REGEX.test(url.href) ||
 				JELLYFIN_ITEMS_URL_REGEX.test(url.pathname) ||
@@ -169,6 +241,70 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 	isCollectionURL(url: string): boolean {
 		return JELLYFIN_WEB_URL_REGEX.test(url);
+	}
+
+	private storeApiKey(
+		tokenRef: string,
+		apiKey: string,
+		serverOrigin: string,
+		itemId: string,
+	): void {
+		this.apiKeyCache.set(tokenRef, apiKey);
+		this.apiKeyCache.set(`${serverOrigin}::${itemId}`, apiKey);
+		if (redisClient) {
+			const TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
+			redisClient
+				.setEx(`jellyfin:token:${tokenRef}`, TTL_SECONDS, apiKey)
+				.catch(err => log.warn(`Failed to persist Jellyfin token in redis: ${err}`));
+			redisClient
+				.setEx(`jellyfin:item:${serverOrigin}:${itemId}`, TTL_SECONDS, apiKey)
+				.catch(err => log.warn(`Failed to persist Jellyfin item token in redis: ${err}`));
+		}
+	}
+
+	private async retrieveApiKey(
+		tokenRefOrKey: string | null,
+		serverOrigin: string,
+		itemId: string,
+	): Promise<string> {
+		if (!tokenRefOrKey) {
+			const itemKey = `${serverOrigin}::${itemId}`;
+			const cached = this.apiKeyCache.get(itemKey);
+			if (cached) {
+				return cached;
+			}
+			if (redisClient) {
+				try {
+					const val = await redisClient.get(`jellyfin:item:${itemKey}`);
+					if (val) {
+						this.apiKeyCache.set(itemKey, val);
+						return val;
+					}
+				} catch {
+					// fallback
+				}
+			}
+			return "";
+		}
+
+		const memoryKey = this.apiKeyCache.get(tokenRefOrKey);
+		if (memoryKey) {
+			return memoryKey;
+		}
+
+		if (redisClient) {
+			try {
+				const redisVal = await redisClient.get(`jellyfin:token:${tokenRefOrKey}`);
+				if (redisVal) {
+					this.apiKeyCache.set(tokenRefOrKey, redisVal);
+					return redisVal;
+				}
+			} catch (err) {
+				log.warn(`Failed to read Jellyfin token from redis: ${err}`);
+			}
+		}
+
+		return tokenRefOrKey;
 	}
 
 	getVideoId(url: string): string {
@@ -214,17 +350,19 @@ export default class JellyfinAdapter extends ServiceAdapter {
 			basePath = basePath.replace(TRAILING_SLASHES_REGEX, "");
 			const serverOrigin = `${parsed.origin}${basePath}`;
 
-			// Embed the API key in the compound ID so it survives server restarts
-			// (the in-memory cache alone is wiped on restart, causing 401s later).
-			const compoundId = apiKey
-				? `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}${COMPOUND_ID_SEPARATOR}${apiKey}`
-				: `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}`;
+			this.validateDestination(serverOrigin);
+
 			if (apiKey) {
-				this.apiKeyCache.set(compoundId, apiKey);
+				const tokenRef = randomUUID();
+				this.storeApiKey(tokenRef, apiKey, serverOrigin, itemId);
+				return `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}${COMPOUND_ID_SEPARATOR}${tokenRef}`;
 			}
-			return compoundId;
+			return `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}`;
 		} catch (e) {
 			if (e instanceof ServiceLinkParseException) {
+				throw e;
+			}
+			if (e instanceof BadApiArgumentException) {
 				throw e;
 			}
 			throw new ServiceLinkParseException(this.serviceId, url);
@@ -259,6 +397,19 @@ export default class JellyfinAdapter extends ServiceAdapter {
 			return cached;
 		}
 
+		try {
+			const meResp = await this.api.get(`${serverOrigin}/Users/Me`, {
+				headers: this.buildAuthHeaders(apiKey),
+			});
+			if (meResp.data?.Id) {
+				const userId = meResp.data.Id;
+				this.userIdCache.set(cacheKey, userId);
+				return userId;
+			}
+		} catch {
+			// Server API keys do not have a dedicated user owner; fall back to /Users
+		}
+
 		const usersResp = await this.api.get(`${serverOrigin}/Users`, {
 			headers: this.buildAuthHeaders(apiKey),
 		});
@@ -279,7 +430,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 	}
 
 	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
-		const { serverOrigin, itemId, apiKey } = this.parseCompoundId(id);
+		const { serverOrigin, itemId, apiKey } = await this.parseCompoundId(id);
 		this.ensureApiKey(apiKey, serverOrigin);
 
 		let userId: string;
@@ -321,7 +472,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 				apiKey,
 			);
 		} else {
-			streamUrl = this.constructStreamUrl(serverOrigin, mediaSourceId, apiKey);
+			streamUrl = this.constructStreamUrl(serverOrigin, itemId, mediaSourceId, apiKey);
 		}
 
 		let subtitleUrl: string | undefined;
@@ -342,12 +493,12 @@ export default class JellyfinAdapter extends ServiceAdapter {
 					const subtitleUrl = stream.DeliveryUrl
 						? this.resolveDeliveryUrl(serverOrigin, stream.DeliveryUrl, apiKey)
 						: this.constructSubtitleUrl(
-								serverOrigin,
-								itemId,
-								mediaSourceId,
-								apiKey,
-								stream.Index,
-							);
+							serverOrigin,
+							itemId,
+							mediaSourceId,
+							apiKey,
+							stream.Index,
+						);
 					const label =
 						stream.DisplayTitle ??
 						stream.Title ??
@@ -370,16 +521,13 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 		const title = this.constructTitle(item);
 		const length = item.RunTimeTicks ? Math.round(item.RunTimeTicks / 10_000_000) : 0;
-		const thumbnail = item.Images?.Primary
-			? `${serverOrigin}/Items/${itemId}/Images/Primary?api_key=${apiKey}`
+		const thumbnail = item.ImageTags?.Primary
+			? `${serverOrigin}/Items/${itemId}/Images/Primary`
 			: "";
 
-		const compoundId = apiKey
-			? `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}${COMPOUND_ID_SEPARATOR}${apiKey}`
-			: `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}`;
 		return {
 			service: "jellyfin",
-			id: compoundId,
+			id,
 			title,
 			description: item.Overview ?? "",
 			length,
@@ -418,7 +566,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 				],
 				SubtitleProfiles: [
 					{ Format: "vtt", Method: "External" },
-					{ Format: "webvtt", Method: "External" }
+					{ Format: "webvtt", Method: "External" },
 				],
 			},
 		};
@@ -441,7 +589,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		id: string,
 		audioStreamIndex?: number,
 	): Promise<{ hls_url: string; playbackType: "hls" }> {
-		const { serverOrigin, itemId, apiKey } = this.parseCompoundId(id);
+		const { serverOrigin, itemId, apiKey } = await this.parseCompoundId(id);
 		this.ensureApiKey(apiKey, serverOrigin);
 
 		if (audioStreamIndex !== undefined) {
@@ -504,6 +652,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		} else {
 			streamUrl = this.constructStreamUrl(
 				serverOrigin,
+				itemId,
 				resolvedMediaSourceId,
 				apiKey,
 				audioStreamIndex,
@@ -561,7 +710,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 	async resolveURL(url: string): Promise<Video[]> {
 		const compoundId = this.getVideoId(url);
-		const { serverOrigin, itemId, apiKey } = this.parseCompoundId(compoundId);
+		const { serverOrigin, itemId, apiKey } = await this.parseCompoundId(compoundId);
 		this.ensureApiKey(apiKey, serverOrigin);
 
 		let userId: string;
@@ -576,13 +725,16 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		});
 		const item = itemResp.data as JellyfinItem;
 
-		const epCompoundIdFor = (epId: string): string =>
-			apiKey
-				? `${serverOrigin}${COMPOUND_ID_SEPARATOR}${epId}${COMPOUND_ID_SEPARATOR}${apiKey}`
-				: `${serverOrigin}${COMPOUND_ID_SEPARATOR}${epId}`;
+		const epCompoundIdFor = (epId: string): string => {
+			if (!apiKey) {
+				return `${serverOrigin}${COMPOUND_ID_SEPARATOR}${epId}`;
+			}
+			const epTokenRef = randomUUID();
+			this.storeApiKey(epTokenRef, apiKey, serverOrigin, epId);
+			return `${serverOrigin}${COMPOUND_ID_SEPARATOR}${epId}${COMPOUND_ID_SEPARATOR}${epTokenRef}`;
+		};
 		const fetchEpisode = async (epId: string): Promise<Video | null> => {
 			const epCompoundId = epCompoundIdFor(epId);
-			this.apiKeyCache.set(epCompoundId, apiKey);
 			try {
 				return await this.fetchVideoInfo(epCompoundId);
 			} catch (e) {
@@ -624,23 +776,28 @@ export default class JellyfinAdapter extends ServiceAdapter {
 			}
 			return videos;
 		} else {
-			const singleCompoundId = apiKey
-				? `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}${COMPOUND_ID_SEPARATOR}${apiKey}`
-				: `${serverOrigin}${COMPOUND_ID_SEPARATOR}${itemId}`;
-			const video = await this.fetchVideoInfo(singleCompoundId);
+			const video = await this.fetchVideoInfo(compoundId);
 			return [video];
 		}
 	}
 
-	private parseCompoundId(id: string): { serverOrigin: string; itemId: string; apiKey: string } {
+	private async parseCompoundId(id: string): Promise<{
+		serverOrigin: string;
+		itemId: string;
+		apiKey: string;
+	}> {
 		// serverOrigin contains "://" but never "::", so a plain split is safe.
 		const parts = id.split(COMPOUND_ID_SEPARATOR);
 		if (parts.length < 2) {
-			throw new Error(`Invalid Jellyfin compound ID: ${id}`);
+			throw new InvalidVideoIdException(this.serviceId, id);
 		}
 		const serverOrigin = parts[0];
 		const itemId = parts[1];
-		const apiKey = parts[2] ?? this.apiKeyCache.get(id) ?? "";
+
+		this.validateDestination(serverOrigin);
+
+		const tokenRefOrKey = parts.length >= 3 ? parts[2] : null;
+		const apiKey = await this.retrieveApiKey(tokenRefOrKey, serverOrigin, itemId);
 		return { serverOrigin, itemId, apiKey };
 	}
 
@@ -648,7 +805,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		if (!apiKey) {
 			throw new JellyfinApiKeyException(
 				`Missing API key for Jellyfin server at ${serverOrigin}. ` +
-					`Include it in the URL you add (e.g. append ?api_key=YOUR_KEY).`,
+				`Include it in the URL you add (e.g. append ?api_key=YOUR_KEY).`,
 			);
 		}
 	}
@@ -681,7 +838,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		if (axios.isAxiosError(e) && e.response?.status === 401) {
 			return new JellyfinApiKeyException(
 				`Unauthorized by Jellyfin server at ${serverOrigin}. ` +
-					`The API key is invalid or expired; re-add the video with a valid ?api_key= value.`,
+				`The API key is invalid or expired; re-add the video with a valid ?api_key= value.`,
 			);
 		}
 		return e instanceof Error ? e : new Error(String(e));
@@ -689,6 +846,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 	private constructStreamUrl(
 		serverOrigin: string,
+		itemId: string,
 		mediaSourceId: string,
 		apiKey: string,
 		audioStreamIndex?: number,
@@ -704,7 +862,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		}
 		const playSessionId = randomUUID().replace(/-/g, "");
 		params.set("PlaySessionId", playSessionId);
-		return `${serverOrigin}/Videos/${mediaSourceId}/master.m3u8?${params.toString()}`;
+		return `${serverOrigin}/Videos/${itemId}/master.m3u8?${params.toString()}`;
 	}
 
 	private constructSubtitleUrl(

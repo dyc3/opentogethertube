@@ -2,11 +2,18 @@ import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } fr
 import JellyfinAdapter from "../../../services/jellyfin.js";
 import type { AxiosRequestHeaders, AxiosResponse } from "axios";
 import { BadApiArgumentException, JellyfinApiKeyException } from "../../../exceptions.js";
+import { buildClients, redisClient } from "../../../redisclient.js";
 
 const EPISODE_MEDIA_SOURCE_RE = /\/Videos\/ep\d+\/master\.m3u8/;
 const PLAYBACK_INFO_ITEM_ID_REGEX = /\/Items\/([^/]+)\/PlaybackInfo/;
 const MISSING_API_KEY_REGEX = /Missing API key/;
 const UNAUTHORIZED_REGEX = /Unauthorized/;
+const OPAQUE_TOKEN_ID_REGEX = /^https:\/\/my\.jellyfin\.com::movie123::[0-9a-f-]{36}$/;
+const OPAQUE_TOKEN_SUBPATH_JELLYFIN_REGEX =
+	/^https:\/\/my\.jellyfin\.com\/jellyfin::movie123::[0-9a-f-]{36}$/;
+const OPAQUE_TOKEN_SUBPATH_JF_REGEX = /^https:\/\/my\.jellyfin\.com\/jf::movie123::[0-9a-f-]{36}$/;
+const OPAQUE_TOKEN_SUBPATH_MEDIA_REGEX =
+	/^https:\/\/my\.jellyfin\.com\/media::movie123::[0-9a-f-]{36}$/;
 
 const validLinks = [
 	"https://my.jellyfin.com/web/index.html#!/details?id=abc123&api_key=xyz789",
@@ -32,10 +39,18 @@ describe("Jellyfin", () => {
 	let apiPostMock: MockInstance;
 
 	beforeAll(async () => {
+		try {
+			await buildClients();
+		} catch {
+			// ignore
+		}
 		await adapter.initialize();
 	});
 
 	beforeEach(() => {
+		vi.restoreAllMocks();
+		(adapter as any).apiKeyCache?.clear();
+		(adapter as any).userIdCache?.clear();
 		apiGetMock = vi.spyOn(adapter.api, "get") as MockInstance;
 		apiPostMock = vi.spyOn(adapter.api, "post") as MockInstance;
 		installDefaultMock();
@@ -101,7 +116,7 @@ describe("Jellyfin", () => {
 						Type: "Movie",
 						RunTimeTicks: 72000000000,
 						Overview: "A test movie",
-						Images: { Primary: "/Items/movie123/Images/Primary" },
+						ImageTags: { Primary: "tag123" },
 					});
 				}
 				if (itemId === "series456") {
@@ -187,6 +202,44 @@ describe("Jellyfin", () => {
 		it.each(invalidLinks)("Rejects %s", link => {
 			expect(adapter.canHandleURL(link)).toBe(false);
 		});
+
+		it("should reject local/loopback and link-local destinations", () => {
+			expect(
+				adapter.canHandleURL(
+					"http://127.0.0.1:8096/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(false);
+			expect(
+				adapter.canHandleURL(
+					"http://localhost:8096/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(false);
+			expect(
+				adapter.canHandleURL(
+					"http://[::1]:8096/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(false);
+			expect(
+				adapter.canHandleURL(
+					"http://169.254.169.254/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(false);
+		});
+
+		it("should enforce allowlist if configured", () => {
+			adapter.setAllowedHosts(["allowed.jellyfin.com"]);
+			expect(
+				adapter.canHandleURL(
+					"https://allowed.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(true);
+			expect(
+				adapter.canHandleURL(
+					"https://disallowed.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toBe(false);
+			adapter.setAllowedHosts([]);
+		});
 	});
 
 	describe("isCollectionURL", () => {
@@ -224,18 +277,20 @@ describe("Jellyfin", () => {
 	});
 
 	describe("getVideoId", () => {
-		it("should extract compound id from web URL", () => {
+		it("should extract compound id with opaque token from web URL", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_ID_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from items download URL", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/Items/movie123/Download?api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_ID_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from URL without api_key", () => {
@@ -245,46 +300,70 @@ describe("Jellyfin", () => {
 			expect(id).toEqual("https://my.jellyfin.com::movie123");
 		});
 
-		it("should extract apiKey (camelCase) from query params", () => {
+		it("should extract apiKey (camelCase) from query params without leaking in id", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&apiKey=camelKey",
 			);
-			expect(id).toEqual("https://my.jellyfin.com::movie123::camelKey");
+			expect(id).toMatch(OPAQUE_TOKEN_ID_REGEX);
+			expect(id).not.toContain("camelKey");
 		});
 
-		it("should extract api_key from hash fragment", () => {
+		it("should extract api_key from hash fragment without leaking in id", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/#/details?id=movie123&api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_ID_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from HLS URL", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/Videos/movie123/main.m3u8?api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_ID_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from web URL with subpath", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/jellyfin/web/index.html#!/details?id=movie123&api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com/jellyfin::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_SUBPATH_JELLYFIN_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from items download URL with subpath", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/jf/Items/movie123/Download?api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com/jf::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_SUBPATH_JF_REGEX);
+			expect(id).not.toContain("key123");
 		});
 
 		it("should extract compound id from HLS URL with subpath", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/media/Videos/movie123/main.m3u8?api_key=key123",
 			);
-			expect(id).toEqual("https://my.jellyfin.com/media::movie123::key123");
+			expect(id).toMatch(OPAQUE_TOKEN_SUBPATH_MEDIA_REGEX);
+			expect(id).not.toContain("key123");
+		});
+
+		it("should throw BadApiArgumentException for disallowed hosts in getVideoId", () => {
+			adapter.setAllowedHosts(["allowed.jellyfin.com"]);
+			expect(() =>
+				adapter.getVideoId(
+					"https://disallowed.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toThrow(BadApiArgumentException);
+			adapter.setAllowedHosts([]);
+		});
+
+		it("should throw BadApiArgumentException for local/loopback hosts in getVideoId", () => {
+			expect(() =>
+				adapter.getVideoId(
+					"http://127.0.0.1:8096/web/index.html#!/details?id=movie123&api_key=key123",
+				),
+			).toThrow(BadApiArgumentException);
 		});
 	});
 
@@ -301,7 +380,7 @@ describe("Jellyfin", () => {
 
 			expect(video).toMatchObject({
 				service: "jellyfin",
-				id: "https://my.jellyfin.com::movie123::key123",
+				id,
 				title: "Test Movie",
 				description: "A test movie",
 				length: 7200,
@@ -311,6 +390,47 @@ describe("Jellyfin", () => {
 			expect(video.hls_url).toContain("PlaySessionId=session123");
 			expect(video.hls_url).toContain("api_key=key123");
 			expect(video.src_url).toBeUndefined();
+			expect(video.thumbnail).toBe("https://my.jellyfin.com/Items/movie123/Images/Primary");
+			expect(video.thumbnail).not.toContain("api_key");
+			expect(video.thumbnail).not.toContain("apiKey");
+		});
+
+		it("should prefer user from GET /Users/Me when available", async () => {
+			apiGetMock.mockImplementation(async (url: string) => {
+				const parsed = new URL(url);
+				if (parsed.pathname === "/Users/Me") {
+					return {
+						status: 200,
+						statusText: "OK",
+						data: { Id: "userMe456", Name: "MeUser" },
+						headers: {},
+						config: { headers: {} as AxiosRequestHeaders },
+					};
+				}
+				if (parsed.pathname.endsWith("/Users")) {
+					return mockUsersResponse([{ Id: "userFallback123", Name: "FallbackUser" }]);
+				}
+				if (parsed.pathname.includes("/Users/userMe456/Items/movie123")) {
+					return mockItemResponse({
+						Id: "movie123",
+						Name: "Test Movie",
+						Type: "Movie",
+						RunTimeTicks: 72000000000,
+					});
+				}
+				throw new Error(`Unexpected GET URL: ${url}`);
+			});
+
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=userToken123",
+			);
+			await adapter.fetchVideoInfo(id);
+
+			expect(apiPostMock).toHaveBeenCalledWith(
+				"https://my.jellyfin.com/Items/movie123/PlaybackInfo?userId=userMe456",
+				expect.anything(),
+				expect.anything(),
+			);
 		});
 
 		it("should post a minimal playback info body", async () => {
@@ -351,21 +471,23 @@ describe("Jellyfin", () => {
 			expect(video.mime).toEqual("application/x-mpegURL");
 		});
 
-		it("should keep working after a restart drops the in-memory key cache", async () => {
+		it("should keep working after a restart drops the in-memory key cache via redis", async () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
 			);
-			// Simulate a server restart wiping the in-memory caches.
+			// Simulate a server restart wiping the in-memory caches, recovered via Redis
 			(
 				adapter as unknown as {
 					apiKeyCache: Map<string, string>;
 					userIdCache: Map<string, string>;
 				}
 			).apiKeyCache.clear();
+			const redisSpy = vi.spyOn(redisClient, "get").mockResolvedValue("key123");
 			const video = await adapter.fetchVideoInfo(id);
 
 			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("api_key=key123");
+			redisSpy.mockRestore();
 		});
 
 		it("should fail with a clear error when no api key is available", async () => {
@@ -470,7 +592,7 @@ describe("Jellyfin", () => {
 			const video = await adapter.fetchVideoInfo(id);
 
 			expect(video.subtitleUrl).toContain("/Videos/movie123/mediasource999/Subtitles/2/0/");
-			expect(video.hls_url).toContain("/Videos/mediasource999/master.m3u8");
+			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
 			expect(video.hls_url).toContain("MediaSourceId=mediasource999");
 			expect(video.hls_url).toContain("PlaySessionId=");
@@ -777,7 +899,7 @@ describe("Jellyfin", () => {
 			);
 
 			expect(res.playbackType).toBe("hls");
-			expect(res.hls_url).toContain("/Videos/ms456/master.m3u8");
+			expect(res.hls_url).toContain("/Videos/movie123/master.m3u8");
 			expect(res.hls_url).toContain("api_key=key123");
 			expect(res.hls_url).toContain("AudioCodec=aac");
 			expect(res.hls_url).toContain("AudioStreamIndex=1");
@@ -830,6 +952,7 @@ function mockItemResponse(item: {
 	Type: string;
 	RunTimeTicks?: number;
 	Overview?: string;
+	ImageTags?: { Primary?: string };
 	Images?: { Primary?: string };
 	ParentId?: string;
 	ParentIndexNumber?: number;

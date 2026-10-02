@@ -30,6 +30,7 @@ import DashVideoAdapter from "./services/dash.js";
 import InvidiousAdapter from "./services/invidious.js";
 import OdyseeAdapter from "./services/odysee.js";
 import JellyfinAdapter from "./services/jellyfin.js";
+import { sanitizeLogInput } from "./util/index.js";
 
 const log = getLogger("infoextract");
 
@@ -424,7 +425,9 @@ export default {
 								id: adapter.getVideoId(video.url),
 							});
 						} catch (e) {
-							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
+							log.warn(
+								`Failed to resolve video URL ${sanitizeLogInput(video.url)}: ${e.message}`,
+							);
 						}
 					} else {
 						resolvedResults.push(video);
