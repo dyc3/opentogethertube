@@ -401,10 +401,9 @@ describe("Jellyfin", () => {
 				length: 7200,
 				mime: "application/x-mpegURL",
 			});
-			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
-			expect(video.hls_url).toContain("master.m3u8");
+			expect(video.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("PlaySessionId=session123");
-			expect(video.hls_url).not.toContain("key123");
+			expect(video.hls_url).toContain("api_key=key123");
 			expect(video.src_url).toBeUndefined();
 			expect(video.thumbnail).toBe("https://my.jellyfin.com/Items/movie123/Images/Primary");
 			expect(video.thumbnail).not.toContain("api_key");
@@ -512,9 +511,9 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
-			expect(video.hls_url).toContain(tokenRef);
-			expect(video.hls_url).not.toContain("key123");
+			expect(redisSpy).toHaveBeenCalledWith(`jellyfin:token:${tokenRef}`);
+			expect(video.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
+			expect(video.hls_url).toContain("api_key=key123");
 			redisSpy.mockRestore();
 		});
 
@@ -566,12 +565,11 @@ describe("Jellyfin", () => {
 			mockApiWithPlayback([], { Id: "movie123" });
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
-			expect(video.hls_url).toContain("master.m3u8");
+			expect(video.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
 			expect(video.hls_url).toContain("MediaSourceId=movie123");
 			expect(video.hls_url).toContain("PlaySessionId=");
-			expect(video.hls_url).not.toContain("key123");
+			expect(video.hls_url).toContain("api_key=key123");
 		});
 
 		it("should include subtitles when available", async () => {
@@ -589,9 +587,10 @@ describe("Jellyfin", () => {
 				label: "Spanish",
 				language: "spa",
 			});
-			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
-			expect(video.subtitleUrl).toContain("/movie123/0/stream.vtt");
-			expect(video.subtitleUrl).not.toContain("key123");
+			expect(video.subtitleUrl).toContain(
+				"https://my.jellyfin.com/Videos/movie123/movie123/Subtitles/0/0/Stream.vtt",
+			);
+			expect(video.subtitleUrl).toContain("api_key=key123");
 		});
 
 		it("should select English subtitle by default", async () => {
@@ -600,9 +599,10 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
-			expect(video.subtitleUrl).toContain("/movie123/0/stream.vtt");
-			expect(video.subtitleUrl).not.toContain("key123");
+			expect(video.subtitleUrl).toContain(
+				"https://my.jellyfin.com/Videos/movie123/movie123/Subtitles/0/0/Stream.vtt",
+			);
+			expect(video.subtitleUrl).toContain("api_key=key123");
 		});
 
 		it("should use the media source id in subtitle urls", async () => {
@@ -625,13 +625,15 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
-			expect(video.subtitleUrl).toContain("/mediasource999/2/stream.vtt");
-			expect(video.subtitleUrl).not.toContain("key123");
-			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(video.subtitleUrl).toContain(
+				"https://my.jellyfin.com/Videos/movie123/mediasource999/Subtitles/2/0/Stream.vtt",
+			);
+			expect(video.subtitleUrl).toContain("api_key=key123");
+			expect(video.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
 			expect(video.hls_url).toContain("MediaSourceId=mediasource999");
 			expect(video.hls_url).toContain("PlaySessionId=");
+			expect(video.hls_url).toContain("api_key=key123");
 		});
 
 		it("should filter out subtitles that cannot be delivered externally", async () => {
@@ -704,9 +706,10 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
-			expect(video.subtitleUrl).toContain("/movie123/2/stream.vtt");
-			expect(video.subtitleUrl).not.toContain("key123");
+			expect(video.subtitleUrl).toContain(
+				"https://my.jellyfin.com/Videos/movie123/movie123/Subtitles/2/0/Stream.vtt",
+			);
+			expect(video.subtitleUrl).toContain("api_key=key123");
 		});
 
 		it("should format episode title correctly", async () => {
@@ -854,8 +857,10 @@ describe("Jellyfin", () => {
 				expect.any(Object),
 				expect.any(Object),
 			);
-			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
-			expect(video.hls_url).not.toContain("key123");
+			expect(video.hls_url).toContain(
+				"https://my.jellyfin.com/jellyfin/Videos/movie123/master.m3u8",
+			);
+			expect(video.hls_url).toContain("api_key=key123");
 		});
 	});
 
@@ -886,10 +891,10 @@ describe("Jellyfin", () => {
 				expect(video).toMatchObject({
 					service: "jellyfin",
 				});
-				expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+				expect(video.hls_url).toContain("https://my.jellyfin.com/Videos/");
 				expect(video.hls_url).toContain("master.m3u8");
 				expect(video.hls_url).toContain("PlaySessionId=session123");
-				expect(video.hls_url).not.toContain("key123");
+				expect(video.hls_url).toContain("api_key=key123");
 			});
 		});
 	});
@@ -910,9 +915,8 @@ describe("Jellyfin", () => {
 				expect.any(Object),
 			);
 			expect(res.playbackType).toBe("hls");
-			expect(res.hls_url).toContain("/api/data/jellyfin/stream/");
-			expect(res.hls_url).toContain("master.m3u8");
-			expect(res.hls_url).not.toContain("key123");
+			expect(res.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
+			expect(res.hls_url).toContain("api_key=key123");
 		});
 
 		it("should fallback to constructStreamUrl if TranscodingUrl is absent", async () => {
@@ -936,12 +940,12 @@ describe("Jellyfin", () => {
 			const res = await adapter.getRefreshedStream(id, 1);
 
 			expect(res.playbackType).toBe("hls");
-			expect(res.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(res.hls_url).toContain("https://my.jellyfin.com/Videos/movie123/master.m3u8");
 			expect(res.hls_url).toContain("AudioCodec=aac");
 			expect(res.hls_url).toContain("AudioStreamIndex=1");
 			expect(res.hls_url).toContain("MediaSourceId=ms456");
 			expect(res.hls_url).toContain("PlaySessionId=");
-			expect(res.hls_url).not.toContain("key123");
+			expect(res.hls_url).toContain("api_key=key123");
 		});
 
 		it("should throw BadApiArgumentException on invalid audioStreamIndex", async () => {
@@ -1094,78 +1098,6 @@ describe("Jellyfin", () => {
 				});
 			});
 			dnsSpy.mockRestore();
-		});
-	});
-
-	describe("proxyStream & proxySubtitle", () => {
-		it("returns 404 for invalid or expired tokenRef in proxyStream", async () => {
-			const req = { headers: {} } as any;
-			const res = {
-				status: vi.fn().mockReturnThis(),
-				send: vi.fn(),
-			} as any;
-
-			await adapter.proxyStream("nonexistent-token", "master.m3u8", {}, req, res);
-			expect(res.status).toHaveBeenCalledWith(404);
-		});
-
-		it("rejects path traversal attempts in proxyStream", async () => {
-			const id = adapter.getVideoId(
-				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
-			);
-			const tokenRef = id.split("::")[2];
-			const req = { headers: {} } as any;
-			const res = {
-				status: vi.fn().mockReturnThis(),
-				send: vi.fn(),
-			} as any;
-
-			await adapter.proxyStream(tokenRef, "../../../etc/passwd", {}, req, res);
-			expect(res.status).toHaveBeenCalledWith(400);
-		});
-
-		it("proxies m3u8 manifest and strips api_key query parameters", async () => {
-			const id = adapter.getVideoId(
-				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
-			);
-			const tokenRef = id.split("::")[2];
-			const fakeManifest =
-				"#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\n/Videos/movie123/main.m3u8?api_key=key123&PlaySessionId=1";
-			apiGetMock.mockResolvedValueOnce({
-				status: 200,
-				data: [Buffer.from(fakeManifest)],
-				headers: {},
-			});
-
-			const req = { headers: {} } as any;
-			let sentBody = "";
-			const headers: Record<string, string> = {};
-			const res = {
-				status: vi.fn().mockReturnThis(),
-				setHeader: vi.fn((k, v) => {
-					headers[k] = v;
-				}),
-				send: vi.fn((body: string) => {
-					sentBody = body;
-				}),
-			} as any;
-
-			await adapter.proxyStream(tokenRef, "master.m3u8", {}, req, res);
-			expect(res.status).toHaveBeenCalledWith(200);
-			expect(headers["Cache-Control"]).toBe("private, no-store");
-			expect(sentBody).not.toContain("api_key=key123");
-			expect(sentBody).not.toContain("key123");
-			expect(sentBody).toContain("PlaySessionId=1");
-		});
-
-		it("returns 404 for invalid or expired tokenRef in proxySubtitle", async () => {
-			const res = {
-				status: vi.fn().mockReturnThis(),
-				send: vi.fn(),
-			} as any;
-
-			await adapter.proxySubtitle("nonexistent-token", "movie123", 0, res);
-			expect(res.status).toHaveBeenCalledWith(404);
 		});
 	});
 });

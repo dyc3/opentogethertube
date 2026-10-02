@@ -178,8 +178,9 @@ describe("Data API", () => {
 			service: "jellyfin" as const,
 			id: "https://my.jellyfin.com::item123::tok_abc",
 			title: "Jellyfin Video",
-			hls_url: "/api/data/jellyfin/stream/tok_abc/master.m3u8",
-			subtitleUrl: "/api/data/jellyfin/subtitles/tok_abc/item123/0/stream.vtt",
+			hls_url: "https://my.jellyfin.com/Videos/item123/master.m3u8?api_key=key123",
+			subtitleUrl:
+				"https://my.jellyfin.com/Videos/item123/Subtitles/0/stream.vtt?api_key=key123",
 		};
 		const resolveQuerySpy = vi
 			.spyOn(InfoExtract, "resolveVideoQuery")
@@ -194,62 +195,7 @@ describe("Data API", () => {
 
 		expect(resp.body.success).toBe(true);
 		expect(resp.headers["cache-control"]).toBe("private, no-cache, no-store, must-revalidate");
-		expect(resp.body.result[0].hls_url).not.toContain("api_key");
-		expect(resp.body.result[0].hls_url).not.toContain("ApiKey");
 
 		resolveQuerySpy.mockRestore();
-	});
-
-	describe("Jellyfin proxy endpoints", () => {
-		it("GET /api/data/jellyfin/stream/:tokenRef delegates to jellyfin.proxyStream", async () => {
-			const adapter = InfoExtract.getServiceAdapter("jellyfin");
-			const proxyStreamSpy = vi
-				.spyOn(adapter as any, "proxyStream")
-				.mockImplementation(async (tokenRef, subpath, _query, _req, res: any) => {
-					res.setHeader("Cache-Control", "private, no-store");
-					res.status(200).send(`stream-${tokenRef}-${subpath}`);
-				});
-
-			const resp = await request(app)
-				.get("/api/data/jellyfin/stream/tok_123/master.m3u8")
-				.expect(200);
-
-			expect(resp.text).toBe("stream-tok_123-master.m3u8");
-			expect(resp.headers["cache-control"]).toBe("private, no-store");
-			expect(proxyStreamSpy).toHaveBeenCalledWith(
-				"tok_123",
-				"master.m3u8",
-				expect.any(Object),
-				expect.any(Object),
-				expect.any(Object),
-			);
-
-			proxyStreamSpy.mockRestore();
-		});
-
-		it("GET /api/data/jellyfin/subtitles delegates to jellyfin.proxySubtitle", async () => {
-			const adapter = InfoExtract.getServiceAdapter("jellyfin");
-			const proxySubtitleSpy = vi
-				.spyOn(adapter as any, "proxySubtitle")
-				.mockImplementation(async (tokenRef, mediaSourceId, index, res: any) => {
-					res.setHeader("Cache-Control", "private, no-store");
-					res.status(200).send(`sub-${tokenRef}-${mediaSourceId}-${index}`);
-				});
-
-			const resp = await request(app)
-				.get("/api/data/jellyfin/subtitles/tok_123/media_abc/0/stream.vtt")
-				.expect(200);
-
-			expect(resp.text).toBe("sub-tok_123-media_abc-0");
-			expect(resp.headers["cache-control"]).toBe("private, no-store");
-			expect(proxySubtitleSpy).toHaveBeenCalledWith(
-				"tok_123",
-				"media_abc",
-				0,
-				expect.any(Object),
-			);
-
-			proxySubtitleSpy.mockRestore();
-		});
 	});
 });
