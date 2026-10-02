@@ -273,7 +273,7 @@ export class UnsupportedSubtitleType extends OttException {
 	name = "UnsupportedSubtitleType";
 
 	constructor() {
-		super(`Subtitle URL must end with .vtt`);
+		super(`Subtitle URL must end with .vtt, .ass, or .ssa`);
 	}
 }
 

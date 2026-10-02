@@ -3,6 +3,7 @@ import request from "supertest";
 import { main } from "../../../app.js";
 import InfoExtract, { AddPreview } from "../../../infoextractor.js";
 import tokens from "../../../auth/tokens.js";
+import { OttException } from "ott-common/exceptions.js";
 
 const JSON_CONTENT_TYPE_REGEX = /json/;
 
@@ -119,4 +120,56 @@ describe("Data API", () => {
 
 		resolveQuerySpy.mockRestore();
 	});
+
+	it.each([0, 1])(
+		"handles bulk previews with %i of 2 videos available and allows retry",
+		async available => {
+			const videos = ["https://example.com/one.mp4", "https://example.com/two.mp4"].map(
+				id => ({
+					service: "direct" as const,
+					id,
+					title: id,
+				}),
+			);
+			const getVideoInfoSpy = vi
+				.spyOn(InfoExtract.getServiceAdapter("direct"), "fetchVideoInfo")
+				.mockImplementation(async id => {
+					const video = videos.slice(0, available).find(video => video.id === id);
+					if (!video) {
+						throw new OttException("Video unavailable");
+					}
+					return video;
+				});
+			const query = { input: videos.map(video => video.id).join("\n") };
+			try {
+				const failed = await request(app)
+					.get("/api/data/previewAdd")
+					.set({ Authorization: "Bearer foobar" })
+					.query(query);
+				if (available === 0) {
+					expect(failed.status).toBe(400);
+					expect(failed.body.success).toBe(false);
+					expect(failed.headers["cache-control"]).toBeUndefined();
+				} else {
+					expect(failed.status).toBe(200);
+					expect(failed.body.success).toBe(true);
+					expect(failed.body.result).toContainEqual(videos[0]);
+					expect(failed.headers["cache-control"]).toBe("no-store");
+				}
+
+				getVideoInfoSpy.mockImplementation(
+					async id => videos.find(video => video.id === id)!,
+				);
+				const retried = await request(app)
+					.get("/api/data/previewAdd")
+					.set({ Authorization: "Bearer foobar" })
+					.query(query);
+				expect(retried.status).toBe(200);
+				expect(retried.body.result).toEqual(videos);
+				expect(retried.headers["cache-control"]).toContain("max-age=3600");
+			} finally {
+				getVideoInfoSpy.mockRestore();
+			}
+		},
+	);
 });

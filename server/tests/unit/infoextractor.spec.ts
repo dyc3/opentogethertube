@@ -97,7 +97,7 @@ describe("InfoExtractor", () => {
 				.mockResolvedValue([vid]);
 			const getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
-				.mockResolvedValue([vid]);
+				.mockResolvedValue({ videos: [vid], complete: true });
 			const results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 			expect(getAdapterSpy).toBeCalledTimes(0);
 			expect(getCacheSpy).toBeCalledTimes(1);
@@ -128,7 +128,7 @@ describe("InfoExtractor", () => {
 			]);
 			const getManyVideoInfoSpy = vi
 				.spyOn(InfoExtractor, "getManyVideoInfo")
-				.mockResolvedValue([vid]);
+				.mockResolvedValue({ videos: [vid], complete: true });
 
 			const results = await InfoExtractor.searchVideos(adapter.serviceId, "asdf");
 
@@ -333,13 +333,19 @@ describe("InfoExtractor", () => {
 			},
 		];
 
-		it("should get videos from cache without fetching from adapter", async () => {
-			storageGetManyVideoInfo.mockResolvedValue(vids);
-			expect(
-				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
-			).toEqual(vids);
-			expect(adapterFetchManyVideoInfo).not.toBeCalled();
-		});
+		it.each([false, true])(
+			"should get videos from cache without fetching from adapter (requireAny=%s)",
+			async requireAny => {
+				storageGetManyVideoInfo.mockResolvedValue(vids);
+				expect(
+					await InfoExtractor.getManyVideoInfo(
+						vids.map(vid => _.pick(vid, "service", "id")),
+						{ requireAny },
+					),
+				).toEqual({ videos: vids, complete: true });
+				expect(adapterFetchManyVideoInfo).not.toBeCalled();
+			},
+		);
 
 		it("should get videos fetching from adapter", async () => {
 			storageGetManyVideoInfo.mockResolvedValue(
@@ -349,21 +355,57 @@ describe("InfoExtractor", () => {
 			updateCache.mockResolvedValue();
 			expect(
 				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
-			).toEqual(vids);
+			).toEqual({ videos: vids, complete: true });
 			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
 			expect(updateCache).toBeCalledTimes(1);
 		});
 
-		it("should get some videos from cache, and the rest fetching from adapter", async () => {
-			storageGetManyVideoInfo.mockResolvedValue([vids[0], _.pick(vids[1], "service", "id")]);
-			adapterFetchManyVideoInfo.mockResolvedValue(vids);
-			updateCache.mockResolvedValue();
+		it("accepts a cached video when all remaining lookups fail", async () => {
+			const partialResults = [vids[0], _.pick(vids[1], "service", "id")];
+			storageGetManyVideoInfo.mockResolvedValue(partialResults);
+			adapterFetchManyVideoInfo.mockResolvedValue([]);
 			expect(
-				await InfoExtractor.getManyVideoInfo(vids.map(vid => _.pick(vid, "service", "id"))),
-			).toEqual(vids);
-			expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
-			expect(updateCache).toBeCalledTimes(1);
+				await InfoExtractor.getManyVideoInfo(
+					vids.map(vid => _.pick(vid, "service", "id")),
+					{ requireAny: true },
+				),
+			).toEqual({ videos: partialResults, complete: false });
 		});
+
+		it("accepts a successful lookup when another service's lookups all fail", async () => {
+			const videoIds = [
+				_.pick(vids[0], "service", "id"),
+				{ service: "vimeo" as const, id: "missing" },
+			];
+			storageGetManyVideoInfo.mockImplementation(async ids => ids);
+			adapterFetchManyVideoInfo.mockImplementation(async requests =>
+				requests[0].id === vids[0].id ? [vids[0]] : [],
+			);
+			expect(await InfoExtractor.getManyVideoInfo(videoIds, { requireAny: true })).toEqual({
+				videos: [vids[0], videoIds[1]],
+				complete: false,
+			});
+		});
+
+		it.each([false, true])(
+			"should get some videos from cache, and the rest fetching from adapter (requireAny=%s)",
+			async requireAny => {
+				storageGetManyVideoInfo.mockResolvedValue([
+					vids[0],
+					_.pick(vids[1], "service", "id"),
+				]);
+				adapterFetchManyVideoInfo.mockResolvedValue([vids[1]]);
+				updateCache.mockResolvedValue();
+				expect(
+					await InfoExtractor.getManyVideoInfo(
+						vids.map(vid => _.pick(vid, "service", "id")),
+						{ requireAny },
+					),
+				).toEqual({ videos: vids, complete: true });
+				expect(adapterFetchManyVideoInfo).toBeCalledTimes(1);
+				expect(updateCache).toBeCalledTimes(1);
+			},
+		);
 	});
 });
 

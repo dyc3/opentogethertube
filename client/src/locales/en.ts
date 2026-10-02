@@ -304,7 +304,7 @@ export default {
 		"start-at": "Start at {timestamp}",
 		edit: {
 			title: "Edit video",
-			"subtitle-url": "Subtitle URL (.vtt)",
+			"subtitle-url": "Subtitle URL (.vtt, .ass)",
 			"subtitle-url-supported-services": "Supported services: direct, googledrive",
 			"no-subtitle": "None",
 			tooltip: "Edit video settings",
@@ -443,6 +443,9 @@ export default {
 		"sfx-volume": "Sound Effect Volume",
 		"room-settings": "Default Room Settings",
 		"enable-adapter-selector": "Show adapter selector (advanced)",
+		"native-youtube-controls": "Use YouTube's native control bar",
+		"native-youtube-controls-hint":
+			"Playback is still controlled by OpenTogetherTube. Use YouTube's control bar only to change quality, audio track, or subtitles.",
 	},
 	"connect-overlay": {
 		title: "Disconnected",

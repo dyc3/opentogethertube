@@ -28,8 +28,8 @@ type RoomCreationAttributes = Optional<RoomAttributes, "id">;
 
 export class Room extends Model<RoomAttributes, RoomCreationAttributes> implements RoomAttributes {
 	declare id: number;
-	public declare readonly createdAt: Date;
-	public declare readonly updatedAt: Date;
+	declare public readonly createdAt: Date;
+	declare public readonly updatedAt: Date;
 	declare name: string;
 	declare title: string;
 	declare description: string;
