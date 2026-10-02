@@ -266,6 +266,7 @@ function getCurrentAudioTrack(): number | null {
 }
 
 async function setAudioTrack(index: number): Promise<void> {
+	const requestId = ++currentRequestId;
 	if (index === currentAudioTrackIndex.value) {
 		return;
 	}
@@ -279,7 +280,6 @@ async function setAudioTrack(index: number): Promise<void> {
 		return;
 	}
 
-	const requestId = ++currentRequestId;
 	const targetVideoId = props.videoId;
 	const savedTime = getPosition();
 	const wasPlaying = videoElem.value ? !videoElem.value.paused : false;
@@ -371,6 +371,12 @@ function loadVideoSource(restoreTime?: number, autoPlay?: boolean) {
 						.play()
 						.catch(e => console.warn("JellyfinPlayer: resume failed", e));
 				}
+			}
+		} else {
+			if (videoElem.value && store.state.room.isPlaying) {
+				videoElem.value
+					.play()
+					.catch(e => console.warn("JellyfinPlayer: resume failed", e));
 			}
 		}
 	});

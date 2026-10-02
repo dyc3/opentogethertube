@@ -1,10 +1,10 @@
+import dns from "node:dns";
 import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import JellyfinAdapter from "../../../services/jellyfin.js";
 import type { AxiosRequestHeaders, AxiosResponse } from "axios";
 import { BadApiArgumentException, JellyfinApiKeyException } from "../../../exceptions.js";
 import { buildClients, redisClient } from "../../../redisclient.js";
 
-const EPISODE_MEDIA_SOURCE_RE = /\/Videos\/ep\d+\/master\.m3u8/;
 const PLAYBACK_INFO_ITEM_ID_REGEX = /\/Items\/([^/]+)\/PlaybackInfo/;
 const MISSING_API_KEY_REGEX = /Missing API key/;
 const UNAUTHORIZED_REGEX = /Unauthorized/;
@@ -19,7 +19,6 @@ const validLinks = [
 	"https://my.jellyfin.com/web/index.html#!/details?id=abc123&api_key=xyz789",
 	"https://my.jellyfin.com/web/#/details?id=abc123&serverId=server1&api_key=xyz789",
 	"https://jellyfin.example.com/web/index.html#!/details?id=movie123&api_key=key123",
-	"https://192.168.1.100:8096/web/index.html#!/details?id=ep456&apikey=secret",
 	"https://my.jellyfin.com/web/index.html#!/details?id=abc123&apiKey=camelKey",
 	"https://my.jellyfin.com/web/index.html#!/details?id=abc123",
 	"https://my.jellyfin.com/web/#/details?id=abc123",
@@ -31,6 +30,11 @@ const invalidLinks = [
 	"https://youtube.com/watch?v=abc",
 	"https://my.jellyfin.com/some/other/path",
 	"not a url",
+	"https://192.168.1.100:8096/web/index.html#!/details?id=ep456&apikey=secret",
+	"http://10.0.0.1:8096/web/index.html#!/details?id=ep456",
+	"http://172.16.0.1:8096/web/index.html#!/details?id=ep456",
+	"http://127.0.0.1:8096/web/index.html#!/details?id=ep456",
+	"http://localhost:8096/web/index.html#!/details?id=ep456",
 ];
 
 describe("Jellyfin", () => {
@@ -49,7 +53,8 @@ describe("Jellyfin", () => {
 
 	beforeEach(() => {
 		vi.restoreAllMocks();
-		(adapter as any).apiKeyCache?.clear();
+		adapter.setAllowedHosts([]);
+		(adapter as any).credentialCache?.clear();
 		(adapter as any).userIdCache?.clear();
 		apiGetMock = vi.spyOn(adapter.api, "get") as MockInstance;
 		apiPostMock = vi.spyOn(adapter.api, "post") as MockInstance;
@@ -240,6 +245,16 @@ describe("Jellyfin", () => {
 			).toBe(false);
 			adapter.setAllowedHosts([]);
 		});
+
+		it("accepts private host if explicitly configured in allowedHosts", () => {
+			adapter.setAllowedHosts(["192.168.1.100"]);
+			expect(
+				adapter.canHandleURL(
+					"https://192.168.1.100:8096/web/index.html#!/details?id=ep456&apikey=secret",
+				),
+			).toBe(true);
+			adapter.setAllowedHosts([]);
+		});
 	});
 
 	describe("isCollectionURL", () => {
@@ -386,9 +401,10 @@ describe("Jellyfin", () => {
 				length: 7200,
 				mime: "application/x-mpegURL",
 			});
-			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
+			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(video.hls_url).toContain("master.m3u8");
 			expect(video.hls_url).toContain("PlaySessionId=session123");
-			expect(video.hls_url).toContain("api_key=key123");
+			expect(video.hls_url).not.toContain("key123");
 			expect(video.src_url).toBeUndefined();
 			expect(video.thumbnail).toBe("https://my.jellyfin.com/Items/movie123/Images/Primary");
 			expect(video.thumbnail).not.toContain("api_key");
@@ -448,6 +464,11 @@ describe("Jellyfin", () => {
 					AlwaysBurnInSubtitleWhenTranscoding: false,
 					DeviceProfile: expect.objectContaining({
 						Name: "OpenTogetherTube",
+						TranscodingProfiles: [
+							expect.objectContaining({
+								VideoCodec: "h264",
+							}),
+						],
 					}),
 				}),
 				expect.objectContaining({
@@ -475,18 +496,25 @@ describe("Jellyfin", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
 			);
-			// Simulate a server restart wiping the in-memory caches, recovered via Redis
+			const tokenRef = id.split("::")[2];
 			(
 				adapter as unknown as {
-					apiKeyCache: Map<string, string>;
+					credentialCache: Map<string, any>;
 					userIdCache: Map<string, string>;
 				}
-			).apiKeyCache.clear();
-			const redisSpy = vi.spyOn(redisClient, "get").mockResolvedValue("key123");
+			).credentialCache.clear();
+			const redisSpy = vi.spyOn(redisClient, "get").mockResolvedValue(
+				JSON.stringify({
+					apiKey: "key123",
+					serverOrigin: "https://my.jellyfin.com",
+					itemId: "movie123",
+				}),
+			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
-			expect(video.hls_url).toContain("api_key=key123");
+			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(video.hls_url).toContain(tokenRef);
+			expect(video.hls_url).not.toContain("key123");
 			redisSpy.mockRestore();
 		});
 
@@ -516,9 +544,12 @@ describe("Jellyfin", () => {
 		});
 
 		it("should return partial results when only some bulk videos lack credentials", async () => {
+			const id1 = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
 			const videos = await adapter.fetchManyVideoInfo([
 				{
-					id: "https://my.jellyfin.com::movie123::key123",
+					id: id1,
 					missingInfo: [],
 				},
 				{ id: "https://my.jellyfin.com::ep001", missingInfo: [] },
@@ -535,11 +566,12 @@ describe("Jellyfin", () => {
 			mockApiWithPlayback([], { Id: "movie123" });
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
+			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(video.hls_url).toContain("master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
 			expect(video.hls_url).toContain("MediaSourceId=movie123");
 			expect(video.hls_url).toContain("PlaySessionId=");
-			expect(video.hls_url).toContain("api_key=key123");
+			expect(video.hls_url).not.toContain("key123");
 		});
 
 		it("should include subtitles when available", async () => {
@@ -557,8 +589,9 @@ describe("Jellyfin", () => {
 				label: "Spanish",
 				language: "spa",
 			});
-			expect(video.subtitleUrl).toContain("Subtitles/0");
-			expect(video.subtitleUrl).toContain("api_key=key123");
+			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
+			expect(video.subtitleUrl).toContain("/movie123/0/stream.vtt");
+			expect(video.subtitleUrl).not.toContain("key123");
 		});
 
 		it("should select English subtitle by default", async () => {
@@ -567,8 +600,9 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("Subtitles/0");
-			expect(video.subtitleUrl).toContain("api_key=key123");
+			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
+			expect(video.subtitleUrl).toContain("/movie123/0/stream.vtt");
+			expect(video.subtitleUrl).not.toContain("key123");
 		});
 
 		it("should use the media source id in subtitle urls", async () => {
@@ -591,8 +625,10 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("/Videos/movie123/mediasource999/Subtitles/2/0/");
-			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
+			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
+			expect(video.subtitleUrl).toContain("/mediasource999/2/stream.vtt");
+			expect(video.subtitleUrl).not.toContain("key123");
+			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
 			expect(video.hls_url).toContain("AudioCodec=aac");
 			expect(video.hls_url).toContain("MediaSourceId=mediasource999");
 			expect(video.hls_url).toContain("PlaySessionId=");
@@ -668,10 +704,9 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain(
-				"/Videos/movie123/movie123/Subtitles/2/0/Stream.vtt",
-			);
-			expect(video.subtitleUrl).toContain("api_key=key123");
+			expect(video.subtitleUrl).toContain("/api/data/jellyfin/subtitles/");
+			expect(video.subtitleUrl).toContain("/movie123/2/stream.vtt");
+			expect(video.subtitleUrl).not.toContain("key123");
 		});
 
 		it("should format episode title correctly", async () => {
@@ -801,7 +836,9 @@ describe("Jellyfin", () => {
 		});
 
 		it("should preserve subpath in API requests and stream URLs", async () => {
-			const id = "https://my.jellyfin.com/jellyfin::movie123::key123";
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/jellyfin/web/index.html#!/details?id=movie123&api_key=key123",
+			);
 			const video = await adapter.fetchVideoInfo(id);
 
 			expect(apiGetMock).toHaveBeenCalledWith(
@@ -817,9 +854,8 @@ describe("Jellyfin", () => {
 				expect.any(Object),
 				expect.any(Object),
 			);
-			expect(video.hls_url).toContain(
-				"https://my.jellyfin.com/jellyfin/Videos/movie123/master.m3u8",
-			);
+			expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
+			expect(video.hls_url).not.toContain("key123");
 		});
 	});
 
@@ -850,19 +886,20 @@ describe("Jellyfin", () => {
 				expect(video).toMatchObject({
 					service: "jellyfin",
 				});
+				expect(video.hls_url).toContain("/api/data/jellyfin/stream/");
 				expect(video.hls_url).toContain("master.m3u8");
 				expect(video.hls_url).toContain("PlaySessionId=session123");
-				expect(video.hls_url).toMatch(EPISODE_MEDIA_SOURCE_RE);
+				expect(video.hls_url).not.toContain("key123");
 			});
 		});
 	});
 
 	describe("getRefreshedStream", () => {
 		it("should request playback info with audioStreamIndex and return transcoding URL", async () => {
-			const res = await adapter.getRefreshedStream(
-				"https://my.jellyfin.com::movie123::key123",
-				2,
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
 			);
+			const res = await adapter.getRefreshedStream(id, 2);
 
 			expect(apiPostMock).toHaveBeenCalledWith(
 				"https://my.jellyfin.com/Items/movie123/PlaybackInfo?userId=user123",
@@ -873,9 +910,9 @@ describe("Jellyfin", () => {
 				expect.any(Object),
 			);
 			expect(res.playbackType).toBe("hls");
-			expect(res.hls_url).toContain("https://my.jellyfin.com");
+			expect(res.hls_url).toContain("/api/data/jellyfin/stream/");
 			expect(res.hls_url).toContain("master.m3u8");
-			expect(res.hls_url).toContain("api_key=key123");
+			expect(res.hls_url).not.toContain("key123");
 		});
 
 		it("should fallback to constructStreamUrl if TranscodingUrl is absent", async () => {
@@ -893,28 +930,31 @@ describe("Jellyfin", () => {
 				},
 			);
 
-			const res = await adapter.getRefreshedStream(
-				"https://my.jellyfin.com::movie123::key123",
-				1,
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
 			);
+			const res = await adapter.getRefreshedStream(id, 1);
 
 			expect(res.playbackType).toBe("hls");
-			expect(res.hls_url).toContain("/Videos/movie123/master.m3u8");
-			expect(res.hls_url).toContain("api_key=key123");
+			expect(res.hls_url).toContain("/api/data/jellyfin/stream/");
 			expect(res.hls_url).toContain("AudioCodec=aac");
 			expect(res.hls_url).toContain("AudioStreamIndex=1");
 			expect(res.hls_url).toContain("MediaSourceId=ms456");
 			expect(res.hls_url).toContain("PlaySessionId=");
+			expect(res.hls_url).not.toContain("key123");
 		});
 
 		it("should throw BadApiArgumentException on invalid audioStreamIndex", async () => {
-			await expect(
-				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::key123", -1),
-			).rejects.toThrow(BadApiArgumentException);
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			await expect(adapter.getRefreshedStream(id, -1)).rejects.toThrow(
+				BadApiArgumentException,
+			);
 
-			await expect(
-				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::key123", 1.5),
-			).rejects.toThrow(BadApiArgumentException);
+			await expect(adapter.getRefreshedStream(id, 1.5)).rejects.toThrow(
+				BadApiArgumentException,
+			);
 		});
 
 		it("should throw JellyfinApiKeyException when API key is missing", async () => {
@@ -924,14 +964,208 @@ describe("Jellyfin", () => {
 		});
 
 		it("should throw JellyfinApiKeyException on 401 Unauthorized", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			apiPostMock.mockReset();
 			apiPostMock.mockRejectedValueOnce({
 				isAxiosError: true,
 				response: { status: 401 },
 			});
 
-			await expect(
-				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::invalidKey", 0),
-			).rejects.toThrow(JellyfinApiKeyException);
+			await expect(adapter.getRefreshedStream(id, 0)).rejects.toThrow(
+				JellyfinApiKeyException,
+			);
+		});
+	});
+
+	describe("credential binding and authorization", () => {
+		it("rejects token reference when origin is substituted", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			const tokenRef = id.split("::")[2];
+			const tamperedId = `https://other.jellyfin.com::movie123::${tokenRef}`;
+			await expect(adapter.fetchVideoInfo(tamperedId)).rejects.toThrow(
+				BadApiArgumentException,
+			);
+		});
+
+		it("rejects token reference when itemId is substituted", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			const tokenRef = id.split("::")[2];
+			const tamperedId = `https://my.jellyfin.com::secretMovie999::${tokenRef}`;
+			await expect(adapter.fetchVideoInfo(tamperedId)).rejects.toThrow(
+				BadApiArgumentException,
+			);
+		});
+
+		it("does not reuse cached credentials for a credential-free URL", async () => {
+			const authenticatedId = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			await adapter.fetchVideoInfo(authenticatedId);
+
+			// Subsequent request for the same server and item without credentials must fail
+			const unauthenticatedId = "https://my.jellyfin.com::movie123";
+			await expect(adapter.fetchVideoInfo(unauthenticatedId)).rejects.toThrow(
+				JellyfinApiKeyException,
+			);
+		});
+	});
+
+	describe("destination policy and SSRF prevention", () => {
+		it("rejects private IPv4 literals in validateDestination", () => {
+			expect(() => adapter.validateDestination("http://10.0.0.1:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://192.168.1.1:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://172.16.0.1:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://127.0.0.1:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://100.64.0.1:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://169.254.169.254")).toThrow(
+				BadApiArgumentException,
+			);
+		});
+
+		it("rejects localhost and loopback domains in validateDestination", () => {
+			expect(() => adapter.validateDestination("http://localhost:8096")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://service.local")).toThrow(
+				BadApiArgumentException,
+			);
+			expect(() => adapter.validateDestination("http://metadata.internal")).toThrow(
+				BadApiArgumentException,
+			);
+		});
+
+		it("permits allowed private instances configured in allowedHosts", () => {
+			adapter.setAllowedHosts(["192.168.1.50"]);
+			expect(() => adapter.validateDestination("http://192.168.1.50:8096")).not.toThrow();
+			adapter.setAllowedHosts([]);
+		});
+
+		it("blocks safe lookup when hostname is a private/local host", async () => {
+			const lookup = (adapter as any).createSafeLookup();
+			await new Promise<void>((resolve, reject) => {
+				lookup("localhost", {}, (err: Error | null) => {
+					try {
+						expect(err).toBeDefined();
+						expect(err?.message).toContain("not permitted");
+						resolve();
+					} catch (e) {
+						reject(e);
+					}
+				});
+			});
+		});
+
+		it("blocks safe lookup when DNS resolves to a private IP", async () => {
+			const lookup = (adapter as any).createSafeLookup();
+			const dnsSpy = vi.spyOn(dns, "lookup").mockImplementation(((
+				hostname: any,
+				options: any,
+				cb: any,
+			) => {
+				const callback = typeof options === "function" ? options : cb;
+				callback(null, "10.0.0.5", 4);
+			}) as any);
+
+			await new Promise<void>((resolve, reject) => {
+				lookup("public-looking.example.com", {}, (err: Error | null) => {
+					try {
+						expect(err).toBeDefined();
+						expect(err?.message).toContain("private/local address");
+						resolve();
+					} catch (e) {
+						reject(e);
+					}
+				});
+			});
+			dnsSpy.mockRestore();
+		});
+	});
+
+	describe("proxyStream & proxySubtitle", () => {
+		it("returns 404 for invalid or expired tokenRef in proxyStream", async () => {
+			const req = { headers: {} } as any;
+			const res = {
+				status: vi.fn().mockReturnThis(),
+				send: vi.fn(),
+			} as any;
+
+			await adapter.proxyStream("nonexistent-token", "master.m3u8", {}, req, res);
+			expect(res.status).toHaveBeenCalledWith(404);
+		});
+
+		it("rejects path traversal attempts in proxyStream", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			const tokenRef = id.split("::")[2];
+			const req = { headers: {} } as any;
+			const res = {
+				status: vi.fn().mockReturnThis(),
+				send: vi.fn(),
+			} as any;
+
+			await adapter.proxyStream(tokenRef, "../../../etc/passwd", {}, req, res);
+			expect(res.status).toHaveBeenCalledWith(400);
+		});
+
+		it("proxies m3u8 manifest and strips api_key query parameters", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			const tokenRef = id.split("::")[2];
+			const fakeManifest =
+				"#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\n/Videos/movie123/main.m3u8?api_key=key123&PlaySessionId=1";
+			apiGetMock.mockResolvedValueOnce({
+				status: 200,
+				data: [Buffer.from(fakeManifest)],
+				headers: {},
+			});
+
+			const req = { headers: {} } as any;
+			let sentBody = "";
+			const headers: Record<string, string> = {};
+			const res = {
+				status: vi.fn().mockReturnThis(),
+				setHeader: vi.fn((k, v) => {
+					headers[k] = v;
+				}),
+				send: vi.fn((body: string) => {
+					sentBody = body;
+				}),
+			} as any;
+
+			await adapter.proxyStream(tokenRef, "master.m3u8", {}, req, res);
+			expect(res.status).toHaveBeenCalledWith(200);
+			expect(headers["Cache-Control"]).toBe("private, no-store");
+			expect(sentBody).not.toContain("api_key=key123");
+			expect(sentBody).not.toContain("key123");
+			expect(sentBody).toContain("PlaySessionId=1");
+		});
+
+		it("returns 404 for invalid or expired tokenRef in proxySubtitle", async () => {
+			const res = {
+				status: vi.fn().mockReturnThis(),
+				send: vi.fn(),
+			} as any;
+
+			await adapter.proxySubtitle("nonexistent-token", "movie123", 0, res);
+			expect(res.status).toHaveBeenCalledWith(404);
 		});
 	});
 });

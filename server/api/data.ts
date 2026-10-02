@@ -36,11 +36,15 @@ const addPreview: RequestHandler<
 			req.query.adapter,
 		);
 
+		const isPrivateResponse = result.videos.some(v => v.service === "jellyfin");
+
 		res.setHeader(
 			"Cache-Control",
-			result.cacheDuration > 0
-				? `public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
-				: "no-store",
+			isPrivateResponse
+				? "private, no-cache, no-store, must-revalidate"
+				: result.cacheDuration > 0
+					? `public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
+					: "no-store",
 		);
 
 		res.json({
@@ -87,6 +91,54 @@ const addPreview: RequestHandler<
 		}
 	}
 };
+
+router.get("/jellyfin/stream/:tokenRef/*", async (req, res, next) => {
+	try {
+		const adapter = InfoExtract.getServiceAdapter("jellyfin");
+		if (!adapter || !("proxyStream" in adapter)) {
+			res.status(404).send("Jellyfin service not available");
+			return;
+		}
+		const subpath = (req.params as any)[0] || "master.m3u8";
+		await (adapter as any).proxyStream(req.params.tokenRef, subpath, req.query, req, res);
+	} catch (e) {
+		errorHandler(e as Error, req, res, next);
+	}
+});
+
+router.get("/jellyfin/stream/:tokenRef", async (req, res, next) => {
+	try {
+		const adapter = InfoExtract.getServiceAdapter("jellyfin");
+		if (!adapter || !("proxyStream" in adapter)) {
+			res.status(404).send("Jellyfin service not available");
+			return;
+		}
+		await (adapter as any).proxyStream(req.params.tokenRef, "master.m3u8", req.query, req, res);
+	} catch (e) {
+		errorHandler(e as Error, req, res, next);
+	}
+});
+
+router.get(
+	"/jellyfin/subtitles/:tokenRef/:mediaSourceId/:index/stream.vtt",
+	async (req, res, next) => {
+		try {
+			const adapter = InfoExtract.getServiceAdapter("jellyfin");
+			if (!adapter || !("proxySubtitle" in adapter)) {
+				res.status(404).send("Jellyfin service not available");
+				return;
+			}
+			await (adapter as any).proxySubtitle(
+				req.params.tokenRef,
+				req.params.mediaSourceId,
+				Number.parseInt(req.params.index, 10),
+				res,
+			);
+		} catch (e) {
+			errorHandler(e as Error, req, res, next);
+		}
+	},
+);
 
 router.get("/previewAdd", async (req, res, next) => {
 	try {

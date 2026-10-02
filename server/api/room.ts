@@ -509,7 +509,16 @@ const refreshStream: RequestHandler<
 	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
 		return;
 	}
-	(await roommanager.getRoom(req.params.name)).unwrap();
+	const room = (await roommanager.getRoom(req.params.name)).unwrap();
+
+	const isCurrent = room.currentSource?.id === body.id;
+	const isQueued = room.queue.items.some(v => v.id === body.id);
+	if (!isCurrent && !isQueued) {
+		throw new BadApiArgumentException(
+			"id",
+			`Video ID '${body.id}' is not in the room queue or currently playing`,
+		);
+	}
 
 	const adapter = infoextractor.getServiceAdapter(body.service);
 	if (
@@ -531,7 +540,10 @@ const refreshStream: RequestHandler<
 
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	counterHttpErrors.labels({ error: err.name }).inc();
-	if (err instanceof OttException) {
+	if (
+		err instanceof OttException ||
+		(err && typeof err.name === "string" && err.name.endsWith("Exception"))
+	) {
 		log.debug(`OttException: path=${req.path} name=${err.name}`);
 		// FIXME: allow for type narrowing based on err.name
 		if (err.name === "RoomNotFoundException") {

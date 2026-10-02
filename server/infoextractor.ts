@@ -382,9 +382,16 @@ export default {
 				};
 			});
 
+			const hasJellyfin = lines.some(line => {
+				const adapter = forceAdapter
+					? this.getServiceAdapter(forceAdapter)
+					: this.getServiceAdapterForURL(line);
+				return adapter && adapter.serviceId === "jellyfin";
+			});
+
 			const batch = await this.getManyVideoInfo(videoIds, { requireAny: true });
 			results = batch.videos;
-			if (!batch.complete) {
+			if (!batch.complete || hasJellyfin) {
 				cacheDuration = 0;
 			}
 		} else if (this.isURL(query)) {
@@ -396,7 +403,9 @@ export default {
 				throw new UnsupportedServiceException(query);
 			}
 
-			if (adapter.isCacheSafe) {
+			if (adapter.serviceId === "jellyfin") {
+				cacheDuration = 0;
+			} else if (adapter.isCacheSafe) {
 				cacheDuration = 60 * 60 * 24 * 7;
 			}
 

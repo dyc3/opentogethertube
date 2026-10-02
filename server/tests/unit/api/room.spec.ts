@@ -593,6 +593,12 @@ describe("Room API", () => {
 				name: "testrefresh",
 				isTemporary: true,
 			});
+			const room = (await roommanager.getRoom("testrefresh")).unwrap();
+			room.currentSource = {
+				service: "jellyfin",
+				id: "https://my.jellyfin.com::item123::key123",
+				title: "Test",
+			} as any;
 
 			const mockAdapter = {
 				getRefreshedStream: vi.fn().mockResolvedValue({
@@ -643,11 +649,39 @@ describe("Room API", () => {
 			expect(resp.body.error).toBeRoomNotFound();
 		});
 
+		it("should fail if the video ID is not in room queue or currently playing", async () => {
+			await roommanager.createRoom({
+				name: "testrefresh-notinroom",
+				isTemporary: true,
+			});
+
+			const resp = await request(app)
+				.post("/api/room/testrefresh-notinroom/refresh-stream")
+				.auth(token, { type: "bearer" })
+				.send({
+					service: "jellyfin",
+					id: "https://my.jellyfin.com::itemNotInRoom::key123",
+				});
+			expect(resp.status).toBe(400);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "BadApiArgumentException",
+				arg: "id",
+			});
+		});
+
 		it("should fail if the adapter does not support getRefreshedStream", async () => {
 			await roommanager.createRoom({
 				name: "testrefresh-unsupported",
 				isTemporary: true,
 			});
+			const room = (await roommanager.getRoom("testrefresh-unsupported")).unwrap();
+			room.currentSource = {
+				service: "youtube",
+				id: "abc12345",
+				title: "Test",
+			} as any;
 
 			const mockAdapter = {};
 			const getAdapterSpy = vi

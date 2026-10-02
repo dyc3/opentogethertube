@@ -629,7 +629,8 @@ export default defineComponent({
 		function onPlayerReady() {
 			if (
 				currentSource.value?.service === "vimeo" ||
-				currentSource.value?.service === "youtube"
+				currentSource.value?.service === "youtube" ||
+				currentSource.value?.service === "jellyfin"
 			) {
 				onPlayerReadyApplyRoomState();
 			}

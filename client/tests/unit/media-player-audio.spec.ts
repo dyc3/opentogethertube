@@ -18,12 +18,14 @@ vi.mock("vue-router", () => ({
 	}),
 }));
 
+const mockStoreState = {
+	room: { name: "testroom", isPlaying: false },
+	settings: { audioBoost: 100, volume: 100, muted: false },
+};
+
 vi.mock("@/store", () => ({
 	useStore: () => ({
-		state: {
-			room: { name: "testroom" },
-			settings: { audioBoost: 100, volume: 100, muted: false },
-		},
+		state: mockStoreState,
 		commit: vi.fn(),
 	}),
 }));
@@ -47,6 +49,8 @@ vi.stubGlobal(
 	})),
 );
 
+const mockHlsInstances: any[] = [];
+
 vi.mock("hls.js", () => {
 	class MockHls {
 		static Events = {
@@ -69,6 +73,10 @@ vi.mock("hls.js", () => {
 		on = vi.fn();
 		off = vi.fn();
 		once = vi.fn((_event, cb) => cb?.());
+
+		constructor() {
+			mockHlsInstances.push(this);
+		}
 	}
 	return { default: MockHls };
 });
@@ -308,5 +316,80 @@ describe("Audio Tracks Composable & JellyfinPlayer", () => {
 		wrapper.unmount();
 		resolveTrack2(true);
 		await req;
+	});
+
+	it("JellyfinPlayer setAudioTrack invalidates in-flight request when user returns to current track", async () => {
+		let resolveTrack2!: (val: unknown) => void;
+		const track2Promise = new Promise(resolve => {
+			resolveTrack2 = resolve;
+		});
+
+		vi.mocked(API.post).mockImplementation(async () => {
+			await track2Promise;
+			return {
+				data: {
+					success: true,
+					// eslint-disable-next-line camelcase
+					hls_url: "https://my.jellyfin.com/Videos/123/master.m3u8?AudioStreamIndex=2",
+					playbackType: "hls",
+				},
+			};
+		});
+
+		const wrapper = TestParent({
+			videoUrl: "https://my.jellyfin.com/Videos/123/master.m3u8",
+			videoId: "https://my.jellyfin.com::item123::key123",
+			availableAudioTracks: [
+				{ index: 1, label: "English", language: "eng", isDefault: true },
+				{ index: 2, label: "Spanish", language: "spa" },
+			],
+		});
+
+		const player = wrapper.vm.playerRef;
+
+		// Track 1 is current. Request track 2 (in-flight)
+		const req2 = player.setAudioTrack(2);
+
+		// User immediately re-selects track 1 (active track)
+		const req1 = player.setAudioTrack(1);
+		await req1;
+
+		expect(player.getCurrentAudioTrack()).toBe(1);
+
+		// Now let track 2 resolve
+		resolveTrack2(true);
+		await req2;
+
+		// In-flight request for track 2 should have been invalidated by selecting track 1
+		expect(player.getCurrentAudioTrack()).toBe(1);
+		wrapper.unmount();
+	});
+
+	it("JellyfinPlayer resumes playback on MANIFEST_PARSED when room isPlaying is true", async () => {
+		mockStoreState.room.isPlaying = true;
+		const playSpy = vi
+			.spyOn(HTMLMediaElement.prototype, "play")
+			.mockResolvedValue(undefined as any);
+
+		const wrapper = TestParent({
+			videoUrl: "https://my.jellyfin.com/Videos/123/master.m3u8",
+			videoId: "https://my.jellyfin.com::item123::key123",
+			availableAudioTracks: [],
+		});
+
+		const hlsInstance = mockHlsInstances[mockHlsInstances.length - 1];
+		const manifestParsedCall = hlsInstance.on.mock.calls.find(
+			(c: any[]) => c[0] === "hlsManifestParsed",
+		);
+		expect(manifestParsedCall).toBeDefined();
+
+		// Trigger MANIFEST_PARSED
+		manifestParsedCall[1]();
+
+		expect(playSpy).toHaveBeenCalled();
+
+		playSpy.mockRestore();
+		mockStoreState.room.isPlaying = false;
+		wrapper.unmount();
 	});
 });
