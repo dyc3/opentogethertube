@@ -540,6 +540,40 @@ describe("Room API", () => {
 			);
 		});
 
+		it("should update a queue item's subtitleUrl to a relative path", async () => {
+			await roommanager.createRoom({
+				name: "testqueue-rel",
+				isTemporary: true,
+			});
+			const room = (await roommanager.getRoom("testqueue-rel")).unwrap();
+			await room.queue.enqueue({ service: "direct", id: "foo" });
+
+			const resp = await request(app)
+				.patch("/api/room/testqueue-rel/queue")
+				.auth(token, { type: "bearer" })
+				.set({ Authorization: "Bearer foobar" })
+				.send({
+					service: "direct",
+					id: "foo",
+					subtitleUrl: "/api/data/jellyfin/subtitles/tok/media/0/stream.vtt",
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(200);
+
+			expect(resp.body.success).toEqual(true);
+
+			const updatedRoom = (await roommanager.getRoom("testqueue-rel")).unwrap();
+			expect(updatedRoom.queue.items).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						service: "direct",
+						id: "foo",
+						subtitleUrl: "/api/data/jellyfin/subtitles/tok/media/0/stream.vtt",
+					}),
+				]),
+			);
+		});
+
 		it("should fail if the subtitleUrl has an unsupported extension", async () => {
 			await roommanager.createRoom({
 				name: "testqueue",

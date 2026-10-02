@@ -52,7 +52,7 @@ const VideoIdSchema = z.object({
 const QueueItemExtrasSchema = z.object({
 	// startAt: z.number().nonnegative().optional(),
 	// endAt: z.number().positive().optional(),
-	subtitleUrl: z.string().url().optional(),
+	subtitleUrl: z.string().url().or(z.string().startsWith("/")).optional(),
 });
 
 const VideoAddSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);

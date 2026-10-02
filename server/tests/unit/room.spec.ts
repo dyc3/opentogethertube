@@ -338,6 +338,28 @@ describe("Room", () => {
 					subtitleUrl,
 				});
 			});
+
+			it("should preserve relative path subtitleUrl from PlayNowRequest", async () => {
+				const relativeSubtitleUrl =
+					"/api/data/jellyfin/subtitles/tok123/media123/0/stream.vtt";
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToPlay);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.PlayNowRequest,
+						video: {
+							...videoToPlay,
+							subtitleUrl: relativeSubtitleUrl,
+						},
+					},
+					{ token: user.token },
+				);
+
+				expect(room.currentSource).toEqual({
+					...videoToPlay,
+					subtitleUrl: relativeSubtitleUrl,
+				});
+			});
 		});
 
 		describe("AddRequest", () => {
@@ -408,6 +430,29 @@ describe("Room", () => {
 				expect(room.queue.items[0]).toEqual({
 					...videoToAdd,
 					subtitleUrl: assSubtitleUrl,
+				});
+			});
+
+			it("should add video with relative path subtitleUrl to queue", async () => {
+				const relativeSubtitleUrl =
+					"/api/data/jellyfin/subtitles/tok123/media123/0/stream.vtt";
+				vi.spyOn(infoextractor, "getVideoInfo").mockResolvedValue(videoToAdd);
+
+				await room.processUnauthorizedRequest(
+					{
+						type: RoomRequestType.AddRequest,
+						video: {
+							...videoToAdd,
+							subtitleUrl: relativeSubtitleUrl,
+						},
+					},
+					{ token: user.token },
+				);
+
+				expect(room.queue).toHaveLength(1);
+				expect(room.queue.items[0]).toEqual({
+					...videoToAdd,
+					subtitleUrl: relativeSubtitleUrl,
 				});
 			});
 		});
