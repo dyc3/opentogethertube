@@ -11,3 +11,11 @@ export interface CaptionTrack {
 	srclang?: string; // If kind is "subtitles", srclang must be defined
 	default?: boolean;
 }
+
+export interface AudioTrack {
+	index: number;
+	label: string;
+	language?: string;
+	codec?: string;
+	isDefault?: boolean;
+}

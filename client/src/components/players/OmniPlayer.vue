@@ -67,10 +67,28 @@
 				@buffering="onBuffering"
 				@error="onError"
 			/>
+			<JellyfinPlayer
+				v-else-if="!!source && source.service === 'jellyfin'"
+				ref="player"
+				:video-url="source.hls_url ?? source.id"
+				:video-id="source.id"
+				:thumbnail="source.thumbnail"
+				:available-subtitles="source.availableSubtitles"
+				:available-audio-tracks="source.availableAudioTracks"
+				class="player"
+				@apiready="onApiReady"
+				@playing="onPlaying"
+				@paused="onPaused"
+				@ready="onReady"
+				@buffering="onBuffering"
+				@error="onError"
+				@buffer-progress="onBufferProgress"
+				@buffer-spans="onBufferSpans"
+			/>
 			<HlsPlayer
 				v-else-if="
 					!!source &&
-					(['hls', 'reddit', 'tubi', 'pluto', 'jellyfin'].includes(source.service) ||
+					(['hls', 'reddit', 'tubi', 'pluto'].includes(source.service) ||
 						(source.service === 'direct' &&
 							(source.mime?.includes('application/vnd.apple.mpegurl') ||
 								source.mime?.includes('application/x-mpegURL'))) ||
@@ -81,8 +99,6 @@
 				ref="player"
 				:video-url="source.hls_url ?? source.id"
 				:thumbnail="source.thumbnail"
-				:service="source.service"
-				:available-subtitles="source.availableSubtitles"
 				class="player"
 				@apiready="onApiReady"
 				@playing="onPlaying"
@@ -178,10 +194,12 @@ import { isInTimeRanges, secondsToTimestamp } from "@/util/timestamp";
 import {
 	type MediaPlayer,
 	type MediaPlayerError,
+	type MediaPlayerWithAudio,
 	type MediaPlayerWithAudioBoost,
 	type MediaPlayerWithCaptions,
 	type MediaPlayerWithPlaybackRate,
 	type MediaPlayerWithQuality,
+	useAudioTracks,
 	useCaptions,
 	useMediaPlayer,
 	usePlaybackRate,
@@ -202,6 +220,7 @@ const emit = defineEmits(["apiready", "playing", "paused", "ready", "buffering",
 
 const YoutubePlayer = defineAsyncComponent(() => import("./YoutubePlayer.vue"));
 const VimeoPlayer = defineAsyncComponent(() => import("./VimeoPlayer.vue"));
+const JellyfinPlayer = defineAsyncComponent(() => import("./JellyfinPlayer.vue"));
 const HlsPlayer = defineAsyncComponent(() => import("./HlsPlayer.vue"));
 const DashPlayer = defineAsyncComponent(() => import("./DashPlayer.vue"));
 const DirectPlayer = defineAsyncComponent(() => import("./DirectPlayer.vue"));
@@ -230,6 +249,10 @@ function implementsAudioBoost(p: MediaPlayer | null): p is MediaPlayerWithAudioB
 	return !!p && "setAudioBoost" in p;
 }
 
+function implementsAudio(p: MediaPlayer | null): p is MediaPlayerWithAudio {
+	return !!p && "getAudioTracks" in p && "setAudioTrack" in p;
+}
+
 function isCaptionsSupported() {
 	if (!controls.checkForPlayer(player.value)) {
 		return false;
@@ -247,6 +270,7 @@ function isQualitySupported() {
 const volume = useVolume();
 const captions = useCaptions();
 const qualities = useQualities();
+const audio = useAudioTracks();
 watch(
 	() => store.state.settings.audioBoost,
 	v => {
@@ -270,7 +294,15 @@ watch(player, v => {
 		captions.isCaptionsSupported.value = false;
 		qualities.isQualitySupported.value = false;
 		qualities.isAutoQualitySupported.value = false;
+		audio.isAudioSupported.value = false;
+		audio.audioTracks.value = [];
+		audio.currentAudioTrack.value = null;
 		playbackRate.availablePlaybackRates.value = [1];
+	}
+});
+watch(audio.currentAudioTrack, async v => {
+	if (player.value && implementsAudio(player.value) && v !== null) {
+		await player.value.setAudioTrack(v);
 	}
 });
 watch(captions.isCaptionsEnabled, v => {
@@ -348,6 +380,15 @@ async function onApiReady() {
 	if (implementsPlaybackRate(player.value)) {
 		playbackRate.availablePlaybackRates.value = player.value.getAvailablePlaybackRates();
 		player.value.setPlaybackRate(playbackRate.playbackRate.value);
+	}
+	if (implementsAudio(player.value)) {
+		audio.isAudioSupported.value = player.value.isAudioSupported();
+		audio.audioTracks.value = player.value.getAudioTracks();
+		audio.currentAudioTrack.value = player.value.getCurrentAudioTrack();
+	} else {
+		audio.isAudioSupported.value = false;
+		audio.audioTracks.value = [];
+		audio.currentAudioTrack.value = null;
 	}
 	emit("apiready");
 }

@@ -21,6 +21,7 @@ import type { OttApiRequestRoomCreate } from "ott-common/models/rest-api.js";
 import { conf } from "../../../../server/ott-config.js";
 import type { User } from "../../../models/user.js";
 import { UnloadReason } from "../../../generated.js";
+import infoextractor from "../../../infoextractor.js";
 
 const JSON_CONTENT_TYPE_REGEX = /json/;
 
@@ -542,6 +543,113 @@ describe("Room API", () => {
 				.auth(token, { type: "bearer" })
 				.set({ Authorization: "Bearer foobar" })
 				.send({ service: "direct", id: "foo", subtitleUrl: 123 })
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(400);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "ZodValidationError",
+			});
+		});
+	});
+
+	describe("POST /api/room/:name/refresh-stream", () => {
+		it("should refresh stream successfully for supported adapter", async () => {
+			await roommanager.createRoom({
+				name: "testrefresh",
+				isTemporary: true,
+			});
+
+			const mockAdapter = {
+				getRefreshedStream: vi.fn().mockResolvedValue({
+					hls_url: "https://example.com/stream.m3u8",
+					playbackType: "hls",
+				}),
+			};
+			const getAdapterSpy = vi
+				.spyOn(infoextractor, "getServiceAdapter")
+				.mockReturnValue(mockAdapter as any);
+
+			const resp = await request(app)
+				.post("/api/room/testrefresh/refresh-stream")
+				.auth(token, { type: "bearer" })
+				.send({
+					service: "jellyfin",
+					id: "https://my.jellyfin.com::item123::key123",
+					audioStreamIndex: 2,
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(200);
+
+			expect(resp.body).toEqual({
+				success: true,
+				hls_url: "https://example.com/stream.m3u8",
+				playbackType: "hls",
+			});
+			expect(mockAdapter.getRefreshedStream).toHaveBeenCalledWith(
+				"https://my.jellyfin.com::item123::key123",
+				2,
+			);
+
+			getAdapterSpy.mockRestore();
+		});
+
+		it("should fail if the room does not exist", async () => {
+			const resp = await request(app)
+				.post("/api/room/nonexistentroom/refresh-stream")
+				.auth(token, { type: "bearer" })
+				.send({
+					service: "jellyfin",
+					id: "https://my.jellyfin.com::item123::key123",
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(404);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toBeRoomNotFound();
+		});
+
+		it("should fail if the adapter does not support getRefreshedStream", async () => {
+			await roommanager.createRoom({
+				name: "testrefresh-unsupported",
+				isTemporary: true,
+			});
+
+			const mockAdapter = {};
+			const getAdapterSpy = vi
+				.spyOn(infoextractor, "getServiceAdapter")
+				.mockReturnValue(mockAdapter as any);
+
+			const resp = await request(app)
+				.post("/api/room/testrefresh-unsupported/refresh-stream")
+				.auth(token, { type: "bearer" })
+				.send({
+					service: "youtube",
+					id: "abc12345",
+				})
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(400);
+
+			expect(resp.body.success).toEqual(false);
+			expect(resp.body.error).toMatchObject({
+				name: "BadApiArgumentException",
+			});
+
+			getAdapterSpy.mockRestore();
+		});
+
+		it("should fail if request body is invalid", async () => {
+			await roommanager.createRoom({
+				name: "testrefresh-invalid",
+				isTemporary: true,
+			});
+
+			const resp = await request(app)
+				.post("/api/room/testrefresh-invalid/refresh-stream")
+				.auth(token, { type: "bearer" })
+				.send({
+					service: 123,
+				})
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(400);
 

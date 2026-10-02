@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeAll, beforeEach, vi, type MockInstance } from "vitest";
 import JellyfinAdapter from "../../../services/jellyfin.js";
 import type { AxiosRequestHeaders, AxiosResponse } from "axios";
+import { BadApiArgumentException, JellyfinApiKeyException } from "../../../exceptions.js";
 
 const EPISODE_MEDIA_SOURCE_RE = /\/Videos\/ep\d+\/master\.m3u8/;
+const PLAYBACK_INFO_ITEM_ID_REGEX = /\/Items\/([^/]+)\/PlaybackInfo/;
+const MISSING_API_KEY_REGEX = /Missing API key/;
+const UNAUTHORIZED_REGEX = /Unauthorized/;
 
 const validLinks = [
 	"https://my.jellyfin.com/web/index.html#!/details?id=abc123&api_key=xyz789",
@@ -43,7 +47,8 @@ describe("Jellyfin", () => {
 		apiPostMock.mockImplementation(async (url: string, _body?: unknown) => {
 			const parsed = new URL(url);
 			if (parsed.pathname.includes("/PlaybackInfo")) {
-				const itemId = parsed.pathname.split("/")[2] ?? "movie123";
+				const match = parsed.pathname.match(PLAYBACK_INFO_ITEM_ID_REGEX);
+				const itemId = match ? match[1] : "movie123";
 				return mockPlaybackInfoResponse(
 					[
 						{
@@ -74,76 +79,76 @@ describe("Jellyfin", () => {
 			throw new Error(`Unexpected POST URL: ${url}`);
 		});
 		apiGetMock.mockImplementation(async (url: string, _config?: unknown) => {
-				const parsed = new URL(url);
+			const parsed = new URL(url);
 
-				if (parsed.pathname === "/Users") {
-					return mockUsersResponse([{ Id: "user123", Name: "TestUser" }]);
+			if (parsed.pathname.endsWith("/Users")) {
+				return mockUsersResponse([{ Id: "user123", Name: "TestUser" }]);
+			}
+
+			if (parsed.pathname.includes("/Shows/") && parsed.pathname.includes("/Episodes")) {
+				return mockEpisodesResponse([
+					{ Id: "ep001", Name: "Pilot" },
+					{ Id: "ep002", Name: "Episode 2" },
+				]);
+			}
+
+			if (parsed.pathname.includes("/Users/user123/Items/")) {
+				const itemId = parsed.pathname.split("/").pop();
+				if (itemId === "movie123") {
+					return mockItemResponse({
+						Id: "movie123",
+						Name: "Test Movie",
+						Type: "Movie",
+						RunTimeTicks: 72000000000,
+						Overview: "A test movie",
+						Images: { Primary: "/Items/movie123/Images/Primary" },
+					});
 				}
-
-				if (parsed.pathname.includes("/Shows/") && parsed.pathname.includes("/Episodes")) {
-					return mockEpisodesResponse([
-						{ Id: "ep001", Name: "Pilot" },
-						{ Id: "ep002", Name: "Episode 2" },
-					]);
+				if (itemId === "series456") {
+					return mockItemResponse({
+						Id: "series456",
+						Name: "Test Series",
+						Type: "Series",
+						Overview: "A test series",
+					});
 				}
-
-				if (parsed.pathname.includes("/Users/user123/Items/")) {
-					const itemId = parsed.pathname.split("/").pop();
-					if (itemId === "movie123") {
-						return mockItemResponse({
-							Id: "movie123",
-							Name: "Test Movie",
-							Type: "Movie",
-							RunTimeTicks: 72000000000,
-							Overview: "A test movie",
-							Images: { Primary: "/Items/movie123/Images/Primary" },
-						});
-					}
-					if (itemId === "series456") {
-						return mockItemResponse({
-							Id: "series456",
-							Name: "Test Series",
-							Type: "Series",
-							Overview: "A test series",
-						});
-					}
-					if (itemId === "season789") {
-						return mockItemResponse({
-							Id: "season789",
-							Name: "Season 1",
-							Type: "Season",
-							ParentId: "series456",
-							Overview: "Season 1",
-						});
-					}
-					if (itemId === "ep001") {
-						return mockItemResponse({
-							Id: "ep001",
-							Name: "Pilot",
-							Type: "Episode",
-							ParentIndexNumber: 1,
-							IndexNumber: 1,
-							SeriesName: "Test Series",
-							RunTimeTicks: 27000000000,
-							Overview: "First episode",
-						});
-					}
-					if (itemId === "ep002") {
-						return mockItemResponse({
-							Id: "ep002",
-							Name: "Episode 2",
-							Type: "Episode",
-							ParentIndexNumber: 1,
-							IndexNumber: 2,
-							SeriesName: "Test Series",
-							RunTimeTicks: 27000000000,
-							Overview: "Second episode",
-						});
-					}
+				if (itemId === "season789") {
+					return mockItemResponse({
+						Id: "season789",
+						Name: "Season 1",
+						Type: "Season",
+						ParentId: "series456",
+						Overview: "Season 1",
+					});
 				}
+				if (itemId === "ep001") {
+					return mockItemResponse({
+						Id: "ep001",
+						Name: "Pilot",
+						Type: "Episode",
+						ParentIndexNumber: 1,
+						IndexNumber: 1,
+						SeriesName: "Test Series",
+						RunTimeTicks: 27000000000,
+						Overview: "First episode",
+					});
+				}
+				if (itemId === "ep002") {
+					return mockItemResponse({
+						Id: "ep002",
+						Name: "Episode 2",
+						Type: "Episode",
+						ParentIndexNumber: 1,
+						IndexNumber: 2,
+						SeriesName: "Test Series",
+						RunTimeTicks: 27000000000,
+						Overview: "Second episode",
+					});
+				}
+			}
 
-				throw new Error(`Unexpected URL: ${url}`);
-			});
+			throw new Error(`Unexpected URL: ${url}`);
+		});
 	}
 
 	function mockApiWithPlayback(
@@ -152,16 +157,18 @@ describe("Jellyfin", () => {
 			Index: number;
 			Codec?: string;
 			Language?: string;
+			Title?: string;
 			DisplayTitle?: string;
+			IsDefault?: boolean;
 			IsTextSubtitleStream?: boolean;
 			SupportsExternalStream?: boolean;
 			DeliveryUrl?: string;
-	}[],
-	mediaSource?: {
-		Id?: string;
-		TranscodingUrl?: string;
-	},
-): void {
+		}[],
+		mediaSource?: {
+			Id?: string;
+			TranscodingUrl?: string;
+		},
+	): void {
 		apiPostMock.mockReset();
 		apiPostMock.mockImplementation(async (url: string) => {
 			const parsed = new URL(url);
@@ -258,6 +265,27 @@ describe("Jellyfin", () => {
 			);
 			expect(id).toEqual("https://my.jellyfin.com::movie123::key123");
 		});
+
+		it("should extract compound id from web URL with subpath", () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/jellyfin/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			expect(id).toEqual("https://my.jellyfin.com/jellyfin::movie123::key123");
+		});
+
+		it("should extract compound id from items download URL with subpath", () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/jf/Items/movie123/Download?api_key=key123",
+			);
+			expect(id).toEqual("https://my.jellyfin.com/jf::movie123::key123");
+		});
+
+		it("should extract compound id from HLS URL with subpath", () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/media/Videos/movie123/main.m3u8?api_key=key123",
+			);
+			expect(id).toEqual("https://my.jellyfin.com/media::movie123::key123");
+		});
 	});
 
 	describe("fetchVideoInfo", () => {
@@ -279,10 +307,10 @@ describe("Jellyfin", () => {
 				length: 7200,
 				mime: "application/x-mpegURL",
 			});
-		expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
-		expect(video.hls_url).toContain("PlaySessionId=session123");
-		expect(video.hls_url).toContain("api_key=key123");
-		expect(video.src_url).toBeUndefined();
+			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
+			expect(video.hls_url).toContain("PlaySessionId=session123");
+			expect(video.hls_url).toContain("api_key=key123");
+			expect(video.src_url).toBeUndefined();
 		});
 
 		it("should post a minimal playback info body", async () => {
@@ -292,13 +320,16 @@ describe("Jellyfin", () => {
 			await adapter.fetchVideoInfo(id);
 
 			expect(apiPostMock).toHaveBeenCalledWith(
-				"https://my.jellyfin.com/Items/movie123/PlaybackInfo",
-				{
+				"https://my.jellyfin.com/Items/movie123/PlaybackInfo?userId=user123",
+				expect.objectContaining({
 					StartTimeTicks: 0,
 					IsPlayback: true,
 					AutoOpenLiveStream: true,
 					AlwaysBurnInSubtitleWhenTranscoding: false,
-				},
+					DeviceProfile: expect.objectContaining({
+						Name: "OpenTogetherTube",
+					}),
+				}),
 				expect.objectContaining({
 					headers: expect.objectContaining({ "X-Emby-Token": "key123" }),
 				}),
@@ -341,7 +372,7 @@ describe("Jellyfin", () => {
 			const id = adapter.getVideoId(
 				"https://my.jellyfin.com/web/index.html#!/details?id=movie123",
 			);
-			await expect(adapter.fetchVideoInfo(id)).rejects.toThrow(/Missing API key/);
+			await expect(adapter.fetchVideoInfo(id)).rejects.toThrow(MISSING_API_KEY_REGEX);
 		});
 
 		it("should fail with a clear error on 401 from playback info", async () => {
@@ -350,7 +381,7 @@ describe("Jellyfin", () => {
 			);
 			apiPostMock.mockReset();
 			apiPostMock.mockRejectedValue({ isAxiosError: true, response: { status: 401 } });
-			await expect(adapter.fetchVideoInfo(id)).rejects.toThrow(/Unauthorized/);
+			await expect(adapter.fetchVideoInfo(id)).rejects.toThrow(UNAUTHORIZED_REGEX);
 		});
 
 		it("should throw the key error when a bulk fetch fully fails on credentials", async () => {
@@ -359,7 +390,7 @@ describe("Jellyfin", () => {
 					{ id: "https://my.jellyfin.com::movie123", missingInfo: [] },
 					{ id: "https://my.jellyfin.com::ep001", missingInfo: [] },
 				]),
-			).rejects.toThrow(/Missing API key/);
+			).rejects.toThrow(MISSING_API_KEY_REGEX);
 		});
 
 		it("should return partial results when only some bulk videos lack credentials", async () => {
@@ -382,8 +413,10 @@ describe("Jellyfin", () => {
 			mockApiWithPlayback([], { Id: "movie123" });
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.hls_url).toContain("/Videos/movie123/main.m3u8");
+			expect(video.hls_url).toContain("/Videos/movie123/master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
+			expect(video.hls_url).toContain("MediaSourceId=movie123");
+			expect(video.hls_url).toContain("PlaySessionId=");
 			expect(video.hls_url).toContain("api_key=key123");
 		});
 
@@ -437,8 +470,10 @@ describe("Jellyfin", () => {
 			const video = await adapter.fetchVideoInfo(id);
 
 			expect(video.subtitleUrl).toContain("/Videos/movie123/mediasource999/Subtitles/2/0/");
-			expect(video.hls_url).toContain("/Videos/mediasource999/main.m3u8");
+			expect(video.hls_url).toContain("/Videos/mediasource999/master.m3u8");
 			expect(video.hls_url).toContain("AudioCodec=aac");
+			expect(video.hls_url).toContain("MediaSourceId=mediasource999");
+			expect(video.hls_url).toContain("PlaySessionId=");
 		});
 
 		it("should filter out subtitles that cannot be delivered externally", async () => {
@@ -511,7 +546,9 @@ describe("Jellyfin", () => {
 			);
 			const video = await adapter.fetchVideoInfo(id);
 
-			expect(video.subtitleUrl).toContain("/Videos/movie123/movie123/Subtitles/2/0/Stream.vtt");
+			expect(video.subtitleUrl).toContain(
+				"/Videos/movie123/movie123/Subtitles/2/0/Stream.vtt",
+			);
 			expect(video.subtitleUrl).toContain("api_key=key123");
 		});
 
@@ -568,6 +605,100 @@ describe("Jellyfin", () => {
 				}),
 			);
 		});
+
+		it("should extract multi-track audio and include availableAudioTracks", async () => {
+			const id = adapter.getVideoId(
+				"https://my.jellyfin.com/web/index.html#!/details?id=movie123&api_key=key123",
+			);
+			mockApiWithPlayback(
+				[
+					{
+						Type: "Video",
+						Index: 0,
+					},
+					{
+						Type: "Audio",
+						Index: 1,
+						Codec: "aac",
+						Language: "eng",
+						DisplayTitle: "English (AAC 5.1)",
+						IsDefault: true,
+					},
+					{
+						Type: "Audio",
+						Index: 2,
+						Codec: "flac",
+						Language: "jpn",
+						DisplayTitle: "Japanese (FLAC Stereo)",
+					},
+					{
+						Type: "Audio",
+						Index: 3,
+						Codec: "aac",
+						Language: "und",
+						Title: "Commentary",
+					},
+					{
+						Type: "Subtitle",
+						Index: 4,
+						Codec: "subrip",
+						Language: "eng",
+						DisplayTitle: "English",
+						IsTextSubtitleStream: true,
+						SupportsExternalStream: true,
+					},
+				],
+				{ Id: "movie123" },
+			);
+			const video = await adapter.fetchVideoInfo(id);
+
+			expect(video.availableAudioTracks).toHaveLength(3);
+			expect(video.availableAudioTracks).toEqual([
+				{
+					index: 1,
+					label: "English (AAC 5.1)",
+					language: "eng",
+					codec: "aac",
+					isDefault: true,
+				},
+				{
+					index: 2,
+					label: "Japanese (FLAC Stereo)",
+					language: "jpn",
+					codec: "flac",
+					isDefault: undefined,
+				},
+				{
+					index: 3,
+					label: "Commentary",
+					language: "und",
+					codec: "aac",
+					isDefault: undefined,
+				},
+			]);
+		});
+
+		it("should preserve subpath in API requests and stream URLs", async () => {
+			const id = "https://my.jellyfin.com/jellyfin::movie123::key123";
+			const video = await adapter.fetchVideoInfo(id);
+
+			expect(apiGetMock).toHaveBeenCalledWith(
+				"https://my.jellyfin.com/jellyfin/Users",
+				expect.any(Object),
+			);
+			expect(apiGetMock).toHaveBeenCalledWith(
+				"https://my.jellyfin.com/jellyfin/Users/user123/Items/movie123",
+				expect.any(Object),
+			);
+			expect(apiPostMock).toHaveBeenCalledWith(
+				"https://my.jellyfin.com/jellyfin/Items/movie123/PlaybackInfo?userId=user123",
+				expect.any(Object),
+				expect.any(Object),
+			);
+			expect(video.hls_url).toContain(
+				"https://my.jellyfin.com/jellyfin/Videos/movie123/master.m3u8",
+			);
+		});
 	});
 
 	describe("resolveURL", () => {
@@ -601,6 +732,84 @@ describe("Jellyfin", () => {
 				expect(video.hls_url).toContain("PlaySessionId=session123");
 				expect(video.hls_url).toMatch(EPISODE_MEDIA_SOURCE_RE);
 			});
+		});
+	});
+
+	describe("getRefreshedStream", () => {
+		it("should request playback info with audioStreamIndex and return transcoding URL", async () => {
+			const res = await adapter.getRefreshedStream(
+				"https://my.jellyfin.com::movie123::key123",
+				2,
+			);
+
+			expect(apiPostMock).toHaveBeenCalledWith(
+				"https://my.jellyfin.com/Items/movie123/PlaybackInfo?userId=user123",
+				expect.objectContaining({
+					AudioStreamIndex: 2,
+					MediaSourceId: "movie123",
+				}),
+				expect.any(Object),
+			);
+			expect(res.playbackType).toBe("hls");
+			expect(res.hls_url).toContain("https://my.jellyfin.com");
+			expect(res.hls_url).toContain("master.m3u8");
+			expect(res.hls_url).toContain("api_key=key123");
+		});
+
+		it("should fallback to constructStreamUrl if TranscodingUrl is absent", async () => {
+			mockApiWithPlayback(
+				[
+					{
+						Type: "Audio",
+						Index: 1,
+						Codec: "aac",
+						Language: "eng",
+					},
+				],
+				{
+					Id: "ms456",
+				},
+			);
+
+			const res = await adapter.getRefreshedStream(
+				"https://my.jellyfin.com::movie123::key123",
+				1,
+			);
+
+			expect(res.playbackType).toBe("hls");
+			expect(res.hls_url).toContain("/Videos/ms456/master.m3u8");
+			expect(res.hls_url).toContain("api_key=key123");
+			expect(res.hls_url).toContain("AudioCodec=aac");
+			expect(res.hls_url).toContain("AudioStreamIndex=1");
+			expect(res.hls_url).toContain("MediaSourceId=ms456");
+			expect(res.hls_url).toContain("PlaySessionId=");
+		});
+
+		it("should throw BadApiArgumentException on invalid audioStreamIndex", async () => {
+			await expect(
+				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::key123", -1),
+			).rejects.toThrow(BadApiArgumentException);
+
+			await expect(
+				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::key123", 1.5),
+			).rejects.toThrow(BadApiArgumentException);
+		});
+
+		it("should throw JellyfinApiKeyException when API key is missing", async () => {
+			await expect(
+				adapter.getRefreshedStream("https://my.jellyfin.com::movie123"),
+			).rejects.toThrow(JellyfinApiKeyException);
+		});
+
+		it("should throw JellyfinApiKeyException on 401 Unauthorized", async () => {
+			apiPostMock.mockRejectedValueOnce({
+				isAxiosError: true,
+				response: { status: 401 },
+			});
+
+			await expect(
+				adapter.getRefreshedStream("https://my.jellyfin.com::movie123::invalidKey", 0),
+			).rejects.toThrow(JellyfinApiKeyException);
 		});
 	});
 });
@@ -642,7 +851,9 @@ function mockPlaybackInfoResponse(
 		Index: number;
 		Codec?: string;
 		Language?: string;
+		Title?: string;
 		DisplayTitle?: string;
+		IsDefault?: boolean;
 		IsTextSubtitleStream?: boolean;
 		SupportsExternalStream?: boolean;
 		DeliveryUrl?: string;

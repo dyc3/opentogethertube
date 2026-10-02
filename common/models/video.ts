@@ -13,6 +13,14 @@ export interface VideoSubtitle {
 	language?: string;
 }
 
+export interface VideoAudioTrack {
+	index: number;
+	label: string;
+	language?: string;
+	codec?: string;
+	isDefault?: boolean;
+}
+
 export interface VideoMetadata {
 	title: string;
 	description: string;
@@ -25,6 +33,7 @@ export interface VideoMetadata {
 	src_url?: string;
 	subtitleUrl?: string;
 	availableSubtitles?: VideoSubtitle[];
+	availableAudioTracks?: VideoAudioTrack[];
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;

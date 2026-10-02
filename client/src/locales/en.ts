@@ -193,6 +193,8 @@ export default {
 		"player-settings": "Player settings",
 		subtitles: "Subtitles/CC",
 		quality: "Quality",
+		audio: "Audio",
+		"audio-track": "Audio Track {index}",
 		"playback-speed": "Playback speed",
 		"mute-volume": "Mute",
 		"close-chat": "Close chat",

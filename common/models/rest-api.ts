@@ -16,6 +16,7 @@ import type {
 	ClaimSchema,
 	RoomSettingsSchema,
 	OttApiRequestRoomGenerateSchema,
+	OttApiRequestRefreshStreamSchema,
 } from "./zod-schemas.js";
 import type { z } from "zod";
 
@@ -82,6 +83,13 @@ export type OttApiRequestAddToQueue = z.infer<typeof OttApiRequestAddToQueueSche
 export type OttApiRequestRemoveFromQueue = z.infer<typeof OttApiRequestRemoveFromQueueSchema>;
 
 export type OttApiRequestUpdateQueueItem = z.infer<typeof OttApiRequestUpdateQueueItemSchema>;
+
+export type OttApiRequestRefreshStream = z.infer<typeof OttApiRequestRefreshStreamSchema>;
+
+export interface OttApiResponseRefreshStream {
+	hls_url: string;
+	playbackType: "hls";
+}
 
 export type OttApiResponseAddPreview = {
 	result: Video[];

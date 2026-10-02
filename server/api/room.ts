@@ -29,6 +29,8 @@ import type {
 	OttResponseBody,
 	OttClaimRequest,
 	RoomListItem,
+	OttApiRequestRefreshStream,
+	OttApiResponseRefreshStream,
 } from "ott-common/models/rest-api.js";
 import { getApiKey } from "../admin.js";
 import { v4 as uuidv4 } from "uuid";
@@ -42,10 +44,12 @@ import {
 	OttApiRequestUpdateQueueItemSchema,
 	OttApiRequestPatchRoomSchema,
 	OttApiRequestRoomGenerateSchema,
+	OttApiRequestRefreshStreamSchema,
 } from "ott-common/models/zod-schemas.js";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { UnloadReason } from "../generated.js";
+import infoextractor from "../infoextractor.js";
 
 const router = express.Router();
 const log = getLogger("api/room");
@@ -495,6 +499,36 @@ const updateQueueItem: RequestHandler<
 	});
 };
 
+const refreshStream: RequestHandler<
+	{ name: string },
+	OttResponseBody<OttApiResponseRefreshStream>,
+	OttApiRequestRefreshStream
+> = async (req, res) => {
+	const body = OttApiRequestRefreshStreamSchema.parse(req.body);
+	const points = 2;
+	if (!(await consumeRateLimitPoints(res, req.ip, points))) {
+		return;
+	}
+	(await roommanager.getRoom(req.params.name)).unwrap();
+
+	const adapter = infoextractor.getServiceAdapter(body.service);
+	if (
+		!("getRefreshedStream" in adapter) ||
+		typeof (adapter as any).getRefreshedStream !== "function"
+	) {
+		throw new BadApiArgumentException(
+			"service",
+			`Service ${body.service} does not support stream refreshing`,
+		);
+	}
+
+	const refreshed = await (adapter as any).getRefreshedStream(body.id, body.audioStreamIndex);
+	res.json({
+		success: true,
+		...refreshed,
+	});
+};
+
 const errorHandler: ErrorRequestHandler = (err: Error, req, res) => {
 	counterHttpErrors.labels({ error: err.name }).inc();
 	if (err instanceof OttException) {
@@ -657,6 +691,14 @@ router.patch("/:name/queue", async (req, res, next) => {
 router.delete("/:name/queue", async (req, res, next) => {
 	try {
 		await removeFromQueue(req, res, next);
+	} catch (e) {
+		errorHandler(e, req, res, next);
+	}
+});
+
+router.post("/:name/refresh-stream", async (req, res, next) => {
+	try {
+		await refreshStream(req, res, next);
 	} catch (e) {
 		errorHandler(e, req, res, next);
 	}

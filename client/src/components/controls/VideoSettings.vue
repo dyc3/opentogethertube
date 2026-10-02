@@ -51,6 +51,22 @@
 						</div>
 						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
 					</button>
+
+					<button
+						v-if="isAudioSupported"
+						type="button"
+						class="menu-item"
+						@click="navigateToMenu('audio')"
+					>
+						<Icon :icon="mdiVolumeHigh" class="size-5 shrink-0" />
+						<div class="menu-item-content">
+							<span>{{ $t("room.audio") }}</span>
+							<span v-if="currentAudioDisplay" class="menu-item-value">
+								{{ currentAudioDisplay }}
+							</span>
+						</div>
+						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
+					</button>
 				</div>
 
 				<!-- Quality submenu -->
@@ -113,6 +129,31 @@
 						/>
 					</button>
 				</div>
+
+				<!-- Audio submenu -->
+				<div v-else-if="currentMenu === 'audio'" key="audio" class="menu-content">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
+						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
+						<span>{{ $t("room.audio") }}</span>
+					</button>
+
+					<button
+						v-for="track in audio.audioTracks.value"
+						:key="track.index"
+						type="button"
+						class="menu-item"
+						:class="{
+							'menu-item-active': track.index === audio.currentAudioTrack.value,
+						}"
+						@click="selectAudioTrack(track.index)"
+					>
+						<span class="menu-item-content">{{ formatAudio(track) }}</span>
+					</button>
+				</div>
 			</Transition>
 		</PopoverContent>
 	</Popover>
@@ -123,24 +164,26 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ref, computed } from "vue";
-import { useCaptions, useQualities } from "../composables";
+import { useAudioTracks, useCaptions, useQualities } from "../composables";
 import {
 	mdiCog,
 	mdiClosedCaptionOutline,
 	mdiClosedCaption,
 	mdiTune,
+	mdiVolumeHigh,
 	mdiChevronLeft,
 	mdiChevronRight,
 } from "@mdi/js";
 import { getFriendlyResolutionLabel } from "@/util/misc";
-import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack, AudioTrack } from "@/models/media-tracks";
 
 // Menu types - using literal string values instead of enum due to Safari compatibility issues
-const currentMenu = ref<"main" | "quality" | "subtitle">("main");
+const currentMenu = ref<"main" | "quality" | "subtitle" | "audio">("main");
 const isMenuOpen = ref<boolean>(false);
 
 const qualities = useQualities();
 const captions = useCaptions();
+const audio = useAudioTracks();
 
 const isQualitySupported = computed(
 	() => qualities.isQualitySupported.value && qualities.videoTracks.value.length > 0,
@@ -150,6 +193,10 @@ const isCaptionsSupported = computed(
 	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0,
 );
 
+const isAudioSupported = computed(
+	() => audio.isAudioSupported.value && audio.audioTracks.value.length > 1,
+);
+
 const currentSubtitleDisplay = computed(() => {
 	const isEnabled =
 		isCaptionsSupported.value &&
@@ -157,6 +204,14 @@ const currentSubtitleDisplay = computed(() => {
 		captions.currentTrack.value !== null;
 	const track = captions.captionsTracks.value[captions.currentTrack.value || 0];
 	return isEnabled ? formatCaption(track) : "disabled";
+});
+
+const currentAudioDisplay = computed(() => {
+	if (!isAudioSupported.value || audio.currentAudioTrack.value === null) {
+		return "disabled";
+	}
+	const track = audio.audioTracks.value.find(t => t.index === audio.currentAudioTrack.value);
+	return track ? formatAudio(track) : "disabled";
 });
 
 function formatCaption(track: CaptionTrack): string {
@@ -169,10 +224,21 @@ function formatCaption(track: CaptionTrack): string {
 	return label;
 }
 
+function formatAudio(track: AudioTrack): string {
+	const localizedLang =
+		track.language &&
+		new Intl.DisplayNames([track.language], { type: "language", fallback: "none" }).of(
+			track.language,
+		);
+	return track.label ?? localizedLang ?? track.language ?? `Audio ${track.index}`;
+}
+
+function selectAudioTrack(index: number): void {
+	audio.currentAudioTrack.value = index;
+	closeMenu();
+}
+
 function formatQuality(videoTrack: VideoTrack): string {
-	if (typeof videoTrack.label === "string") {
-		return videoTrack.label;
-	}
 	const resolution = videoTrack.label ?? getFriendlyResolutionLabel(videoTrack);
 	return `${resolution}p`;
 }

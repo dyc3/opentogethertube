@@ -33,14 +33,9 @@ import type { MediaPlayerError } from "../composables/media-player";
 interface Props {
 	videoUrl: string;
 	thumbnail?: string;
-	service?: string;
-	availableSubtitles?: Array<{ url: string; label?: string; language?: string }>;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-	service: "",
-	availableSubtitles: () => [],
-});
+const props = defineProps<Props>();
 const { videoUrl, thumbnail } = toRefs(props);
 const videoElem = ref<HTMLVideoElement | undefined>();
 const captions = useCaptions();
@@ -164,30 +159,6 @@ function setCaptionsTrack(track: number): void {
 	captions.currentTrack.value = track;
 }
 
-function addExternalSubtitleTracks(): void {
-	if (!videoElem.value) {
-		return;
-	}
-	// Always clear tracks from the previous video first, even when the new
-	// video has no subtitles, otherwise stale tracks linger in the selector.
-	const existingTracks = videoElem.value.querySelectorAll("track");
-	for (const track of existingTracks) {
-		track.remove();
-	}
-	if (!props.availableSubtitles || props.availableSubtitles.length === 0) {
-		return;
-	}
-	for (const sub of props.availableSubtitles) {
-		const track = document.createElement("track");
-		track.kind = "subtitles";
-		track.label = sub.label ?? `Subtitle ${sub.language ?? "und"}`;
-		track.srclang = sub.language ?? "und";
-		track.src = sub.url;
-		videoElem.value.appendChild(track);
-	}
-	console.log("HlsPlayer: added external subtitle tracks:", props.availableSubtitles.length);
-}
-
 function isQualitySupported(): boolean {
 	return true;
 }
@@ -280,19 +251,6 @@ function loadVideoSource() {
 		hls = undefined;
 	}
 
-	const ms = videoElem.value.mediaSource;
-	if (ms) {
-		for (let i = 0; i < ms.sourceBuffers.length; i++) {
-			const sb = ms.sourceBuffers[i];
-			if (sb.updating) {
-				sb.abort();
-			}
-			if (sb.buffered.length > 0) {
-				sb.remove(sb.buffered.start(0), sb.buffered.end(sb.buffered.length - 1));
-			}
-		}
-	}
-
 	captions.captionsTracks.value = [];
 	captions.isCaptionsEnabled.value = false;
 	captions.currentTrack.value = null;
@@ -306,7 +264,6 @@ function loadVideoSource() {
 		console.info("HlsPlayer: hls.js manifest parsed", data);
 		emit("ready");
 
-		addExternalSubtitleTracks();
 		captions.captionsTracks.value = getCaptionsTracks();
 	});
 

@@ -1,10 +1,67 @@
+/**
+ * @file jellyfin.ts
+ * @description Jellyfin Service Adapter for OpenTogetherTube.
+ *
+ * Architecture & Protocol Notes:
+ * 1. Authentication:
+ *    - Jellyfin requires API authentication via client headers (`X-Emby-Client`, `X-Emby-Device`,
+ *      `X-Emby-Device-Id`, `X-Emby-Version`) and an API token passed in `X-Emby-Token` or as an `api_key` param.
+ *    - User context is resolved through `/Users` (returning existing server users) to query user-scoped library items.
+ *
+ * 2. Compound ID & Multi-Monolith Routing:
+ *    - OpenTogetherTube compound IDs are structured as: `${serverBaseUrl}::${itemId}::${apiKey}`.
+ *    - Embedding the API key directly into the compound ID ensures authorization context survives:
+ *      a) Multi-node load balancing (preview requests routed to random monoliths vs room queue routed to room monoliths).
+ *      b) Server restarts where in-memory caches are purged.
+ *    - Legacy 2-part compound IDs (`${serverBaseUrl}::${itemId}`) remain supported via the local `apiKeyCache`.
+ *    - Subpaths (e.g. reverse proxy paths like `https://host/jellyfin`) are extracted as `serverBaseUrl`
+ *      so that all API endpoints resolve relative to the server's mount path.
+ *
+ * 3. Media Streaming & Transcoding:
+ *    - Streams are fetched via `POST /Items/{itemId}/PlaybackInfo`.
+ *    - Minimal body payload (`StartTimeTicks: 0`, `IsPlayback: true`, `AutoOpenLiveStream: true`,
+ *      `AlwaysBurnInSubtitleWhenTranscoding: false`) requests a session-backed HLS transcode.
+ *    - The resulting `TranscodingUrl` includes a unique `PlaySessionId` with AAC audio and HLS packaging.
+ *    - Hardcoded fallback `/Videos/{mediaSourceId}/main.m3u8?api_key=...&AudioCodec=aac` is used
+ *      if no transcode URL is emitted.
+ *
+ * 4. Subtitle Delivery:
+ *    - Jellyfin text subtitle streams (`IsTextSubtitleStream && SupportsExternalStream`, e.g. srt, ass, vtt)
+ *      are converted to WebVTT on-the-fly by Jellyfin.
+ *    - Deliverable subtitle URLs use the server's `DeliveryUrl` or standard 4-segment format:
+ *      `${serverBaseUrl}/Videos/${itemId}/${mediaSourceId}/Subtitles/${stream.Index}/0/Stream.vtt?api_key=...`.
+ *    - Subtitles are served as native HTML5 `<track>` elements in client players without re-encoding video.
+ *
+ * 5. Multi-Track Audio Selection:
+ *    - Jellyfin streams bind one audio stream per transcode session (`AudioStreamIndex`).
+ *    - Audio streams (`Type === "Audio"`) are extracted into `availableAudioTracks` preserving Jellyfin's
+ *      global stream `Index` verbatim.
+ *    - Runtime track switching is achieved by calling `getRefreshedStream(id, audioStreamIndex)`,
+ *      which requests a fresh transcode session from Jellyfin with `AudioStreamIndex`.
+ *
+ * 6. Error Handling:
+ *    - Authentication failures and missing keys throw `JellyfinApiKeyException` (subclass of `OttException`),
+ *      preventing WebSocket client disconnections while delivering clear, actionable feedback to users.
+ */
+
 import axios from "axios";
-import type { Video, VideoMetadata, VideoService, VideoSubtitle } from "ott-common/models/video.js";
+import type {
+	Video,
+	VideoAudioTrack,
+	VideoMetadata,
+	VideoService,
+	VideoSubtitle,
+} from "ott-common/models/video.js";
 import { URL } from "node:url";
+import { randomUUID } from "node:crypto";
 import { getLogger } from "../logger.js";
 import { conf } from "../ott-config.js";
 import { ServiceAdapter, type VideoRequest } from "../serviceadapter.js";
-import { JellyfinApiKeyException, ServiceLinkParseException } from "../exceptions.js";
+import {
+	BadApiArgumentException,
+	JellyfinApiKeyException,
+	ServiceLinkParseException,
+} from "../exceptions.js";
 
 const log = getLogger("jellyfin");
 
@@ -12,6 +69,8 @@ const JELLYFIN_WEB_URL_REGEX = /\/web(?:\/index\.html)?\/?#!?\/details\?id=/;
 const JELLYFIN_ITEMS_URL_REGEX = /\/Items\/[^/]+\/Download/;
 const JELLYFIN_HLS_URL_REGEX = /\/Videos\/[^/]+\/(?:master|main)\.m3u8/;
 const JELLYFIN_ID_PARAM_REGEX = /[?&]id=([^&#]+)/;
+const TRAILING_SLASHES_REGEX = /\/+$/;
+const LEADING_SLASH_REGEX = /^\//;
 const COMPOUND_ID_SEPARATOR = "::";
 
 interface JellyfinMediaStream {
@@ -21,6 +80,7 @@ interface JellyfinMediaStream {
 	Language?: string;
 	Title?: string;
 	DisplayTitle?: string;
+	IsDefault?: boolean;
 	IsExternal?: boolean;
 	IsTextSubtitleStream?: boolean;
 	SupportsExternalStream?: boolean;
@@ -143,7 +203,21 @@ export default class JellyfinAdapter extends ServiceAdapter {
 				throw new ServiceLinkParseException(this.serviceId, url);
 			}
 
-			const serverOrigin = parsed.origin;
+			let basePath = "";
+			const webIndex = parsed.pathname.indexOf("/web");
+			const itemsIndex = parsed.pathname.indexOf("/Items");
+			const videosIndex = parsed.pathname.indexOf("/Videos");
+
+			if (webIndex !== -1 && JELLYFIN_WEB_URL_REGEX.test(url)) {
+				basePath = parsed.pathname.substring(0, webIndex);
+			} else if (itemsIndex !== -1 && JELLYFIN_ITEMS_URL_REGEX.test(parsed.pathname)) {
+				basePath = parsed.pathname.substring(0, itemsIndex);
+			} else if (videosIndex !== -1 && JELLYFIN_HLS_URL_REGEX.test(parsed.pathname)) {
+				basePath = parsed.pathname.substring(0, videosIndex);
+			}
+			basePath = basePath.replace(TRAILING_SLASHES_REGEX, "");
+			const serverOrigin = `${parsed.origin}${basePath}`;
+
 			// Embed the API key in the compound ID so it survives server restarts
 			// (the in-memory cache alone is wiped on restart, causing 401s later).
 			const compoundId = apiKey
@@ -226,7 +300,14 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 		let playbackData: JellyfinPlaybackInfo | undefined;
 		try {
-			playbackData = await this.fetchPlaybackInfo(serverOrigin, itemId, apiKey);
+			playbackData = await this.fetchPlaybackInfo(
+				serverOrigin,
+				itemId,
+				apiKey,
+				undefined,
+				undefined,
+				userId,
+			);
 		} catch (e) {
 			if (axios.isAxiosError(e) && e.response?.status === 401) {
 				throw this.toAuthError(e, serverOrigin);
@@ -239,14 +320,23 @@ export default class JellyfinAdapter extends ServiceAdapter {
 
 		let streamUrl: string;
 		if (transcodingUrl) {
-			streamUrl = this.withApiKey(this.resolveServerUrl(serverOrigin, transcodingUrl), apiKey);
+			streamUrl = this.withApiKey(
+				this.resolveServerUrl(serverOrigin, transcodingUrl),
+				apiKey,
+			);
 		} else {
 			streamUrl = this.constructStreamUrl(serverOrigin, mediaSourceId, apiKey);
 		}
 
 		let subtitleUrl: string | undefined;
 		let availableSubtitles: VideoSubtitle[] | undefined;
+		let availableAudioTracks: VideoAudioTrack[] | undefined;
 		if (mediaSource) {
+			const audioTracks = this.extractAudioTracks(mediaSource);
+			if (audioTracks.length > 0) {
+				availableAudioTracks = audioTracks;
+			}
+
 			const subtitleStreams = (mediaSource.MediaStreams ?? []).filter(
 				s => s.Type === "Subtitle" && this.isDeliverableSubtitle(s),
 			);
@@ -302,6 +392,7 @@ export default class JellyfinAdapter extends ServiceAdapter {
 			hls_url: streamUrl,
 			subtitleUrl,
 			availableSubtitles,
+			availableAudioTracks,
 		};
 	}
 
@@ -309,27 +400,153 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		serverOrigin: string,
 		itemId: string,
 		apiKey: string,
+		audioStreamIndex?: number,
+		mediaSourceId?: string,
+		userId?: string,
 	): Promise<JellyfinPlaybackInfo> {
-		const resp = await this.api.post(
-			`${serverOrigin}/Items/${itemId}/PlaybackInfo`,
-			{
-				StartTimeTicks: 0,
-				IsPlayback: true,
-				AutoOpenLiveStream: true,
-				AlwaysBurnInSubtitleWhenTranscoding: false,
+		const body: Record<string, unknown> = {
+			StartTimeTicks: 0,
+			IsPlayback: true,
+			AutoOpenLiveStream: true,
+			AlwaysBurnInSubtitleWhenTranscoding: false,
+			DeviceProfile: {
+				Name: "OpenTogetherTube",
+				TranscodingProfiles: [
+					{
+						Container: "ts",
+						Type: "Video",
+						VideoCodec: "h264,hevc",
+						AudioCodec: "aac",
+						Protocol: "hls",
+					},
+				],
+				SubtitleProfiles: [
+					{ Format: "vtt", Method: "External" },
+					{ Format: "webvtt", Method: "External" }
+				],
 			},
-			{
-				headers: this.buildAuthHeaders(apiKey),
-			},
-		);
+		};
+		if (mediaSourceId) {
+			body.MediaSourceId = mediaSourceId;
+		}
+		if (audioStreamIndex !== undefined) {
+			body.AudioStreamIndex = audioStreamIndex;
+		}
+		const url = userId
+			? `${serverOrigin}/Items/${itemId}/PlaybackInfo?userId=${encodeURIComponent(userId)}`
+			: `${serverOrigin}/Items/${itemId}/PlaybackInfo`;
+		const resp = await this.api.post(url, body, {
+			headers: this.buildAuthHeaders(apiKey),
+		});
 		return resp.data as JellyfinPlaybackInfo;
+	}
+
+	async getRefreshedStream(
+		id: string,
+		audioStreamIndex?: number,
+	): Promise<{ hls_url: string; playbackType: "hls" }> {
+		const { serverOrigin, itemId, apiKey } = this.parseCompoundId(id);
+		this.ensureApiKey(apiKey, serverOrigin);
+
+		if (audioStreamIndex !== undefined) {
+			if (!Number.isInteger(audioStreamIndex) || audioStreamIndex < 0) {
+				throw new BadApiArgumentException(
+					"audioStreamIndex",
+					"audioStreamIndex must be a non-negative integer",
+				);
+			}
+		}
+
+		let userId: string;
+		try {
+			userId = await this.getUserId(serverOrigin, apiKey);
+		} catch (e) {
+			throw this.toAuthError(e, serverOrigin);
+		}
+
+		let mediaSourceId = itemId;
+		let playbackData: JellyfinPlaybackInfo | undefined;
+		try {
+			const basePlayback = await this.fetchPlaybackInfo(
+				serverOrigin,
+				itemId,
+				apiKey,
+				undefined,
+				undefined,
+				userId,
+			);
+			const baseSource = basePlayback?.MediaSources?.[0];
+			if (baseSource?.Id) {
+				mediaSourceId = baseSource.Id;
+			}
+			if (audioStreamIndex !== undefined) {
+				playbackData = await this.fetchPlaybackInfo(
+					serverOrigin,
+					itemId,
+					apiKey,
+					audioStreamIndex,
+					mediaSourceId,
+					userId,
+				);
+			} else {
+				playbackData = basePlayback;
+			}
+		} catch (e) {
+			throw this.toAuthError(e, serverOrigin);
+		}
+
+		const mediaSource = playbackData?.MediaSources?.[0];
+		const resolvedMediaSourceId = mediaSource?.Id ?? mediaSourceId;
+		const transcodingUrl = mediaSource?.TranscodingUrl;
+
+		let streamUrl: string;
+		if (transcodingUrl) {
+			streamUrl = this.withApiKey(
+				this.resolveServerUrl(serverOrigin, transcodingUrl),
+				apiKey,
+			);
+		} else {
+			streamUrl = this.constructStreamUrl(
+				serverOrigin,
+				resolvedMediaSourceId,
+				apiKey,
+				audioStreamIndex,
+			);
+		}
+
+		return {
+			hls_url: streamUrl,
+			playbackType: "hls",
+		};
+	}
+
+	private extractAudioTracks(mediaSource: JellyfinMediaSource): VideoAudioTrack[] {
+		const audioStreams = (mediaSource.MediaStreams ?? []).filter(s => s.Type === "Audio");
+		return audioStreams.map(stream => {
+			const label =
+				stream.DisplayTitle ?? stream.Title ?? stream.Language ?? `Audio ${stream.Index}`;
+			return {
+				index: stream.Index,
+				label,
+				language: stream.Language,
+				codec: stream.Codec,
+				isDefault: stream.IsDefault,
+			};
+		});
 	}
 
 	private resolveServerUrl(serverOrigin: string, url: string): string {
 		if (url.startsWith("http://") || url.startsWith("https://")) {
 			return url;
 		}
-		return `${serverOrigin}${url.startsWith("/") ? "" : "/"}${url}`;
+		const base = new URL(serverOrigin);
+		if (base.pathname && base.pathname !== "/" && url.startsWith(base.pathname)) {
+			return `${base.origin}${url.startsWith("/") ? "" : "/"}${url}`;
+		}
+		return `${serverOrigin.replace(TRAILING_SLASHES_REGEX, "")}/${url.replace(
+			LEADING_SLASH_REGEX,
+			"",
+		)}`;
 	}
 
 	private withApiKey(url: string, apiKey: string): string {
@@ -450,7 +667,9 @@ export default class JellyfinAdapter extends ServiceAdapter {
 				if (e instanceof JellyfinApiKeyException) {
 					keyError ??= e;
 				} else {
-					log.warn(`fetchManyVideoInfo: failed to fetch jellyfin:${req.id}: ${e}, skipping`);
+					log.warn(
+						`fetchManyVideoInfo: failed to fetch jellyfin:${req.id}: ${e}, skipping`,
+					);
 				}
 			}
 		}
@@ -476,13 +695,20 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		serverOrigin: string,
 		mediaSourceId: string,
 		apiKey: string,
+		audioStreamIndex?: number,
 	): string {
 		const params = new URLSearchParams();
 		if (apiKey) {
 			params.set("api_key", apiKey);
 		}
+		params.set("MediaSourceId", mediaSourceId);
 		params.set("AudioCodec", "aac");
-		return `${serverOrigin}/Videos/${mediaSourceId}/main.m3u8?${params.toString()}`;
+		if (audioStreamIndex !== undefined) {
+			params.set("AudioStreamIndex", audioStreamIndex.toString());
+		}
+		const playSessionId = randomUUID().replace(/-/g, "");
+		params.set("PlaySessionId", playSessionId);
+		return `${serverOrigin}/Videos/${mediaSourceId}/master.m3u8?${params.toString()}`;
 	}
 
 	private constructSubtitleUrl(
@@ -500,11 +726,8 @@ export default class JellyfinAdapter extends ServiceAdapter {
 	}
 
 	private resolveDeliveryUrl(serverOrigin: string, deliveryUrl: string, apiKey: string): string {
-		const url = new URL(deliveryUrl, serverOrigin);
-		if (apiKey && !url.searchParams.has("api_key")) {
-			url.searchParams.set("api_key", apiKey);
-		}
-		return url.toString();
+		const resolved = this.resolveServerUrl(serverOrigin, deliveryUrl);
+		return this.withApiKey(resolved, apiKey);
 	}
 
 	private isDeliverableSubtitle(stream: JellyfinMediaStream): boolean {
@@ -521,7 +744,9 @@ export default class JellyfinAdapter extends ServiceAdapter {
 		if (item.Type === "Episode" && item.SeriesName) {
 			const seasonNum = item.ParentIndexNumber ?? 0;
 			const episodeNum = item.IndexNumber ?? 0;
-			return `${item.SeriesName} - S${String(seasonNum).padStart(2, "0")}E${String(episodeNum).padStart(2, "0")}`;
+			return `${item.SeriesName} - S${String(seasonNum).padStart(2, "0")}E${String(
+				episodeNum,
+			).padStart(2, "0")}`;
 		}
 		return item.Name;
 	}
