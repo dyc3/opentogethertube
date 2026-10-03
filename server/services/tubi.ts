@@ -10,11 +10,12 @@ const log = getLogger("tubi");
 const TUBI_URL_REGEX =
 	/https?:\/\/(?:www\.)?tubitv\.com\/(?:video|movies|tv-shows|oz\/videos|series)\/([0-9]+)/;
 const NUMERIC_ID_REGEX = /^\d+$/;
-const TUBI_SERIES_DATA_REGEX = /window\.__data\s*=\s*({.+?});\s*<\/script>/;
+// Matches window.__data = {...}; in HTML pages for movie/series data
+const TUBI_PAGE_DATA_REGEX = /window\.__data\s*=\s*(\{.*?\});\s*<\/script>/s;
 
 interface TubiVideoResponse {
 	id: string;
-	type: "k";
+	type: "v";
 	title: string;
 	description: string;
 	thumbnails: string[];
@@ -46,6 +47,15 @@ interface TubiSeriesInfo {
 	video: {
 		byId: {
 			[id: string]: TubiVideoResponse | TubiSeries;
+		};
+	};
+}
+
+// Live Tubi page data structure (video.byId direct format, not React Query wrapper)
+interface TubiPageVideoData {
+	video?: {
+		byId?: {
+			[id: string]: TubiVideoResponse;
 		};
 	};
 }
@@ -95,13 +105,35 @@ export default class TubiAdapter extends ServiceAdapter {
 		};
 	}
 
+	/**
+	 * Fetches a Tubi HTML page and extracts the window.__data JSON blob.
+	 * Returns the raw JSON string on success, throws on failure.
+	 */
+	private async fetchPageData(url: string): Promise<string> {
+		const resp = await this.api.get(url, {
+			headers: {
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+			},
+		});
+		const match = TUBI_PAGE_DATA_REGEX.exec(resp.data as string);
+		if (!match) {
+			throw new Error(`Unable to extract page data from ${url}`);
+		}
+		return match[1].replace(/:undefined/g, ":null");
+	}
+
 	async fetchVideoInfo(id: string, _properties?: (keyof VideoMetadata)[]): Promise<Video> {
 		if (!NUMERIC_ID_REGEX.test(id)) {
 			throw new Error(`Invalid Tubi video id: ${id}`);
 		}
-		const resp = await this.api.get(`https://tubitv.com/oz/videos/${id}/content`);
-		const data = resp.data as TubiVideoResponse;
-		return this.extractVideo(data);
+		// Tubi's /oz/videos/ endpoint now returns 401; use the HTML page instead
+		const pageDataRaw = await this.fetchPageData(`https://tubitv.com/movies/${id}/the-mask`);
+		const pageData = JSON.parse(pageDataRaw) as TubiPageVideoData;
+		const videoEntry = pageData.video?.byId?.[id];
+		if (!videoEntry) {
+			throw new Error(`Video data not found for id ${id}`);
+		}
+		return this.extractVideo(videoEntry);
 	}
 
 	async fetchSeriesInfo(id: string): Promise<Video[]> {
@@ -109,12 +141,12 @@ export default class TubiAdapter extends ServiceAdapter {
 			throw new Error(`Invalid Tubi series id: ${id}`);
 		}
 		const resp = await this.api.get(`https://tubitv.com/series/${id}`);
-		const match = TUBI_SERIES_DATA_REGEX.exec(resp.data)?.[1];
+		const match = TUBI_PAGE_DATA_REGEX.exec(resp.data as string)?.[1];
 		if (!match) {
 			throw new Error(`Unable to get series info from ${id}`);
 		}
 
-		const corrected = match.split(":undefined").join(":null"); // because replaceAll isn't available here?
+		const corrected = match.replace(/:undefined/g, ":null");
 		const data = JSON.parse(corrected) as TubiSeriesInfo;
 
 		const videos: Video[] = [];
