@@ -172,4 +172,30 @@ describe("Data API", () => {
 			}
 		},
 	);
+
+	it("GET /data/previewAdd sets private no-store headers when Jellyfin is present", async () => {
+		const jellyfinVideo = {
+			service: "jellyfin" as const,
+			id: "https://my.jellyfin.com::item123::tok_abc",
+			title: "Jellyfin Video",
+			hls_url: "https://my.jellyfin.com/Videos/item123/master.m3u8?api_key=key123",
+			subtitleUrl:
+				"https://my.jellyfin.com/Videos/item123/Subtitles/0/stream.vtt?api_key=key123",
+		};
+		const resolveQuerySpy = vi
+			.spyOn(InfoExtract, "resolveVideoQuery")
+			.mockResolvedValue(new AddPreview([jellyfinVideo as any], 3600));
+
+		const resp = await request(app)
+			.get("/api/data/previewAdd")
+			.set({ Authorization: "Bearer foobar" })
+			.query({ input: "https://my.jellyfin.com/Items/item123" })
+			.expect(200)
+			.expect("Content-Type", JSON_CONTENT_TYPE_REGEX);
+
+		expect(resp.body.success).toBe(true);
+		expect(resp.headers["cache-control"]).toBe("private, no-cache, no-store, must-revalidate");
+
+		resolveQuerySpy.mockRestore();
+	});
 });

@@ -151,6 +151,14 @@ export class ServiceLinkParseException extends OttException {
 	}
 }
 
+export class JellyfinApiKeyException extends OttException {
+	name = "JellyfinApiKeyException";
+
+	constructor(message: string) {
+		super(message);
+	}
+}
+
 export class FeatureDisabledException extends OttException {
 	name = "FeatureDisabledException";
 

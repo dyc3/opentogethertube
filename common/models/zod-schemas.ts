@@ -52,7 +52,7 @@ const VideoIdSchema = z.object({
 const QueueItemExtrasSchema = z.object({
 	// startAt: z.number().nonnegative().optional(),
 	// endAt: z.number().positive().optional(),
-	subtitleUrl: z.string().url().optional(),
+	subtitleUrl: z.string().url().or(z.string().startsWith("/")).optional(),
 });
 
 const VideoAddSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);
@@ -76,6 +76,12 @@ export const OttApiRequestRemoveFromQueueSchema = z.object({
 });
 
 export const OttApiRequestUpdateQueueItemSchema = VideoIdSchema.extend(QueueItemExtrasSchema.shape);
+
+export const OttApiRequestRefreshStreamSchema = z.object({
+	service: z.enum(ALL_VIDEO_SERVICES),
+	id: z.string(),
+	audioStreamIndex: z.number().int().nonnegative().optional(),
+});
 
 export const OttApiRequestAccountRecoveryStartSchema = z.union([
 	z.object({
