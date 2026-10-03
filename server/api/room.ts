@@ -73,6 +73,15 @@ router.get("/list", (req, res) => {
 		if (room.visibility !== Visibility.Public && !isAuthorized) {
 			continue;
 		}
+		const currentSource = room.currentSource
+			? {
+					service: room.currentSource.service,
+					id: room.currentSource.id,
+					title: room.currentSource.title,
+					thumbnail: room.currentSource.thumbnail,
+					length: room.currentSource.length,
+				}
+			: null;
 		const obj: RoomListItem = {
 			name: room.name,
 			title: room.title,
@@ -80,7 +89,7 @@ router.get("/list", (req, res) => {
 			isTemporary: room.isTemporary,
 			visibility: room.visibility,
 			queueMode: room.queueMode,
-			currentSource: room.currentSource,
+			currentSource,
 			users: room.users.length,
 		};
 		rooms.push(obj);

@@ -761,4 +761,56 @@ describe("Room API", () => {
 			});
 		});
 	});
+
+	describe("GET /room/list", () => {
+		afterEach(async () => {
+			try {
+				await roommanager.unloadRoom("test-list-sanitize", UnloadReason.Admin);
+			} catch {}
+		});
+
+		it("sanitizes currentSource to strip hls_url, subtitleUrl and availableSubtitles", async () => {
+			await roommanager.createRoom({
+				name: "test-list-sanitize",
+				isTemporary: true,
+				visibility: Visibility.Public,
+			});
+			const room = (await roommanager.getRoom("test-list-sanitize")).unwrap();
+			room.currentSource = {
+				service: "jellyfin",
+				id: "https://my.jellyfin.com::item123::tok_abc",
+				title: "Secret Movie",
+				thumbnail: "https://my.jellyfin.com/Items/item123/Images/Primary",
+				length: 120,
+				hls_url: "https://my.jellyfin.com/Videos/item123/master.m3u8?api_key=secretKey",
+				subtitleUrl: "https://my.jellyfin.com/Subtitles/0.vtt?api_key=secretKey",
+				availableSubtitles: [
+					{
+						url: "https://my.jellyfin.com/Subtitles/0.vtt?api_key=secretKey",
+						label: "English",
+					},
+				],
+			};
+
+			const resp = await request(app)
+				.get("/api/room/list")
+				.auth(token, { type: "bearer" })
+				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
+				.expect(200);
+
+			const found = resp.body.find((r: any) => r.name === "test-list-sanitize");
+			expect(found).toBeDefined();
+			expect(found.currentSource).toEqual({
+				service: "jellyfin",
+				id: "https://my.jellyfin.com::item123::tok_abc",
+				title: "Secret Movie",
+				thumbnail: "https://my.jellyfin.com/Items/item123/Images/Primary",
+				length: 120,
+			});
+			expect(found.currentSource.hls_url).toBeUndefined();
+			expect(found.currentSource.subtitleUrl).toBeUndefined();
+			expect(found.currentSource.availableSubtitles).toBeUndefined();
+			expect(JSON.stringify(found)).not.toContain("secretKey");
+		});
+	});
 });
