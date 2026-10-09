@@ -38,13 +38,7 @@
 			<div
 				v-for="(user, index) in users"
 				:key="index"
-				:class="
-					cn(
-						'flex items-center rounded min-h-8 group hover:bg-surface-2',
-						// TODO: remove role-* classes being assigned. kept for now because they're used in integration tests.
-						`user role-${ROLE_NAMES[user.role]}`,
-					)
-				"
+				class="user flex items-center rounded min-h-8 group hover:bg-surface-2"
 				:data-role="ROLE_NAMES[user.role]"
 				:data-registered="user.isLoggedIn"
 			>
@@ -141,7 +135,6 @@
 </template>
 
 <script lang="ts" setup>
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

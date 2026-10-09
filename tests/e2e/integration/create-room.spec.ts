@@ -4,7 +4,6 @@ import { v4 as uuid } from "uuid";
 import { beforeEach, describe, expect, it } from "../support/fixtures";
 
 const ROOM_URL_PATTERN = /room/;
-const OWNER_CLASS_PATTERN = /role-owner/;
 
 describe("Creating Rooms", () => {
 	async function openCreateRoomMenu(page: Page) {
@@ -128,7 +127,7 @@ describe("Creating Rooms", () => {
 			await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
 			await expect(page.getByRole("button", { name: "Claim Room" })).not.toBeVisible();
 
-			await expect(page.locator(".user")).toHaveClass(OWNER_CLASS_PATTERN);
+			await expect(page.locator(".user")).toHaveAttribute("data-role", "owner");
 			await checkPermissionsEditor(page);
 		});
 	});
