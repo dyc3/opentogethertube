@@ -38,6 +38,11 @@ const supported = computed(() => {
 const enabled = computed(() => captions.isCaptionsEnabled.value);
 
 function toggleCaptions() {
+	if (!captions.isCaptionsEnabled.value) {
+		if (captions.currentTrack.value === null && captions.captionsTracks.value.length > 0) {
+			captions.currentTrack.value = 0;
+		}
+	}
 	captions.isCaptionsEnabled.value = !captions.isCaptionsEnabled.value;
 }
 </script>

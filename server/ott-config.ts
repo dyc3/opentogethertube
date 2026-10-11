@@ -308,6 +308,17 @@ export const conf = convict({
 				},
 			},
 		},
+		jellyfin: {
+			instances: {
+				default: [],
+				doc: "List of allowed Jellyfin server hostnames. Empty array allows all.",
+				format: Array,
+				env: "JELLYFIN_INSTANCES",
+				children: {
+					format: String,
+				},
+			},
+		},
 	},
 	rate_limit: {
 		enabled: {

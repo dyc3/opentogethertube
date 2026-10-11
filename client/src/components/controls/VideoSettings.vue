@@ -11,7 +11,11 @@
 			</Button>
 		</PopoverTrigger>
 
-		<PopoverContent side="top" align="center" class="w-auto min-w-[260px] p-1">
+		<PopoverContent
+			side="top"
+			align="center"
+			class="w-auto min-w-[260px] max-h-[50vh] p-1 overflow-y-auto overscroll-contain"
+		>
 			<Transition name="menu-resize" mode="out-in">
 				<!-- HACK: For some reason, safari really doesn't like typescript enums. As a result, we are forced to not use the enums, and use their literal values instead. -->
 				<!-- Main menu -->
@@ -43,6 +47,22 @@
 							<span>{{ $t("room.quality") }}</span>
 							<span class="menu-item-value">
 								{{ currentQualityDisplay }}
+							</span>
+						</div>
+						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
+					</button>
+
+					<button
+						v-if="isAudioSupported"
+						type="button"
+						class="menu-item"
+						@click="navigateToMenu('audio')"
+					>
+						<Icon :icon="mdiVolumeHigh" class="size-5 shrink-0" />
+						<div class="menu-item-content">
+							<span>{{ $t("room.audio") }}</span>
+							<span v-if="currentAudioDisplay" class="menu-item-value">
+								{{ currentAudioDisplay }}
 							</span>
 						</div>
 						<Icon :icon="mdiChevronRight" class="size-5 shrink-0" />
@@ -109,6 +129,31 @@
 						/>
 					</button>
 				</div>
+
+				<!-- Audio submenu -->
+				<div v-else-if="currentMenu === 'audio'" key="audio" class="menu-content">
+					<button
+						type="button"
+						class="menu-item menu-header"
+						@click="navigateToMenu('main')"
+					>
+						<Icon :icon="mdiChevronLeft" class="size-5 shrink-0" />
+						<span>{{ $t("room.audio") }}</span>
+					</button>
+
+					<button
+						v-for="track in audio.audioTracks.value"
+						:key="track.index"
+						type="button"
+						class="menu-item"
+						:class="{
+							'menu-item-active': track.index === audio.currentAudioTrack.value,
+						}"
+						@click="selectAudioTrack(track.index)"
+					>
+						<span class="menu-item-content">{{ formatAudio(track) }}</span>
+					</button>
+				</div>
 			</Transition>
 		</PopoverContent>
 	</Popover>
@@ -119,24 +164,26 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ref, computed } from "vue";
-import { useCaptions, useQualities } from "../composables";
+import { useAudioTracks, useCaptions, useQualities } from "../composables";
 import {
 	mdiCog,
 	mdiClosedCaptionOutline,
 	mdiClosedCaption,
 	mdiTune,
+	mdiVolumeHigh,
 	mdiChevronLeft,
 	mdiChevronRight,
 } from "@mdi/js";
 import { getFriendlyResolutionLabel } from "@/util/misc";
-import type { VideoTrack, CaptionTrack } from "@/models/media-tracks";
+import type { VideoTrack, CaptionTrack, AudioTrack } from "@/models/media-tracks";
 
 // Menu types - using literal string values instead of enum due to Safari compatibility issues
-const currentMenu = ref<"main" | "quality" | "subtitle">("main");
+const currentMenu = ref<"main" | "quality" | "subtitle" | "audio">("main");
 const isMenuOpen = ref<boolean>(false);
 
 const qualities = useQualities();
 const captions = useCaptions();
+const audio = useAudioTracks();
 
 const isQualitySupported = computed(
 	() => qualities.isQualitySupported.value && qualities.videoTracks.value.length > 0,
@@ -144,6 +191,10 @@ const isQualitySupported = computed(
 
 const isCaptionsSupported = computed(
 	() => captions.isCaptionsSupported.value && captions.captionsTracks.value.length > 0,
+);
+
+const isAudioSupported = computed(
+	() => audio.isAudioSupported.value && audio.audioTracks.value.length > 1,
 );
 
 const currentSubtitleDisplay = computed(() => {
@@ -155,6 +206,14 @@ const currentSubtitleDisplay = computed(() => {
 	return isEnabled ? formatCaption(track) : "disabled";
 });
 
+const currentAudioDisplay = computed(() => {
+	if (!isAudioSupported.value || audio.currentAudioTrack.value === null) {
+		return "disabled";
+	}
+	const track = audio.audioTracks.value.find(t => t.index === audio.currentAudioTrack.value);
+	return track ? formatAudio(track) : "disabled";
+});
+
 function formatCaption(track: CaptionTrack): string {
 	const localiedLabel =
 		track.srclang &&
@@ -163,6 +222,20 @@ function formatCaption(track: CaptionTrack): string {
 		);
 	const label = track.label ?? localiedLabel ?? track.srclang ?? "unknown";
 	return label;
+}
+
+function formatAudio(track: AudioTrack): string {
+	const localizedLang =
+		track.language &&
+		new Intl.DisplayNames([track.language], { type: "language", fallback: "none" }).of(
+			track.language,
+		);
+	return track.label ?? localizedLang ?? track.language ?? `Audio ${track.index}`;
+}
+
+function selectAudioTrack(index: number): void {
+	audio.currentAudioTrack.value = index;
+	closeMenu();
 }
 
 function formatQuality(videoTrack: VideoTrack): string {
@@ -176,8 +249,16 @@ const autoQualityDisplay = computed(() => {
 		qualities.videoTracks.value.length > 0 &&
 		qualities.currentActiveQuality.value !== null;
 
+	if (!hasActiveQuality) {
+		return "Auto";
+	}
+
 	const currentQuality = qualities.videoTracks.value[qualities.currentActiveQuality.value!];
-	return hasActiveQuality ? `Auto (${formatQuality(currentQuality)})` : "Auto";
+	if (!currentQuality) {
+		return "Auto";
+	}
+
+	return `Auto (${formatQuality(currentQuality)})`;
 });
 
 const currentQualityDisplay = computed(() => {

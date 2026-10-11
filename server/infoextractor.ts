@@ -29,6 +29,8 @@ import PlutoAdapter from "./services/pluto.js";
 import DashVideoAdapter from "./services/dash.js";
 import InvidiousAdapter from "./services/invidious.js";
 import OdyseeAdapter from "./services/odysee.js";
+import JellyfinAdapter from "./services/jellyfin.js";
+import { sanitizeLogInput } from "./util/index.js";
 
 const log = getLogger("infoextract");
 
@@ -75,6 +77,9 @@ export async function initExtractor() {
 	}
 	if (enabled.includes("peertube")) {
 		adapters.push(new PeertubeAdapter());
+	}
+	if (enabled.includes("jellyfin")) {
+		adapters.push(new JellyfinAdapter());
 	}
 	if (enabled.includes("direct")) {
 		adapters.push(new DirectVideoAdapter());
@@ -377,9 +382,16 @@ export default {
 				};
 			});
 
+			const hasJellyfin = lines.some(line => {
+				const adapter = forceAdapter
+					? this.getServiceAdapter(forceAdapter)
+					: this.getServiceAdapterForURL(line);
+				return adapter && adapter.serviceId === "jellyfin";
+			});
+
 			const batch = await this.getManyVideoInfo(videoIds, { requireAny: true });
 			results = batch.videos;
-			if (!batch.complete) {
+			if (!batch.complete || hasJellyfin) {
 				cacheDuration = 0;
 			}
 		} else if (this.isURL(query)) {
@@ -391,7 +403,9 @@ export default {
 				throw new UnsupportedServiceException(query);
 			}
 
-			if (adapter.isCacheSafe) {
+			if (adapter.serviceId === "jellyfin") {
+				cacheDuration = 0;
+			} else if (adapter.isCacheSafe) {
 				cacheDuration = 60 * 60 * 24 * 7;
 			}
 
@@ -420,7 +434,9 @@ export default {
 								id: adapter.getVideoId(video.url),
 							});
 						} catch (e) {
-							log.warn(`Failed to resolve video URL ${video.url}: ${e.message}`);
+							log.warn(
+								`Failed to resolve video URL ${sanitizeLogInput(video.url)}: ${e.message}`,
+							);
 						}
 					} else {
 						resolvedResults.push(video);

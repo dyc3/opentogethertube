@@ -7,6 +7,20 @@ export interface VideoId {
 	id: string;
 }
 
+export interface VideoSubtitle {
+	url: string;
+	label: string;
+	language?: string;
+}
+
+export interface VideoAudioTrack {
+	index: number;
+	label: string;
+	language?: string;
+	codec?: string;
+	isDefault?: boolean;
+}
+
 export interface VideoMetadata {
 	title: string;
 	description: string;
@@ -18,6 +32,8 @@ export interface VideoMetadata {
 	dash_url?: string;
 	src_url?: string;
 	subtitleUrl?: string;
+	availableSubtitles?: VideoSubtitle[];
+	availableAudioTracks?: VideoAudioTrack[];
 }
 
 export type Video = VideoId & Partial<VideoMetadata>;
