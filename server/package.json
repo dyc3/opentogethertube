@@ -78,6 +78,6 @@
 		"nodemon": "^2.0.4",
 		"redis-mock": "^0.56.3",
 		"sqlite3": "5.1.5",
-		"vitest": "^1.2.2"
+		"vitest": "^3.2.6"
 	}
 }
