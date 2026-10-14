@@ -207,7 +207,7 @@ describe("Room API", () => {
 					.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 					.expect(201);
 				expect(resp.body.success).toBe(true);
-				expect(roommanager.rooms[0]).toMatchObject({
+				expect(roommanager.getRooms()[0]).toMatchObject({
 					name: "test1",
 					isTemporary: true,
 					visibility: visibility,
@@ -275,7 +275,7 @@ describe("Room API", () => {
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(201);
 			expect(resp.body.success).toEqual(true);
-			expect(roommanager.rooms[0]).toMatchObject({
+			expect(roommanager.getRooms()[0]).toMatchObject({
 				name: "testnoowner",
 				owner: null,
 			});
@@ -295,7 +295,9 @@ describe("Room API", () => {
 				.expect("Content-Type", JSON_CONTENT_TYPE_REGEX)
 				.expect(201);
 			expect(resp.body.success).toEqual(true);
-			expect(_.pick(roommanager.rooms[0], "name", "owner.id", "owner.email")).toMatchObject({
+			expect(
+				_.pick(roommanager.getRooms()[0], "name", "owner.id", "owner.email"),
+			).toMatchObject({
 				name: "testowner",
 				owner: {
 					id: owner.id,

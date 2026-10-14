@@ -7,6 +7,7 @@ import { conf } from "./ott-config.js";
 import { type Result, err, ok, intoResult } from "ott-common/result.js";
 import { replacer } from "ott-common/serialize.js";
 import roommanager from "./roommanager.js";
+import type { Room } from "./room.js";
 import type { RoomListItem } from "ott-common/models/rest-api.js";
 import _ from "lodash";
 import type { MsgB2M, MsgM2B, UnloadReason } from "./generated.js";
@@ -363,15 +364,7 @@ function broadcastToBalancers(message: MsgM2B) {
 	}
 }
 
-async function onRoomLoad(roomName: string) {
-	const result = await roommanager.getRoom(roomName, { mustAlreadyBeLoaded: true });
-	if (!result.ok) {
-		log.error(
-			`Failed to grab room that should have been loaded. Can't inform balancers. room=${roomName}: ${result.value}`,
-		);
-		return;
-	}
-	const room = result.value;
+function onRoomLoad(room: Room) {
 	const obj: GossipRoom = {
 		name: room.name,
 		title: room.title,
@@ -408,7 +401,7 @@ export function buildGossipMessage(): MsgM2B {
 	return {
 		type: "gossip",
 		payload: {
-			rooms: roommanager.rooms.map(room => ({
+			rooms: roommanager.getRooms().map(room => ({
 				room: {
 					name: room.name,
 					title: room.title,

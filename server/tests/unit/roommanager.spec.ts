@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
 import roommanager, { redisStateToState } from "../../roommanager.js";
 import { Room as DbRoom, loadModels } from "../../models/index.js";
-import { Room, type RoomStateFromRedis } from "../../room.js";
+import { Room, RoomUser, type RoomStateFromRedis } from "../../room.js";
 import { BehaviorOption, QueueMode, Role, Visibility } from "ott-common/models/types.js";
 import dayjs from "dayjs";
-import { RoomNotFoundException } from "../../exceptions.js";
+import { RoomNameTakenException, RoomNotFoundException } from "../../exceptions.js";
 import storage from "../../storage.js";
 import { VideoQueue } from "../../../server/videoqueue.js";
 import { buildClients, redisClient } from "../../redisclient.js";
 import { UnloadReason } from "../../generated.js";
+import { conf } from "../../ott-config.js";
 
 describe("Room manager", () => {
 	beforeAll(async () => {
@@ -17,10 +18,224 @@ describe("Room manager", () => {
 	});
 
 	afterEach(async () => {
-		for (const room of roommanager.rooms) {
+		vi.restoreAllMocks();
+		for (const room of roommanager.getRooms()) {
 			await roommanager.unloadRoom(room.name, UnloadReason.Admin);
 		}
 		roommanager.clearRooms();
+	});
+
+	describe("concurrent loading", () => {
+		it.each(["redis", "database"])("should share concurrent loads from %s", async source => {
+			const roomName = "test-concurrent-load";
+			const options = new Room({ name: roomName, isTemporary: true });
+			options.throttledSync.cancel();
+			const snapshot = options.serializeState();
+			const getSpy = vi
+				.spyOn(redisClient, "get")
+				.mockResolvedValue(source === "redis" ? snapshot : null);
+			const storageSpy = vi.spyOn(storage, "getRoomByName").mockResolvedValue(options);
+
+			const results = await Promise.all([
+				roommanager.getRoom(roomName),
+				roommanager.getRoom(roomName.toUpperCase()),
+				roommanager.getRoom(roomName),
+			]);
+
+			const room = results[0].unwrap();
+			expect(results[1].unwrap()).toBe(room);
+			expect(results[2].unwrap()).toBe(room);
+			expect(roommanager.getRooms()).toEqual([room]);
+			expect(getSpy).toHaveBeenCalledTimes(1);
+			expect(storageSpy).toHaveBeenCalledTimes(source === "database" ? 1 : 0);
+		});
+
+		it("should allow another load after a failed load", async () => {
+			const failure = new Error("Redis unavailable");
+			const options = new Room({ name: "test-load-retry", isTemporary: true });
+			options.throttledSync.cancel();
+			vi.spyOn(redisClient, "get").mockRejectedValueOnce(failure).mockResolvedValue(null);
+			vi.spyOn(storage, "getRoomByName").mockResolvedValue(options);
+
+			const results = await Promise.allSettled([
+				roommanager.getRoom("test-load-retry"),
+				roommanager.getRoom("test-load-retry"),
+			]);
+			expect(results).toEqual([
+				{ status: "rejected", reason: failure },
+				{ status: "rejected", reason: failure },
+			]);
+			const room = (await roommanager.getRoom("test-load-retry")).unwrap();
+			expect(roommanager.getRooms()).toEqual([room]);
+		});
+
+		it("should retry a room that was not found", async () => {
+			const options = new Room({ name: "test-missing-retry", isTemporary: true });
+			options.throttledSync.cancel();
+			vi.spyOn(redisClient, "get").mockResolvedValue(null);
+			vi.spyOn(storage, "getRoomByName")
+				.mockResolvedValueOnce(null)
+				.mockResolvedValue(options);
+
+			expect((await roommanager.getRoom("test-missing-retry")).ok).toBe(false);
+			expect((await roommanager.getRoom("test-missing-retry")).ok).toBe(true);
+		});
+
+		it("should not register a room when assigning its epoch fails", async () => {
+			const options = new Room({ name: "test-epoch-retry", isTemporary: true });
+			options.throttledSync.cancel();
+			vi.spyOn(redisClient, "get").mockResolvedValue(options.serializeState());
+			vi.spyOn(redisClient, "incr")
+				.mockRejectedValueOnce(new Error("Redis unavailable"))
+				.mockResolvedValue(42);
+
+			await expect(roommanager.getRoom(options.name)).rejects.toThrow("Redis unavailable");
+			expect(roommanager.getRooms()).toHaveLength(0);
+			const room = (await roommanager.getRoom(options.name)).unwrap();
+			expect(room.loadEpoch).toBe(42);
+			expect(roommanager.getRooms()).toEqual([room]);
+		});
+
+		it("should reject creation while the same name is loading", async () => {
+			const snapshot = new Room({ name: "test-loading-create", isTemporary: true });
+			snapshot.throttledSync.cancel();
+			let resolveGet!: (value: string) => void;
+			vi.spyOn(redisClient, "get").mockReturnValue(
+				new Promise(resolve => {
+					resolveGet = resolve;
+				}),
+			);
+			const loading = roommanager.getRoom(snapshot.name);
+
+			expect(roommanager.getRooms()).toHaveLength(0);
+			expect(
+				(await roommanager.getRoom(snapshot.name, { mustAlreadyBeLoaded: true })).ok,
+			).toBe(false);
+			await expect(
+				roommanager.createRoom({ name: snapshot.name.toUpperCase(), isTemporary: true }),
+			).rejects.toBeInstanceOf(RoomNameTakenException);
+			resolveGet(snapshot.serializeState());
+			const room = (await loading).unwrap();
+			expect(roommanager.getRooms()).toEqual([room]);
+		});
+
+		it("should share a pending creation with loads and reject another creation", async () => {
+			let resolveExists!: (value: number) => void;
+			const existsSpy = vi.spyOn(redisClient, "exists").mockReturnValue(
+				new Promise(resolve => {
+					resolveExists = resolve;
+				}),
+			);
+			const getSpy = vi.spyOn(redisClient, "get");
+			const created = roommanager.createRoom({ name: "test-creating", isTemporary: true });
+			const loaded = roommanager.getRoom("TEST-CREATING");
+
+			await expect(
+				roommanager.createRoom({ name: "TEST-CREATING", isTemporary: true }),
+			).rejects.toBeInstanceOf(RoomNameTakenException);
+			resolveExists(0);
+			await created;
+			const room = (await loaded).unwrap();
+			expect((await roommanager.getRoom("test-creating")).unwrap()).toBe(room);
+			expect(roommanager.getRooms()).toEqual([room]);
+			expect(existsSpy).toHaveBeenCalledTimes(1);
+			expect(getSpy).not.toHaveBeenCalled();
+		});
+
+		it("should release a failed creation so it can be retried", async () => {
+			vi.spyOn(redisClient, "exists")
+				.mockRejectedValueOnce(new Error("Redis unavailable"))
+				.mockResolvedValue(0);
+			const options = { name: "test-create-retry", isTemporary: true };
+
+			await expect(roommanager.createRoom(options)).rejects.toThrow("Redis unavailable");
+			expect(roommanager.getRooms()).toHaveLength(0);
+			await roommanager.createRoom(options);
+			expect(roommanager.getRooms()).toHaveLength(1);
+		});
+
+		it("should unload a room after its pending load completes", async () => {
+			const options = new Room({ name: "test-unload-pending", isTemporary: true });
+			options.throttledSync.cancel();
+			let resolveGet!: (value: string) => void;
+			vi.spyOn(redisClient, "get").mockReturnValue(
+				new Promise(resolve => {
+					resolveGet = resolve;
+				}),
+			);
+			const loading = roommanager.getRoom(options.name);
+			const unloading = roommanager.unloadRoom(options.name, UnloadReason.Commanded);
+			resolveGet(options.serializeState());
+			await loading;
+			await unloading;
+
+			expect(roommanager.getRooms()).toHaveLength(0);
+		});
+	});
+
+	it("should ignore an unregistered object with the same name as an occupied room", async () => {
+		await roommanager.createRoom({ name: "test-duplicate", isTemporary: true });
+		const occupied = (await roommanager.getRoom("test-duplicate")).unwrap();
+		const stale = new Room({ name: occupied.name, isTemporary: true });
+		stale.throttledSync.cancel();
+		occupied.realusers.push(new RoomUser("client", "token"));
+		const deleteSpy = vi.spyOn(redisClient, "del");
+		const beforeUnloadSpy = vi.spyOn(stale, "onBeforeUnload");
+		const unloaded = vi.fn();
+		roommanager.on("unload", unloaded);
+
+		await roommanager.unloadRoom(stale, UnloadReason.Keepalive);
+
+		expect(roommanager.getRooms()).toEqual([occupied]);
+		expect(occupied.users).toHaveLength(1);
+		expect(deleteSpy).not.toHaveBeenCalled();
+		expect(beforeUnloadSpy).not.toHaveBeenCalled();
+		expect(unloaded).not.toHaveBeenCalled();
+	});
+
+	it("should unload every stale room in one update", async () => {
+		await roommanager.createRoom({ name: "test-stale-first", isTemporary: true });
+		await roommanager.createRoom({ name: "test-stale-second", isTemporary: true });
+		const first = (await roommanager.getRoom("test-stale-first")).unwrap();
+		const second = (await roommanager.getRoom("test-stale-second")).unwrap();
+		first._keepAlivePing = dayjs().subtract(conf.get("room.unload_after") + 1, "second");
+		second._keepAlivePing = first._keepAlivePing;
+
+		await roommanager.update();
+
+		expect(roommanager.getRooms()).toHaveLength(0);
+	});
+
+	it("should still refuse a keepalive unload for an occupied object", async () => {
+		await roommanager.createRoom({ name: "test-occupied-object", isTemporary: true });
+		const room = (await roommanager.getRoom("test-occupied-object")).unwrap();
+		room.realusers.push(new RoomUser("client", "token"));
+
+		await roommanager.unloadRoom(room, UnloadReason.Keepalive);
+
+		expect(roommanager.getRooms()).toEqual([room]);
+	});
+
+	it("should ignore unloading an object that is no longer loaded", async () => {
+		await roommanager.createRoom({ name: "test-unloaded-object", isTemporary: true });
+		const room = (await roommanager.getRoom("test-unloaded-object")).unwrap();
+		await roommanager.unloadRoom(room, UnloadReason.Admin);
+		await roommanager.createRoom({ name: room.name, isTemporary: true });
+		const other = (await roommanager.getRoom(room.name)).unwrap();
+
+		await roommanager.unloadRoom(room, UnloadReason.Commanded);
+
+		expect(roommanager.getRooms()).toEqual([other]);
+	});
+
+	it("should emit the loaded object with its assigned epoch", async () => {
+		const loaded = vi.fn();
+		roommanager.on("load", loaded);
+		await roommanager.createRoom({ name: "test-load-event", isTemporary: true });
+		const room = (await roommanager.getRoom("test-load-event")).unwrap();
+
+		expect(loaded).toHaveBeenCalledWith(room);
+		expect(room.loadEpoch).toBeGreaterThan(0);
 	});
 
 	describe("creating a room", () => {
