@@ -22,6 +22,22 @@ describe("Chat component", () => {
 		expect(wrapper.find('[data-cy="chat-input"]').exists()).toBe(false);
 	});
 
+	it("emits activate when opened", async () => {
+		const { wrapper } = mountComponent(Chat);
+		await wrapper.get('[data-cy="chat-activate"]').trigger("click");
+
+		expect(wrapper.emitted("activate")).toHaveLength(1);
+	});
+
+	it("can hide its title row when always visible", () => {
+		const { wrapper } = mountComponent(Chat, {
+			props: { alwaysVisible: true, hideHeader: true },
+		});
+
+		expect(wrapper.find(".chat-header").exists()).toBe(false);
+		expect(wrapper.find('[data-cy="chat-input"]').exists()).toBe(true);
+	});
+
 	it("sends the message when enter is pressed", async () => {
 		const { wrapper, connection } = mountComponent(Chat);
 		await wrapper.get('[data-cy="chat-activate"]').trigger("click");

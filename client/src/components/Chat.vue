@@ -5,7 +5,7 @@
 			activated: isActive,
 		}"
 	>
-		<div class="chat-header" v-if="isActive">
+		<div class="chat-header" v-if="isActive && !hideHeader">
 			<Button
 				v-if="!alwaysVisible"
 				variant="ghost"
@@ -80,6 +80,7 @@ import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { mdiChevronDown, mdiChevronDoubleDown, mdiCommentOutline } from "@mdi/js";
 import { computed, onUpdated, ref, type Ref, nextTick, onMounted, onUnmounted } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import type { ServerMessageChat } from "ott-common/models/messages";
@@ -90,9 +91,17 @@ import { chatMessagePast, chatMessageRecent } from "./chat-state";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
-const emit = defineEmits(["link-click"]);
+const emit = defineEmits<{
+	"link-click": [link: string];
+	/** Chat was opened, e.g. with the keyboard shortcut, and is about to focus its input. */
+	"activate": [];
+}>();
 const props = defineProps({
 	alwaysVisible: {
+		type: Boolean,
+	},
+	/** Hide the title row, for when the surrounding UI already labels the chat. */
+	hideHeader: {
 		type: Boolean,
 	},
 });
@@ -150,6 +159,7 @@ async function setActivated(value: boolean, manual = false): Promise<void> {
 	}
 	activated.value = value;
 	if (value) {
+		emit("activate");
 		if (manual) {
 			deactivateOnBlur.value = false;
 		} else {
@@ -218,6 +228,8 @@ function forceToBottom() {
 }
 
 onUpdated(enforceStickToBottom);
+// Resizing the chat (e.g. dragging the side panel) changes the scroll height without an update.
+useResizeObserver(messages, enforceStickToBottom);
 </script>
 
 <style lang="scss" scoped>

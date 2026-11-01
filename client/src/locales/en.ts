@@ -230,6 +230,14 @@ export default {
 	chat: {
 		title: "Chat",
 		"type-here": "Type your message here...",
+		placement: {
+			label: "Chat placement",
+			"in-video": "In video",
+			panel: "Panel",
+			"youtube-unsupported": "YouTube doesn't allow chat over its player.",
+		},
+		"move-into-video": "Move chat into the video",
+		"resize-panel": "Resize chat panel. Double-click to reset.",
 	},
 	"share-invite": {
 		title: "Share Invite",
