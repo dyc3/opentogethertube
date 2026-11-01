@@ -139,8 +139,6 @@
 				@playing="onPlaying"
 				@paused="onPaused"
 				@ready="onReady"
-				@buffering="onBuffering"
-				@error="onError"
 			/>
 			<div v-else class="no-video rounded-md border">
 				<h1 class="text-6xl">{{ $t("video.no-video") }}</h1>

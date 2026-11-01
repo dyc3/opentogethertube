@@ -66,7 +66,6 @@
 </template>
 
 <script lang="ts" setup>
-import { defineEmits } from "vue";
 import ProcessedText from "./ProcessedText.vue";
 
 const emit = defineEmits<{

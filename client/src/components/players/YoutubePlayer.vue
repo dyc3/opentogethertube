@@ -103,9 +103,7 @@ const NATIVE_POLL_INTERVAL_MS = 250;
 
 defineOptions({ name: "YoutubePlayer" });
 
-const props = withDefaults(defineProps<Props>(), {
-	nativeControls: false,
-});
+const props = defineProps<Props>();
 const emit = defineEmits<{
 	"apiready": [];
 	"ended": [];

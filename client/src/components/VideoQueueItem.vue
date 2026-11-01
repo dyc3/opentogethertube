@@ -266,15 +266,12 @@ import { useGrants } from "./composables/grants";
 
 interface VideoQueueItemProps {
 	item: QueueItem;
-	isPreview: boolean;
-	hideAllButtons: boolean;
+	isPreview?: boolean;
+	hideAllButtons?: boolean;
 	index?: number;
 }
 
-const props = withDefaults(defineProps<VideoQueueItemProps>(), {
-	isPreview: false,
-	hideAllButtons: false,
-});
+const props = defineProps<VideoQueueItemProps>();
 
 const { item, index } = toRefs(props);
 const store = useStore();

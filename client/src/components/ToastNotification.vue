@@ -2,7 +2,7 @@
 	<div class="toast bg-card border rounded text-foreground" aria-live="polite">
 		<Icon v-if="!!icon" :icon="icon" class="ml-3 size-5 shrink-0" :class="colorClass" />
 		<span class="toast-content">
-			<ProcessedText :text="toast.content" :show-add-queue-tooltip="false" />
+			<ProcessedText :text="toast.content" hide-add-queue-tooltip />
 		</span>
 		<div
 			class="bar"

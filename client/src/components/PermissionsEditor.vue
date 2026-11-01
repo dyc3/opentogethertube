@@ -76,7 +76,7 @@ const model = defineModel<Grants>({ required: true, validator: val => val instan
 const props = withDefaults(
 	defineProps<{
 		modelValue: Grants;
-		currentRole: number;
+		currentRole?: number;
 	}>(),
 	{
 		currentRole: 4,

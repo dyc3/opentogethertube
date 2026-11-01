@@ -40,7 +40,7 @@ import { useGrants } from "../composables/grants";
 
 withDefaults(
 	defineProps<{
-		currentPosition: number;
+		currentPosition?: number;
 	}>(),
 	{
 		currentPosition: 0,

@@ -54,7 +54,10 @@
 				"noSetterReturn": "error",
 				"noSwitchDeclarations": "error",
 				"noUndeclaredVariables": "error",
-				"noUnknownPseudoClass": { "level": "warn", "options": { "ignore": ["export"] } },
+				"noUnknownPseudoClass": {
+					"level": "warn",
+					"options": { "ignore": ["export"] }
+				},
 				"noUnreachable": "error",
 				"noUnreachableSuper": "error",
 				"noUnsafeFinally": "error",
@@ -69,18 +72,27 @@
 				"useVueValidVBind": "error",
 				"useVueValidVElse": "error",
 				"useVueValidVElseIf": "error",
-				"useVueValidVIf": "error"
+				"useVueValidVIf": "error",
+				"noVueRefAsOperand": "error",
+				"useVueValidVFor": "error",
+				"noVueVOnNumberValues": "error"
 			},
 			"nursery": {
-				"noVueRefAsOperand": "error",
-				"useScopedStyles": "info",
-				"useVueValidVFor": "error",
 				"useExhaustiveSwitchCases": "error",
-				"useVueNextTickPromise": "error",
-				"noVueVOnNumberValues": "error",
-				"noIdenticalTestTitle": "error",
-				"useConsistentTestIt": "error",
-				"useTailwindShorthandClasses": "error"
+				"useTailwindShorthandClasses": "error",
+				"noVueBooleanDefault": "error",
+				"noVueDeprecatedScopedSlots": "error",
+				"noVueLifecycleAfterAwait": "error",
+				"noVueRequiredPropWithDefault": "error",
+				"noVueRootVIf": "error",
+				"noVueUnusedEmitDeclarations": "error",
+				"noVueVHtml": "error",
+				"noVueVTextVHtmlOnComponent": "error",
+				"noVueWatchAfterAwait": "error",
+				"useVueBaseImport": "error",
+				"useVueComponentIs": "error",
+				"useVueToggleInsideTransition": "error",
+				"useVueVOnExact": "error"
 			},
 			"performance": {
 				"useTopLevelRegex": "error",
@@ -97,7 +109,9 @@
 				"useConsistentArrowReturn": "off",
 				"noVueOptionsApi": "error",
 				"useVueMultiWordComponentNames": "off",
-				"useVueDefineMacrosOrder": "off"
+				"useVueDefineMacrosOrder": "off",
+				"useVueNextTickPromise": "error",
+				"useConsistentTestIt": "error"
 			},
 			"suspicious": {
 				"noAssignInExpressions": "error",
@@ -124,7 +138,10 @@
 				"noRedeclare": "error",
 				"noShadowRestrictedNames": "error",
 				"noSparseArray": "error",
-				"noUnknownAtRules": { "level": "warn", "options": { "ignore": ["use"] } },
+				"noUnknownAtRules": {
+					"level": "warn",
+					"options": { "ignore": ["use"] }
+				},
 				"noUnsafeNegation": "error",
 				"noUselessRegexBackrefs": "error",
 				"noVar": "error",
@@ -132,7 +149,9 @@
 				"useGetterReturn": "error",
 				"useAdjacentOverloadSignatures": "error",
 				"noNestedPromises": "warn",
-				"noVueArrowFuncInWatch": "error"
+				"noVueArrowFuncInWatch": "error",
+				"useScopedStyles": "info",
+				"noIdenticalTestTitle": "error"
 			}
 		}
 	},
@@ -157,6 +176,12 @@
 	},
 	"css": {
 		"parser": { "tailwindDirectives": true }
+	},
+	"markdown": {
+		"formatter": { "enabled": false }
+	},
+	"yaml": {
+		"formatter": { "enabled": false }
 	},
 	"overrides": [
 		{
@@ -242,12 +267,24 @@
 			"includes": ["**/*.vue"],
 			"formatter": { "enabled": false },
 			"javascript": { "formatter": { "enabled": false } },
-			"linter": { "rules": { "correctness": { "noUndeclaredVariables": "off" } } }
+			"linter": {
+				"rules": { "correctness": { "noUndeclaredVariables": "off" } }
+			}
 		},
 		{
 			"includes": ["client/src/components/ui/field/FieldDescription.vue"],
-			"linter": { "rules": { "nursery": { "useTailwindShorthandClasses": "off" } } }
+			"linter": {
+				"rules": { "nursery": { "useTailwindShorthandClasses": "off" } }
+			}
+		},
+		{
+			// renders nothing when there is no error to show
+			"includes": ["client/src/components/ui/field/FieldError.vue"],
+			"linter": { "rules": { "nursery": { "noVueRootVIf": "off" } } }
 		}
 	],
-	"assist": { "enabled": false, "actions": { "source": { "organizeImports": "on" } } }
+	"assist": {
+		"enabled": false,
+		"actions": { "source": { "organizeImports": "on" } }
+	}
 }

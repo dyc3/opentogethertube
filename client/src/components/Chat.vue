@@ -94,7 +94,6 @@ const emit = defineEmits(["link-click"]);
 const props = defineProps({
 	alwaysVisible: {
 		type: Boolean,
-		default: false,
 	},
 });
 

@@ -8,6 +8,7 @@
 		Colors are read live from the active theme's CSS vars and re-read whenever
 		the <html data-theme> attribute changes, so it tracks every theme.
 	-->
+	<!-- biome-ignore lint/nursery/noVueRootVIf: only render the shader after mount -->
 	<Shader v-if="mounted" class="hero-shader" :class="{ 'is-ready': ready }" tone-mapping="aces">
 		<!-- opaque base so the canvas is grounded even before the field ramps in -->
 		<SolidColor :color="cfg.base" />

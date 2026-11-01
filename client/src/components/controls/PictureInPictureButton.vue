@@ -1,4 +1,5 @@
 <template>
+	<!-- biome-ignore lint/nursery/noVueRootVIf: the button hides itself when the browser doesn't support PiP -->
 	<Tooltip v-if="isBrowserSupported">
 		<TooltipTrigger as-child>
 			<Button
