@@ -85,7 +85,7 @@ function discard() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
+<!-- biome-ignore lint/suspicious/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./banner-transitions.scss";
 

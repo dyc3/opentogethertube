@@ -20,7 +20,7 @@ const PeertubePlayer = defineComponent({
 	props: {
 		videoId: { type: String, required: true },
 	},
-	emits: ["playing", "paused", "ready", "buffering", "error", "apiready"],
+	emits: ["playing", "paused", "ready", "apiready"],
 	setup(props, { emit }) {
 		let player: Peertube | undefined;
 

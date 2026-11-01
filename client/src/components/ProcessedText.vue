@@ -2,7 +2,7 @@
 	<span data-cy="processed-text">
 		<span v-for="(item, index) in content" :key="index">
 			<span v-if="item.type === 'text'">{{ item.text }}</span>
-			<Tooltip v-else-if="item.type === 'link' && showAddQueueTooltip">
+			<Tooltip v-else-if="item.type === 'link' && !hideAddQueueTooltip">
 				<TooltipTrigger as-child>
 					<a
 						class="text-primary underline-offset-2 hover:underline"
@@ -37,15 +37,10 @@ interface ContentItem {
 	text: string;
 }
 
-const props = withDefaults(
-	defineProps<{
-		text: string;
-		showAddQueueTooltip: boolean;
-	}>(),
-	{
-		showAddQueueTooltip: true,
-	},
-);
+const props = defineProps<{
+	text: string;
+	hideAddQueueTooltip?: boolean;
+}>();
 
 const emit = defineEmits<{
 	"link-click": [link: string];
@@ -55,7 +50,7 @@ const { text } = toRefs(props);
 const content: Ref<ContentItem[]> = ref([]);
 
 function onLinkClick(e: Event, link: string) {
-	if (props.showAddQueueTooltip) {
+	if (!props.hideAddQueueTooltip) {
 		e.preventDefault();
 		e.stopPropagation();
 		emit("link-click", link);

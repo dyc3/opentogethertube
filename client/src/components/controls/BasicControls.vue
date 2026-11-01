@@ -87,7 +87,7 @@ import { useGrants } from "../composables/grants";
 
 const props = withDefaults(
 	defineProps<{
-		currentPosition: number;
+		currentPosition?: number;
 	}>(),
 	{
 		currentPosition: 0,

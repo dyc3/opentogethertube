@@ -8,6 +8,7 @@
 		and re-read whenever <html data-theme> changes, so it tracks every light
 		theme (warm amber on "light", candy pink/green on "strawberry").
 	-->
+	<!-- biome-ignore lint/nursery/noVueRootVIf: only render the shader after mount -->
 	<Shader v-if="mounted" class="hero-shader" :class="{ 'is-ready': ready }" tone-mapping="aces">
 		<!-- grounded base so the canvas matches the page before the field ramps in -->
 		<SolidColor :color="colors.base" />

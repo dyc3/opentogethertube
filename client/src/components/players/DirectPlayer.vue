@@ -526,7 +526,7 @@ defineExpose({
 } satisfies MediaPlayerWithCaptions & MediaPlayerWithPlaybackRate & MediaPlayerWithAudioBoost & MediaPlayerWithQuality);
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
+<!-- biome-ignore lint/suspicious/useScopedStyles: biome migration -->
 <style lang="scss">
 .direct {
 	position: relative;

@@ -84,7 +84,7 @@ function abort() {
 }
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
+<!-- biome-ignore lint/suspicious/useScopedStyles: biome migration -->
 <style lang="scss">
 .editor {
 	width: 10ch;

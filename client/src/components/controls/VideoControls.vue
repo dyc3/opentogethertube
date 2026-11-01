@@ -39,17 +39,16 @@ withDefaults(
 	defineProps<{
 		sliderPosition: number;
 		truePosition: number;
-		controlsVisible: boolean;
-		mode: "in-video" | "outside-video";
+		controlsVisible?: boolean;
+		mode?: "in-video" | "outside-video";
 	}>(),
 	{
-		controlsVisible: false,
 		mode: "in-video",
 	},
 );
 </script>
 
-<!-- biome-ignore lint/nursery/useScopedStyles: biome migration -->
+<!-- biome-ignore lint/suspicious/useScopedStyles: biome migration -->
 <style lang="scss">
 @use "./media-controls.scss";
 
