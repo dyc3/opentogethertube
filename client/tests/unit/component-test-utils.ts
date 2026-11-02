@@ -13,6 +13,35 @@ import toast from "@/util/toast";
 
 const wrappers: VueWrapper[] = [];
 
+/** In-memory stand-in for `localStorage`. */
+class MemoryStorage implements Storage {
+	private items = new Map<string, string>();
+
+	get length() {
+		return this.items.size;
+	}
+
+	clear() {
+		this.items.clear();
+	}
+
+	getItem(key: string) {
+		return this.items.get(key) ?? null;
+	}
+
+	key(index: number) {
+		return [...this.items.keys()][index] ?? null;
+	}
+
+	removeItem(key: string) {
+		this.items.delete(key);
+	}
+
+	setItem(key: string, value: string) {
+		this.items.set(key, String(value));
+	}
+}
+
 export function mountComponent(
 	component: Component,
 	options: MountingOptions<Record<string, unknown>> = {},
@@ -36,6 +65,14 @@ export function mountComponent(
 				return undefined;
 			}
 		} as unknown as typeof ResizeObserver;
+	}
+	// Node 25+ defines its own `localStorage` global, which shadows jsdom's and is undefined
+	// unless Node is started with `--localstorage-file`.
+	if (!globalThis.localStorage) {
+		Object.defineProperty(globalThis, "localStorage", {
+			configurable: true,
+			value: new MemoryStorage(),
+		});
 	}
 	if (!window.visualViewport) {
 		Object.defineProperty(window, "visualViewport", {
