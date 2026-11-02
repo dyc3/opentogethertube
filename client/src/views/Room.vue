@@ -7,7 +7,10 @@
 			:data-layout="store.state.settings.roomLayout"
 			v-if="!showDisconnectedOverlay"
 		>
-			<div class="mx-2.5 flex flex-row items-center gap-2" v-if="!store.state.fullscreen">
+			<div
+				class="mx-2.5 flex flex-row flex-wrap items-center gap-2"
+				v-if="!store.state.fullscreen"
+			>
 				<h1
 					class="relative pl-4 font-display text-foreground text-2xl before:absolute before:left-0 before:inset-y-[0.1em] before:w-1 before:bg-primary before:shadow-[0_0_12px_var(--primary)] before:content-['']"
 				>
@@ -130,7 +133,6 @@
 									always-visible
 									hide-header
 									@link-click="setAddPreviewText"
-									@activate="sidePanelTab = 'chat'"
 								/>
 							</template>
 							<template #users>
@@ -872,6 +874,13 @@ export default defineComponent({
 			set: chatPanelWidth => store.commit("settings/UPDATE", { chatPanelWidth }),
 		});
 		const sidePanelTab = ref<RoomSidePanelTab>("chat");
+		// Chat remounts when it moves between the panel and the video, so the room owns this
+		// shortcut instead of each Chat instance.
+		const chat = ref<InstanceType<typeof Chat> | null>(null);
+		shortcuts.bind({ code: "KeyT" }, () => {
+			sidePanelTab.value = "chat";
+			chat.value?.activate();
+		});
 		function moveChatIntoVideo() {
 			store.commit("settings/UPDATE", { chatPlacement: ChatPlacement.video });
 		}
@@ -942,6 +951,7 @@ export default defineComponent({
 			showInVideoChat,
 			chatPanelWidth,
 			sidePanelTab,
+			chat,
 			moveChatIntoVideo,
 			CHAT_PANEL_MIN_WIDTH,
 			DEFAULT_CHAT_PANEL_WIDTH,

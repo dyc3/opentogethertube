@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
 	RoomRequestType,
 	type ClientMessageRoomRequest,
@@ -6,9 +6,14 @@ import {
 } from "ott-common/models/messages";
 import { PlayerStatus, Role } from "ott-common/models/types";
 import Chat from "@/components/Chat.vue";
+import { chatDraft } from "@/components/chat-state";
 import { mountComponent } from "./component-test-utils";
 
 describe("Chat component", () => {
+	beforeEach(() => {
+		chatDraft.value = "";
+	});
+
 	it("opens and closes from the buttons", async () => {
 		const { wrapper } = mountComponent(Chat);
 
@@ -20,13 +25,6 @@ describe("Chat component", () => {
 		await wrapper.get('[data-cy="chat-deactivate"]').trigger("click");
 		expect(wrapper.find('[data-cy="chat-activate"]').exists()).toBe(true);
 		expect(wrapper.find('[data-cy="chat-input"]').exists()).toBe(false);
-	});
-
-	it("emits activate when opened", async () => {
-		const { wrapper } = mountComponent(Chat);
-		await wrapper.get('[data-cy="chat-activate"]').trigger("click");
-
-		expect(wrapper.emitted("activate")).toHaveLength(1);
 	});
 
 	it("can hide its title row when always visible", () => {

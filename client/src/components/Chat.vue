@@ -84,18 +84,13 @@ import { useResizeObserver } from "@vueuse/core";
 import { useConnection } from "@/plugins/connection";
 import { useRoomApi } from "@/util/roomapi";
 import type { ServerMessageChat } from "ott-common/models/messages";
-import { useRoomKeyboardShortcuts } from "@/util/keyboard-shortcuts";
 import { useSfx } from "@/plugins/sfx";
 import ChatMsg from "./ChatMsg.vue";
-import { chatMessagePast, chatMessageRecent } from "./chat-state";
+import { chatDraft, chatMessagePast, chatMessageRecent } from "./chat-state";
 
 const MSG_SHOW_TIMEOUT = 20000;
 
-const emit = defineEmits<{
-	"link-click": [link: string];
-	/** Chat was opened, e.g. with the keyboard shortcut, and is about to focus its input. */
-	"activate": [];
-}>();
+const emit = defineEmits(["link-click"]);
 const props = defineProps({
 	alwaysVisible: {
 		type: Boolean,
@@ -109,7 +104,7 @@ const props = defineProps({
 const connection = useConnection();
 const roomapi = useRoomApi(connection);
 
-const inputValue = ref("");
+const inputValue = chatDraft;
 const stickToBottom = ref(true);
 /**
  * When chat is activated, all messages are shown. and the
@@ -135,14 +130,8 @@ function getChatInputEl(): HTMLInputElement | undefined {
 	return c.$el;
 }
 
-const shortcuts = useRoomKeyboardShortcuts();
 onMounted(() => {
 	connection.addMessageHandler("chat", onChatReceived);
-	if (shortcuts) {
-		shortcuts.bind({ code: "KeyT" }, () => setActivated(true, false));
-	} else {
-		console.warn("No keyboard shortcuts available");
-	}
 });
 
 onUnmounted(() => {
@@ -159,7 +148,6 @@ async function setActivated(value: boolean, manual = false): Promise<void> {
 	}
 	activated.value = value;
 	if (value) {
-		emit("activate");
 		if (manual) {
 			deactivateOnBlur.value = false;
 		} else {
@@ -228,6 +216,14 @@ function forceToBottom() {
 }
 
 onUpdated(enforceStickToBottom);
+
+defineExpose({
+	/**
+	 * Open chat and focus its input, like the keyboard shortcut does. The room owns that
+	 * shortcut so it survives chat moving between containers.
+	 */
+	activate: () => setActivated(true, false),
+});
 // Resizing the chat (e.g. dragging the side panel) changes the scroll height without an update.
 useResizeObserver(messages, enforceStickToBottom);
 </script>
