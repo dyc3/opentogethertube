@@ -2,8 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import RoomSidePanel from "@/components/RoomSidePanel.vue";
 import { chatDraft } from "@/components/chat-state";
 import Room from "@/views/Room.vue";
+import { OttSfx } from "@/plugins/sfx";
 import { ChatPlacement } from "@/stores/settings";
 import { mountComponent } from "./component-test-utils";
+
+// The room's settings form loads from the API on mount; keep these tests off the network.
+const { API } = vi.hoisted(() => ({
+	API: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
+vi.mock("@/common-http", () => ({ API }));
 
 async function mountRoom() {
 	const mounted = mountComponent(Room);
@@ -27,6 +34,9 @@ async function settle(wrapper: { vm: { $nextTick: () => Promise<void> } }) {
 describe("Room chat", () => {
 	beforeEach(() => {
 		chatDraft.value = "";
+		// The room fetches its sound effects on mount; there's no server to serve them here.
+		vi.spyOn(OttSfx.prototype, "loadSfx").mockResolvedValue();
+		API.get.mockReturnValue(new Promise(() => undefined));
 		// Changing settings in the room adjusts the sound effect volume.
 		vi.stubGlobal(
 			"AudioContext",
