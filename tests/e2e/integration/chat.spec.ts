@@ -12,7 +12,7 @@ describe("Room chat", () => {
 	});
 
 	async function sendChatMessage(page: Page, message: string) {
-		await page.locator('[data-cy="chat-activate"]').click();
+		// Chat is docked in the side panel by default, so its input is always visible.
 		await page.locator('[data-cy="chat-input"]').fill(message);
 		await page.locator('[data-cy="chat-input"]').press("Enter");
 	}

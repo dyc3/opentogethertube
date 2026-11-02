@@ -13,6 +13,9 @@ export interface SettingsState {
 	defaultRoomSettings?: DefaultRoomSettings;
 	enableAdapterSelector: boolean;
 	nativeYoutubeControls: boolean;
+	chatPlacement: ChatPlacement;
+	/** Width of the room's chat side panel, in pixels. */
+	chatPanelWidth: number;
 }
 
 export type DefaultRoomSettings = Pick<RoomSettings, "autoSkipSegmentCategories">;
@@ -21,6 +24,17 @@ export enum RoomLayoutMode {
 	default = "default",
 	theater = "theater",
 }
+
+/**
+ * Where room chat is shown. YouTube's terms don't allow drawing over its player, so
+ * `video` falls back to `panel` while a YouTube video is playing.
+ */
+export enum ChatPlacement {
+	video = "video",
+	panel = "panel",
+}
+
+export const DEFAULT_CHAT_PANEL_WIDTH = 400;
 
 export enum Theme {
 	dark = "dark",
@@ -48,6 +62,8 @@ export const settingsModule: Module<SettingsState, unknown> = {
 		sfxVolume: 0.8,
 		enableAdapterSelector: false,
 		nativeYoutubeControls: false,
+		chatPlacement: ChatPlacement.panel,
+		chatPanelWidth: DEFAULT_CHAT_PANEL_WIDTH,
 	},
 	mutations: {
 		UPDATE(state, settings: Partial<SettingsState>) {
