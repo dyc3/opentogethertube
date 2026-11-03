@@ -1399,6 +1399,7 @@ export class Room implements RoomState {
 			action: "chat",
 			from: user,
 			text: request.text,
+			sentAt: Date.now(),
 		});
 	}
 
