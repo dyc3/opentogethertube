@@ -11,7 +11,7 @@ import {
 } from "vitest";
 import dayjs from "dayjs";
 import tokens, { type SessionInfo } from "../../auth/tokens.js";
-import { RoomRequestType } from "ott-common/models/messages.js";
+import { RoomRequestType, type ServerMessageChat } from "ott-common/models/messages.js";
 import { type AuthToken, BehaviorOption, QueueMode, Role } from "ott-common/models/types.js";
 import { Room, RoomUser } from "../../room.js";
 import infoextractor from "../../infoextractor.js";
@@ -433,6 +433,28 @@ describe("Room", () => {
 				);
 				expect(shuffleSpy).toHaveBeenCalled();
 				expect(room.queue).toHaveLength(5);
+			});
+		});
+
+		describe("ChatRequest", () => {
+			it("should stamp chat messages with the time they were sent", async () => {
+				const publishSpy = vi.spyOn(room, "publish");
+				const before = Date.now();
+				await room.processRequest(
+					{
+						type: RoomRequestType.ChatRequest,
+						text: "hello",
+					},
+					{ username: "test", role: Role.Owner, clientId: user.id },
+				);
+				const after = Date.now();
+
+				const chat = publishSpy.mock.calls
+					.map(([msg]) => msg)
+					.find((msg): msg is ServerMessageChat => msg.action === "chat");
+				expect(chat).toMatchObject({ action: "chat", text: "hello" });
+				expect(chat?.sentAt).toBeGreaterThanOrEqual(before);
+				expect(chat?.sentAt).toBeLessThanOrEqual(after);
 			});
 		});
 

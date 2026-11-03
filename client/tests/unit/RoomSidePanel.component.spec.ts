@@ -15,6 +15,7 @@ function receiveChat() {
 			role: Role.UnregisteredUser,
 		},
 		text: "foo",
+		sentAt: Date.now(),
 	});
 }
 

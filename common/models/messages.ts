@@ -67,6 +67,8 @@ export interface ServerMessageChat extends ServerMessageBase {
 	action: "chat";
 	from: RoomUserInfo;
 	text: string;
+	/** When the server received the message, in milliseconds since the Unix epoch. */
+	sentAt: number;
 }
 
 export interface ServerMessageEvent extends ServerMessageBase {
