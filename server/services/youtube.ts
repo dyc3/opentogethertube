@@ -16,7 +16,7 @@ import storage from "../storage.js";
 import { OttException } from "ott-common/exceptions.js";
 import { conf } from "../ott-config.js";
 import { parseIso8601Duration } from "./parsing/iso8601.js";
-import type { BulkVideoResult } from "server/infoextractor.js";
+import type { BulkVideoResult } from "../infoextractor.js";
 
 const log = getLogger("youtube");
 

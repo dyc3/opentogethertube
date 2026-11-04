@@ -3,7 +3,7 @@ import request from "supertest";
 import { main } from "../../../app.js";
 import usermanager from "../../../usermanager.js";
 import type { User } from "../../../models/user.js";
-import type { MockMailer } from "server/mailer.js";
+import type { MockMailer } from "../../../mailer.js";
 import { conf } from "../../../ott-config.js";
 import { redisClient } from "../../../redisclient.js";
 import type { OttApiRequestAccountRecoveryVerify } from "ott-common/models/rest-api.js";

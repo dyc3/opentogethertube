@@ -4,6 +4,7 @@
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"strictFunctionTypes": true,
+		"rootDir": ".",
 		"outDir": "ts-out"
 	},
 	"include": ["**/*.ts", "tests/**/*.ts", "tests/**/*.tsx"],
