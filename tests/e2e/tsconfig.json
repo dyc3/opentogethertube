@@ -3,7 +3,8 @@
 		"target": "esnext",
 		"lib": ["esnext", "dom"],
 		"types": ["node"],
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"strict": false
 	},
 	"include": ["**/*.ts"]
 }

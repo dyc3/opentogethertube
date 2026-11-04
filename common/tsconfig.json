@@ -4,7 +4,6 @@
 		"module": "nodenext",
 		"moduleResolution": "nodenext",
 		"target": "ESNext",
-		"baseUrl": ".",
 		"rootDir": ".",
 		"strictFunctionTypes": true,
 		"outDir": "ts-out"

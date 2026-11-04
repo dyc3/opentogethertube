@@ -2,11 +2,12 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"target": "es2018",
-		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["./src/*"]
 		},
-		"jsx": "preserve"
+		"jsx": "preserve",
+		// ott-common and vuex export extensionless subpaths ("./*": "./*")
+		"resolvePackageJsonExports": false
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "tests/**/*.ts", "tests/**/*.tsx"],
 	"exclude": ["node_modules", "dist", "ts-out"]

@@ -8,7 +8,7 @@ import { InvalidVideoIdException, OutOfQuotaException } from "../../../exception
 import { buildClients, redisClient } from "../../../redisclient.js";
 import type { AxiosError, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from "axios";
 import fs from "node:fs";
-import type { VideoRequest } from "server/serviceadapter.js";
+import type { VideoRequest } from "../../../serviceadapter.js";
 import { URL } from "node:url";
 import { loadModels } from "../../../models/index.js";
 

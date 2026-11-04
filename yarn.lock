@@ -16447,8 +16447,8 @@ __metadata:
     prettier: "npm:^2.5.1"
     supertest: "npm:6.3.3"
     ts-essentials: "npm:^9.3.0"
-    ts-node: "npm:^10.9.1"
-    typescript: "npm:5.4.5"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:6.0.3"
     validator: "npm:^13.15.20"
     winston: "npm:^3.10.0"
   languageName: unknown
@@ -16551,7 +16551,7 @@ __metadata:
     tailwind-merge: "npm:^3.6.0"
     tailwindcss: "npm:^4"
     tw-animate-css: "npm:^1.4.0"
-    typescript: "npm:5.4.5"
+    typescript: "npm:6.0.3"
     validator: "npm:^13.15.20"
     vite: "npm:^8"
     vitest: "npm:^1.2.2"
@@ -16578,7 +16578,7 @@ __metadata:
     lodash: "npm:^4.18.1"
     sponsorblock-api: "npm:^0.2.2"
     ts-essentials: "npm:^9.3.0"
-    typescript: "npm:5.4.5"
+    typescript: "npm:6.0.3"
     vitest: "npm:^1.2.2"
     zod: "npm:^3.22.4"
   languageName: unknown
@@ -16640,9 +16640,9 @@ __metadata:
     sqlite3: "npm:5.1.5"
     toml: "npm:^4.2.0"
     ts-essentials: "npm:^9.3.0"
-    ts-node: "npm:^10.9.1"
+    ts-node: "npm:^10.9.2"
     tslib: "npm:^2.4.1"
-    typescript: "npm:5.4.5"
+    typescript: "npm:6.0.3"
     unique-names-generator: "npm:^3.1.1"
     uuid: "npm:^14.0.0"
     validator: "npm:^13.15.20"
@@ -16699,7 +16699,7 @@ __metadata:
     sass-loader: "npm:13.3.1"
     style-loader: "npm:3.3.3"
     swc-loader: "npm:^0.2.3"
-    ts-node: "npm:^10.9.1"
+    ts-node: "npm:^10.9.2"
     tsconfig-paths: "npm:^4.2.0"
     tslib: "npm:2.5.3"
     typescript: "npm:4.8.4"
@@ -16757,7 +16757,7 @@ __metadata:
     sass-loader: "npm:13.3.1"
     style-loader: "npm:3.3.3"
     swc-loader: "npm:^0.2.3"
-    ts-node: "npm:^10.9.1"
+    ts-node: "npm:^10.9.2"
     tsconfig-paths: "npm:^4.2.0"
     tslib: "npm:2.5.3"
     typescript: "npm:4.8.4"
@@ -16775,7 +16775,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:6.14.0"
     concurrently: "npm:7.6.0"
     eslint: "npm:^8.57.0"
-    typescript: "npm:5.4.5"
+    typescript: "npm:6.0.3"
     vitest: "npm:^1.2.2"
   languageName: unknown
   linkType: soft
@@ -21073,9 +21073,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:^10.9.1":
-  version: 10.9.1
-  resolution: "ts-node@npm:10.9.1"
+"ts-node@npm:^10.9.2":
+  version: 10.9.2
+  resolution: "ts-node@npm:10.9.2"
   dependencies:
     "@cspotcode/source-map-support": "npm:^0.8.0"
     "@tsconfig/node10": "npm:^1.0.7"
@@ -21107,7 +21107,7 @@ __metadata:
     ts-node-script: dist/bin-script.js
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
-  checksum: 10c0/95187932fb83f3901e22546bd2feeac7d2feb4f412f42ac3a595f049a23e8dcf70516dffb51866391228ea2dbcfaea039e250fb2bb334d48a86ab2b6aea0ae2d
+  checksum: 10c0/5f29938489f96982a25ba650b64218e83a3357d76f7bede80195c65ab44ad279c8357264639b7abdd5d7e75fc269a83daa0e9c62fd8637a3def67254ecc9ddc2
   languageName: node
   linkType: hard
 
@@ -21325,13 +21325,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.4.5":
-  version: 5.4.5
-  resolution: "typescript@npm:5.4.5"
+"typescript@npm:6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/2954022ada340fd3d6a9e2b8e534f65d57c92d5f3989a263754a78aba549f7e6529acc1921913560a4b816c46dce7df4a4d29f9f11a3dc0d4213bb76d043251e
+  checksum: 10c0/4a25ff5045b984370f48f196b3a0120779b1b343d40b9a68d114ea5e5fff099809b2bb777576991a63a5cd59cf7bffd96ff6fe10afcefbcb8bd6fb96ad4b6606
   languageName: node
   linkType: hard
 
@@ -21345,13 +21345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>":
-  version: 5.4.5
-  resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=d69c25"
+"typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=d69c25"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/9cf4c053893bcf327d101b6c024a55baf05430dc30263f9adb1bf354aeffc11306fe1f23ba2f9a0209674359f16219b5b7d229e923477b94831d07d5a33a4217
+  checksum: 10c0/eed465bd04b344517bd91eb232fd0187d93e34625c65ec93777449e29157c6c2accae409474a68a867b90465224d4908f9bce78ad763c159cacd7263ae24b5fc
   languageName: node
   linkType: hard
 
