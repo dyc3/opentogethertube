@@ -32,7 +32,7 @@
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch } from "vue";
 import JASSUB from "jassub";
-import jassubWorkerUrl from "jassub/dist/worker/worker.js?url";
+import jassubWorkerUrl from "jassub/dist/worker/worker.js?worker&url";
 import jassubWasmUrl from "jassub/dist/wasm/jassub-worker.wasm?url";
 import jassubModernWasmUrl from "jassub/dist/wasm/jassub-worker-modern.wasm?url";
 import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
