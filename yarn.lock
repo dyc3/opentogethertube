@@ -16580,7 +16580,7 @@ __metadata:
     ts-essentials: "npm:^9.3.0"
     typescript: "npm:6.0.3"
     vitest: "npm:^1.2.2"
-    zod: "npm:^3.22.4"
+    zod: "npm:^4.6.6"
   languageName: unknown
   linkType: soft
 
@@ -16649,7 +16649,7 @@ __metadata:
     vitest: "npm:^1.2.2"
     winston: "npm:^3.10.0"
     ws: "npm:^7.5.10"
-    zod: "npm:^3.22.4"
+    zod: "npm:^4.6.6"
     zod-validation-error: "npm:^3.0.2"
   languageName: unknown
   linkType: soft
@@ -22744,10 +22744,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.4":
-  version: 3.22.4
-  resolution: "zod@npm:3.22.4"
-  checksum: 10c0/7578ab283dac0eee66a0ad0fc4a7f28c43e6745aadb3a529f59a4b851aa10872b3890398b3160f257f4b6817b4ce643debdda4fb21a2c040adda7862cab0a587
+"zod@npm:^4.6.6":
+  version: 4.6.6
+  resolution: "zod@npm:4.6.6"
+  checksum: 10c0/447a3113bb743c54ab839213ff95e9e8c197cc1206f65270c18aac35aa70c47a5c8cab753be911b574df9a8a9801ea74ed6be776575232cae0084e51dab3e970
   languageName: node
   linkType: hard
 
