@@ -29,6 +29,20 @@ describe("getSubtitleFormatFromUrl", () => {
 	it("returns null for invalid URLs", () => {
 		expect(getSubtitleFormatFromUrl("not a url")).toBeNull();
 	});
+
+	it("recognizes relative path .vtt", () => {
+		expect(
+			getSubtitleFormatFromUrl("/api/data/jellyfin/subtitles/tok/media/0/stream.vtt"),
+		).toEqual("vtt");
+	});
+
+	it("recognizes relative path with query strings", () => {
+		expect(
+			getSubtitleFormatFromUrl(
+				"/api/data/jellyfin/subtitles/tok/media/0/stream.vtt?ApiKey=xyz",
+			),
+		).toEqual("vtt");
+	});
 });
 
 describe("SUBTITLE_CONTENT_TYPES", () => {

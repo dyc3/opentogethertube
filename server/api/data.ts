@@ -7,6 +7,7 @@ import { BadApiArgumentException } from "../exceptions.js";
 import InfoExtract from "../infoextractor.js";
 import { consumeRateLimitPoints } from "../rate-limit.js";
 import { counterHttpErrors } from "../metrics.js";
+import { sanitizeLogInput } from "../util/index.js";
 
 const router = express.Router();
 const log = getLogger("api/data");
@@ -28,18 +29,22 @@ const addPreview: RequestHandler<
 		return;
 	}
 	try {
-		log.info(`Getting queue add preview for ${req.query.input}`);
+		log.info(`Getting queue add preview for ${sanitizeLogInput(req.query.input)}`);
 		const result = await InfoExtract.resolveVideoQuery(
 			req.query.input.trim(),
 			conf.get("add_preview.search.provider"),
 			req.query.adapter,
 		);
 
+		const isPrivateResponse = result.videos.some(v => v.service === "jellyfin");
+
 		res.setHeader(
 			"Cache-Control",
-			result.cacheDuration > 0
-				? `public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
-				: "no-store",
+			isPrivateResponse
+				? "private, no-cache, no-store, must-revalidate"
+				: result.cacheDuration > 0
+					? `public, max-age=${result.cacheDuration}, immutable, stale-while-revalidate=86400`
+					: "no-store",
 		);
 
 		res.json({
@@ -63,6 +68,7 @@ const addPreview: RequestHandler<
 			err.name === "VideoNotFoundException" ||
 			err.name === "FfprobeTimeoutError" ||
 			err.name === "OdyseeUnavailableVideo" ||
+			err.name === "JellyfinApiKeyException" ||
 			err.name === "OttException"
 		) {
 			log.error(`Unable to get add preview: ${err.name}`);

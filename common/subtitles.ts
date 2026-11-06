@@ -16,7 +16,11 @@ const SUBTITLE_EXTENSIONS: Record<string, SubtitleFormat> = {
 export function getSubtitleFormatFromUrl(url: string): SubtitleFormat | null {
 	let pathname: string;
 	try {
-		pathname = new URL(url).pathname;
+		if (url.startsWith("/")) {
+			pathname = new URL(url, "http://localhost").pathname;
+		} else {
+			pathname = new URL(url).pathname;
+		}
 	} catch {
 		return null;
 	}
