@@ -24,6 +24,7 @@
 				</h1>
 				<ClientSettingsDialog />
 				<ChatPlacementToggle :in-video-allowed="inVideoChatAllowed" class="ml-2" />
+				<NowPlaying v-if="currentSource?.service" :video="currentSource" />
 				<div class="flex items-center text-sm font-medium uppercase ml-auto">
 					<Tooltip>
 						<TooltipTrigger as-child>
@@ -324,6 +325,7 @@ import _ from "lodash";
 import OmniPlayer from "@/components/players/OmniPlayer.vue";
 import Chat from "@/components/Chat.vue";
 import ChatPlacementToggle from "@/components/ChatPlacementToggle.vue";
+import NowPlaying from "@/components/NowPlaying.vue";
 import ResizeHandle from "@/components/ResizeHandle.vue";
 import RoomSidePanel, { type RoomSidePanelTab } from "@/components/RoomSidePanel.vue";
 import UserList from "@/components/UserList.vue";
@@ -370,6 +372,7 @@ export default defineComponent({
 		OmniPlayer,
 		Chat,
 		ChatPlacementToggle,
+		NowPlaying,
 		ResizeHandle,
 		RoomSidePanel,
 		AddPreview,

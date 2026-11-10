@@ -255,6 +255,13 @@ export default {
 		"no-video": "No video is playing.",
 		"no-video-text": 'Click "Add" below to add a video.',
 	},
+	"now-playing": {
+		label: "Now playing",
+		"open-original": "Open original",
+		"copy-link": "Copy link",
+		"link-copied": "Copied",
+		"no-description": "No description.",
+	},
 	"add-preview": {
 		label: "Link or Search",
 		"add-all": "Add All",
