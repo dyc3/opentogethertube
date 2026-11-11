@@ -65,7 +65,7 @@ router.get("/list", (req, res) => {
 		return;
 	}
 	let rooms: RoomListItem[] = [];
-	for (const room of roommanager.rooms) {
+	for (const room of roommanager.getRooms()) {
 		if (room.visibility !== Visibility.Public && !isAuthorized) {
 			continue;
 		}
