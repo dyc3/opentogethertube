@@ -44,7 +44,7 @@
 		"sequelize": "^6.25.7",
 		"sequelize-cli": "^6.6.0",
 		"sponsorblock-api": "^0.2.2",
-		"toml": "^4.2.0",
+		"toml": "^5.0.1",
 		"ts-essentials": "^9.3.0",
 		"ts-node": "^10.9.2",
 		"tslib": "^2.4.1",
