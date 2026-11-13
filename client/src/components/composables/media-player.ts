@@ -1,5 +1,5 @@
 import { computed, inject, onMounted, type Ref, ref, shallowRef, watch } from "vue";
-import type { CaptionTrack, VideoTrack } from "@/models/media-tracks";
+import type { AudioTrack, CaptionTrack, VideoTrack } from "@/models/media-tracks";
 import { useStore } from "@/store";
 
 const volume = ref(100);
@@ -84,6 +84,13 @@ export interface MediaPlayerWithQuality extends MediaPlayer {
 	setVideoTrack(idx: number): void;
 	isAutoQualitySupported(): boolean;
 	getCurrentActiveQuality(): number | null;
+}
+
+export interface MediaPlayerWithAudio extends MediaPlayer {
+	isAudioSupported(): boolean;
+	getAudioTracks(): AudioTrack[];
+	setAudioTrack(index: number): void | Promise<void>;
+	getCurrentAudioTrack(): number | null;
 }
 
 export class MediaPlayerV2 {
@@ -201,6 +208,18 @@ export function usePlaybackRate() {
 		isPlaybackRateSupported,
 		playbackRate,
 		availablePlaybackRates,
+	};
+}
+
+const isAudioSupported: Ref<boolean> = ref(false);
+const audioTracks: Ref<AudioTrack[]> = ref([]);
+const currentAudioTrack: Ref<number | null> = ref(null);
+
+export function useAudioTracks() {
+	return {
+		isAudioSupported,
+		audioTracks,
+		currentAudioTrack,
 	};
 }
 
