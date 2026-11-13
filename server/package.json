@@ -54,7 +54,7 @@
 		"validator": "^13.15.20",
 		"winston": "^3.10.0",
 		"ws": "^7.5.10",
-		"zod": "^3.22.4",
+		"zod": "^4.6.6",
 		"zod-validation-error": "^3.0.2"
 	},
 	"devDependencies": {
